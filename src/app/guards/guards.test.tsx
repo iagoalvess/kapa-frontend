@@ -1,26 +1,41 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
+import { createMemoryRouter } from 'react-router'
+import { RouterProvider } from 'react-router/dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { PERFIS } from '@/config/perfis'
+import { env } from '@/config/env'
+import { PAPEIS, PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
+import AlterarSenhaPage from '@/features/auth/pages/AlterarSenhaPage'
+import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { sessao } from '@/lib/http/sessao'
+import { servidor } from '@/test/msw/server'
 import { ExigeAutenticacao } from './ExigeAutenticacao'
+import { ExigeFormatura } from './ExigeFormatura'
 import { ExigePerfil } from './ExigePerfil'
 
 /**
  * Monta um access token com as claims pedidas. A assinatura é irrelevante: `sessao.autenticar`
  * só lê o corpo.
  */
-function tokenCom(perfis: string[]): string {
-  const corpo = { sub: 'u-1', name: 'Teste', email: 'teste@exemplo.com', role: perfis }
+function tokenCom(perfis: string[], formaturaId?: string): string {
+  const corpo = {
+    sub: 'u-1',
+    name: 'Teste',
+    email: 'teste@exemplo.com',
+    role: perfis,
+    ...(formaturaId === undefined ? {} : { formatura_id: formaturaId, papel: PAPEIS.formando }),
+  }
   const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
 
   return `cabecalho.${base64}.assinatura`
 }
 
-function entrar(perfis: string[]) {
+function entrar(perfis: string[], formaturaId?: string) {
   sessao.autenticar({
-    accessToken: tokenCom(perfis),
+    accessToken: tokenCom(perfis, formaturaId),
     expiraEm: new Date(Date.now() + 900_000).toISOString(),
   })
 }
@@ -35,11 +50,17 @@ function renderizarGuarda(guarda: React.ReactElement, rotaInicial = '/protegida'
       },
       { path: ROTAS.login, element: <p>tela de login</p> },
       { path: ROTAS.inicio, element: <p>tela inicial</p> },
+      { path: ROTAS.selecionarFormatura, element: <p>escolha a formatura</p> },
     ],
     { initialEntries: [rotaInicial] },
   )
 
   return render(<RouterProvider router={router} />)
+}
+
+/** Login de mentira: mostra o aviso que a tela anterior deixou no `state`. */
+function Login() {
+  return <p>{useEstadoDeNavegacao('aviso') ?? 'sem aviso'}</p>
 }
 
 afterEach(() => {
@@ -60,6 +81,43 @@ describe('ExigeAutenticacao', () => {
     renderizarGuarda(<ExigeAutenticacao />)
 
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /**
+   * Trocar a senha encerra a sessão dentro do ramo protegido. Se a guarda redirecionar antes da
+   * navegação da tela terminar, o `state` dela vence e o aviso some do login.
+   */
+  it('não atropela o aviso de quem sai trocando a senha', async () => {
+    servidor.use(
+      http.post(
+        `${env.VITE_API_URL}/api/v1/conta/alterar-senha`,
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+    )
+    entrar([PERFIS.usuario])
+
+    const router = createMemoryRouter(
+      [
+        {
+          element: <ExigeAutenticacao />,
+          children: [{ path: ROTAS.alterarSenha, element: <AlterarSenhaPage /> }],
+        },
+        { path: ROTAS.login, element: <Login /> },
+      ],
+      { initialEntries: [ROTAS.alterarSenha] },
+    )
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    await userEvent.type(screen.getByLabelText('Senha atual'), 'SenhaAtual@123')
+    await userEvent.type(screen.getByLabelText('Nova senha'), 'NovaSenha@123')
+    await userEvent.type(screen.getByLabelText('Repita a nova senha'), 'NovaSenha@123')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+
+    expect(await screen.findByText(/Senha alterada/)).toBeInTheDocument()
   })
 })
 
@@ -89,6 +147,29 @@ describe('ExigePerfil', () => {
     entrar([PERFIS.administrador])
 
     renderizarGuarda(<ExigePerfil perfil={PERFIS.usuario} />)
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+})
+
+describe('ExigeFormatura', () => {
+  /**
+   * Sem a claim, a API responde 403 `formatura.nao_selecionada` e toda consulta volta vazia. A
+   * guarda evita que isso apareça como uma tela em branco sem explicação.
+   */
+  it('manda para a seleção quem ainda não escolheu formatura', () => {
+    entrar([PERFIS.usuario])
+
+    renderizarGuarda(<ExigeFormatura />)
+
+    expect(screen.getByText('escolha a formatura')).toBeInTheDocument()
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+  })
+
+  it('deixa passar quem tem formatura selecionada', () => {
+    entrar([PERFIS.usuario], 'f-1')
+
+    renderizarGuarda(<ExigeFormatura />)
 
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
   })

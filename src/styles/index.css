@@ -3,57 +3,82 @@
 /*
   Tailwind v4 é configurado em CSS, não em tailwind.config.ts. Token novo entra em @theme
   e vira utilitário automaticamente (--color-marca-500 vira bg-marca-500).
+
+  A paleta Laranja é aplicada repintando os tokens que o shadcn já lê (--primary, --background,
+  --border…). É o que veste a UI inteira sem tocar em components/ui/, que é código vendorizado.
 */
 
+/*
+  Sem modo escuro: o produto é claro, laranja sobre branco. O `color-scheme` impede o navegador de
+  pintar scrollbar, autofill e controles nativos de escuro quando o sistema operacional está em
+  dark. A variante `dark:` aponta para uma classe que ninguém aplica — sem isso o Tailwind a
+  ligaria pelo `prefers-color-scheme` em qualquer componente vendorizado que a traga.
+*/
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-}
+  /* Laranja — marca */
+  --brand-wash: #fdf4ea;
+  --brand-tint: #fbe6cc;
+  --brand-soft: #f6c88e;
+  --brand: #f2994a;
+  --brand-hover: #e0812f;
+  --brand-border: #c2650f;
+  --brand-text: #a6540a;
+  --on-brand: #ffffff; /* decisão do produto: texto branco sobre o laranja (a paleta trazia #3A2308) */
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 18%);
-  --ring: oklch(0.556 0 0);
+  /* Estados */
+  --success-bg: #e4f2ec;
+  --success-text: #157a5a;
+  --success-fill: #1d9e75;
+  --warning-bg: #fbebdc;
+  --warning-text: #c2600f;
+  --warning-fill: #e07b1f;
+  --danger-bg: #fceaea;
+  --danger-text: #b3261e;
+  --danger-fill: #d93b30;
+  --neutral-bg: #eceef1;
+  --neutral-text: #4a5560;
+
+  /* Neutros */
+  --page: #f7f6f3;
+  --surface: #ffffff;
+  --track: #f0efec;
+  --line: #e8e7e3;
+  --text-primary: #1a1a18;
+  --text-secondary: #6b6b66;
+  --text-muted: #9a9a94;
+  --cta-dark: #1c1c1a;
+
+  /* Ponte para o shadcn: os nomes dele, os nossos valores */
+  --background: var(--page);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--cta-dark);
+  --primary-foreground: var(--surface);
+  --secondary: var(--track);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--track);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--brand-tint);
+  --accent-foreground: var(--brand-text);
+  --destructive: var(--danger-fill);
+  --destructive-foreground: var(--surface);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand-border);
 }
 
 @theme inline {
+  /* Plus Jakarta Sans variável (200–800), carregada em main.tsx. Botões herdam pelo preflight. */
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -74,9 +99,114 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-border: var(--brand-border);
+  --color-brand-wash: var(--brand-wash);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-text: var(--brand-text);
+  --color-on-brand: var(--on-brand);
+  --color-success: var(--success-fill);
+  --color-warning: var(--warning-fill);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+}
+
+/*
+  Animações do carrossel do login. Viram utilitários `animate-*`; quem usa aplica com
+  `motion-safe:`, e sem movimento cada elemento fica na posição de repouso da composição.
+  A distância percorrida vem de `--percurso`, definido no próprio elemento.
+
+  Esteira: ciclo de 6s, do tamanho do slide. Cada passagem só ocupa a primeira metade — entra,
+  é processada e sai — e a segunda começa 3s depois, quando a primeira já saiu. Nunca há uma
+  entrando enquanto outra sai. O pulso da máquina (3s) coincide com cada chegada.
+*/
+@theme {
+  --animate-surgir: surgir 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-entrar-na-maquina: entrar-na-maquina 6s ease-in-out infinite both;
+  --animate-sair-da-maquina: sair-da-maquina 6s ease-in-out infinite both;
+  --animate-processar: processar 3s ease-in-out infinite;
+  --animate-encher: encher 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+  --animate-halo: halo 2s ease-out infinite;
+
+  @keyframes surgir {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.97);
+    }
+  }
+
+  @keyframes entrar-na-maquina {
+    0% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+    5% {
+      opacity: 1;
+    }
+    23% {
+      opacity: 1;
+      transform: translateX(var(--percurso));
+    }
+    27%,
+    100% {
+      opacity: 0;
+      transform: translateX(var(--percurso)) scale(0.5);
+    }
+  }
+
+  @keyframes sair-da-maquina {
+    0%,
+    27% {
+      opacity: 0;
+      transform: translateX(calc(var(--percurso) * -1)) scale(0.5);
+    }
+    34% {
+      opacity: 1;
+      transform: translateX(calc(var(--percurso) * -0.75)) scale(1);
+    }
+    46% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    50%,
+    100% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes processar {
+    0%,
+    40%,
+    60%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes encher {
+    from {
+      stroke-dashoffset: var(--circunferencia);
+    }
+  }
+
+  @keyframes halo {
+    from {
+      opacity: 0.7;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.3);
+    }
+  }
 }
 
 @layer base {

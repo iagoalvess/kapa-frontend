@@ -175,7 +175,7 @@ produto: (id: string) => `/produtos/${id}`,
 Se a tela for só de administrador, ponha dentro do ramo com `ExigePerfil` — e confirme que o
 endpoint também exige, porque a guarda é navegação, não segurança.
 
-Menu, se houver: `src/components/layout/Cabecalho.tsx`.
+Menu, se houver: `src/app/layouts/Cabecalho.tsx`.
 
 ---
 

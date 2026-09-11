@@ -1,12 +1,17 @@
 import { api } from '@/lib/http/cliente'
 import type { ParDeTokens } from '@/lib/http/sessao'
-import type { Credenciais } from '../types/auth.types'
+import type { Credenciais, NovaConta } from '../types/auth.types'
 
 const BASE = '/api/v1/auth'
 
 /** Autentica e devolve o par de tokens. */
 export function entrar(credenciais: Credenciais) {
   return api.post<ParDeTokens>(`${BASE}/login`, { body: credenciais, autenticar: false })
+}
+
+/** Cria a conta e já devolve a sessão — quem se cadastra entra direto. */
+export function registrar(conta: NovaConta) {
+  return api.post<ParDeTokens>(`${BASE}/registrar`, { body: conta, autenticar: false })
 }
 
 /**

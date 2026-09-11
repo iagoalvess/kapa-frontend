@@ -1,4 +1,5 @@
 import { isRouteErrorResponse, useRouteError } from 'react-router'
+import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { mensagemDoErro } from '@/lib/http/erros'
 
@@ -16,6 +17,7 @@ export function PaginaDeErro() {
 
   return (
     <main className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <LogoKapa className="h-9" />
       <h1 className="text-2xl font-semibold">{titulo}</h1>
       <p className="text-muted-foreground max-w-md text-sm">{detalhe}</p>
       <Button onClick={() => globalThis.location.reload()}>Recarregar</Button>

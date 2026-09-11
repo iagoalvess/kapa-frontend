@@ -10,8 +10,18 @@ import LoginPage from './LoginPage'
 
 const LOGIN = `${env.VITE_API_URL}/api/v1/auth/login`
 
+async function informarEmail(email: string) {
+  await userEvent.type(screen.getByLabelText('Qual seu e-mail?'), email)
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+}
+
+async function informarSenha(senha: string) {
+  await userEvent.type(await screen.findByLabelText('Sua senha'), senha)
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+}
+
 describe('LoginPage', () => {
-  it('autentica e guarda a sessão', async () => {
+  it('autentica em duas etapas e guarda a sessão', async () => {
     servidor.use(
       http.post(LOGIN, () =>
         HttpResponse.json({
@@ -24,9 +34,9 @@ describe('LoginPage', () => {
 
     renderizar(<LoginPage />)
 
-    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@exemplo.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'senha-correta')
-    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+    await informarEmail('ana@exemplo.com')
+    expect(screen.getByLabelText('Sua senha')).toHaveFocus()
+    await informarSenha('senha-correta')
 
     await waitFor(() => {
       expect(sessao.accessToken()).toBe('token')
@@ -45,21 +55,83 @@ describe('LoginPage', () => {
 
     renderizar(<LoginPage />)
 
-    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@exemplo.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'errada')
-    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+    await informarEmail('ana@exemplo.com')
+    await informarSenha('errada')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha inválidos.')
   })
 
-  it('não chama a API quando o e-mail é inválido', async () => {
+  it('não avança para a senha quando o e-mail é inválido', async () => {
     renderizar(<LoginPage />)
 
-    await userEvent.type(screen.getByLabelText('E-mail'), 'nao-e-email')
-    await userEvent.type(screen.getByLabelText('Senha'), 'qualquer')
-    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
-
     // Sem handler de login registrado: se a requisição saísse, o MSW derrubaria o teste.
+    await informarEmail('nao-e-email')
+
     expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Sua senha')).not.toBeInTheDocument()
+  })
+
+  it('volta para a etapa do e-mail quando a API aponta erro nele', async () => {
+    servidor.use(
+      http.post(LOGIN, () =>
+        HttpResponse.json(
+          { status: 400, title: 'Dados inválidos', errors: { Email: ['E-mail não cadastrado.'] } },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    renderizar(<LoginPage />)
+
+    await informarEmail('ana@exemplo.com')
+    await informarSenha('qualquer')
+
+    expect(await screen.findByText('E-mail não cadastrado.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Qual seu e-mail?')).toHaveValue('ana@exemplo.com')
+  })
+
+  it('permite trocar o e-mail na etapa da senha', async () => {
+    renderizar(<LoginPage />)
+
+    await informarEmail('ana@exemplo.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Trocar' }))
+
+    expect(screen.getByLabelText('Qual seu e-mail?')).toHaveValue('ana@exemplo.com')
+    expect(screen.getByLabelText('Qual seu e-mail?')).toHaveFocus()
+  })
+
+  it('oferece reenviar a confirmação quando o e-mail ainda não foi confirmado', async () => {
+    let reenviadoPara: unknown
+    servidor.use(
+      http.post(LOGIN, () =>
+        HttpResponse.json(
+          {
+            status: 403,
+            detail: 'Confirme seu e-mail antes de entrar.',
+            codigo: 'auth.email_nao_confirmado',
+          },
+          { status: 403 },
+        ),
+      ),
+      http.post(`${env.VITE_API_URL}/api/v1/conta/reenviar-confirmacao`, async ({ request }) => {
+        reenviadoPara = await request.json()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderizar(<LoginPage />)
+
+    await informarEmail('ana@exemplo.com')
+    await informarSenha('senha-correta')
+    await userEvent.click(await screen.findByRole('button', { name: 'Reenviar e-mail de confirmação' }))
+
+    expect(await screen.findByText('Enviamos um novo link para ana@exemplo.com.')).toBeInTheDocument()
+    expect(reenviadoPara).toEqual({ email: 'ana@exemplo.com' })
+  })
+
+  it('mostra o aviso deixado pela tela anterior', () => {
+    renderizar(<LoginPage />, { pathname: '/login', state: { aviso: 'Senha redefinida.' } })
+
+    expect(screen.getByRole('status')).toHaveTextContent('Senha redefinida.')
   })
 })

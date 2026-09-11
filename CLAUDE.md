@@ -73,8 +73,19 @@ Toda chamada leva `credentials: 'include'`, senão o cookie não acompanha entre
 
 ### Guarda de rota é navegação, não segurança
 
-`ExigeAutenticacao`/`ExigePerfil` decidem para onde o usuário vai. Quem autoriza é a API. Nunca
-traga para o front dado que o usuário não pode ver e o esconda com `if`.
+`ExigeAutenticacao`/`ExigePerfil`/`ExigeFormatura` decidem para onde o usuário vai. Quem autoriza
+é a API. Nunca traga para o front dado que o usuário não pode ver e o esconda com `if`.
+
+### Trocar de formatura limpa o cache
+
+A formatura da sessão vem da claim `formatura_id` do access token (`useFormaturaAtiva`). Trocar
+de formatura grava o par novo e chama `queryClient.clear()` — sem isso, a tela mostra por alguns
+segundos os dados da turma anterior, que é o vazamento que o isolamento existe para impedir, só
+que do lado do cliente.
+
+A tela de seleção só aparece com **nenhuma** ou **duas ou mais** formaturas: com um vínculo só, o
+backend já emite o token com a claim no login. Nenhuma formatura tem tela própria
+(`SemFormatura`), porque comissão e formando precisam de respostas opostas ali.
 
 ### Estado de filtro vive na URL
 
@@ -93,8 +104,16 @@ aparece um dia atrás.
 
 ### Cor só por token
 
-`bg-background`, `text-muted-foreground`. Cor literal (`text-[#1d4ed8]`) quebra o tema escuro,
-que é aplicado em `main.tsx` antes do primeiro render.
+`bg-background`, `text-muted-foreground`. Cor literal (`text-[#1d4ed8]`) escapa da paleta
+sem ninguém perceber. Não há modo escuro: o produto é claro, laranja sobre branco.
+
+A paleta Laranja vive em `styles/index.css`, repintando os tokens que o shadcn já lê — é por isso
+que `components/ui/` não precisa ser tocado. Regras da marca: sobre `--brand` (#F2994A) o texto
+é sempre `--on-brand` — branco, por decisão do produto (contraste de 2,23:1, abaixo do AA; o
+tom escuro original da paleta era #3A2308); `--brand` é superfície, não letra — texto laranja
+sobre branco usa `--brand-text` (exceção pedida pelo produto: os links das telas de conta usam
+`--brand-hover`); e `--brand` é acento, não o botão primário —
+o primário é `--cta-dark` (exceção: o CTA das telas de conta, em `features/auth/components`).
 
 ### Sem `any`, sem `console`
 
@@ -104,6 +123,14 @@ O lint barra os dois. Tipo desconhecido é `unknown` com estreitamento.
 
 Vendorizado do shadcn, fora do Prettier e do oxlint. Edite por necessidade real, nunca por
 estilo — reformatar torna ilegível o diff do próximo `npx shadcn add`.
+
+Alterações locais, a reaplicar se um componente for regenerado:
+
+- `label.tsx`: `w-fit`. Sem ele o rótulo (`flex`) ocupa a linha inteira do formulário, e clicar
+  no espaço vazio ao lado devolve o foco ao campo — parece que o campo "não solta o foco".
+- `input.tsx` e `form.tsx`: sem estilo de erro no campo e no rótulo (`aria-invalid:border-*`,
+  `data-[error=true]:text-*`). Decisão do produto: no erro, só a mensagem fica vermelha. O
+  atributo `aria-invalid` continua, para o leitor de tela.
 
 ### Comentário explica por quê
 

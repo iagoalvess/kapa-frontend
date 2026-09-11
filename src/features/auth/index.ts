@@ -1,2 +1,2 @@
-export { useEntrar, useSair } from './hooks/useAutenticacao'
-export type { Credenciais } from './types/auth.types'
+export { useEntrar, useRegistrar, useSair } from './hooks/useAutenticacao'
+export type { Credenciais, NovaConta } from './types/auth.types'

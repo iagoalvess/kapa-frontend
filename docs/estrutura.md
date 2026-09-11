@@ -136,7 +136,6 @@ lib/
 ├── query/
 │   └── client.ts             # QueryClient e seus padrões (staleTime, retry)
 ├── formato.ts                # data, moeda e número em pt-BR, via Intl
-├── tema.ts                   # claro/escuro, aplicado antes do primeiro render
 └── utils.ts                  # cn()
 ```
 
@@ -161,8 +160,11 @@ Nada aqui conhece `Usuario`, `Perfil` ou qualquer conceito do produto. É o que 
 components/
 ├── ui/                       # shadcn/ui vendorizado. NÃO edite por estilo; edite por necessidade.
 └── layout/
-    └── Cabecalho.tsx
+    └── LogoKapa.tsx
 ```
+
+O `Cabecalho` mora em `app/layouts/`, e não aqui: ele monta peças de features (seletor de
+formatura, sair), e `components/` não importa de `features/`.
 
 `ui/` está fora do Prettier e do oxlint: é código de terceiro, atualizado por
 `npx shadcn@latest add <componente>`.

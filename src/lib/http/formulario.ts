@@ -1,5 +1,16 @@
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
-import { ehErroDaApi } from './erros'
+import { ehErroDaApi, mensagemDoErro } from './erros'
+
+/**
+ * Leva ao formulário qualquer falha da mutação: erros de campo embaixo de cada campo, o resto em
+ * `root`, para o formulário exibir junto do botão.
+ *
+ * @param erro Falha capturada na mutação.
+ * @param setError `setError` do `useForm`.
+ */
+export function exibirErroNoFormulario<T extends FieldValues>(erro: unknown, setError: UseFormSetError<T>) {
+  if (!aplicarErrosDaApi(erro, setError)) setError('root', { message: mensagemDoErro(erro) })
+}
 
 /**
  * Devolve ao formulário os erros de validação que vieram da API.

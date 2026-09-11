@@ -4,6 +4,10 @@ export interface UsuarioAutenticado {
   nome: string
   email: string
   perfis: string[]
+  /** Formatura selecionada na sessão. `null` enquanto o usuário não escolheu uma. */
+  formaturaId: string | null
+  /** Papel do usuário na formatura selecionada. `null` sem formatura. */
+  papel: string | null
 }
 
 interface CorpoDoToken {
@@ -11,6 +15,8 @@ interface CorpoDoToken {
   name?: string
   email?: string
   role?: string | string[]
+  formatura_id?: string
+  papel?: string
 }
 
 /**
@@ -42,6 +48,8 @@ export function lerAccessToken(token: string): UsuarioAutenticado | null {
       nome: claims.name ?? '',
       email: claims.email ?? '',
       perfis: Array.isArray(papeis) ? papeis : [papeis],
+      formaturaId: claims.formatura_id ?? null,
+      papel: claims.papel ?? null,
     }
   } catch {
     return null

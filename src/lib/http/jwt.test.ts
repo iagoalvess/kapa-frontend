@@ -18,7 +18,14 @@ function token(corpo: unknown): string {
 describe('lerAccessToken', () => {
   it('lê as claims do corpo', () => {
     const usuario = lerAccessToken(
-      token({ sub: 'abc-123', name: 'Maria Souza', email: 'maria@exemplo.com', role: ['Administrador'] }),
+      token({
+        sub: 'abc-123',
+        name: 'Maria Souza',
+        email: 'maria@exemplo.com',
+        role: ['Administrador'],
+        formatura_id: 'f-1',
+        papel: 'Tesoureiro',
+      }),
     )
 
     expect(usuario).toEqual({
@@ -26,7 +33,21 @@ describe('lerAccessToken', () => {
       nome: 'Maria Souza',
       email: 'maria@exemplo.com',
       perfis: ['Administrador'],
+      formaturaId: 'f-1',
+      papel: 'Tesoureiro',
     })
+  })
+
+  /**
+   * Token sem formatura continua válido: é o que o login emite, e o que serve para listar as
+   * turmas e escolher uma. Ler `formaturaId` como string vazia faria a guarda achar que há
+   * formatura selecionada.
+   */
+  it('trata ausência de formatura como nulo', () => {
+    const usuario = lerAccessToken(token({ sub: '1' }))
+
+    expect(usuario?.formaturaId).toBeNull()
+    expect(usuario?.papel).toBeNull()
   })
 
   /**
@@ -42,7 +63,14 @@ describe('lerAccessToken', () => {
   })
 
   it('preenche com string vazia as claims ausentes', () => {
-    expect(lerAccessToken(token({}))).toEqual({ id: '', nome: '', email: '', perfis: [] })
+    expect(lerAccessToken(token({}))).toEqual({
+      id: '',
+      nome: '',
+      email: '',
+      perfis: [],
+      formaturaId: null,
+      papel: null,
+    })
   })
 
   /** Acentuação sobrevive: o corpo é UTF-8, não latin-1. */

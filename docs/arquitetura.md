@@ -291,15 +291,12 @@ use — "ganchos" em nome de pasta é pior para todo mundo.
 
 ## 15. Nada de biblioteca para o que o navegador já faz
 
-**Decisão:** `Intl` para data, moeda e número (`lib/formato.ts`); `classList` + `matchMedia`
-para tema claro/escuro (`lib/tema.ts`).
+**Decisão:** `Intl` para data, moeda e número (`lib/formato.ts`).
 
-**O que foi descartado:** date-fns, dayjs, next-themes.
+**O que foi descartado:** date-fns, dayjs.
 
 **Por quê:** `Intl.DateTimeFormat` e `Intl.NumberFormat` cobrem formatação em pt-BR com zero
-dependência e conhecem fuso e localidade melhor que qualquer wrapper. O next-themes resolve o
-problema de _hidratação_ de um framework com servidor — que esta aplicação não tem; aqui o tema é
-uma classe no `<html>` aplicada antes do render.
+dependência e conhecem fuso e localidade melhor que qualquer wrapper.
 
 **O que o módulo próprio acrescenta, e que a biblioteca não daria de graça:** a normalização de
 data sem fuso. O backend grava em UTC, mas nem todo serializador marca o `Z`; sem marca, o

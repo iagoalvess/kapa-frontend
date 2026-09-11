@@ -313,19 +313,12 @@ que tem de bater com o fechamento do servidor), o parâmetro entra aqui, não em
 
 ---
 
-## Tema claro e escuro
+## Sem modo escuro
 
-```tsx
-const [tema, alternarTema] = useTema()
-```
-
-O tema é aplicado em `main.tsx` **antes** do primeiro render — aplicar dentro do React produz o
-flash branco. A primeira visita segue a preferência do sistema operacional; a partir daí vale a
-escolha guardada.
-
-Componente nenhum precisa saber do tema: as cores vêm dos tokens (`bg-background`,
-`text-muted-foreground`), que já trocam junto. Cor escrita direto na classe é o que quebra o
-modo escuro.
+O produto é claro, laranja sobre branco — não existe tema escuro nem alternador. `:root` declara
+`color-scheme: light` para o navegador não escurecer controles nativos quando o sistema
+operacional está em dark. Cor vem sempre de token (`bg-background`, `text-muted-foreground`),
+nunca literal.
 
 ---
 

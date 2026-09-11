@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router'
-import { Cabecalho } from '@/components/layout/Cabecalho'
+import { Cabecalho } from './Cabecalho'
 import { env } from '@/config/env'
 
 /** Moldura das telas autenticadas: cabeçalho fixo, a rota filha no corpo e a versão no rodapé. */

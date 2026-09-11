@@ -58,7 +58,7 @@ Rodar os cinco antes de abrir PR evita a viagem de ida e volta.
 | **Testes**      | Vitest + Testing Library + MSW                                                  |
 | **Infra**       | Dockerfile multi-estágio, nginx com fallback de SPA, GitHub Actions, Dependabot |
 
-Sem Axios, sem date-fns, sem Redux, sem next-themes, sem biblioteca de UI. O que o navegador já
+Sem Axios, sem date-fns, sem Redux, sem biblioteca de UI. O que o navegador já
 faz, o navegador faz.
 
 ---
@@ -72,11 +72,10 @@ faz, o navegador faz.
 | **Autorização de tela** | `ExigeAutenticacao` e `ExigePerfil`, com o administrador passando por qualquer perfil.                                             |
 | **Erros**               | `ProblemDetails` (RFC 9457) vira `ErroDaApi` com `codigo`, `status` e `traceId`; validação volta para o campo certo do formulário. |
 | **Configuração**        | `VITE_*` validadas com Zod no boot — a aplicação não sobe mal configurada.                                                         |
-| **Tema**                | Claro/escuro aplicado antes do primeiro render, sem flash e sem dependência.                                                       |
 | **Formatação**          | Data, moeda e número em pt-BR via `Intl`, com o UTC do backend tratado corretamente.                                               |
 | **Pós-deploy**          | Chunk obsoleto recarrega sozinho; a versão do build aparece no rodapé.                                                             |
 | **Acessibilidade**      | Salto para o conteúdo, foco gerenciado, rótulos ligados aos campos.                                                                |
-| **Testes**              | 13 testes cobrindo a fila de renovação, a conversão de erro, o fluxo de login, formatação e tema.                                  |
+| **Testes**              | 13 testes cobrindo a fila de renovação, a conversão de erro, o fluxo de login e formatação.                                        |
 
 Telas: login e uma inicial de uma tela só, que existe para o ramo autenticado ter destino —
 é a primeira coisa a substituir.
@@ -92,8 +91,8 @@ src/
 ├── components/   ui/ (shadcn) + layout/         (visual reusável)
 ├── config/       env, rotas, perfis
 ├── hooks/        usados por 2+ features
-├── lib/          http, query, formato, tema     (infraestrutura, sem domínio)
-├── styles/       Tailwind e tokens de tema
+├── lib/          http, query, formato           (infraestrutura, sem domínio)
+├── styles/       Tailwind e tokens da paleta
 ├── test/         setup, MSW, utilitários
 └── types/        contrato compartilhado da API
 ```
