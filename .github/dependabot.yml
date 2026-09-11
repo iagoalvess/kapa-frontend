@@ -1,0 +1,28 @@
+version: 2
+
+# Template envelhece sozinho. Sem isto, daqui a oito meses ninguém sabe o que dá para subir.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Um PR por família. Subir React sem @types/react, ou Vite sem seus plugins, quebra por
+      # incompatibilidade e não por regressão — e o CI não explica qual dos dois foi.
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom', 'babel-plugin-react-compiler']
+      vite:
+        patterns: ['vite', '@vitejs/*', '@rolldown/*', 'vitest', '@vitest/*']
+      tailwind:
+        patterns: ['tailwindcss', '@tailwindcss/*', 'prettier-plugin-tailwindcss']
+      testes:
+        patterns: ['@testing-library/*', 'jsdom', 'msw']
+      restante:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

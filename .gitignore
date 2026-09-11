@@ -1,0 +1,27 @@
+# Dependências e build
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Ambiente: nunca versionado. Use .env.example como referência.
+.env
+.env.local
+.env.*.local
+
+# Teste
+coverage/
+
+# Editor e SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.local
+
+# Ferramentas
+.husky/_/
+
+# Logs
+*.log
+npm-debug.log*

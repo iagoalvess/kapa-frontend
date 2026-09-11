@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        # Do navegador do usuário, não de dentro da rede do compose: é o navegador que chama a API.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_APP_NOME: ${VITE_APP_NOME:-Frontend}
+    ports:
+      - '${FRONTEND_PORT:-3000}:80'
+    restart: unless-stopped

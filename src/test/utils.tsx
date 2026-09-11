@@ -1,0 +1,29 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { createMemoryRouter, RouterProvider } from 'react-router'
+
+/**
+ * Renderiza um componente com roteador e cache próprios.
+ *
+ * Cada teste ganha um `QueryClient` novo — cache compartilhado faz um teste passar por causa do
+ * anterior, e o conjunto quebra assim que alguém roda em outra ordem.
+ *
+ * @param elemento Componente sob teste.
+ * @param rota Caminho inicial do roteador.
+ */
+export function renderizar(elemento: ReactElement, rota = '/') {
+  const cliente = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+
+  const router = createMemoryRouter([{ path: '*', element: elemento }], {
+    initialEntries: [rota],
+  })
+
+  return render(
+    <QueryClientProvider client={cliente}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
+}
