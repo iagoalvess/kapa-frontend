@@ -1,5 +1,8 @@
 import { Camera, Check, GraduationCap, Mail, MapPin, PartyPopper, ReceiptText } from 'lucide-react'
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react'
+import mascoteAcenando from '@/assets/mascote/acenando.webp'
+import mascoteFeliz from '@/assets/mascote/feliz.webp'
+import mascoteLendo from '@/assets/mascote/lendo.webp'
 
 /*
   ponytail: conteúdo ilustrativo, com nomes e valores de exemplo. Quando o produto fechar as
@@ -165,9 +168,17 @@ function CenaMeta() {
 }
 
 const SLIDES = [
-  { Cena: CenaRecados, frase: 'Recados e prazos chegam pra turma toda — sem se perder no grupo.' },
-  { Cena: CenaMaquina, frase: 'Cada contribuição entra no lugar certo, sozinha.' },
-  { Cena: CenaMeta, frase: 'A meta da formatura subindo — e todo mundo vê quanto falta.' },
+  {
+    Cena: CenaRecados,
+    mascote: mascoteAcenando,
+    frase: 'Recados e prazos chegam pra turma toda — sem se perder no grupo.',
+  },
+  { Cena: CenaMaquina, mascote: mascoteLendo, frase: 'Cada contribuição entra no lugar certo, sozinha.' },
+  {
+    Cena: CenaMeta,
+    mascote: mascoteFeliz,
+    frase: 'A meta da formatura subindo — e todo mundo vê quanto falta.',
+  },
 ]
 
 /**
@@ -194,16 +205,22 @@ export function CarrosselDaMarca() {
   const [slide, setSlide] = useCarrossel(SLIDES.length)
   const atual = SLIDES[slide]
   if (!atual) return null
-  const { Cena, frase } = atual
+  const { Cena, mascote, frase } = atual
 
   return (
     <>
       {/* `key` remonta a cena na troca, e as animações recomeçam do zero em vez de pegar no meio. */}
-      <div
-        key={slide}
-        className="border-on-brand/20 bg-on-brand/10 aspect-[56/45] w-full max-w-100 overflow-hidden rounded-3xl border backdrop-blur-sm"
-      >
-        <Cena />
+      <div key={slide} className="relative w-full max-w-100">
+        <div className="border-on-brand/20 bg-on-brand/10 aspect-[56/45] overflow-hidden rounded-3xl border backdrop-blur-sm">
+          <Cena />
+        </div>
+
+        {/* Fora do cartão (que corta o que vaza), para o mascote poder sair pela quina direita. */}
+        <img
+          src={mascote}
+          alt=""
+          className="motion-safe:animate-surgir pointer-events-none absolute -right-12 -bottom-10 w-40 drop-shadow-xl"
+        />
       </div>
 
       <div className="mt-8 flex gap-2" role="tablist" aria-label="Destaques">

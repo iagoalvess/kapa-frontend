@@ -14,7 +14,11 @@ export const esquemaDeLogin = z.object({
   senha: z.string().min(1, 'A senha é obrigatória.'),
 })
 
-/** Criação de conta. */
+/**
+ * Criação de conta, com um aceite obrigatório que cobre todos os documentos legais.
+ *
+ * `true` literal: `z.boolean()` aceitaria `false` e deixaria o cadastro passar sem aceite.
+ */
 export const esquemaDeNovaConta = z.object({
   nome: z
     .string()
@@ -23,6 +27,7 @@ export const esquemaDeNovaConta = z.object({
     .max(120, 'O nome deve ter no máximo 120 caracteres.'),
   email,
   senha: z.string().min(1, 'A senha é obrigatória.'),
+  aceite: z.literal(true, 'É preciso aceitar para continuar.'),
 })
 
 /** Pedido que só leva o e-mail: esqueci a senha e reenvio da confirmação. */

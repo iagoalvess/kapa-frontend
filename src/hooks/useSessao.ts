@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
-import type { Perfil } from '@/config/perfis'
-import { PERFIS } from '@/config/perfis'
+import type { Papel, Perfil } from '@/config/perfis'
+import { PAPEIS, PERFIS } from '@/config/perfis'
 import { sessao, type EstadoDaSessao } from '@/lib/http/sessao'
 
 /** Estado da sessão, re-renderizando quem usa quando o usuário entra ou sai. */
@@ -39,5 +39,24 @@ export function useFormaturaAtiva() {
   return {
     formaturaId: usuario?.formaturaId ?? null,
     selecionada: (usuario?.formaturaId ?? null) !== null,
+  }
+}
+
+/**
+ * Papel na formatura selecionada, para **exibição** — esconder menu, desabilitar botão.
+ *
+ * Espelha `Politicas.ExigirPapel` do backend: o Presidente passa em qualquer checagem, e sem
+ * formatura selecionada ninguém passa. A mesma ressalva de `usePerfil` vale aqui: quem autoriza
+ * é a API.
+ */
+export function usePapel() {
+  const { usuario } = useSessao()
+  const papel = (usuario?.formaturaId ? usuario.papel : null) as Papel | null
+
+  return {
+    papel,
+    ehPresidente: papel === PAPEIS.presidente,
+    /** Presidente, ou um dos papéis informados. */
+    tem: (...papeis: Papel[]) => papel !== null && (papel === PAPEIS.presidente || papeis.includes(papel)),
   }
 }

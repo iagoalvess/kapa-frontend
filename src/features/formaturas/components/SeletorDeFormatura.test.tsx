@@ -72,6 +72,44 @@ describe('SeletorDeFormatura', () => {
     expect(sessao.estado().usuario?.formaturaId).toBe('f-2')
   })
 
+  /** O nome é texto livre ("Medicina 2027.1 — teste 1789…"); o cabeçalho mostra curso e turma. */
+  it('mostra curso e turma, e o nome só quando o cadastro não tem curso', async () => {
+    entrarNa('f-1')
+    servidor.use(
+      http.get(MINHAS, () =>
+        HttpResponse.json([
+          {
+            id: 'f-1',
+            nome: 'Medicina 2027.1 — teste 1789',
+            curso: 'Medicina',
+            instituicao: 'UFPR',
+            ano: 2027,
+            semestre: 1,
+            papel: 'Presidente',
+          },
+          {
+            id: 'f-2',
+            nome: 'Turma antiga',
+            curso: '',
+            instituicao: '',
+            ano: 0,
+            semestre: 0,
+            papel: 'Formando',
+          },
+        ]),
+      ),
+    )
+
+    renderizar(<SeletorDeFormatura />)
+
+    expect(await screen.findByText('Medicina 2027.1')).toBeInTheDocument()
+    expect(screen.queryByText(/teste 1789/, { selector: 'span' })).not.toBeInTheDocument()
+
+    entrarNa('f-2')
+
+    expect(await screen.findByText('Turma antiga', { selector: 'span' })).toBeInTheDocument()
+  })
+
   /** Um seletor de uma opção só é ruído no cabeçalho. */
   it('some quando o usuário só tem uma formatura', async () => {
     entrarNa('f-1')

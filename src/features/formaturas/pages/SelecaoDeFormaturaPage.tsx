@@ -5,6 +5,7 @@ import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { mensagemDoErro } from '@/lib/http/erros'
+import { descreverTurma } from '../components/SeletorDeFormatura'
 import { SemFormatura } from '../components/SemFormatura'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
 
@@ -50,9 +51,12 @@ export default function SelecaoDeFormaturaPage() {
             variant="outline"
             disabled={selecionar.isPending}
             onClick={() => escolher(formatura.id)}
-            className="h-auto justify-between py-3"
+            className="motion-safe:animate-entrar h-auto justify-between py-3"
           >
-            <span className="font-medium">{formatura.nome}</span>
+            <span className="grid text-left">
+              <span className="font-medium">{formatura.nome}</span>
+              <span className="text-muted-foreground text-xs font-normal">{descreverTurma(formatura)}</span>
+            </span>
             <span className="bg-accent text-accent-foreground rounded-md px-2 py-0.5 text-xs">
               {ROTULOS_DE_PAPEL[formatura.papel]}
             </span>

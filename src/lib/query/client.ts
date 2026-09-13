@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { ehErroDaApi } from '@/lib/http/erros'
+import { sessao } from '@/lib/http/sessao'
 
 /**
  * Cache de estado de servidor da aplicação.
@@ -26,4 +27,25 @@ export const queryClient = new QueryClient({
       retry: false,
     },
   },
+})
+
+let donoDoCache: string | null = null
+
+/**
+ * O cache pertence a um usuário numa formatura. Quando a sessão passa a ser de outro par, ele
+ * é descartado antes de qualquer tela ler dele.
+ *
+ * As chaves não levam usuário nem formatura (`['formandos', 'eu']` é o CPF de quem estiver
+ * logado). Os hooks de troca já limpam, mas a sessão também muda sem eles: queda por refresh
+ * recusado seguida de outro login na mesma aba, ou outra aba que trocou de conta e rotacionou o
+ * cookie. Sessão encerrada não limpa aqui — a tela de login não lê cache, e quem voltar a ser o
+ * mesmo dono reaproveita o que tinha.
+ */
+sessao.inscrever(() => {
+  const usuario = sessao.estado().usuario
+  if (!usuario) return
+
+  const dono = `${usuario.id}|${usuario.formaturaId ?? ''}`
+  if (donoDoCache !== null && dono !== donoDoCache) queryClient.clear()
+  donoDoCache = dono
 })

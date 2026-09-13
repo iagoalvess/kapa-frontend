@@ -26,14 +26,18 @@ export const estilos = {
  * Moldura das telas de conta: formulário à esquerda, carrossel da marca à direita.
  *
  * @param children Conteúdo do painel do formulário, abaixo do logo.
+ * @param etapa Nas telas de mais de um passo, qual está na tela: trocar o valor faz o conteúdo
+ *   entrar de novo com a animação padrão. O logo fica parado.
  */
-export function LayoutDeAutenticacao({ children }: { children: ReactNode }) {
+export function LayoutDeAutenticacao({ children, etapa }: { children: ReactNode; etapa?: string }) {
   return (
     <div className="grid min-h-full lg:grid-cols-[minmax(500px,660px)_1fr]">
       <main className="bg-card flex flex-col justify-center px-8 py-12 lg:px-14">
         <div className="mx-auto w-full max-w-md lg:-translate-y-10">
-          <LogoKapa className="mb-4 -ml-1 h-10" />
-          {children}
+          <LogoKapa className="mb-4 -ml-1 h-12" />
+          <div key={etapa} className="motion-safe:animate-entrar">
+            {children}
+          </div>
         </div>
       </main>
 
@@ -51,13 +55,15 @@ export function LayoutDeAutenticacao({ children }: { children: ReactNode }) {
   )
 }
 
-/** Aceite dos termos, no rodapé do login e do cadastro. */
+/**
+ * Lembrete dos termos no rodapé do login. O aceite com prova acontece no cadastro, com um checkbox
+ * que cobre os dois documentos; versão nova é pedida na entrada, pela guarda `ExigeAceites`.
+ */
 export function AvisoDeTermos() {
   const link =
     'text-brand-hover hover:text-brand-border font-medium underline underline-offset-2 transition-colors'
 
   return (
-    // ponytail: as rotas existem, as páginas não — caem no 404 até o texto jurídico chegar.
     <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
       Ao continuar, você concorda com os{' '}
       <Link to={ROTAS.termosDeUso} className={link}>

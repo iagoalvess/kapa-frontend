@@ -56,7 +56,8 @@ app/
 │   ├── ExigeAutenticacao.tsx #   sem sessão -> /login, guardando o destino pretendido
 │   └── ExigePerfil.tsx       #   sem o perfil -> início
 ├── layouts/
-│   └── LayoutApp.tsx         # cabeçalho, salto para o conteúdo, versão do build
+│   ├── LayoutApp.tsx         # barra lateral (gaveta no celular), título da rota, avatar
+│   └── BarraLateral.tsx      # formatura, menu por seção, conta e versão do build
 ├── PaginaInicial.tsx         # destino do ramo autenticado; troque pela sua primeira tela
 ├── PaginaDeErro.tsx          # errorElement da raiz
 └── PaginaNaoEncontrada.tsx   # rota "*"
@@ -163,7 +164,7 @@ components/
     └── LogoKapa.tsx
 ```
 
-O `Cabecalho` mora em `app/layouts/`, e não aqui: ele monta peças de features (seletor de
+A `BarraLateral` mora em `app/layouts/`, e não aqui: ela monta peças de features (seletor de
 formatura, sair), e `components/` não importa de `features/`.
 
 `ui/` está fora do Prettier e do oxlint: é código de terceiro, atualizado por

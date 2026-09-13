@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
+import { useState } from 'react'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -10,10 +11,13 @@ import { PAPEIS, PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import AlterarSenhaPage from '@/features/auth/pages/AlterarSenhaPage'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
+import { convitePendente } from '@/lib/convitePendente'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
+import { ExigeAceites } from './ExigeAceites'
 import { ExigeAutenticacao } from './ExigeAutenticacao'
 import { ExigeFormatura } from './ExigeFormatura'
+import { ExigePapel } from './ExigePapel'
 import { ExigePerfil } from './ExigePerfil'
 
 /**
@@ -81,6 +85,24 @@ describe('ExigeAutenticacao', () => {
     renderizarGuarda(<ExigeAutenticacao />)
 
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /** O convite aberto sem sessão sobrevive ao cadastro: quem acabou de entrar volta para ele. */
+  it('devolve ao convite quem entrou com um convite pendente', () => {
+    convitePendente.guardar('tk-1')
+    entrar([PERFIS.usuario])
+
+    const router = createMemoryRouter(
+      [
+        { element: <ExigeAutenticacao />, children: [{ path: ROTAS.inicio, element: <p>tela inicial</p> }] },
+        { path: `${ROTAS.convite}/:token`, element: <p>tela do convite</p> },
+      ],
+      { initialEntries: [ROTAS.inicio] },
+    )
+    render(<RouterProvider router={router} />)
+
+    expect(screen.getByText('tela do convite')).toBeInTheDocument()
+    convitePendente.descartar()
   })
 
   /**
@@ -172,5 +194,144 @@ describe('ExigeFormatura', () => {
     renderizarGuarda(<ExigeFormatura />)
 
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+})
+
+/** Entra numa formatura com o papel pedido. */
+function entrarComPapel(papel: string) {
+  const corpo = {
+    sub: 'u-1',
+    name: 'Teste',
+    email: 'teste@exemplo.com',
+    role: [PERFIS.usuario],
+    formatura_id: 'f-1',
+    papel,
+  }
+  const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
+  sessao.autenticar({
+    accessToken: `cabecalho.${base64}.assinatura`,
+    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+  })
+}
+
+describe('ExigePapel', () => {
+  it('devolve para o início quem não tem o papel', () => {
+    entrarComPapel(PAPEIS.formando)
+    renderizarGuarda(<ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />)
+
+    expect(screen.getByText('tela inicial')).toBeInTheDocument()
+  })
+
+  it('deixa passar quem tem um dos papéis', () => {
+    entrarComPapel(PAPEIS.comissao)
+    renderizarGuarda(<ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />)
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /** Espelha `Politicas.ExigirPapel`: o Presidente é coringa dentro da formatura. */
+  it('deixa o Presidente passar em papel que ele não tem', () => {
+    entrarComPapel(PAPEIS.presidente)
+    renderizarGuarda(<ExigePapel papeis={[PAPEIS.tesoureiro]} />)
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /** Papel sem formatura não significa nada — o backend recusa, a tela também não mostra. */
+  it('sem formatura selecionada ninguém passa', () => {
+    entrar([PERFIS.administrador])
+    renderizarGuarda(<ExigePapel papeis={[PAPEIS.formando]} />)
+
+    expect(screen.getByText('tela inicial')).toBeInTheDocument()
+  })
+})
+
+const MEUS_ACEITES = `${env.VITE_API_URL}/api/v1/legal/meus-aceites`
+
+/** Re-aceite de mentira: mostra o destino que a guarda deixou no `state`. */
+function Reaceite() {
+  return <p>re-aceite, voltar para {useEstadoDeNavegacao('de')}</p>
+}
+
+function renderizarComAceites(
+  conteudo = <p>conteúdo protegido</p>,
+  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
+  const router = createMemoryRouter(
+    [
+      { element: <ExigeAceites />, children: [{ path: '/protegida', element: conteudo }] },
+      { path: ROTAS.aceitePendente, element: <Reaceite /> },
+    ],
+    { initialEntries: ['/protegida?aba=1'] },
+  )
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
+}
+
+describe('ExigeAceites', () => {
+  it('leva ao re-aceite quem tem versão nova pendente, guardando o destino', async () => {
+    servidor.use(
+      http.get(MEUS_ACEITES, () =>
+        HttpResponse.json({ historico: [], pendencias: [{ tipo: 'TermosDeUso', versao: '2' }] }),
+      ),
+    )
+    entrar([PERFIS.usuario])
+    renderizarComAceites()
+
+    expect(await screen.findByText('re-aceite, voltar para /protegida?aba=1')).toBeInTheDocument()
+  })
+
+  it('deixa passar quem está em dia', async () => {
+    servidor.use(http.get(MEUS_ACEITES, () => HttpResponse.json({ historico: [], pendencias: [] })))
+    entrar([PERFIS.usuario])
+    renderizarComAceites()
+
+    expect(await screen.findByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /** Versão nova não bloqueia o produto: falhou a consulta, o aceite fica para o próximo acesso. */
+  it('deixa passar se a consulta de pendências falhar', async () => {
+    servidor.use(http.get(MEUS_ACEITES, () => new HttpResponse(null, { status: 500 })))
+    entrar([PERFIS.usuario])
+    renderizarComAceites()
+
+    expect(await screen.findByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /**
+   * Trocar de formatura limpa o cache e a pendência volta a carregar. Se a guarda desmontar a tela
+   * nesse meio-tempo, o que a tela faria ao terminar se perde — a seleção de formatura ficava
+   * parada em vez de levar ao destino.
+   */
+  it('não desmonta a tela quando o cache é limpo', async () => {
+    let consultas = 0
+    servidor.use(
+      http.get(MEUS_ACEITES, () => {
+        consultas++
+        return HttpResponse.json({ historico: [], pendencias: [] })
+      }),
+    )
+    entrar([PERFIS.usuario])
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    function Tela() {
+      const [limpo, definirLimpo] = useState(false)
+      // A mesma ordem de `useSelecionarFormatura`: sessão nova, depois o cache limpo.
+      const limpar = () => {
+        definirLimpo(true)
+        entrar([PERFIS.usuario], 'f-2')
+        queryClient.clear()
+      }
+      return <button onClick={limpar}>{limpo ? 'cache limpo' : 'limpar'}</button>
+    }
+
+    renderizarComAceites(<Tela />, queryClient)
+    await userEvent.click(await screen.findByRole('button', { name: 'limpar' }))
+
+    await waitFor(() => expect(consultas).toBe(2))
+    expect(screen.getByRole('button', { name: 'cache limpo' })).toBeInTheDocument()
   })
 })

@@ -115,6 +115,14 @@ sobre branco usa `--brand-text` (exceção pedida pelo produto: os links das tel
 `--brand-hover`); e `--brand` é acento, não o botão primário —
 o primário é `--cta-dark` (exceção: o CTA das telas de conta, em `features/auth/components`).
 
+### Movimento tem um ritmo só
+
+Duração e curva vêm de `--default-transition-*` em `styles/index.css`; não escreva `duration-*`
+nem `ease-*` solto. Controle (`a`, `button`, `input`, `select`) já transiciona cor e foco pelo CSS
+base. O que entra na tela usa `motion-safe:animate-entrar` — telas do app e mensagens
+(`role="alert"`, `<output>`, erro de campo) já recebem sozinhas; bloco que chega depois do
+"Carregando…" dentro de um contêiner que já estava na tela recebe a classe.
+
 ### Sem `any`, sem `console`
 
 O lint barra os dois. Tipo desconhecido é `unknown` com estreitamento.
@@ -131,6 +139,9 @@ Alterações locais, a reaplicar se um componente for regenerado:
 - `input.tsx` e `form.tsx`: sem estilo de erro no campo e no rótulo (`aria-invalid:border-*`,
   `data-[error=true]:text-*`). Decisão do produto: no erro, só a mensagem fica vermelha. O
   atributo `aria-invalid` continua, para o leitor de tela.
+- `alert-dialog.tsx`: importa de `@radix-ui/react-alert-dialog` e `@/lib/utils`. O CLI atual gera
+  para o pacote unificado `radix-ui` e, no Windows, grava em `./@/components/ui` e instala um
+  pacote `cn` que não tem nada a ver — confira o `git status` depois de todo `shadcn add`.
 
 ### Comentário explica por quê
 

@@ -1,27 +1,30 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSessao } from '@/hooks/useSessao'
+import { PAPEIS } from '@/config/perfis'
+import { AvisoDeCadastro } from '@/features/formandos'
+import { IndicadoresDeMembros } from '@/features/membros'
+import { usePapel, useSessao } from '@/hooks/useSessao'
 
 /**
  * Primeira tela depois do login.
  *
- * Existe para o ramo autenticado ter um destino e para provar que a sessão chegou. É a primeira
- * coisa a substituir num projeto de verdade.
+ * Por ora mostra o que já existe de número na turma: a faixa de membros, para quem faz a gestão
+ * (formando não lê a lista de membros, e a API responderia 403). O painel com caixa e
+ * adimplência entra na sprint do dashboard.
  */
 export function PaginaInicial() {
   const { usuario } = useSessao()
+  const { tem } = usePapel()
 
   return (
-    <Card className="max-w-lg">
-      <CardHeader>
-        <CardTitle>Olá, {usuario?.nome || 'visitante'}</CardTitle>
-        <CardDescription>{usuario?.email}</CardDescription>
-      </CardHeader>
+    <>
+      <AvisoDeCadastro />
+      {tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? <IndicadoresDeMembros /> : null}
 
-      <CardContent className="text-muted-foreground text-sm">
-        A sessão está ativa e o token é renovado sozinho. A primeira feature entra em{' '}
-        <code className="text-foreground">src/features/</code> — o passo a passo está em{' '}
-        <code className="text-foreground">docs/nova-feature.md</code>.
-      </CardContent>
-    </Card>
+      <section className="bg-card shadow-cartao rounded-2xl p-5">
+        <h2 className="text-foreground font-medium">Olá, {usuario?.nome || 'visitante'}</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Aqui vão aparecer o caixa da turma, as cobranças e os avisos, conforme cada módulo chegar.
+        </p>
+      </section>
+    </>
   )
 }

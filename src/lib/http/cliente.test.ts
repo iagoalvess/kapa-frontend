@@ -100,4 +100,27 @@ describe('cliente http', () => {
 
     expect(recebida).toBe('?pagina=2&ativo=false')
   })
+
+  /**
+   * Serializar em JSON ou fixar o `Content-Type` à mão perderia a fronteira do multipart.
+   *
+   * Confere só o cabeçalho: no jsdom o `FormData` é do jsdom e o `fetch` do Node não o monta como
+   * multipart — quem monta, no navegador, é o próprio navegador, desde que ninguém escreva o tipo.
+   */
+  it('não serializa FormData em JSON', async () => {
+    let tipo: string | null = null
+
+    servidor.use(
+      http.post(PROTEGIDO, ({ request }) => {
+        tipo = request.headers.get('Content-Type')
+        return HttpResponse.json({})
+      }),
+    )
+
+    const corpo = new FormData()
+    corpo.append('foto', new File(['abc'], 'foto.jpg', { type: 'image/jpeg' }))
+    await api.post('/api/v1/protegido', { autenticar: false, body: corpo })
+
+    expect(tipo).not.toBe('application/json')
+  })
 })

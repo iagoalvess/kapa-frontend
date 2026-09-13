@@ -22,6 +22,11 @@ describe('SelecaoDeFormaturaPage', () => {
     expect(await screen.findByText(/não está em uma formatura/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /sou da comissão/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /sou formando/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Criar uma formatura' })).toHaveAttribute(
+      'href',
+      '/formaturas/nova',
+    )
+    expect(screen.getByRole('textbox', { name: 'Código do convite' })).toBeInTheDocument()
     expect(screen.queryByText('Escolha a formatura')).not.toBeInTheDocument()
   })
 
@@ -29,15 +34,32 @@ describe('SelecaoDeFormaturaPage', () => {
     servidor.use(
       http.get(MINHAS, () =>
         HttpResponse.json([
-          { id: 'f-1', nome: 'Engenharia 2026', papel: 'Presidente' },
-          { id: 'f-2', nome: 'Medicina 2027', papel: 'Formando' },
+          {
+            id: 'f-1',
+            nome: 'Engenharia 2026',
+            curso: 'Engenharia',
+            instituicao: 'UFPR',
+            ano: 2026,
+            papel: 'Presidente',
+          },
+          {
+            id: 'f-2',
+            nome: 'Medicina 2027',
+            curso: 'Medicina',
+            instituicao: 'UFSC',
+            ano: 2027,
+            papel: 'Formando',
+          },
         ]),
       ),
     )
 
     renderizar(<SelecaoDeFormaturaPage />)
 
-    expect(await screen.findByRole('button', { name: /Engenharia 2026/ })).toBeInTheDocument()
+    // Curso, instituição e ano junto do nome: turmas homônimas precisam ser distinguíveis.
+    expect(
+      await screen.findByRole('button', { name: /Engenharia 2026.*Engenharia · UFPR · 2026/ }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Medicina 2027/ })).toBeInTheDocument()
     expect(screen.queryByText(/não está em uma formatura/i)).not.toBeInTheDocument()
   })

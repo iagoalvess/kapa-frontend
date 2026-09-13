@@ -15,7 +15,7 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <Toaster richColors position="top-right" />
-      {import.meta.env.DEV ? <ReactQueryDevtools buttonPosition="bottom-left" /> : null}
+      {import.meta.env.DEV ? <ReactQueryDevtools buttonPosition="bottom-right" /> : null}
     </QueryClientProvider>
   )
 }

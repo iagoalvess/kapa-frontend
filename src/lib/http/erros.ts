@@ -31,7 +31,10 @@ export class ErroDaApi extends Error {
   readonly erros: Record<string, string[]>
 
   constructor(status: number, problema: ProblemDetails) {
-    super(problema.detail ?? problema.title ?? MENSAGEM_PADRAO)
+    // Em 400 de validação o título é genérico ("dados inválidos"); o texto útil vem no campo.
+    super(
+      problema.detail ?? Object.values(problema.errors ?? {})[0]?.[0] ?? problema.title ?? MENSAGEM_PADRAO,
+    )
     this.name = 'ErroDaApi'
     this.status = status
     this.codigo = problema.codigo ?? `http.${status}`

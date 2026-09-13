@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* `animate-in`, `fade-in`, `zoom-in`… que os componentes do shadcn trazem (diálogo, menu, popover). */
+@import 'tw-animate-css';
 
 /*
   Tailwind v4 é configurado em CSS, não em tailwind.config.ts. Token novo entra em @theme
@@ -52,6 +54,14 @@
   --text-secondary: #6b6b66;
   --text-muted: #9a9a94;
   --cta-dark: #1c1c1a;
+
+  /* Avatares: pastéis categóricos, sempre com a inicial em branco. A cor sai do id da pessoa. */
+  --avatar-1: #6cc3b4;
+  --avatar-2: #8aa0e6;
+  --avatar-3: #e59ab8;
+  --avatar-4: #bb9be3;
+  --avatar-5: #e8915a;
+  --avatar-6: #8dc6a0;
 
   /* Ponte para o shadcn: os nomes dele, os nossos valores */
   --background: var(--page);
@@ -109,10 +119,54 @@
   --color-on-brand: var(--on-brand);
   --color-success: var(--success-fill);
   --color-warning: var(--warning-fill);
+  --color-success-bg: var(--success-bg);
+  --color-success-text: var(--success-text);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-text: var(--warning-text);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-text: var(--danger-text);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-neutral-text: var(--neutral-text);
+  --color-texto-muted: var(--text-muted);
+  --color-avatar-1: var(--avatar-1);
+  --color-avatar-2: var(--avatar-2);
+  --color-avatar-3: var(--avatar-3);
+  --color-avatar-4: var(--avatar-4);
+  --color-avatar-5: var(--avatar-5);
+  --color-avatar-6: var(--avatar-6);
+
+  /* Sombra dos cartões brancos sobre o fundo creme: larga e quase transparente, como na referência. */
+  --shadow-cartao: 0 1px 2px rgb(28 28 26 / 0.04), 0 6px 20px rgb(28 28 26 / 0.05);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+}
+
+/*
+  Movimento padrão da interface: uma duração e uma curva para tudo o que muda de estado ou entra
+  na tela. `--default-transition-*` é o que todo utilitário `transition-*` lê, e `animate-entrar`
+  usa os mesmos valores — hover, foco, troca de tela e aviso andam no mesmo ritmo.
+
+  Quem entra na tela usa `motion-safe:animate-entrar`. Onde já é automático, sem classe:
+  - cada tela nova do app (filhos do `<main>` do `LayoutApp`), inclusive o conteúdo que substitui
+    o "Carregando…";
+  - mensagens: `role="alert"`, `<output>` e o erro de campo do formulário (regra em `@layer base`).
+*/
+@theme {
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* `backwards`, e não `both`: um transform retido depois do fim prenderia `position: fixed` dos filhos. */
+  --animate-entrar: entrar var(--default-transition-duration) var(--default-transition-timing-function)
+    backwards;
+
+  @keyframes entrar {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
 }
 
 /*
@@ -216,5 +270,30 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+  }
+
+  /*
+    Todo controle troca de cor e de anel de foco no ritmo padrão, sem precisar de classe. Quem
+    declara o próprio `transition-*` (o `Button` do shadcn, por exemplo) sobrescreve: utilitário
+    vence `base`.
+  */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary {
+    transition-property:
+      color, background-color, border-color, outline-color, text-decoration-color, box-shadow;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--default-transition-timing-function);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [role='alert'],
+    output,
+    [data-slot='form-message'] {
+      animation: var(--animate-entrar);
+    }
   }
 }

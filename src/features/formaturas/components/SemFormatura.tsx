@@ -1,16 +1,35 @@
+import { type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { ROTAS } from '@/config/rotas'
+import { convitePendente } from '@/lib/convitePendente'
 
 /**
  * Porta de entrada de quem ainda não participa de nenhuma formatura.
  *
  * São duas pessoas diferentes chegando na mesma tela, e elas precisam de respostas opostas: a
- * comissão tem trabalho a fazer, o formando tem que esperar. Uma frase só — "peça um convite" —
- * manda o presidente da comissão esperar por um convite que ninguém vai mandar.
+ * comissão cria a turma, o formando entra pelo convite. Uma frase só — "peça um convite" — manda
+ * o presidente da comissão esperar por um convite que ninguém vai mandar.
  *
- * O caminho de criar a formatura e assinar o plano chega nas Sprints 2 e 3. Até lá esta tela
- * diz a verdade, em vez de oferecer um botão que não leva a lugar nenhum.
+ * O campo de convite existe desde já: sem ele, o formando que se cadastra antes de clicar no link
+ * fica preso numa tela sem saída. Aceita o código ou o link inteiro — quem cola o link não
+ * deveria ter de recortá-lo.
  */
 export function SemFormatura() {
+  const navegar = useNavigate()
+
+  const abrirConvite = (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault()
+    const valor = new FormData(evento.currentTarget).get('convite')
+    const codigo = typeof valor === 'string' ? valor.trim().split('/').filter(Boolean).pop() : undefined
+    if (!codigo) return
+    // Colar o código e clicar já é a decisão de entrar: a página do convite aceita sem pedir de novo.
+    convitePendente.guardar(codigo)
+    navegar(`${ROTAS.convite}/${encodeURIComponent(codigo)}`)
+  }
+
   return (
     <Card className="mx-auto max-w-xl">
       <CardHeader>
@@ -21,24 +40,32 @@ export function SemFormatura() {
       </CardHeader>
 
       <CardContent className="grid gap-4">
-        <section className="border-border rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">Sou da comissão de formatura</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Você cria a turma, escolhe o plano e convida os formandos. A criação da formatura entra em breve —
-            por enquanto, fale com quem te trouxe até aqui.
-          </p>
-          {/*
-            Sprint 2: o botão "Criar formatura" entra aqui, apontando para ROTAS.novaFormatura.
-            Sprint 3: a assinatura do plano vem logo depois da criação.
-          */}
+        <section className="border-border grid gap-3 rounded-lg border p-4">
+          <div>
+            <h2 className="text-sm font-semibold">Sou da comissão de formatura</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Você cria a turma, escolhe o plano e convida os formandos.
+            </p>
+          </div>
+          <Button asChild className="justify-self-start">
+            <Link to={ROTAS.novaFormatura}>Criar uma formatura</Link>
+          </Button>
         </section>
 
-        <section className="border-border rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">Sou formando</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Quem te inclui é a comissão da sua turma. Peça a ela o link de convite da formatura e abra-o com
-            esta conta.
-          </p>
+        <section className="border-border grid gap-3 rounded-lg border p-4">
+          <div>
+            <h2 className="text-sm font-semibold">Sou formando</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Quem te inclui é a comissão da sua turma. Cole aqui o código ou o link do convite que ela
+              enviou.
+            </p>
+          </div>
+          <form onSubmit={abrirConvite} className="flex gap-2">
+            <Input name="convite" aria-label="Código do convite" placeholder="Código ou link do convite" />
+            <Button type="submit" variant="outline">
+              Tenho um convite
+            </Button>
+          </form>
         </section>
       </CardContent>
     </Card>

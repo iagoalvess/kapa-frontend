@@ -7,8 +7,10 @@ type ValorDeQuery = string | number | boolean | undefined | null
 
 /** Opções de uma chamada à API. */
 export interface OpcoesDaRequisicao extends Omit<RequestInit, 'body' | 'method' | 'signal'> {
-  /** Corpo em JSON. Serializado automaticamente. */
+  /** Corpo em JSON, serializado automaticamente — ou `FormData`, que vai como multipart. */
   body?: unknown
+  /** `blob` para conteúdo binário (a foto); o padrão é JSON. */
+  resposta?: 'json' | 'blob'
   /** Parâmetros da query string. */
   query?: Record<string, ValorDeQuery>
   /** `false` em endpoint público — evita mandar um token expirado e provocar renovação à toa. */
@@ -32,6 +34,7 @@ async function lerProblema(resposta: Response): Promise<ProblemDetails> {
 async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRequisicao = {}): Promise<T> {
   const {
     body,
+    resposta: formato = 'json',
     query,
     autenticar = true,
     tempoLimite = TEMPO_LIMITE_PADRAO,
@@ -40,6 +43,10 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
     ...resto
   } = opcoes
 
+  // Multipart sai como veio: o navegador monta o `Content-Type` com a fronteira, e escrever o
+  // cabeçalho à mão (ou serializar em JSON) quebraria o envio.
+  const multipart = body instanceof FormData
+
   const url = new URL(`${env.VITE_API_URL}${caminho}`)
   for (const [chave, valor] of Object.entries(query ?? {})) {
     if (valor !== undefined && valor !== null) url.searchParams.set(chave, String(valor))
@@ -47,8 +54,8 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
 
   const executar = async (token: string | null) => {
     const cabecalhos = new Headers(headers)
-    cabecalhos.set('Accept', 'application/json')
-    if (body !== undefined) cabecalhos.set('Content-Type', 'application/json')
+    cabecalhos.set('Accept', formato === 'blob' ? '*/*' : 'application/json')
+    if (body !== undefined && !multipart) cabecalhos.set('Content-Type', 'application/json')
     if (token) cabecalhos.set('Authorization', `Bearer ${token}`)
 
     const sinais = [AbortSignal.timeout(tempoLimite)]
@@ -63,7 +70,7 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
         // navegador não o envia, e `/auth/refresh` e `/auth/logout` respondem 401 sem pista.
         credentials: 'include',
         signal: AbortSignal.any(sinais),
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        ...(body === undefined ? {} : { body: multipart ? body : JSON.stringify(body) }),
       })
     } catch (erro) {
       // Cancelamento pedido pelo chamador não é falha: propague para o React Query entender.
@@ -91,7 +98,7 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
     return undefined as T
   }
 
-  return (await resposta.json()) as T
+  return (formato === 'blob' ? await resposta.blob() : await resposta.json()) as T
 }
 
 /**

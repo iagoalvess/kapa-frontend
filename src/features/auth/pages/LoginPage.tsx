@@ -62,7 +62,7 @@ export default function LoginPage() {
   })
 
   return (
-    <LayoutDeAutenticacao>
+    <LayoutDeAutenticacao etapa={emailConfirmado ? 'senha' : 'email'}>
       <h1 className={estilos.titulo}>{emailConfirmado ? 'Agora, sua senha' : 'Bem-vindo de volta'}</h1>
       {emailConfirmado ? (
         <p className={estilos.subtitulo}>
