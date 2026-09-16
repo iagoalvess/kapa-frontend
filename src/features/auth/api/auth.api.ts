@@ -15,6 +15,15 @@ export function registrar(conta: NovaConta) {
 }
 
 /**
+ * Entra na turma do convite e devolve a sessão já dentro dela.
+ *
+ * Mesma chamada da página do convite; repetida aqui porque uma feature não importa de outra.
+ */
+export function aceitarConvite(token: string) {
+  return api.post<ParDeTokens>(`/api/v1/convites/${encodeURIComponent(token)}/aceitar`, { body: {} })
+}
+
+/**
  * Revoga a sessão no servidor e apaga o cookie.
  *
  * Não recebe token: o servidor lê o cookie `HttpOnly`, que este código não enxerga. Sair sem

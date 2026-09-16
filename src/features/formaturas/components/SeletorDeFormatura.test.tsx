@@ -20,8 +20,8 @@ function tokenCom(formaturaId: string): string {
 
 function entrarNa(formaturaId: string) {
   sessao.autenticar({
-    accessToken: tokenCom(formaturaId),
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: tokenCom(formaturaId),
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
@@ -53,8 +53,8 @@ describe('SeletorDeFormatura', () => {
     servidor.use(
       http.post(`${env.VITE_API_URL}/api/v1/formaturas/f-2/selecionar`, () =>
         HttpResponse.json({
-          accessToken: tokenCom('f-2'),
-          expiraEm: new Date(Date.now() + 900_000).toISOString(),
+          access_token: tokenCom('f-2'),
+          expira_em: new Date(Date.now() + 900_000).toISOString(),
         }),
       ),
     )
@@ -72,7 +72,7 @@ describe('SeletorDeFormatura', () => {
     expect(sessao.estado().usuario?.formaturaId).toBe('f-2')
   })
 
-  /** O nome é texto livre ("Medicina 2027.1 — teste 1789…"); o cabeçalho mostra curso e turma. */
+  /** O nome é texto livre ("Medicina 2027.1 — teste 1789…"); as opções mostram curso e turma. */
   it('mostra curso e turma, e o nome só quando o cadastro não tem curso', async () => {
     entrarNa('f-1')
     servidor.use(
@@ -102,27 +102,33 @@ describe('SeletorDeFormatura', () => {
 
     renderizar(<SeletorDeFormatura />)
 
-    expect(await screen.findByText('Medicina 2027.1')).toBeInTheDocument()
-    expect(screen.queryByText(/teste 1789/, { selector: 'span' })).not.toBeInTheDocument()
-
-    entrarNa('f-2')
-
-    expect(await screen.findByText('Turma antiga', { selector: 'span' })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: 'Medicina · UFPR · 2027.1' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Turma antiga' })).toBeInTheDocument()
+    expect(screen.queryByText(/teste 1789/)).not.toBeInTheDocument()
   })
 
-  /** Um seletor de uma opção só é ruído no cabeçalho. */
-  it('some quando o usuário só tem uma formatura', async () => {
+  /** Um seletor de uma opção só é ruído no cabeçalho: fica o rótulo com curso e turma. */
+  it('vira rótulo quando o usuário só tem uma formatura', async () => {
     entrarNa('f-1')
     servidor.use(
       http.get(MINHAS, () =>
-        HttpResponse.json([{ id: 'f-1', nome: 'Engenharia 2026', papel: 'Presidente' }]),
+        HttpResponse.json([
+          {
+            id: 'f-1',
+            nome: 'Medicina 2027.1 — teste 1789',
+            curso: 'Medicina',
+            instituicao: 'UFPR',
+            ano: 2027,
+            semestre: 1,
+            papel: 'Presidente',
+          },
+        ]),
       ),
     )
 
     renderizar(<SeletorDeFormatura />)
 
-    await waitFor(() => {
-      expect(screen.queryByLabelText('Formatura selecionada')).not.toBeInTheDocument()
-    })
+    expect(await screen.findByText('Medicina 2027.1')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Formatura selecionada')).not.toBeInTheDocument()
   })
 })

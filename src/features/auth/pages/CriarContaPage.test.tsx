@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
+import { convitePendente } from '@/lib/convitePendente'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
@@ -18,14 +19,14 @@ function documentos(versaoDosTermos = '1') {
       tipo: 'PoliticaDePrivacidade',
       versao: '1',
       conteudo: '# P',
-      vigenteDesde: '2026-09-11T00:00:00Z',
+      vigente_desde: '2026-09-11T00:00:00Z',
     },
     {
       id: 'd-2',
       tipo: 'TermosDeUso',
       versao: versaoDosTermos,
       conteudo: '# T',
-      vigenteDesde: '2026-09-11T00:00:00Z',
+      vigente_desde: '2026-09-11T00:00:00Z',
     },
   ]
 }
@@ -63,7 +64,7 @@ describe('CriarContaPage', () => {
     servidor.use(
       http.post(REGISTRAR, async ({ request }) => {
         corpo = await request.json()
-        return HttpResponse.json({ accessToken: 'token-novo', expiraEm: new Date().toISOString() })
+        return HttpResponse.json({ access_token: 'token-novo', expira_em: new Date().toISOString() })
       }),
     )
 
@@ -79,6 +80,50 @@ describe('CriarContaPage', () => {
         { tipo: 'TermosDeUso', versao: '1' },
       ],
     })
+  })
+
+  /** Sem passar pela página do convite: ela só apareceria para dizer "Entrando na turma…". */
+  it('quem veio por um convite já entra na turma ao criar a conta', async () => {
+    convitePendente.guardar('tk-1')
+    servidor.use(
+      http.post(REGISTRAR, () =>
+        HttpResponse.json({ access_token: 'token-novo', expira_em: new Date().toISOString() }),
+      ),
+      http.post(`${env.VITE_API_URL}/api/v1/convites/tk-1/aceitar`, () =>
+        HttpResponse.json({ access_token: 'token-da-turma', expira_em: new Date().toISOString() }),
+      ),
+    )
+
+    renderizar(<CriarContaPage />)
+    await preencher()
+
+    await waitFor(() => expect(sessao.accessToken()).toBe('token-da-turma'))
+    expect(convitePendente.ler()).toBeNull()
+  })
+
+  /** O convite fica guardado: a guarda leva à página dele, que explica o erro. */
+  it('com o aceite recusado, cria a conta e mantém o convite para a página dele', async () => {
+    convitePendente.guardar('tk-1')
+    let aceites = 0
+    servidor.use(
+      http.post(REGISTRAR, () =>
+        HttpResponse.json({ access_token: 'token-novo', expira_em: new Date().toISOString() }),
+      ),
+      http.post(`${env.VITE_API_URL}/api/v1/convites/tk-1/aceitar`, () => {
+        aceites++
+        return HttpResponse.json({ status: 410, codigo: 'convite.esgotado' }, { status: 410 })
+      }),
+    )
+
+    renderizar(<CriarContaPage />)
+    await preencher()
+
+    await waitFor(() => expect(aceites).toBe(1))
+    // O botão volta de "Criando conta…" quando o cadastro termina, aceite incluído.
+    await screen.findByRole('button', { name: 'Criar conta' })
+    expect(sessao.accessToken()).toBe('token-novo')
+    expect(convitePendente.ler()).toBe('tk-1')
+    convitePendente.descartar()
   })
 
   it('não envia o cadastro sem o aceite', async () => {
@@ -124,7 +169,7 @@ describe('CriarContaPage', () => {
     servidor.use(
       http.post(REGISTRAR, async ({ request }) => {
         versoesAceitas = ((await request.json()) as { aceites: unknown }).aceites
-        return HttpResponse.json({ accessToken: 'token-novo', expiraEm: new Date().toISOString() })
+        return HttpResponse.json({ access_token: 'token-novo', expira_em: new Date().toISOString() })
       }),
     )
     await aceitarTudo()

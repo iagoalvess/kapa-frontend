@@ -8,8 +8,8 @@ import { lerAccessToken, type UsuarioAutenticado } from './jwt'
  * Ver `docs/decisoes.md`, item 1.
  */
 export interface ParDeTokens {
-  accessToken: string
-  expiraEm: string
+  access_token: string
+  expira_em: string
 }
 
 /** Estado observável da sessão. */
@@ -59,9 +59,9 @@ export const sessao = {
 
   /** Aceita o par recém-emitido e passa a considerar o usuário autenticado. */
   autenticar(par: ParDeTokens) {
-    accessToken = par.accessToken
+    accessToken = par.access_token
 
-    const usuario = lerAccessToken(par.accessToken)
+    const usuario = lerAccessToken(par.access_token)
     publicar({ usuario, autenticado: usuario !== null })
   },
 
@@ -106,7 +106,7 @@ export const sessao = {
 
         const par = (await resposta.json()) as ParDeTokens
         sessao.autenticar(par)
-        return par.accessToken
+        return par.access_token
       } catch {
         // Falha de rede não invalida a sessão: o próximo pedido tenta de novo.
         return null

@@ -1,5 +1,5 @@
 import { Camera } from 'lucide-react'
-import { useId } from 'react'
+import { type ReactNode, useId } from 'react'
 import { toast } from 'sonner'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
@@ -18,8 +18,17 @@ const TAMANHO_MAXIMO = 5 * 1024 * 1024
  *
  * @param perfil Dono da foto.
  * @param desabilitado Formatura fora de `Ativa`: mostra a foto, não deixa trocar.
+ * @param acoes Outras ações da conta, na mesma linha do botão da foto.
  */
-export function UploadDeFoto({ perfil, desabilitado }: { perfil: PerfilDoFormando; desabilitado: boolean }) {
+export function UploadDeFoto({
+  perfil,
+  desabilitado,
+  acoes,
+}: {
+  perfil: PerfilDoFormando
+  desabilitado: boolean
+  acoes?: ReactNode
+}) {
   const id = useId()
   const enviar = useEnviarFoto()
 
@@ -30,7 +39,7 @@ export function UploadDeFoto({ perfil, desabilitado }: { perfil: PerfilDoFormand
     if (!arquivo) return
 
     if (arquivo.size > TAMANHO_MAXIMO) {
-      toast.error('A foto excede o limite de 5 MB.')
+      toast.warning('A foto excede o limite de 5 MB.')
       return
     }
 
@@ -55,16 +64,20 @@ export function UploadDeFoto({ perfil, desabilitado }: { perfil: PerfilDoFormand
           disabled={desabilitado || enviar.isPending}
           onChange={escolher}
         />
-        <label
-          htmlFor={id}
-          className={cn(
-            'border-border hover:bg-muted peer-focus-visible:ring-ring inline-flex h-8 w-fit cursor-pointer items-center gap-2 rounded-full border px-3 text-sm peer-focus-visible:ring-2',
-            (desabilitado || enviar.isPending) && 'pointer-events-none opacity-50',
-          )}
-        >
-          <Camera className="size-4" aria-hidden />
-          {enviar.isPending ? 'Enviando…' : perfil.fotoArquivoId ? 'Trocar foto' : 'Enviar foto'}
-        </label>
+        {/* As ações da conta na mesma linha; os formatos embaixo, que são só da foto. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            htmlFor={id}
+            className={cn(
+              'border-border hover:bg-muted peer-focus-visible:ring-ring inline-flex h-8 w-fit cursor-pointer items-center gap-2 rounded-full border px-3 text-sm peer-focus-visible:ring-2',
+              (desabilitado || enviar.isPending) && 'pointer-events-none opacity-50',
+            )}
+          >
+            <Camera className="size-4" aria-hidden />
+            {enviar.isPending ? 'Enviando…' : perfil.foto_arquivo_id ? 'Trocar foto' : 'Enviar foto'}
+          </label>
+          {acoes}
+        </div>
         <p className="text-texto-muted text-xs">JPEG, PNG ou WebP, até 5 MB.</p>
       </div>
     </div>

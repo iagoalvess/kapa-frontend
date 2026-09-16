@@ -13,24 +13,24 @@ const EU = `${env.VITE_API_URL}/api/v1/formandos/eu`
 
 /** Como a API devolve: campo vazio não vem (`WhenWritingNull`). */
 const perfil = {
-  usuarioId: 'u-1',
+  usuario_id: 'u-1',
   nome: 'Ana',
   email: 'ana@exemplo.com',
   papel: 'Formando',
-  pessoais: { nomeCompleto: 'Ana Souza', cpf: '52998224725', telefone: '+5541998765432' },
+  pessoais: { nome_completo: 'Ana Souza', cpf: '52998224725', telefone: '+5541998765432' },
   endereco: {},
-  contatoDeEmergencia: {},
+  contato_de_emergencia: {},
   completude: 30,
   faltando: [
-    'nomeNoDiploma',
+    'nome_no_diploma',
     'rg',
     'matricula',
-    'dataDeNascimento',
+    'data_de_nascimento',
     'endereco',
-    'contatoDeEmergencia',
+    'contato_de_emergencia',
     'foto',
   ],
-  essencialPendente: false,
+  essencial_pendente: false,
 }
 
 function entrar() {
@@ -42,8 +42,8 @@ function entrar() {
     papel: PAPEIS.formando,
   }
   sessao.autenticar({
-    accessToken: `c.${btoa(JSON.stringify(corpo))}.a`,
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
@@ -152,12 +152,23 @@ describe('MeuPerfilPage', () => {
     expect(await within(endereco).findByText(/Preencha o endereço à mão/)).toBeInTheDocument()
   })
 
-  it('avisa quando falta o essencial para a cobrança', async () => {
-    servidor.use(http.get(EU, () => HttpResponse.json({ ...perfil, pessoais: {}, essencialPendente: true })))
+  /** A lista do que falta já diz tudo; o aviso do essencial é da comissão, não do próprio. */
+  it('sem o essencial, mostra só a lista do que falta', async () => {
+    servidor.use(
+      http.get(EU, () =>
+        HttpResponse.json({
+          ...perfil,
+          pessoais: {},
+          faltando: ['nome_completo', 'cpf', 'telefone'],
+          essencial_pendente: true,
+        }),
+      ),
+    )
 
     renderizar(<MeuPerfilPage />)
 
-    expect(await screen.findByText(/Falta o essencial: nome completo, CPF e telefone/)).toBeInTheDocument()
+    expect(await screen.findByText('Falta: Nome completo, CPF, Telefone.')).toBeInTheDocument()
+    expect(screen.queryByText(/Falta o essencial/)).not.toBeInTheDocument()
   })
 
   /** Encerrada é arquivo: a API recusaria, então a tela nem oferece o botão. */

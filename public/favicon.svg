@@ -1,0 +1,9 @@
+<!-- O capelo do LogoKapa, sozinho, no laranja da marca (token brand, #F2994A). Fora do CSS da
+     página, o favicon não enxerga os tokens: trocar a cor da marca pede trocar aqui também.
+     Comentário de SVG não aceita dois hífens seguidos: escrever o nome do token com eles quebra o arquivo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="5 8 74 74" fill="#f2994a">
+  <polygon points="42,18 78,34 42,50 6,34" />
+  <path d="M 22,43.5 V 53 C 22,60 62,60 62,53 V 43.5 L 42,52.5 Z" />
+  <path d="M 42,34 C 68,34 74,44 74,60" fill="none" stroke="#f2994a" stroke-width="3" stroke-linecap="round" />
+  <rect x="71" y="60" width="6" height="12" rx="2" />
+</svg>

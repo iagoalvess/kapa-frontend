@@ -22,7 +22,7 @@ function token(claims: Record<string, unknown>) {
 }
 
 function entrar(claims: Record<string, unknown> = {}) {
-  sessao.autenticar({ accessToken: token(claims), expiraEm: new Date(Date.now() + 900_000).toISOString() })
+  sessao.autenticar({ access_token: token(claims), expira_em: new Date(Date.now() + 900_000).toISOString() })
 }
 
 function renderizar() {
@@ -93,8 +93,8 @@ describe('ConvitePage', () => {
         aceites++
         corpo = await request.json()
         return HttpResponse.json({
-          accessToken: token({ formatura_id: 'f-nova', papel: 'Formando' }),
-          expiraEm: new Date(Date.now() + 900_000).toISOString(),
+          access_token: token({ formatura_id: 'f-nova', papel: 'Formando' }),
+          expira_em: new Date(Date.now() + 900_000).toISOString(),
         })
       }),
     )
@@ -141,8 +141,8 @@ describe('ConvitePage', () => {
       http.post(`${CONVITE}/aceitar`, () => {
         aceites++
         return HttpResponse.json({
-          accessToken: token({ formatura_id: 'f-nova', papel: 'Formando' }),
-          expiraEm: new Date(Date.now() + 900_000).toISOString(),
+          access_token: token({ formatura_id: 'f-nova', papel: 'Formando' }),
+          expira_em: new Date(Date.now() + 900_000).toISOString(),
         })
       }),
     )
@@ -160,7 +160,7 @@ describe('ConvitePage', () => {
   })
 
   it('convite pessoal mostra para qual e-mail foi, mascarado', async () => {
-    servidor.use(http.get(CONVITE, () => HttpResponse.json({ ...TURMA, emailMascarado: 'a*a@exemplo.com' })))
+    servidor.use(http.get(CONVITE, () => HttpResponse.json({ ...TURMA, email_mascarado: 'a*a@exemplo.com' })))
 
     renderizar()
 

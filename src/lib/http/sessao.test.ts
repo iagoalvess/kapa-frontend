@@ -33,7 +33,7 @@ describe('sessao', () => {
   it('nunca grava nada no armazenamento do navegador', () => {
     const gravar = vi.spyOn(Storage.prototype, 'setItem')
 
-    sessao.autenticar({ accessToken: token(), expiraEm: new Date().toISOString() })
+    sessao.autenticar({ access_token: token(), expira_em: new Date().toISOString() })
 
     expect(sessao.estado().autenticado).toBe(true)
     expect(gravar).not.toHaveBeenCalled()
@@ -42,7 +42,7 @@ describe('sessao', () => {
   })
 
   it('expõe o usuário lido do access token', () => {
-    sessao.autenticar({ accessToken: token('Maria'), expiraEm: new Date().toISOString() })
+    sessao.autenticar({ access_token: token('Maria'), expira_em: new Date().toISOString() })
 
     expect(sessao.estado().usuario?.nome).toBe('Maria')
     expect(sessao.estado().usuario?.perfis).toEqual(['Usuario'])
@@ -52,7 +52,7 @@ describe('sessao', () => {
     const ouvinte = vi.fn<() => void>()
     const cancelar = sessao.inscrever(ouvinte)
 
-    sessao.autenticar({ accessToken: token(), expiraEm: new Date().toISOString() })
+    sessao.autenticar({ access_token: token(), expira_em: new Date().toISOString() })
     expect(ouvinte).toHaveBeenCalledTimes(1)
 
     cancelar()
@@ -67,7 +67,7 @@ describe('sessao', () => {
   it('restaura a sessão a partir do cookie', async () => {
     servidor.use(
       http.post(REFRESH, () =>
-        HttpResponse.json({ accessToken: token('Restaurada'), expiraEm: new Date().toISOString() }),
+        HttpResponse.json({ access_token: token('Restaurada'), expira_em: new Date().toISOString() }),
       ),
     )
 
@@ -96,7 +96,7 @@ describe('sessao', () => {
     servidor.use(
       http.post(REFRESH, () => {
         chamadas += 1
-        return HttpResponse.json({ accessToken: token(), expiraEm: new Date().toISOString() })
+        return HttpResponse.json({ access_token: token(), expira_em: new Date().toISOString() })
       }),
     )
 
@@ -112,7 +112,7 @@ describe('sessao', () => {
     servidor.use(
       http.post(REFRESH, ({ request }) => {
         credenciais = request.credentials
-        return HttpResponse.json({ accessToken: token(), expiraEm: new Date().toISOString() })
+        return HttpResponse.json({ access_token: token(), expira_em: new Date().toISOString() })
       }),
     )
 

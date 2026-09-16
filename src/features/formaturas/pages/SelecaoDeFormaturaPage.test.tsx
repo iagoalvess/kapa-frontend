@@ -26,7 +26,7 @@ describe('SelecaoDeFormaturaPage', () => {
       'href',
       '/formaturas/nova',
     )
-    expect(screen.getByRole('textbox', { name: 'Código do convite' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Link do convite' })).toBeInTheDocument()
     expect(screen.queryByText('Escolha a formatura')).not.toBeInTheDocument()
   })
 

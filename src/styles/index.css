@@ -45,6 +45,19 @@
   --neutral-bg: #eceef1;
   --neutral-text: #4a5560;
 
+  /*
+    Fatias de gráfico de categoria (modelo docs/design/modelo/relatorios.png). São tons claros e de
+    mesma força, para nenhuma fatia gritar mais que a outra: a grandeza está no tamanho do arco, não
+    na saturação. A primeira é o laranja suave da marca — a maior fatia continua sendo da casa.
+    Só aqui o produto sai do laranja: categoria é dado, e dado precisa de matizes distinguíveis.
+  */
+  --grafico-1: #f6c88e;
+  --grafico-2: #a5cfb4;
+  --grafico-3: #9ebde8;
+  --grafico-4: #c6b1e3;
+  --grafico-5: #f2afa8;
+  --grafico-outras: #e0dfda;
+
   /* Neutros */
   --page: #f7f6f3;
   --surface: #ffffff;
@@ -54,6 +67,18 @@
   --text-secondary: #6b6b66;
   --text-muted: #9a9a94;
   --cta-dark: #1c1c1a;
+
+  /*
+    Faixa de indicadores, medida na referência (docs/design/pagina-inicial.jpg): o bloco do ícone
+    é um cinza frio que escurece para o centro, e os sinais ao lado do número são verde e vermelho
+    próprios — mais vivos que os estados das mensagens, porque ali disputam atenção com o número.
+  */
+  --icone-centro: #4a494f;
+  --icone-borda: #67666c;
+  --sinal-positivo-bg: #e5f7c7;
+  --sinal-positivo-text: #507300;
+  --sinal-negativo-bg: #f8c6c5;
+  --sinal-negativo-text: #7a1a1a;
 
   /* Avatares: pastéis categóricos, sempre com a inicial em branco. A cor sai do id da pessoa. */
   --avatar-1: #6cc3b4;
@@ -70,8 +95,8 @@
   --card-foreground: var(--text-primary);
   --popover: var(--surface);
   --popover-foreground: var(--text-primary);
-  --primary: var(--cta-dark);
-  --primary-foreground: var(--surface);
+  --primary: var(--brand); /* produto: o CTA do app é o laranja da marca, não o preto */
+  --primary-foreground: var(--on-brand);
   --secondary: var(--track);
   --secondary-foreground: var(--text-primary);
   --muted: var(--track);
@@ -134,13 +159,65 @@
   --color-avatar-4: var(--avatar-4);
   --color-avatar-5: var(--avatar-5);
   --color-avatar-6: var(--avatar-6);
+  --color-sinal-positivo-bg: var(--sinal-positivo-bg);
+  --color-sinal-positivo-text: var(--sinal-positivo-text);
+  --color-sinal-negativo-bg: var(--sinal-negativo-bg);
+  --color-sinal-negativo-text: var(--sinal-negativo-text);
 
-  /* Sombra dos cartões brancos sobre o fundo creme: larga e quase transparente, como na referência. */
-  --shadow-cartao: 0 1px 2px rgb(28 28 26 / 0.04), 0 6px 20px rgb(28 28 26 / 0.05);
+  /*
+    Sombra dos cartões brancos sobre o fundo creme, como na referência: marcada logo abaixo da
+    borda e sumindo em uns dez pixels — é ela que descola o cartão do fundo.
+  */
+  --shadow-cartao: 0 1px 1px rgb(28 28 26 / 0.08), 0 3px 10px rgb(28 28 26 / 0.07);
+
+  /* A faixa de indicadores é o topo da tela: a mesma sombra, mais funda embaixo, para ela assentar sobre o resto. */
+  --shadow-faixa: 0 2px 2px rgb(28 28 26 / 0.08), 0 11px 24px -6px rgb(28 28 26 / 0.16);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+}
+
+/*
+  Bloco do ícone da faixa de indicadores: escuro no centro, clareando até a borda. Utilitário, e
+  não classe solta, para compor com `size-*` e `rounded-*` como qualquer outro.
+*/
+@utility bloco-de-icone {
+  background-image: radial-gradient(circle closest-side, var(--icone-centro) 40%, var(--icone-borda));
+}
+
+/*
+  Rolagem interna discreta: a barra some quando não há o que rolar e, quando há, é fina e da cor da
+  linha, em vez da barra cinza larga que o Windows desenha por padrão.
+
+  Some de vez, não: barra invisível esconde que existe mais conteúdo abaixo, e quem arrasta a barra
+  (em vez de rolar) fica sem alça. O macOS já faz isto sozinho — aqui é o mesmo comportamento no
+  Windows e no Linux.
+
+  `scrollbar-width`/`scrollbar-color` é o padrão; o bloco `::-webkit-scrollbar` atende o Chrome
+  anterior à 121, que ainda não os lia. `overlay` no polegar: ele não empurra o conteúdo.
+*/
+@utility rolagem-discreta {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--line);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted);
+  }
 }
 
 /*
@@ -150,7 +227,7 @@
 
   Quem entra na tela usa `motion-safe:animate-entrar`. Onde já é automático, sem classe:
   - cada tela nova do app (filhos do `<main>` do `LayoutApp`), inclusive o conteúdo que substitui
-    o "Carregando…";
+    o esqueleto;
   - mensagens: `role="alert"`, `<output>` e o erro de campo do formulário (regra em `@layer base`).
 */
 @theme {
@@ -185,6 +262,13 @@
   --animate-processar: processar 3s ease-in-out infinite;
   --animate-encher: encher 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
   --animate-halo: halo 2s ease-out infinite;
+  /* Carrossel do onboarding: moeda caindo no cofre (percurso em `--queda`) e barra que se enche. */
+  --animate-cair: cair 2.4s cubic-bezier(0.5, 0, 0.75, 0) infinite both;
+  --animate-crescer: crescer 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+  /* O porquinho sacode quando a moeda entra. */
+  --animate-sacudir: sacudir 0.45s ease-out;
+  /* Um selo que sai de cena para outro tomar o lugar (o cadastro que fica completo). */
+  --animate-sumir: sumir 0.3s ease-in forwards;
 
   @keyframes surgir {
     from {
@@ -261,6 +345,57 @@
       transform: scale(1.3);
     }
   }
+
+  /*
+    A volta termina quando a moeda some na fenda: é o `animationiteration` que soma no caixa.
+    Queda, giro e encolhida em `translate`, `rotate` e `scale` separados: o `translate` é aplicado
+    por último, então a queda fica sempre na vertical. Com `transform: translateY`, o giro
+    entraria antes e entortaria a queda num arco.
+  */
+  @keyframes cair {
+    0% {
+      opacity: 0;
+      translate: 0 0;
+      rotate: 0deg;
+    }
+    12% {
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+      translate: 0 var(--queda);
+      rotate: 360deg;
+      scale: 1;
+    }
+    100% {
+      opacity: 0;
+      translate: 0 var(--queda);
+      rotate: 360deg;
+      scale: 0.4;
+    }
+  }
+
+  @keyframes crescer {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes sumir {
+    to {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
+  @keyframes sacudir {
+    30% {
+      transform: rotate(-4deg);
+    }
+    60% {
+      transform: rotate(3deg);
+    }
+  }
 }
 
 @layer base {
@@ -289,11 +424,181 @@
     transition-timing-function: var(--default-transition-timing-function);
   }
 
+  /* O preflight do Tailwind v4 devolveu o botão ao cursor padrão do navegador; aqui, o que é
+     clicável mostra a mãozinha. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     [role='alert'],
     output,
     [data-slot='form-message'] {
       animation: var(--animate-entrar);
     }
+  }
+}
+
+/*
+  Lista aberta do `Select` (components/Select.tsx). `appearance: base-select` é o `<select>`
+  customizável: onde o navegador ainda não o conhece, a regra inteira é ignorada e a lista é a do
+  sistema. Fora de `@layer` de propósito — precisa vencer o `appearance-none` do componente.
+*/
+
+/*
+  O mascote do "carregando" no lugar dos outros: à esquerda, no espaço do ícone.
+
+  Quando `icons.loading` é informado (providers.tsx), o sonner embrulha o ícone num `.sonner-loader`
+  e o posiciona `absolute` no centro do elemento posicionado mais próximo — que é o próprio aviso.
+  Com o CSS dele ligado isso centraliza a roda dentro do quadradinho do ícone; com `unstyled`, o
+  quadradinho não tem tamanho e o mascote ia parar no meio do cartão, por cima do texto. Estático,
+  ele volta a ser um filho comum da linha e senta ao lado do título, como no sucesso e no erro.
+*/
+[data-sonner-toast] .sonner-loader {
+  position: static;
+  transform: none;
+}
+
+/*
+  A barra de progresso do aviso de carregamento (`toast.loading`), no laranja da marca, embaixo do
+  texto. Indeterminada de propósito: quem gera o relatório é o worker, e ele não diz em que ponto
+  está — barra que finge uma porcentagem inventa um número.
+
+  Ela é **um bloco no fluxo do conteúdo** (`[data-content]`, a coluna do título e da descrição), e
+  não um elemento solto posicionado sobre o cartão. Duas razões, as duas do próprio sonner:
+
+  - o `::after` **do aviso** já é dele: `[data-sonner-toast][data-expanded=true]::after` é a ponte
+    invisível que mantém o hover enquanto a pilha se abre. Disputar esse pseudo-elemento quebra um
+    dos dois, e qual dos dois depende só da ordem das folhas;
+  - o sonner reescreve a `height` dos avisos de trás da pilha (`height: var(--front-toast-height)`),
+    então uma barra ancorada na caixa do aviso se posiciona por uma altura que não é a que se vê —
+    e aparece fora do cartão.
+
+  No fluxo, nada disso importa: o cartão cresce para caber a barra, e ela vai junto quando o sonner
+  recorta, move ou escala o aviso. Em pseudo-elemento, e não num nó React, porque é decoração: não há
+  o que anunciar ao leitor de tela além do texto que já está ali.
+
+  O movimento é `background-position` sobre um trilho: o indicador tem 28% da largura e caminha de
+  ponta a ponta sem nunca sair do elemento, o que dispensa qualquer recorte.
+*/
+[data-sonner-toast][data-type='loading'] [data-content]::after {
+  content: '';
+  display: block;
+  height: 3px;
+  margin-top: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--brand-tint);
+  background-image: linear-gradient(to right, var(--brand) 0 100%);
+  background-repeat: no-repeat;
+  background-size: 28% 100%;
+  animation: correndo-no-aviso 1.6s ease-in-out infinite;
+}
+
+@keyframes correndo-no-aviso {
+  0%,
+  100% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 100% 0;
+  }
+}
+
+/* Sem movimento: o trilho fica cheio e apagado, dizendo que há algo em andamento. */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast][data-type='loading'] [data-content]::after {
+    animation: none;
+    background-size: 100% 100%;
+    opacity: 0.4;
+  }
+}
+
+/*
+  Painel preso a um botão (`popover` nativo + `[data-painel]`), como o de filtros de Membros: abre
+  embaixo, alinhado pela direita do botão, e sobe se faltar tela. O botão declara `anchor-name` e o
+  painel, `position-anchor`. Sem posicionamento por âncora no navegador, o painel fica no centro da
+  tela — o padrão do `popover`, que continua usável.
+*/
+@supports (anchor-name: --a) {
+  [data-painel] {
+    inset: auto;
+    margin: 0.5rem 0 0;
+    position-area: bottom span-left;
+    position-try-fallbacks: flip-block;
+  }
+}
+
+/* Opção vazia ("Escolha") escolhida: o campo fala como placeholder, não como valor. */
+[data-select]:has(option[value='']:checked) {
+  color: var(--text-muted);
+}
+
+[data-select] option {
+  color: var(--text-primary);
+}
+
+@supports (appearance: base-select) {
+  [data-select],
+  [data-select]::picker(select) {
+    appearance: base-select;
+  }
+
+  /* No modo customizável o texto escolhido sobe para o topo da caixa; aqui ele volta ao meio. */
+  [data-select] {
+    display: flex;
+    align-items: center;
+  }
+
+  /* A seta é o ícone do componente, que gira ao abrir. */
+  [data-select]::picker-icon {
+    display: none;
+  }
+
+  /*
+    Abre para baixo; sem espaço até o fim da tela, abre para cima.
+
+    O teto de altura é o que faz a lista rolar em vez de crescer: com uma turma inteira de formandos
+    o picker ia do topo ao rodapé da janela. 18rem mostra oito nomes, e o resto vem na rolagem — a do
+    navegador, que o teclado e o dedo já sabem usar.
+  */
+  [data-select]::picker(select) {
+    position-try-fallbacks: flip-block;
+    max-height: 18rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-block: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow:
+      0 1px 2px rgb(28 28 26 / 0.04),
+      0 8px 24px rgb(28 28 26 / 0.08);
+  }
+
+  [data-select] option {
+    padding: 0.5rem 0.75rem;
+    border-radius: calc(var(--radius) - 4px);
+  }
+
+  [data-select] option:hover,
+  [data-select] option:focus-visible {
+    background: var(--brand-wash);
+    outline: none;
+  }
+
+  [data-select] option:checked:not([value='']) {
+    background: var(--brand-tint);
+    color: var(--brand-text);
+    font-weight: 600;
+  }
+
+  [data-select] option[value=''] {
+    color: var(--text-muted);
+  }
+
+  [data-select] option::checkmark {
+    display: none;
   }
 }

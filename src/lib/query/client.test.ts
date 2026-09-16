@@ -5,7 +5,7 @@ import { queryClient } from './client'
 function par(sub: string, formatura?: string) {
   const corpo = { sub, name: sub, email: `${sub}@exemplo.com`, role: ['Usuario'], formatura_id: formatura }
   const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
-  return { accessToken: `cabecalho.${base64}.assinatura`, expiraEm: '2030-01-01T00:00:00Z' }
+  return { access_token: `cabecalho.${base64}.assinatura`, expira_em: '2030-01-01T00:00:00Z' }
 }
 
 afterEach(() => {

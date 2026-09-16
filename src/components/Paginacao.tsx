@@ -38,7 +38,6 @@ export function Paginacao({ pagina, totalPaginas, total, aoMudar, ocupado = fals
         <Button
           variant="outline"
           size="sm"
-          className="rounded-full"
           disabled={ocupado || pagina <= 1}
           onClick={() => aoMudar(pagina - 1)}
         >
@@ -48,7 +47,6 @@ export function Paginacao({ pagina, totalPaginas, total, aoMudar, ocupado = fals
         <Button
           variant="outline"
           size="sm"
-          className="rounded-full"
           disabled={ocupado || pagina >= totalPaginas}
           onClick={() => aoMudar(pagina + 1)}
         >

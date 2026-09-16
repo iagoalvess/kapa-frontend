@@ -32,13 +32,13 @@ describe('cliente http', () => {
       http.post(REFRESH, () => {
         renovacoes += 1
         return HttpResponse.json({
-          accessToken: 'novo',
-          expiraEm: new Date().toISOString(),
+          access_token: 'novo',
+          expira_em: new Date().toISOString(),
         })
       }),
     )
 
-    sessao.autenticar({ accessToken: 'velho', expiraEm: '' })
+    sessao.autenticar({ access_token: 'velho', expira_em: '' })
 
     const respostas = await Promise.all([
       api.get<{ ok: boolean }>('/api/v1/protegido'),
@@ -58,7 +58,7 @@ describe('cliente http', () => {
       http.post(REFRESH, () => HttpResponse.json({ status: 401 }, { status: 401 })),
     )
 
-    sessao.autenticar({ accessToken: 'velho', expiraEm: '' })
+    sessao.autenticar({ access_token: 'velho', expira_em: '' })
 
     await expect(api.get('/api/v1/protegido')).rejects.toBeInstanceOf(ErroDaApi)
     expect(sessao.estado().autenticado).toBe(false)

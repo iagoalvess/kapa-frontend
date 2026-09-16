@@ -19,6 +19,8 @@ export interface DadosDaFormatura {
   ano: number
   semestre: number
   /** `yyyy-MM-dd`, ou nulo. */
-  previsaoDeColacao: string | null
-  quantidadeEstimadaDeFormandos: number
+  previsao_de_colacao: string | null
+  /** `yyyy-MM-dd`, ou nulo. */
+  previsao_da_festa: string | null
+  quantidade_estimada_de_formandos: number
 }

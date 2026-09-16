@@ -37,7 +37,10 @@ describe('ReaceitePage', () => {
     const corpo = btoa(
       JSON.stringify({ sub: 'u-1', name: 'Ana', email: 'ana@exemplo.com', role: [PERFIS.usuario] }),
     )
-    sessao.autenticar({ accessToken: `c.${corpo}.a`, expiraEm: new Date(Date.now() + 900_000).toISOString() })
+    sessao.autenticar({
+      access_token: `c.${corpo}.a`,
+      expira_em: new Date(Date.now() + 900_000).toISOString(),
+    })
   })
 
   afterEach(() => sessao.encerrar())

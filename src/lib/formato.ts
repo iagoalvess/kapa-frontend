@@ -2,7 +2,14 @@ const LOCALIDADE = 'pt-BR'
 
 const DATA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short' })
 const DATA_HORA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short', timeStyle: 'short' })
+const MES_ANO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: 'numeric' })
+const MES_CURTO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: '2-digit' })
+const DIA_MES = new Intl.DateTimeFormat(LOCALIDADE, { day: '2-digit', month: '2-digit' })
+// en-CA sai como 2026-09-14: é só tirar os hífens.
+const DATA_COMPACTA = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })
 const MOEDA = new Intl.NumberFormat(LOCALIDADE, { style: 'currency', currency: 'BRL' })
+// `auto`: "ontem" e "amanhã" em vez de "há 1 dia" e "em 1 dia".
+const RELATIVO = new Intl.RelativeTimeFormat(LOCALIDADE, { numeric: 'auto' })
 
 /** Texto exibido no lugar de um valor ausente ou ilegível. */
 const VAZIO = '—'
@@ -39,10 +46,110 @@ export function formatarData(valor: string | Date | null | undefined) {
   return formatar(valor, DATA)
 }
 
+/** Data como `20260914`, no fuso de quem está olhando — identificador técnico, como o da versão do termo. */
+export function formatarDataCompacta(valor: string | Date | null | undefined) {
+  return formatar(valor, DATA_COMPACTA).replaceAll('-', '')
+}
+
+/** Mês e ano, como `mar. de 2026` — o mês do primeiro vencimento. */
+export function formatarMesAno(valor: string | Date | null | undefined) {
+  return formatar(valor, MES_ANO)
+}
+
+/**
+ * Mês e ano curtos, como `mar./26`.
+ *
+ * É o rótulo de eixo de gráfico: `mar. de 2026` não cabe numa coluna de mês e os rótulos se
+ * sobrepõem, virando uma tarja ilegível.
+ */
+export function formatarMesCurto(valor: string | Date | null | undefined) {
+  return formatar(valor, MES_CURTO)
+}
+
+/**
+ * Dia e mês, como `15/09` — data de canto, onde `15/09/2026` não cabe (o cabeçalho de uma coluna
+ * estreita). Quem usa deixa a data inteira no `title`.
+ */
+export function formatarDiaMes(valor: string | Date | null | undefined) {
+  return formatar(valor, DIA_MES)
+}
+
 /** Data e hora no formato `31/12/2026 14:05`, no fuso de quem está olhando. */
 export function formatarDataHora(valor: string | Date | null | undefined) {
   return formatar(valor, DATA_HORA)
 }
+
+/**
+ * Quantos dias do calendário faltam até a data — negativo se já passou, nulo se não há data.
+ *
+ * Conta dias, não horas: de hoje à noite para amanhã cedo é 1, e não 0. Por isso as duas pontas
+ * vão para a meia-noite local antes da conta.
+ *
+ * @param valor Data de destino, tipicamente `yyyy-MM-dd`.
+ * @param hoje Referência; o padrão é agora.
+ */
+export function diasAte(valor: string | null | undefined, hoje = new Date()) {
+  if (!valor) return null
+
+  const destino = paraData(valor)
+  if (Number.isNaN(destino.getTime())) return null
+
+  return Math.round((meiaNoite(destino) - meiaNoite(hoje)) / 86_400_000)
+}
+
+/**
+ * Quanto tempo faz, como se fala: `agora`, `há 5 minutos`, `há 3 horas`, `ontem`, `anteontem`,
+ * `há 3 dias`, `há 3 meses` — a data dos cartões do mural.
+ *
+ * Até um dia, conta horas; daí em diante, dias do calendário, como {@link diasAte}: o aviso de ontem
+ * às 23h lido hoje às 8h é "há 9 horas", e o de anteontem às 23h já é "anteontem".
+ *
+ * @param valor Instante, como a API o devolve.
+ * @param agora Referência; o padrão é agora.
+ */
+export function formatarDataRelativa(valor: string | Date | null | undefined, agora = new Date()) {
+  if (valor === null || valor === undefined || valor === '') return VAZIO
+
+  const data = paraData(valor)
+  if (Number.isNaN(data.getTime())) return VAZIO
+
+  const segundos = (data.getTime() - agora.getTime()) / 1000
+  if (Math.abs(segundos) < 60) return 'agora'
+  if (Math.abs(segundos) < 3600) return RELATIVO.format(Math.trunc(segundos / 60), 'minute')
+  if (Math.abs(segundos) < 86_400) return RELATIVO.format(Math.trunc(segundos / 3600), 'hour')
+
+  const dias = Math.round((meiaNoite(data) - meiaNoite(agora)) / 86_400_000)
+  if (Math.abs(dias) < 30) return RELATIVO.format(dias, 'day')
+  if (Math.abs(dias) < 365) return RELATIVO.format(Math.trunc(dias / 30), 'month')
+  return RELATIVO.format(Math.trunc(dias / 365), 'year')
+}
+
+/**
+ * Tamanho de arquivo como se lê: `850 bytes`, `320 KB`, `1,2 MB`.
+ *
+ * @param bytes Tamanho em bytes.
+ */
+export function formatarTamanho(bytes: number | null | undefined) {
+  if (bytes === null || bytes === undefined) return VAZIO
+  if (bytes < 1024) return `${formatarNumero(bytes)} bytes`
+  if (bytes < 1024 * 1024) return `${formatarNumero(Math.round(bytes / 1024))} KB`
+  return `${formatarNumero(bytes / (1024 * 1024), 1)} MB`
+}
+
+/**
+ * O dia de hoje como `aaaa-mm-dd`, no calendário de quem está olhando — o valor de um `<input type="date">`.
+ *
+ * Montado à mão, e não por `toISOString`: aquele é UTC, e das 21h à meia-noite no Brasil já seria amanhã.
+ *
+ * @param agora Referência; o padrão é agora.
+ */
+export function diaDeHoje(agora = new Date()) {
+  return `${agora.getFullYear()}-${doisDigitos(agora.getMonth() + 1)}-${doisDigitos(agora.getDate())}`
+}
+
+const doisDigitos = (numero: number) => String(numero).padStart(2, '0')
+
+const meiaNoite = (data: Date) => new Date(data.getFullYear(), data.getMonth(), data.getDate()).getTime()
 
 /** Valor em reais, no formato `R$ 1.234,56`. */
 export function formatarMoeda(valor: number | null | undefined) {
@@ -64,6 +171,15 @@ export function formatarCpf(cpf: string | null | undefined) {
   if (!cpf) return ''
   const d = cpf.replace(/\D/g, '')
   return d.length === 11 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : cpf
+}
+
+/** CNPJ como `11.222.333/0001-81` — também o alfanumérico. O que não tiver 14 posições sai como veio. */
+export function formatarCnpj(cnpj: string | null | undefined) {
+  if (!cnpj) return ''
+  const c = cnpj.replace(/[^0-9a-z]/gi, '').toUpperCase()
+  return c.length === 14
+    ? `${c.slice(0, 2)}.${c.slice(2, 5)}.${c.slice(5, 8)}/${c.slice(8, 12)}-${c.slice(12)}`
+    : cnpj
 }
 
 /** CEP como `80000-000`. O que não tiver 8 dígitos sai como veio. */
@@ -99,4 +215,13 @@ export function formatarNumero(valor: number | null | undefined, casas = 0) {
     minimumFractionDigits: casas,
     maximumFractionDigits: casas,
   })
+}
+
+/**
+ * Diz se o texto é uma data pura `AAAA-MM-DD` — o formato em que o filtro de período viaja na URL.
+ *
+ * A barra de endereço é editável: o que não estiver nessa forma não vira filtro, vira nada.
+ */
+export function ehDia(valor: string | null): valor is string {
+  return valor !== null && /^\d{4}-\d{2}-\d{2}$/.test(valor)
 }

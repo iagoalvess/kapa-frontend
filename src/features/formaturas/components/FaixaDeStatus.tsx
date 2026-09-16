@@ -12,25 +12,32 @@ const TONS = {
   neutro: 'bg-neutral-bg text-neutral-text',
 } as const
 
-function faixa(formatura: FormaturaDetalhe): { tom: keyof typeof TONS; texto: string; acao?: string } | null {
+function faixa(
+  formatura: FormaturaDetalhe,
+  ehPresidente: boolean,
+): { tom: keyof typeof TONS; texto: string; acao?: string } | null {
   switch (formatura.status) {
     case 'Rascunho':
     case 'AguardandoPagamento':
+      // Quem contrata é o Presidente: para ele o aviso é a próxima tarefa; para o resto, a espera.
       return {
         tom: 'alerta',
-        texto: 'Sua formatura ainda não está ativa. Chame a comissão e conclua a contratação.',
+        texto: ehPresidente
+          ? 'Sua formatura ainda não está ativa. Contrate um plano para liberar a turma.'
+          : 'A formatura ainda não está ativa. Falta o presidente concluir a contratação.',
         acao: 'Contratar',
       }
     case 'Suspensa':
       return {
         tom: 'perigo',
-        texto: 'Assinatura pendente. A turma está em modo leitura.',
-        acao: 'Regularizar',
+        texto:
+          'O plano da turma venceu. Todos continuam vendo tudo, mas nada novo pode ser registrado até renovar.',
+        acao: 'Renovar plano',
       }
     case 'Encerrada':
       return {
         tom: 'neutro',
-        texto: `Formatura encerrada em ${formatarData(formatura.encerradaEm)}. Consulta e exportação continuam disponíveis.`,
+        texto: `Formatura encerrada em ${formatarData(formatura.encerrada_em)}. Consulta e exportação continuam disponíveis.`,
       }
     case 'Ativa':
     case 'Descartada':
@@ -49,7 +56,7 @@ function faixa(formatura: FormaturaDetalhe): { tom: keyof typeof TONS; texto: st
 export function FaixaDeStatus() {
   const { data } = useFormaturaAtual()
   const { ehPresidente } = usePapel()
-  const conteudo = data ? faixa(data) : null
+  const conteudo = data ? faixa(data, ehPresidente) : null
 
   if (!conteudo) return null
 

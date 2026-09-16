@@ -1,4 +1,14 @@
+import {
+  BookOpen,
+  CalendarCheck,
+  CalendarDays,
+  type LucideIcon,
+  PartyPopper,
+  School,
+  Users,
+} from 'lucide-react'
 import { useFormContext, useWatch } from 'react-hook-form'
+import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { formatarData, formatarNumero } from '@/lib/formato'
@@ -34,27 +44,38 @@ export function CampoDeNome() {
 export function ResumoDaFormatura({
   dados,
 }: {
-  dados: Pick<FormularioDeFormatura, 'curso' | 'instituicao' | 'ano' | 'semestre' | 'previsaoDeColacao'> & {
-    quantidadeEstimadaDeFormandos: string | number
+  dados: Pick<
+    FormularioDeFormatura,
+    'curso' | 'instituicao' | 'ano' | 'semestre' | 'previsao_de_colacao' | 'previsao_da_festa'
+  > & {
+    quantidade_estimada_de_formandos: string | number
   }
 }) {
-  const linhas: [string, string][] = [
-    ['Curso', dados.curso],
-    ['Instituição', dados.instituicao],
-    ['Conclusão', `${dados.ano}.${dados.semestre}`],
-    ['Previsão de colação', dados.previsaoDeColacao ? formatarData(dados.previsaoDeColacao) : '—'],
-    ['Formandos estimados', formatarNumero(Number(dados.quantidadeEstimadaDeFormandos))],
+  const linhas: [LucideIcon, string, string][] = [
+    [BookOpen, 'Curso', dados.curso],
+    [School, 'Instituição', dados.instituicao],
+    [CalendarDays, 'Conclusão', `${dados.ano}.${dados.semestre}`],
+    [
+      CalendarCheck,
+      'Previsão de colação',
+      dados.previsao_de_colacao ? formatarData(dados.previsao_de_colacao) : 'A definir',
+    ],
+    [
+      PartyPopper,
+      'Previsão da festa',
+      dados.previsao_da_festa ? formatarData(dados.previsao_da_festa) : 'A definir',
+    ],
+    [Users, 'Formandos estimados', formatarNumero(Number(dados.quantidade_estimada_de_formandos))],
   ]
 
   return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-      {linhas.map(([rotulo, valor]) => (
-        <div key={rotulo} className="contents">
-          <dt className="text-muted-foreground">{rotulo}</dt>
-          <dd className="text-foreground">{valor}</dd>
-        </div>
+    <ListaDeDados>
+      {linhas.map(([icone, rotulo, valor]) => (
+        <Dado key={rotulo} icone={icone} rotulo={rotulo}>
+          {valor}
+        </Dado>
       ))}
-    </dl>
+    </ListaDeDados>
   )
 }
 

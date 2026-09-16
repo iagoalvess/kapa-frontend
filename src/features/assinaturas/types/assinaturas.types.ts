@@ -9,10 +9,16 @@ export interface Plano {
   id: string
   codigo: string
   nome: string
+  /** Uma linha embaixo do nome, no card: para que turma o plano serve. */
+  descricao: string
   /** Inteiro, em centavos: `34990` é R$ 349,90. Converta só na exibição (`formatarCentavos`). */
-  precoEmCentavos: number
+  preco_em_centavos: number
+  /** Preço sem desconto, o valor riscado. Ausente quando não há desconto — o backend omite nulo. */
+  preco_cheio_em_centavos?: number
   ciclo: CicloDeCobranca
-  limiteDeFormandos: number
+  limite_de_formandos: number
+  /** Módulos incluídos, na ordem de exibição. */
+  modulos: string[]
   recomendado: boolean
 }
 
@@ -25,11 +31,11 @@ export interface Assinatura {
   id: string
   status: StatusDaAssinatura
   plano: Plano
-  vigenteAte?: string
+  vigente_ate?: string
   /** Só existe com renovação automática por vir. */
-  proximaCobrancaEm?: string
-  canceladaEm?: string
-  criadoEm: string
+  proxima_cobranca_em?: string
+  cancelada_em?: string
+  criado_em: string
 }
 
 /** Sessão de pagamento criada no provedor. Espelha `CheckoutDTO`. */

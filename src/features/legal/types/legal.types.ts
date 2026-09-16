@@ -6,7 +6,7 @@ export type { AceiteDeDocumento, DocumentoLegal } from '@/types/legal'
 export interface ConsentimentoDoUsuario {
   tipo: TipoDeDocumento
   versao: string
-  aceitoEm: string
+  aceito_em: string
   revogado: boolean
 }
 

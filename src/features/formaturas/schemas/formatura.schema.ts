@@ -26,8 +26,9 @@ export const esquemaDeFormatura = z.object({
   instituicao: texto('A instituição'),
   ano: z.string().min(1, 'Escolha o ano.'),
   semestre: z.string().refine((valor) => ['1', '2'].includes(valor), 'Escolha o semestre.'),
-  previsaoDeColacao: z.string(),
-  quantidadeEstimadaDeFormandos: inteiro('Informe um número entre 1 e 2000.', 1, 2000),
+  previsao_de_colacao: z.string(),
+  previsao_da_festa: z.string(),
+  quantidade_estimada_de_formandos: inteiro('Informe o número de formandos.', 1, 2000),
   nome: z
     .string()
     .trim()
@@ -44,12 +45,13 @@ export function anosDeConclusao(hoje = new Date()) {
 }
 
 /**
- * Nome sugerido a partir da turma: "Medicina 2027.1 — UFPR".
+ * Nome sugerido a partir da turma: "Medicina 2027". Semestre e instituição ficam de fora — já são
+ * campos próprios, e repeti-los no nome só o alonga.
  *
  * Só sugestão: a comissão edita no último passo, e a sugestão não sobrescreve o que ela escreveu.
  */
-export function sugerirNome({ curso, ano, semestre, instituicao }: FormularioDeFormatura) {
-  return `${curso.trim()} ${ano}.${semestre} — ${instituicao.trim()}`
+export function sugerirNome({ curso, ano }: FormularioDeFormatura) {
+  return `${curso.trim()} ${ano}`
 }
 
 /** Converte o formulário no corpo da API. */
@@ -60,7 +62,8 @@ export function paraDados(formulario: FormularioDeFormatura): DadosDaFormatura {
     instituicao: formulario.instituicao.trim(),
     ano: Number(formulario.ano),
     semestre: Number(formulario.semestre),
-    previsaoDeColacao: formulario.previsaoDeColacao || null,
-    quantidadeEstimadaDeFormandos: Number(formulario.quantidadeEstimadaDeFormandos),
+    previsao_de_colacao: formulario.previsao_de_colacao || null,
+    previsao_da_festa: formulario.previsao_da_festa || null,
+    quantidade_estimada_de_formandos: Number(formulario.quantidade_estimada_de_formandos),
   }
 }

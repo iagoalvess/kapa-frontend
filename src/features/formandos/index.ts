@@ -1,2 +1,2 @@
-export { AvisoDeCadastro } from './components/AvisoDeCadastro'
-export type { FormandoResumo, PerfilDoFormando } from './types/formandos.types'
+export { DadosDoTitular } from './components/DadosDoTitular'
+export { useMeuPerfil } from './hooks/useMeuPerfil'

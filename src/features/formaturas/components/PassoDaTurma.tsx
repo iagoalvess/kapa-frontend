@@ -1,23 +1,27 @@
 import { useFormContext } from 'react-hook-form'
+import { Select } from '@/components/Select'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { anosDeConclusao, type FormularioDeFormatura } from '../schemas/formatura.schema'
 
-/** `<select>` nativo com a cara do `Input`: teclado, leitor de tela e roleta do celular prontos. */
-const estiloDeSelect =
-  'border-input focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border bg-transparent px-3 text-base shadow-xs outline-none focus-visible:ring-[3px] disabled:opacity-50 md:text-sm'
-
-/** Passo 1: qual é a turma. Precisa estar dentro de `<Form>`. */
-export function PassoDaTurma() {
+/**
+ * Passo 1: qual é a turma. Precisa estar dentro de `<Form>`.
+ *
+ * @param emPares Entrega os campos soltos (`display: contents`), para a grade de quem chama — a
+ *   tela de edição, que tem quatro colunas num `@container` largo e duas no estreito. Curso e
+ *   instituição ocupam duas colunas lá. O assistente, estreito, empilha e não passa nada.
+ */
+export function PassoDaTurma({ emPares = false }: { emPares?: boolean }) {
   const { control } = useFormContext<FormularioDeFormatura>()
 
   return (
-    <div className="grid gap-4">
+    <div className={cn(emPares ? 'contents' : 'grid gap-4')}>
       <FormField
         control={control}
         name="curso"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className={cn(emPares && '@2xl:col-span-2')}>
             <FormLabel>Curso</FormLabel>
             <FormControl>
               <Input placeholder="Medicina" {...field} />
@@ -31,7 +35,7 @@ export function PassoDaTurma() {
         control={control}
         name="instituicao"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className={cn(emPares && '@md:col-span-2')}>
             <FormLabel>Instituição</FormLabel>
             <FormControl>
               <Input placeholder="UFPR" {...field} />
@@ -41,7 +45,7 @@ export function PassoDaTurma() {
         )}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={cn(emPares ? 'contents' : 'grid gap-4 sm:grid-cols-2')}>
         <FormField
           control={control}
           name="ano"
@@ -49,14 +53,14 @@ export function PassoDaTurma() {
             <FormItem>
               <FormLabel>Ano de conclusão</FormLabel>
               <FormControl>
-                <select className={estiloDeSelect} {...field}>
+                <Select {...field}>
                   <option value="">Escolha</option>
                   {anosDeConclusao().map((ano) => (
                     <option key={ano} value={String(ano)}>
                       {ano}
                     </option>
                   ))}
-                </select>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,11 +74,11 @@ export function PassoDaTurma() {
             <FormItem>
               <FormLabel>Semestre</FormLabel>
               <FormControl>
-                <select className={estiloDeSelect} {...field}>
+                <Select {...field}>
                   <option value="">Escolha</option>
                   <option value="1">1º semestre</option>
                   <option value="2">2º semestre</option>
-                </select>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

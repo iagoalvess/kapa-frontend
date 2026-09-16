@@ -21,8 +21,8 @@ export function FotoDoFormando({
   daComissao?: boolean
   className: string
 }) {
-  const foto = useFoto(perfil.fotoArquivoId, daComissao ? perfil.usuarioId : undefined)
-  const nome = perfil.pessoais.nomeCompleto ?? perfil.nome
+  const foto = useFoto(perfil.foto_arquivo_id, daComissao ? perfil.usuario_id : undefined)
+  const nome = perfil.pessoais.nome_completo ?? perfil.nome
 
   return foto.data ? (
     <img
@@ -31,6 +31,6 @@ export function FotoDoFormando({
       className={cn('shrink-0 rounded-full object-cover', className)}
     />
   ) : (
-    <Avatar nome={nome} semente={perfil.usuarioId} className={className} />
+    <Avatar nome={nome} semente={perfil.usuario_id} className={className} />
   )
 }

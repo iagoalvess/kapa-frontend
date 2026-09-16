@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS, PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import AlterarSenhaPage from '@/features/auth/pages/AlterarSenhaPage'
+import { DialogoDeSenha } from '@/features/auth'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { convitePendente } from '@/lib/convitePendente'
 import { sessao } from '@/lib/http/sessao'
@@ -39,8 +39,8 @@ function tokenCom(perfis: string[], formaturaId?: string): string {
 
 function entrar(perfis: string[], formaturaId?: string) {
   sessao.autenticar({
-    accessToken: tokenCom(perfis, formaturaId),
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: tokenCom(perfis, formaturaId),
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
@@ -122,11 +122,11 @@ describe('ExigeAutenticacao', () => {
       [
         {
           element: <ExigeAutenticacao />,
-          children: [{ path: ROTAS.alterarSenha, element: <AlterarSenhaPage /> }],
+          children: [{ path: ROTAS.meuCadastro, element: <DialogoDeSenha /> }],
         },
         { path: ROTAS.login, element: <Login /> },
       ],
-      { initialEntries: [ROTAS.alterarSenha] },
+      { initialEntries: [ROTAS.meuCadastro] },
     )
     render(
       <QueryClientProvider client={new QueryClient()}>
@@ -134,10 +134,11 @@ describe('ExigeAutenticacao', () => {
       </QueryClientProvider>,
     )
 
-    await userEvent.type(screen.getByLabelText('Senha atual'), 'SenhaAtual@123')
+    await userEvent.click(screen.getByRole('button', { name: 'Alterar senha' }))
+    await userEvent.type(await screen.findByLabelText('Senha atual'), 'SenhaAtual@123')
     await userEvent.type(screen.getByLabelText('Nova senha'), 'NovaSenha@123')
     await userEvent.type(screen.getByLabelText('Repita a nova senha'), 'NovaSenha@123')
-    await userEvent.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     expect(await screen.findByText(/Senha alterada/)).toBeInTheDocument()
   })
@@ -209,8 +210,8 @@ function entrarComPapel(papel: string) {
   }
   const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
   sessao.autenticar({
-    accessToken: `cabecalho.${base64}.assinatura`,
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: `cabecalho.${base64}.assinatura`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 

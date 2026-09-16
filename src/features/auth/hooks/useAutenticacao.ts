@@ -2,9 +2,33 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
-import { sessao } from '@/lib/http/sessao'
+import { convitePendente } from '@/lib/convitePendente'
+import { type ParDeTokens, sessao } from '@/lib/http/sessao'
 import { queryClient } from '@/lib/query/client'
-import { entrar, registrar, sair } from '../api/auth.api'
+import { aceitarConvite, entrar, registrar, sair } from '../api/auth.api'
+
+/**
+ * Guarda a sessão e, para quem chegou por um convite, já entra na turma — ainda nesta tela, com o
+ * botão em "carregando". Sem isto a pessoa passava pela página do convite só para ler "Entrando na
+ * turma…" antes de ver o app.
+ *
+ * Se o aceite falha, o convite continua guardado: a guarda leva à página do convite, que tenta de
+ * novo e explica o erro (e-mail a confirmar, convite esgotado, já participa).
+ */
+async function iniciarSessao(par: ParDeTokens) {
+  sessao.autenticar(par)
+
+  const convite = convitePendente.ler()
+  if (!convite) return
+
+  try {
+    sessao.autenticar(await aceitarConvite(convite))
+    convitePendente.descartar()
+    queryClient.clear()
+  } catch {
+    // A página do convite mostra o erro.
+  }
+}
 
 /**
  * Login. Em caso de sucesso guarda a sessão e devolve o usuário para onde ele tentava ir — o
@@ -16,8 +40,8 @@ export function useEntrar() {
 
   return useMutation({
     mutationFn: entrar,
-    onSuccess: (par) => {
-      sessao.autenticar(par)
+    onSuccess: async (par) => {
+      await iniciarSessao(par)
       navegar(destino, { replace: true })
     },
   })
@@ -29,8 +53,8 @@ export function useRegistrar() {
 
   return useMutation({
     mutationFn: registrar,
-    onSuccess: (par) => {
-      sessao.autenticar(par)
+    onSuccess: async (par) => {
+      await iniciarSessao(par)
       navegar(ROTAS.inicio, { replace: true })
     },
   })

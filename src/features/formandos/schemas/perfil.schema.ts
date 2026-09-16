@@ -25,8 +25,8 @@ const telefone = z
 
 export const esquemaDePessoais = z.object({
   pessoais: z.object({
-    nomeCompleto: texto(200, 'O nome completo'),
-    nomeNoDiploma: texto(200, 'O nome no diploma'),
+    nome_completo: texto(200, 'O nome completo'),
+    nome_no_diploma: texto(200, 'O nome no diploma'),
     cpf: z
       .string()
       .trim()
@@ -34,7 +34,7 @@ export const esquemaDePessoais = z.object({
     rg: texto(20, 'O RG'),
     matricula: texto(30, 'A matrícula'),
     telefone,
-    dataDeNascimento: z.string(),
+    data_de_nascimento: z.string(),
     observacoes: texto(1000, 'As observações'),
   }),
 })
@@ -58,7 +58,7 @@ export const esquemaDeEndereco = z.object({
 })
 
 export const esquemaDeEmergencia = z.object({
-  contatoDeEmergencia: z.object({
+  contato_de_emergencia: z.object({
     nome: texto(200, 'O nome'),
     telefone,
     parentesco: texto(50, 'O parentesco'),
@@ -69,20 +69,25 @@ export type FormularioDePessoais = z.infer<typeof esquemaDePessoais>
 export type FormularioDeEndereco = z.infer<typeof esquemaDeEndereco>
 export type FormularioDeEmergencia = z.infer<typeof esquemaDeEmergencia>
 
-/** Campo ausente na API vira `''` no `<input>`; documentos já saem com máscara. */
-export function paraFormularios(perfil: PerfilDoFormando) {
-  const { pessoais: p, endereco: e, contatoDeEmergencia: c } = perfil
+/**
+ * Campo ausente na API vira `''` no `<input>`; documentos já saem com máscara.
+ *
+ * @param daComissao A comissão recebe o CPF mascarado e não o altera: o campo vai vazio, e a API
+ *   ignora o CPF na correção. A máscara aparece fora do formulário, só para leitura.
+ */
+export function paraFormularios(perfil: PerfilDoFormando, daComissao = false) {
+  const { pessoais: p, endereco: e, contato_de_emergencia: c } = perfil
 
   return {
     pessoais: {
       pessoais: {
-        nomeCompleto: p.nomeCompleto ?? '',
-        nomeNoDiploma: p.nomeNoDiploma ?? '',
-        cpf: formatarCpf(p.cpf),
+        nome_completo: p.nome_completo ?? '',
+        nome_no_diploma: p.nome_no_diploma ?? '',
+        cpf: daComissao ? '' : formatarCpf(p.cpf),
         rg: p.rg ?? '',
         matricula: p.matricula ?? '',
         telefone: formatarTelefone(p.telefone),
-        dataDeNascimento: p.dataDeNascimento ?? '',
+        data_de_nascimento: p.data_de_nascimento ?? '',
         observacoes: p.observacoes ?? '',
       },
     } satisfies FormularioDePessoais,
@@ -98,13 +103,49 @@ export function paraFormularios(perfil: PerfilDoFormando) {
       },
     } satisfies FormularioDeEndereco,
     emergencia: {
-      contatoDeEmergencia: {
+      contato_de_emergencia: {
         nome: c.nome ?? '',
         telefone: formatarTelefone(c.telefone),
         parentesco: c.parentesco ?? '',
       },
     } satisfies FormularioDeEmergencia,
   }
+}
+
+/**
+ * Os dados que o termo de adesão exige de quem assina: nome, CPF e nascimento — este diz se a pessoa
+ * pode assinar sozinha. Aqui obrigatórios, ao contrário do cadastro, que aceita incompleto.
+ */
+export const esquemaDoTitular = z.object({
+  pessoais: z.object({
+    nome_completo: texto(200, 'O nome completo').min(1, 'Informe o nome completo, como no documento.'),
+    cpf: z
+      .string()
+      .trim()
+      .refine((valor) => soDigitos(valor).length === 11, 'Informe o CPF, com 11 dígitos.'),
+    data_de_nascimento: z.string().min(1, 'Informe a data de nascimento.'),
+  }),
+})
+
+export type FormularioDoTitular = z.infer<typeof esquemaDoTitular>
+
+/** O que o cadastro já tem, para o formulário do titular começar preenchido. */
+export function paraFormularioDoTitular(perfil: PerfilDoFormando): FormularioDoTitular {
+  const { nome_completo, cpf, data_de_nascimento } = paraFormularios(perfil).pessoais.pessoais
+
+  return { pessoais: { nome_completo, cpf, data_de_nascimento } }
+}
+
+/**
+ * O corpo da gravação: a seção pessoal inteira, com os três campos novos por cima.
+ *
+ * Inteira porque seção enviada é seção substituída — mandar só os três apagaria telefone, RG e
+ * matrícula que a pessoa já tinha preenchido.
+ */
+export function comDadosDoTitular(perfil: PerfilDoFormando, titular: FormularioDoTitular): AtualizarPerfil {
+  const atual = paraFormularios(perfil).pessoais.pessoais
+
+  return { pessoais: vazioParaNulo({ ...atual, ...titular.pessoais }) }
 }
 
 /** Campo em branco vai `null`, que a API entende como "apagar". */
@@ -120,5 +161,5 @@ export function paraDados(
 ): AtualizarPerfil {
   if ('pessoais' in formulario) return { pessoais: vazioParaNulo(formulario.pessoais) }
   if ('endereco' in formulario) return { endereco: vazioParaNulo(formulario.endereco) }
-  return { contatoDeEmergencia: vazioParaNulo(formulario.contatoDeEmergencia) }
+  return { contato_de_emergencia: vazioParaNulo(formulario.contato_de_emergencia) }
 }

@@ -5,13 +5,36 @@ import { alterarPapel, listarMembros, removerMembro, resumirMembros } from '../a
 import type { ContagemDeMembros, FiltroDeMembros } from '../types/membros.types'
 import { chaves } from './chaves'
 
-/** Uma página dos membros da formatura selecionada. */
+/**
+ * Uma página dos membros da formatura selecionada.
+ *
+ * Sempre revalida ao montar: a completude muda em outra tela (o cadastro do membro, o próprio
+ * cadastro), e quem volta de lá tem de ver a porcentagem nova sem que aquela feature precise
+ * conhecer as chaves desta.
+ */
 export function useMembros(filtro: FiltroDeMembros) {
   return useQuery({
     queryKey: chaves.lista(filtro),
     queryFn: ({ signal }) => listarMembros(filtro, signal),
+    staleTime: 0,
     // Mantém a página anterior na tela enquanto a próxima chega, em vez de piscar "Carregando".
     placeholderData: (anterior) => anterior,
+  })
+}
+
+/**
+ * Quantos membros ativos ainda não preencheram o essencial — o número da faixa.
+ *
+ * Uma página de um item só: a pergunta é o `total`.
+ */
+export function usePendentesDeCadastro() {
+  const filtro: FiltroDeMembros = { ativo: true, cadastro: 'Pendente', tamanho: 1 }
+
+  return useQuery({
+    queryKey: chaves.lista(filtro),
+    queryFn: ({ signal }) => listarMembros(filtro, signal),
+    staleTime: 0,
+    select: (pagina) => pagina.total,
   })
 }
 
@@ -19,9 +42,16 @@ export function useMembros(filtro: FiltroDeMembros) {
  * Contagem de membros por papel e situação — os números da faixa e dos filtros.
  *
  * Mora sob `chaves.tudo`: trocar papel ou remover alguém invalida a lista e o resumo juntos.
+ *
+ * @param habilitado Falso não consulta — para telas que todo membro abre, onde só a Gestão lê o
+ *   resumo (a API responderia 403 ao formando).
  */
-export function useResumoDeMembros() {
-  return useQuery({ queryKey: chaves.resumo(), queryFn: ({ signal }) => resumirMembros(signal) })
+export function useResumoDeMembros(habilitado = true) {
+  return useQuery({
+    queryKey: chaves.resumo(),
+    queryFn: ({ signal }) => resumirMembros(signal),
+    enabled: habilitado,
+  })
 }
 
 /**
@@ -41,7 +71,7 @@ export function contar(contagens: ContagemDeMembros[], filtro: { ativo?: boolean
 }
 
 /** Diz se o membro alterado é quem está logado. */
-const ehOProprio = (usuarioId: string) => usuarioId === sessao.estado().usuario?.id
+const ehOProprio = (usuario_id: string) => usuario_id === sessao.estado().usuario?.id
 
 /**
  * Troca de papel de um membro.
@@ -55,8 +85,8 @@ export function useAlterarPapel() {
 
   return useMutation({
     mutationFn: alterarPapel,
-    onSuccess: async (_, { usuarioId }) => {
-      if (ehOProprio(usuarioId)) await sessao.renovar()
+    onSuccess: async (_, { usuario_id }) => {
+      if (ehOProprio(usuario_id)) await sessao.renovar()
       await queryClient.invalidateQueries({ queryKey: chaves.tudo })
     },
   })
@@ -74,8 +104,8 @@ export function useRemoverMembro() {
 
   return useMutation({
     mutationFn: removerMembro,
-    onSuccess: async (_, usuarioId) => {
-      if (!ehOProprio(usuarioId)) {
+    onSuccess: async (_, usuario_id) => {
+      if (!ehOProprio(usuario_id)) {
         await queryClient.invalidateQueries({ queryKey: chaves.tudo })
         return
       }

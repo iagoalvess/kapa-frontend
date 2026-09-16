@@ -1,30 +1,17 @@
-import { PAPEIS } from '@/config/perfis'
-import { AvisoDeCadastro } from '@/features/formandos'
-import { IndicadoresDeMembros } from '@/features/membros'
-import { usePapel, useSessao } from '@/hooks/useSessao'
+import { useSessao } from '@/hooks/useSessao'
 
 /**
  * Primeira tela depois do login.
  *
- * Por ora mostra o que já existe de número na turma: a faixa de membros, para quem faz a gestão
- * (formando não lê a lista de membros, e a API responderia 403). O painel com caixa e
- * adimplência entra na sprint do dashboard.
+ * Os três avisos que moravam aqui saíram em 16/09/2026: cada pendência passou a marcar a porta em
+ * que se resolve — o ponto no item "Termo" do menu, o ponto no avatar para o cadastro e o número da
+ * fila no item "Conferência". O que a falta significa já está dito onde ela aparece: o extrato vazio
+ * explica que as parcelas nascem do aceite.
+ *
+ * `ponytail: fora a saudação, a tela está vazia à espera do que o dono do produto decidir pôr nela.`
  */
 export function PaginaInicial() {
   const { usuario } = useSessao()
-  const { tem } = usePapel()
 
-  return (
-    <>
-      <AvisoDeCadastro />
-      {tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? <IndicadoresDeMembros /> : null}
-
-      <section className="bg-card shadow-cartao rounded-2xl p-5">
-        <h2 className="text-foreground font-medium">Olá, {usuario?.nome || 'visitante'}</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Aqui vão aparecer o caixa da turma, as cobranças e os avisos, conforme cada módulo chegar.
-        </p>
-      </section>
-    </>
-  )
+  return <h2 className="text-foreground text-xl font-medium">Olá, {usuario?.nome || 'visitante'}</h2>
 }

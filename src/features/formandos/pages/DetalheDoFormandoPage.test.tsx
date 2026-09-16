@@ -14,23 +14,23 @@ import DetalheDoFormandoPage from './DetalheDoFormandoPage'
 const BRUNO = `${env.VITE_API_URL}/api/v1/formandos/u-2`
 
 const perfil = {
-  usuarioId: 'u-2',
+  usuario_id: 'u-2',
   nome: 'Bruno',
   email: 'bruno@exemplo.com',
   papel: 'Formando',
-  pessoais: { nomeCompleto: 'Bruno Lima' },
+  pessoais: { nome_completo: 'Bruno Lima' },
   endereco: {},
-  contatoDeEmergencia: {},
+  contato_de_emergencia: {},
   completude: 10,
   faltando: ['cpf', 'telefone'],
-  essencialPendente: true,
+  essencial_pendente: true,
 }
 
 function entrarComo(papel: string) {
   const corpo = { sub: 'u-1', name: 'Ana', role: [PERFIS.usuario], formatura_id: 'f-1', papel }
   sessao.autenticar({
-    accessToken: `c.${btoa(JSON.stringify(corpo))}.a`,
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
@@ -41,7 +41,7 @@ function renderizarDetalhe() {
   })
   const router = createMemoryRouter(
     [
-      { path: '/formatura/formandos/:usuarioId', element: <DetalheDoFormandoPage /> },
+      { path: '/formatura/formandos/:usuario_id', element: <DetalheDoFormandoPage /> },
       { path: '/formatura/formandos', element: <p>Lista</p> },
     ],
     { initialEntries: ['/formatura/formandos/u-2'] },
@@ -74,13 +74,13 @@ describe('DetalheDoFormandoPage', () => {
     expect(await screen.findByLabelText('Nome completo')).toHaveValue('Bruno Lima')
     expect(screen.getByLabelText('Nome completo')).toBeDisabled()
     expect(screen.queryByRole('button', { name: /^Salvar/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/Falta o essencial para emitir cobrança/)).toBeInTheDocument()
+    expect(screen.getByText(/Falta o essencial: nome completo, CPF e telefone/)).toBeInTheDocument()
   })
 
   /** O arquivo é do formando: a comissão busca pela rota dele, não pelo módulo de arquivos. */
   it('Comissão vê a foto do formando, baixada pela rota do formando', async () => {
     servidor.use(
-      http.get(BRUNO, () => HttpResponse.json({ ...perfil, fotoArquivoId: 'a-1' })),
+      http.get(BRUNO, () => HttpResponse.json({ ...perfil, foto_arquivo_id: 'a-1' })),
       http.get(`${BRUNO}/foto`, () =>
         HttpResponse.arrayBuffer(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]).buffer, {
           headers: { 'Content-Type': 'image/jpeg' },
@@ -96,6 +96,29 @@ describe('DetalheDoFormandoPage', () => {
       'data:image/jpeg;base64,/9j/4A==',
     )
     expect(screen.queryByText('Sem foto')).not.toBeInTheDocument()
+  })
+
+  /** A API manda a máscara; devolvê-la no corpo seria um CPF inválido na correção. */
+  it('Presidente vê o CPF mascarado e travado, e a correção não o envia', async () => {
+    const comCpf = { ...perfil, pessoais: { ...perfil.pessoais, cpf: '***.982.247-**' } }
+    let enviado: unknown
+    servidor.use(
+      http.get(BRUNO, () => HttpResponse.json(comCpf)),
+      http.put(BRUNO, async ({ request }) => {
+        enviado = await request.json()
+        return HttpResponse.json(comCpf)
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizarDetalhe()
+    const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
+    expect(within(pessoais).getByLabelText('CPF')).toHaveValue('***.982.247-**')
+    expect(within(pessoais).getByLabelText('CPF')).toBeDisabled()
+    await userEvent.type(within(pessoais).getByLabelText('RG'), '12.345.678-9')
+    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar dados pessoais' }))
+
+    await waitFor(() => expect(enviado).toMatchObject({ pessoais: { rg: '12.345.678-9', cpf: null } }))
   })
 
   it('Presidente corrige pela rota do formando, não pela própria', async () => {

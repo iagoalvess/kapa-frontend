@@ -25,8 +25,8 @@ describe('LoginPage', () => {
     servidor.use(
       http.post(LOGIN, () =>
         HttpResponse.json({
-          accessToken: 'token',
-          expiraEm: new Date().toISOString(),
+          access_token: 'token',
+          expira_em: new Date().toISOString(),
           refreshToken: 'refresh',
         }),
       ),

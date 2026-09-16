@@ -11,10 +11,12 @@ export interface FormaturaDetalhe {
   ano: number
   semestre: number
   /** `yyyy-MM-dd`, sem hora nem fuso. */
-  previsaoDeColacao: string | null
-  quantidadeEstimadaDeFormandos: number
+  previsao_de_colacao: string | null
+  /** `yyyy-MM-dd`, sem hora nem fuso. */
+  previsao_da_festa: string | null
+  quantidade_estimada_de_formandos: number
   status: StatusDaFormatura
-  criadoEm: string
-  ativadaEm: string | null
-  encerradaEm: string | null
+  criado_em: string
+  ativada_em: string | null
+  encerrada_em: string | null
 }

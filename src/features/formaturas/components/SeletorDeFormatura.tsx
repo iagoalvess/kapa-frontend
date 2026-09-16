@@ -1,5 +1,5 @@
-import { ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
+import { Select } from '@/components/Select'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { mensagemDoErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
@@ -27,16 +27,17 @@ function rotuloDaTurma(formatura: FormaturaDoUsuario) {
   return formatura.curso && formatura.ano ? `${formatura.curso} ${turma(formatura)}` : formatura.nome
 }
 
+// No celular o rótulo trunca: o cabeçalho divide a linha com o título e o avatar.
+const LARGURA = 'max-w-[45vw] sm:max-w-80'
+
 /**
  * A formatura da sessão, no cabeçalho ao lado do avatar — e a troca dela, para quem tem mais de uma.
  * O papel do usuário não entra aqui: fica no pé da barra lateral.
  *
- * O visual é uma pílula com curso e turma; por cima dela fica um `<select>` nativo transparente.
- * O nativo já traz teclado, leitor de tela e a roleta do celular prontos. Um combobox montado à
- * mão precisaria reimplementar os três — e é sempre o terceiro que fica faltando.
- *
- * Com uma formatura só, o bloco fica sem seletor: escolher entre uma opção é ruído. Sem nenhuma
- * selecionada, some — a tela de seleção já está pedindo a escolha.
+ * A troca é o `Select` do sistema: a opção fechada já mostra curso, instituição e turma, o que
+ * separa duas turmas de nome parecido. Com uma formatura só, fica o rótulo sem seletor: escolher
+ * entre uma opção é ruído. Sem nenhuma selecionada, some — a tela de seleção já está pedindo a
+ * escolha.
  */
 export function SeletorDeFormatura() {
   const { formaturaId } = useFormaturaAtiva()
@@ -46,39 +47,33 @@ export function SeletorDeFormatura() {
   const atual = formaturas.data?.find((formatura) => formatura.id === formaturaId)
   if (!formaturas.data || !atual) return null
 
-  const podeTrocar = formaturas.data.length > 1
+  if (formaturas.data.length === 1) {
+    return (
+      <span
+        title={descreverTurma(atual)}
+        className={cn('text-foreground truncate rounded-md border px-3 py-1.5 text-sm font-medium', LARGURA)}
+      >
+        {rotuloDaTurma(atual)}
+      </span>
+    )
+  }
 
   return (
-    // No celular o rótulo trunca: o cabeçalho divide a linha com o título e o avatar.
-    <div
+    <Select
+      aria-label="Formatura selecionada"
       title={descreverTurma(atual)}
-      className={cn(
-        'has-focus-visible:ring-ring relative flex h-8 max-w-[45vw] min-w-0 items-center gap-1.5 rounded-lg border px-3 text-sm transition-[background-color,box-shadow] has-focus-visible:ring-2 sm:max-w-80',
-        podeTrocar && 'hover:bg-card',
-      )}
+      className={cn('h-8 truncate font-medium', LARGURA)}
+      value={atual.id}
+      disabled={selecionar.isPending}
+      onChange={(evento) =>
+        selecionar.mutate(evento.target.value, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
+      }
     >
-      <span className="text-foreground truncate font-medium">{rotuloDaTurma(atual)}</span>
-
-      {podeTrocar ? (
-        <>
-          <ChevronsUpDown className="text-muted-foreground size-4 shrink-0" aria-hidden />
-          <select
-            aria-label="Formatura selecionada"
-            className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-wait"
-            value={atual.id}
-            disabled={selecionar.isPending}
-            onChange={(evento) =>
-              selecionar.mutate(evento.target.value, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
-            }
-          >
-            {formaturas.data.map((formatura) => (
-              <option key={formatura.id} value={formatura.id}>
-                {[formatura.nome, descreverTurma(formatura)].filter(Boolean).join(' — ')}
-              </option>
-            ))}
-          </select>
-        </>
-      ) : null}
-    </div>
+      {formaturas.data.map((formatura) => (
+        <option key={formatura.id} value={formatura.id}>
+          {descreverTurma(formatura) || formatura.nome}
+        </option>
+      ))}
+    </Select>
   )
 }

@@ -23,8 +23,8 @@ function registrarCriacao() {
     http.post(FORMATURAS, async ({ request }) => {
       corpos.push(await request.json())
       return HttpResponse.json({
-        accessToken: tokenNaFormatura(),
-        expiraEm: new Date(Date.now() + 900_000).toISOString(),
+        access_token: tokenNaFormatura(),
+        expira_em: new Date(Date.now() + 900_000).toISOString(),
       })
     }),
   )
@@ -41,6 +41,7 @@ async function preencherATurma() {
 
 async function preencherOTamanho() {
   await userEvent.type(await screen.findByLabelText('Número estimado de formandos'), '80')
+  await userEvent.type(screen.getByLabelText('Previsão da festa (opcional)'), `${ANO}-12-10`)
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
 }
 
@@ -55,7 +56,7 @@ describe('CriarFormaturaPage', () => {
     await preencherATurma()
     await preencherOTamanho()
 
-    expect(await screen.findByLabelText('Nome da formatura')).toHaveValue(`Medicina ${ANO}.1 — UFPR`)
+    expect(await screen.findByLabelText('Nome da formatura')).toHaveValue(`Medicina ${ANO}`)
     expect(corpos).toHaveLength(0)
 
     await userEvent.click(screen.getByRole('button', { name: 'Criar formatura' }))
@@ -63,16 +64,18 @@ describe('CriarFormaturaPage', () => {
     await waitFor(() => expect(sessao.estado().usuario?.formaturaId).toBe('f-nova'))
     expect(corpos).toEqual([
       {
-        nome: `Medicina ${ANO}.1 — UFPR`,
+        nome: `Medicina ${ANO}`,
         curso: 'Medicina',
         instituicao: 'UFPR',
         ano: Number(ANO),
         semestre: 1,
-        previsaoDeColacao: null,
-        quantidadeEstimadaDeFormandos: 80,
+        previsao_de_colacao: null,
+        previsao_da_festa: `${ANO}-12-10`,
+        quantidade_estimada_de_formandos: 80,
       },
     ])
-  })
+    // Digita o wizard inteiro: ~3s sozinho, e passa dos 5s padrão com a suíte rodando em paralelo.
+  }, 10_000)
 
   /** Abandonar no meio não deixa formatura pela metade: nada foi à API. */
   it('abandonar no passo 2 não chama a API', async () => {

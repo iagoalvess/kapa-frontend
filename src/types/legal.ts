@@ -7,7 +7,7 @@ export interface DocumentoLegal {
   versao: string
   /** Texto integral em markdown. */
   conteudo: string
-  vigenteDesde: string
+  vigente_desde: string
 }
 
 /** A versão que o usuário leu e aceitou. Espelha `AceiteDeDocumentoDTO`. */

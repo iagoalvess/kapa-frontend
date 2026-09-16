@@ -1,7 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { CircleCheck, Clock, LoaderCircle } from 'lucide-react'
+import { Clock, LoaderCircle } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import mascoteCanudo from '@/assets/mascote/canudo.webp'
+import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { CHAVE_DA_FORMATURA_ATUAL } from '@/hooks/useFormaturaAtual'
@@ -66,7 +68,10 @@ export default function RetornoDoCheckoutPage() {
 
   if (confirmada)
     return (
-      <Quadro icone={<CircleCheck className="text-success" />} titulo="Pagamento confirmado">
+      <Quadro
+        icone={<img src={mascoteCanudo} alt="" className="mx-auto w-36 drop-shadow-lg" />}
+        titulo="Pagamento confirmado"
+      >
         <p>A assinatura do plano {assinatura.data?.plano.nome} está ativa e a turma já pode usar tudo.</p>
         <Button asChild className="justify-self-center">
           <Link to={ROTAS.inicio}>Ir para a turma</Link>
@@ -78,8 +83,8 @@ export default function RetornoDoCheckoutPage() {
     return (
       <Quadro icone={<Clock />} titulo="O pagamento pode levar alguns minutos">
         <p>
-          Assim que o provedor confirmar, a turma é ativada e avisamos por e-mail. Você já pode sair desta
-          página com segurança — não é preciso pagar de novo.
+          Assim que o pagamento for confirmado, a turma é liberada e avisamos por e-mail. Você já pode sair
+          desta página com segurança — não é preciso pagar de novo.
         </p>
         <Button asChild variant="outline" className="justify-self-center">
           <Link to={ROTAS.inicio}>Voltar para a turma</Link>
@@ -88,7 +93,16 @@ export default function RetornoDoCheckoutPage() {
     )
 
   return (
-    <Quadro icone={<LoaderCircle className="animate-spin" />} titulo="Estamos confirmando seu pagamento…">
+    <Quadro
+      icone={
+        <span className="relative mx-auto">
+          <img src={mascoteFoguete} alt="" className="w-36 drop-shadow-lg" />
+          {/* O giro fica: a imagem parada não diz que a tela está trabalhando. */}
+          <LoaderCircle className="text-brand absolute right-0 bottom-2 size-7 animate-spin" aria-hidden />
+        </span>
+      }
+      titulo="Estamos confirmando seu pagamento…"
+    >
       <p>Não feche esta página. Isso costuma levar poucos segundos.</p>
     </Quadro>
   )
@@ -98,7 +112,7 @@ function Quadro({ icone, titulo, children }: { icone: ReactNode; titulo: string;
   return (
     <section
       aria-live="polite"
-      className="bg-card shadow-cartao text-muted-foreground mx-auto grid max-w-md gap-4 rounded-2xl p-8 text-center text-sm [&>svg]:mx-auto [&>svg]:size-10"
+      className="bg-card shadow-cartao text-muted-foreground mx-auto grid max-w-md gap-4 rounded-3xl p-8 text-center text-sm [&>svg]:mx-auto [&>svg]:size-10"
     >
       {icone}
       <h2 className="text-foreground text-lg font-medium">{titulo}</h2>

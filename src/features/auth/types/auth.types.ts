@@ -26,7 +26,7 @@ export interface NovaConta {
 export interface RedefinicaoDeSenha {
   email: string
   token: string
-  novaSenha: string
+  nova_senha: string
 }
 
 /** Corpo de `POST /api/v1/conta/confirmar-email`, com os dois valores do link do e-mail. */
@@ -37,6 +37,6 @@ export interface ConfirmacaoDeEmail {
 
 /** Corpo de `POST /api/v1/conta/alterar-senha`. */
 export interface TrocaDeSenha {
-  senhaAtual: string
-  novaSenha: string
+  senha_atual: string
+  nova_senha: string
 }

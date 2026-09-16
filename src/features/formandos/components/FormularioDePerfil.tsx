@@ -5,13 +5,16 @@ import {
   type FieldValues,
   type UseFormReturn,
   useForm,
+  useFormState,
   useFormContext,
 } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useConsultarCep, useSalvarPerfil } from '../hooks/useMeuPerfil'
 import {
@@ -46,11 +49,16 @@ interface Props {
  * Monte com `key` pelo usuário: os valores iniciais só são lidos na montagem.
  */
 export function FormularioDePerfil({ perfil, usuarioId, editavel }: Props) {
-  const valores = paraFormularios(perfil)
+  const valores = paraFormularios(perfil, Boolean(usuarioId))
 
   return (
     <div className="grid gap-4">
-      <SecaoPessoais valores={valores.pessoais} usuarioId={usuarioId} editavel={editavel} />
+      <SecaoPessoais
+        valores={valores.pessoais}
+        usuarioId={usuarioId}
+        editavel={editavel}
+        cpfMascarado={perfil.pessoais.cpf}
+      />
       <SecaoEndereco valores={valores.endereco} usuarioId={usuarioId} editavel={editavel} />
       <SecaoEmergencia valores={valores.emergencia} usuarioId={usuarioId} editavel={editavel} />
     </div>
@@ -75,7 +83,7 @@ function useSecao<T extends FieldValues>(
   const enviar = formulario.handleSubmit((dados) =>
     salvar.mutate(paraDados(dados as never), {
       onSuccess: (perfil) => {
-        formulario.reset(paraFormularios(perfil)[secao] as never)
+        formulario.reset(paraFormularios(perfil, Boolean(usuarioId))[secao] as never)
         toast.success('Salvo.')
       },
       onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
@@ -89,7 +97,8 @@ function SecaoPessoais({
   valores,
   usuarioId,
   editavel,
-}: { valores: FormularioDePessoais } & Omit<Props, 'perfil'>) {
+  cpfMascarado,
+}: { valores: FormularioDePessoais; cpfMascarado?: string } & Omit<Props, 'perfil'>) {
   const { formulario, enviar, salvando } = useSecao('pessoais', esquemaDePessoais, valores, usuarioId)
 
   return (
@@ -100,37 +109,57 @@ function SecaoPessoais({
       salvando={salvando}
       editavel={editavel}
     >
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Campo<FormularioDePessoais>
-          nome="pessoais.nomeCompleto"
-          rotulo="Nome completo"
-          autoComplete="name"
-        />
-        <Campo<FormularioDePessoais>
-          nome="pessoais.nomeNoDiploma"
-          rotulo="Nome no diploma"
-          dica="Se for diferente do nome civil."
-        />
-        <Campo<FormularioDePessoais>
-          nome="pessoais.cpf"
-          rotulo="CPF"
-          inputMode="numeric"
-          placeholder="000.000.000-00"
-        />
+      {/* Quatro colunas: os campos longos ocupam duas, RG e nascimento — curtos — dividem a
+          metade ao lado do CPF. */}
+      <div className="grid items-start gap-4 sm:grid-cols-4">
+        <div className="sm:col-span-2">
+          <Campo<FormularioDePessoais>
+            nome="pessoais.nome_completo"
+            rotulo="Nome completo"
+            autoComplete="name"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Campo<FormularioDePessoais>
+            nome="pessoais.nome_no_diploma"
+            rotulo="Nome no diploma"
+            dica="Se for diferente do nome civil."
+          />
+        </div>
+        <div className="sm:col-span-2">
+          {usuarioId ? (
+            <div className="grid gap-2">
+              <Label htmlFor="cpf-do-formando">CPF</Label>
+              <Input id="cpf-do-formando" value={cpfMascarado ?? ''} readOnly disabled />
+              <p className="text-texto-muted text-xs">Só o formando vê o CPF inteiro e pode alterá-lo.</p>
+            </div>
+          ) : (
+            <Campo<FormularioDePessoais>
+              nome="pessoais.cpf"
+              rotulo="CPF"
+              inputMode="numeric"
+              placeholder="000.000.000-00"
+            />
+          )}
+        </div>
         <Campo<FormularioDePessoais> nome="pessoais.rg" rotulo="RG" />
-        <Campo<FormularioDePessoais> nome="pessoais.matricula" rotulo="Matrícula" />
         <Campo<FormularioDePessoais>
-          nome="pessoais.telefone"
-          rotulo="Telefone"
-          type="tel"
-          autoComplete="tel"
-          placeholder="(41) 99876-5432"
-        />
-        <Campo<FormularioDePessoais>
-          nome="pessoais.dataDeNascimento"
+          nome="pessoais.data_de_nascimento"
           rotulo="Data de nascimento"
           type="date"
         />
+        <div className="sm:col-span-2">
+          <Campo<FormularioDePessoais> nome="pessoais.matricula" rotulo="Matrícula" />
+        </div>
+        <div className="sm:col-span-2">
+          <Campo<FormularioDePessoais>
+            nome="pessoais.telefone"
+            rotulo="Telefone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="(41) 99876-5432"
+          />
+        </div>
       </div>
       <Campo<FormularioDePessoais>
         nome="pessoais.observacoes"
@@ -244,10 +273,10 @@ function SecaoEmergencia({
       editavel={editavel}
     >
       <div className="grid items-start gap-4 sm:grid-cols-3">
-        <Campo<FormularioDeEmergencia> nome="contatoDeEmergencia.nome" rotulo="Nome" />
-        <Campo<FormularioDeEmergencia> nome="contatoDeEmergencia.telefone" rotulo="Telefone" type="tel" />
+        <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.nome" rotulo="Nome" />
+        <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.telefone" rotulo="Telefone" type="tel" />
         <Campo<FormularioDeEmergencia>
-          nome="contatoDeEmergencia.parentesco"
+          nome="contato_de_emergencia.parentesco"
           rotulo="Parentesco"
           placeholder="Mãe"
         />
@@ -272,13 +301,18 @@ function Moldura<T extends FieldValues>({
   editavel: boolean
   children: ReactNode
 }) {
+  // `useFormState`, e não `formulario.formState.isDirty` solto no render: a leitura solta some com a
+  // memoização do React Compiler quando é a única do formState no componente, e o botão nunca sai de
+  // desabilitado. A assinatura própria re-renderiza este cartão por conta.
+  const { isDirty } = useFormState({ control: formulario.control })
+
   return (
     <Form {...formulario}>
       <form
         noValidate
         onSubmit={enviar}
         aria-label={titulo}
-        className="bg-card shadow-cartao grid gap-4 rounded-2xl p-5"
+        className="bg-card shadow-cartao grid gap-4 rounded-3xl p-5"
       >
         <h2 className="text-foreground font-medium">{titulo}</h2>
 
@@ -287,18 +321,10 @@ function Moldura<T extends FieldValues>({
           {children}
         </fieldset>
 
-        {formulario.formState.errors.root?.message ? (
-          <p role="alert" className="text-destructive text-sm">
-            {formulario.formState.errors.root.message}
-          </p>
-        ) : null}
+        <ErroDoFormulario />
 
         {editavel ? (
-          <Button
-            type="submit"
-            className="justify-self-start"
-            disabled={salvando || !formulario.formState.isDirty}
-          >
+          <Button type="submit" className="justify-self-start" disabled={salvando || !isDirty}>
             {salvando ? 'Salvando…' : `Salvar ${titulo.toLowerCase()}`}
           </Button>
         ) : null}
@@ -307,8 +333,8 @@ function Moldura<T extends FieldValues>({
   )
 }
 
-/** Um campo de texto ligado ao formulário da seção. */
-function Campo<T extends FieldValues>({
+/** Um campo de texto ligado ao formulário da seção. Também é o dos dados do titular, na adesão. */
+export function Campo<T extends FieldValues>({
   nome,
   rotulo,
   dica,

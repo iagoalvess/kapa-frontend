@@ -11,8 +11,8 @@ import RedefinirSenhaPage from './RedefinirSenhaPage'
 const REDEFINIR = `${env.VITE_API_URL}/api/v1/conta/redefinir-senha`
 const LINK = { pathname: '/redefinir-senha', search: '?email=ana%40exemplo.com&token=abc-123' }
 
-async function definirSenha(novaSenha: string, confirmacao = novaSenha) {
-  await userEvent.type(screen.getByLabelText('Nova senha'), novaSenha)
+async function definirSenha(nova_senha: string, confirmacao = nova_senha) {
+  await userEvent.type(screen.getByLabelText('Nova senha'), nova_senha)
   await userEvent.type(screen.getByLabelText('Repita a nova senha'), confirmacao)
   await userEvent.click(screen.getByRole('button', { name: 'Salvar nova senha' }))
 }
@@ -26,13 +26,13 @@ describe('RedefinirSenhaPage', () => {
         return new HttpResponse(null, { status: 204 })
       }),
     )
-    sessao.autenticar({ accessToken: 'token-antigo', expiraEm: new Date().toISOString() })
+    sessao.autenticar({ access_token: 'token-antigo', expira_em: new Date().toISOString() })
 
     renderizar(<RedefinirSenhaPage />, LINK)
     await definirSenha('NovaSenha@123')
 
     await waitFor(() => {
-      expect(enviado).toEqual({ email: 'ana@exemplo.com', token: 'abc-123', novaSenha: 'NovaSenha@123' })
+      expect(enviado).toEqual({ email: 'ana@exemplo.com', token: 'abc-123', nova_senha: 'NovaSenha@123' })
     })
     expect(sessao.accessToken()).toBeNull()
   })

@@ -50,6 +50,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // O padrão do Vitest são 5s, e um teste de formulário com `userEvent` gasta metade disso só
+    // digitando — cada tecla é um evento. Com a suíte inteira em paralelo, os mais lentos passavam
+    // sozinhos e falhavam no conjunto, sem nada a ver com o que testam. O teto maior não esconde
+    // regressão: teste quebrado falha por asserção, não por relógio.
+    testTimeout: 15_000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],

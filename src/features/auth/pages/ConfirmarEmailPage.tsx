@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
-import { Aviso, estilos, LayoutDeAutenticacao } from '../components/LayoutDeAutenticacao'
+import { Aviso, estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useConfirmarEmail, useReenviarConfirmacao } from '../hooks/useConta'
 
 /**

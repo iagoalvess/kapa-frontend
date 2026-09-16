@@ -9,9 +9,9 @@ import { convitePendente } from '@/lib/convitePendente'
  * Guarda cuida de **navegação**, não de segurança: quem protege dado é a API. O caminho
  * pretendido vai no `state` para o login devolver o usuário ao lugar certo.
  *
- * Quem abriu um convite sem sessão volta para ele assim que entra — pelo cadastro ou pelo login,
- * que caem no início. A tela do convite descarta o pendente ao abrir com sessão, então o desvio
- * acontece uma vez só.
+ * Convite ainda guardado com sessão aberta é convite que não entrou: o cadastro e o login já aceitam
+ * o pendente, então sobra o que falhou (ou o link colado em `SemFormatura`). A tela do convite
+ * descarta o pendente ao abrir com sessão, então o desvio acontece uma vez só.
  */
 export function ExigeAutenticacao() {
   const { autenticado } = useSessao()

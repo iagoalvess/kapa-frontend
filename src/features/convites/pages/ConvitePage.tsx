@@ -1,5 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import mascoteErro from '@/assets/mascote/erro.webp'
+import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
@@ -19,8 +21,9 @@ const SEM_NOVA_TENTATIVA = new Set(['convite.email_divergente', 'convite.vinculo
  * `/convite/:token` — o primeiro contato do formando com a Kapa, quase sempre num celular.
  *
  * Sem sessão, mostra a turma e leva ao cadastro ou ao login, guardando o token
- * (`convitePendente`): ao voltar, a guarda `ExigeAutenticacao` devolve a pessoa para cá e o aceite
- * sai sozinho — ela já disse "entrar" antes de criar a conta.
+ * (`convitePendente`): o cadastro e o login aceitam o convite e vão direto para o app — ela já
+ * disse "entrar" antes de criar a conta. Se esse aceite falhar, a guarda `ExigeAutenticacao`
+ * devolve a pessoa para cá, e o aceite sai sozinho de novo para mostrar o erro.
  *
  * Quem **já estava logado** e só abriu o link confirma num botão, vendo com qual conta vai entrar:
  * aceitar ao abrir deixaria qualquer link repassado pôr a pessoa numa turma alheia — e expor nome
@@ -106,7 +109,7 @@ export default function ConvitePage() {
   if (convite.isPending) {
     return (
       <Moldura>
-        <p className="text-muted-foreground text-center text-sm">Carregando convite…</p>
+        <EsqueletoDeTexto linhas={3} />
       </Moldura>
     )
   }
@@ -245,6 +248,7 @@ function ConfirmeOEmail({
 function Indisponivel() {
   return (
     <Moldura>
+      <img src={mascoteErro} alt="" className="w-36 justify-self-center drop-shadow-lg" />
       <p className="text-center text-lg font-semibold">
         Este convite não está mais disponível. Peça um novo à comissão.
       </p>

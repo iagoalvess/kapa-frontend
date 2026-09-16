@@ -13,14 +13,14 @@ const ATUAL = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 function entrarNaFormatura() {
   const corpo = { sub: 'u-1', name: 'Ana', formatura_id: 'f-1', papel: 'Presidente' }
   sessao.autenticar({
-    accessToken: `c.${btoa(JSON.stringify(corpo))}.a`,
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
 function comStatus(status: StatusDaFormatura) {
   servidor.use(
-    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status, encerradaEm: '2026-12-20T15:00:00Z' })),
+    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status, encerrada_em: '2026-12-20T15:00:00Z' })),
   )
 }
 
@@ -30,7 +30,7 @@ describe('FaixaDeStatus', () => {
   it.each([
     ['Rascunho', /ainda não está ativa/],
     ['AguardandoPagamento', /ainda não está ativa/],
-    ['Suspensa', /modo leitura/],
+    ['Suspensa', /plano da turma venceu/],
     ['Encerrada', /encerrada em 20\/12\/2026/],
   ] as const)('com a formatura %s, avisa', async (status, texto) => {
     entrarNaFormatura()
@@ -46,17 +46,37 @@ describe('FaixaDeStatus', () => {
     comStatus('Suspensa')
 
     const { unmount } = renderizar(<FaixaDeStatus />)
-    expect(await screen.findByRole('link', { name: 'Regularizar' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Renovar plano' })).toBeInTheDocument()
     unmount()
 
     const corpo = { sub: 'u-2', name: 'Bia', formatura_id: 'f-1', papel: 'Comissao' }
     sessao.autenticar({
-      accessToken: `c.${btoa(JSON.stringify(corpo))}.a`,
-      expiraEm: new Date(Date.now() + 900_000).toISOString(),
+      access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+      expira_em: new Date(Date.now() + 900_000).toISOString(),
     })
     renderizar(<FaixaDeStatus />)
 
-    expect(await screen.findByRole('status')).toHaveTextContent(/modo leitura/)
+    expect(await screen.findByRole('status')).toHaveTextContent(/plano da turma venceu/)
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  /** Quem contrata é o Presidente: o resto da comissão não recebe a tarefa dele. */
+  it('antes de contratar, pede o plano ao Presidente e explica a espera ao resto', async () => {
+    entrarNaFormatura()
+    comStatus('Rascunho')
+
+    const { unmount } = renderizar(<FaixaDeStatus />)
+    expect(await screen.findByRole('status')).toHaveTextContent(/Contrate um plano/)
+    unmount()
+
+    const corpo = { sub: 'u-2', name: 'Bia', formatura_id: 'f-1', papel: 'Tesoureiro' }
+    sessao.autenticar({
+      access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+      expira_em: new Date(Date.now() + 900_000).toISOString(),
+    })
+    renderizar(<FaixaDeStatus />)
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Falta o presidente concluir/)
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 

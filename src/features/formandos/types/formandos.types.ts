@@ -1,5 +1,4 @@
 import type { Papel } from '@/config/perfis'
-import type { PaginacaoRequest } from '@/types/paginacao'
 
 /*
   A API omite campo nulo (`WhenWritingNull`): campo vazio do cadastro chega `undefined`, não
@@ -8,8 +7,8 @@ import type { PaginacaoRequest } from '@/types/paginacao'
 
 /** Seção de dados pessoais. Espelha `DadosPessoaisDTO`. */
 export interface DadosPessoais {
-  nomeCompleto?: string
-  nomeNoDiploma?: string
+  nome_completo?: string
+  nome_no_diploma?: string
   /** Só os 11 dígitos. */
   cpf?: string
   rg?: string
@@ -17,7 +16,7 @@ export interface DadosPessoais {
   /** Em E.164: `+5541998765432`. */
   telefone?: string
   /** `aaaa-mm-dd`. */
-  dataDeNascimento?: string
+  data_de_nascimento?: string
   observacoes?: string
 }
 
@@ -42,34 +41,34 @@ export interface DadosDeEmergencia {
 
 /** Itens que a completude conta, como a API os nomeia em `faltando`. */
 export type ItemDoCadastro =
-  | 'nomeCompleto'
-  | 'nomeNoDiploma'
+  | 'nome_completo'
+  | 'nome_no_diploma'
   | 'cpf'
   | 'rg'
   | 'matricula'
   | 'telefone'
-  | 'dataDeNascimento'
+  | 'data_de_nascimento'
   | 'endereco'
-  | 'contatoDeEmergencia'
+  | 'contato_de_emergencia'
   | 'foto'
 
 /** O cadastro inteiro. Espelha `PerfilDoFormandoDTO`. */
 export interface PerfilDoFormando {
-  usuarioId: string
+  usuario_id: string
   /** Nome de exibição da conta. */
   nome: string
   email: string
   papel: Papel
   pessoais: DadosPessoais
   endereco: DadosDeEndereco
-  contatoDeEmergencia: DadosDeEmergencia
+  contato_de_emergencia: DadosDeEmergencia
   /** Baixado por `/arquivos/{id}/conteudo` — só o dono consegue. */
-  fotoArquivoId?: string
+  foto_arquivo_id?: string
   /** De 0 a 100. */
   completude: number
   faltando: ItemDoCadastro[]
   /** Falta nome completo, CPF ou telefone. */
-  essencialPendente: boolean
+  essencial_pendente: boolean
 }
 
 /**
@@ -79,26 +78,5 @@ export interface PerfilDoFormando {
 export interface AtualizarPerfil {
   pessoais?: { [Campo in keyof DadosPessoais]-?: DadosPessoais[Campo] | null }
   endereco?: { [Campo in keyof DadosDeEndereco]-?: DadosDeEndereco[Campo] | null }
-  contatoDeEmergencia?: { [Campo in keyof DadosDeEmergencia]-?: DadosDeEmergencia[Campo] | null }
-}
-
-/** Um formando na lista da comissão. Espelha `FormandoResumoDTO`. */
-export interface FormandoResumo {
-  usuarioId: string
-  nome: string
-  email: string
-  papel: Papel
-  nomeCompleto?: string
-  completude: number
-  essencialPendente: boolean
-}
-
-/** Recorte por situação do cadastro. `Pendente` é quem ainda não tem o essencial. */
-export type SituacaoDoCadastro = 'Pendente' | 'Incompleto' | 'Completo'
-
-/** Filtros de `GET /api/v1/formandos`. */
-export interface FiltroDeFormandos extends PaginacaoRequest {
-  /** Trecho do nome de exibição, do nome civil ou do e-mail. */
-  busca?: string
-  situacao?: SituacaoDoCadastro
+  contato_de_emergencia?: { [Campo in keyof DadosDeEmergencia]-?: DadosDeEmergencia[Campo] | null }
 }

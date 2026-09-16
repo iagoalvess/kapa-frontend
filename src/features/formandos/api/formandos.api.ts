@@ -1,11 +1,5 @@
 import { api } from '@/lib/http/cliente'
-import type { Pagina } from '@/types/paginacao'
-import type {
-  AtualizarPerfil,
-  FiltroDeFormandos,
-  FormandoResumo,
-  PerfilDoFormando,
-} from '../types/formandos.types'
+import type { AtualizarPerfil, PerfilDoFormando } from '../types/formandos.types'
 
 export { consultarCep } from '@/lib/http/cep'
 
@@ -41,12 +35,12 @@ export function enviarFoto(arquivo: File) {
  * formando, que confere a Gestão e a turma.
  */
 export async function baixarFoto(
-  origem: { arquivoId: string } | { usuarioId: string },
+  origem: { arquivoId: string } | { usuario_id: string },
   signal?: AbortSignal,
 ) {
   const caminho =
-    'usuarioId' in origem
-      ? `${BASE}/${origem.usuarioId}/foto`
+    'usuario_id' in origem
+      ? `${BASE}/${origem.usuario_id}/foto`
       : `/api/v1/arquivos/${origem.arquivoId}/conteudo`
   const blob = await api.get<Blob>(caminho, { resposta: 'blob', signal })
 
@@ -60,20 +54,12 @@ export async function baixarFoto(
   return `data:${blob.type || 'image/jpeg'};base64,${btoa(binario)}`
 }
 
-/** Uma página dos membros ativos com a completude do cadastro. Gestão. */
-export function listarFormandos(filtro: FiltroDeFormandos, signal?: AbortSignal) {
-  return api.get<Pagina<FormandoResumo>>(BASE, {
-    query: { pagina: filtro.pagina, tamanho: filtro.tamanho, busca: filtro.busca, situacao: filtro.situacao },
-    signal,
-  })
-}
-
 /** O cadastro de um formando da turma. Gestão. */
-export function obterFormando(usuarioId: string, signal?: AbortSignal) {
-  return api.get<PerfilDoFormando>(`${BASE}/${usuarioId}`, { signal })
+export function obterFormando(usuario_id: string, signal?: AbortSignal) {
+  return api.get<PerfilDoFormando>(`${BASE}/${usuario_id}`, { signal })
 }
 
 /** Correção do cadastro de um formando, registrada com o autor. Só o Presidente. */
-export function corrigirPerfil(usuarioId: string, dados: AtualizarPerfil) {
-  return api.put<PerfilDoFormando>(`${BASE}/${usuarioId}`, { body: dados })
+export function corrigirPerfil(usuario_id: string, dados: AtualizarPerfil) {
+  return api.put<PerfilDoFormando>(`${BASE}/${usuario_id}`, { body: dados })
 }

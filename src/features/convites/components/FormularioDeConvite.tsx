@@ -1,6 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Mail, Send } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { Select } from '@/components/Select'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -52,9 +55,19 @@ export function FormularioDeConvite({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="sr-only">E-mail do convidado</FormLabel>
-              <FormControl>
-                <Input type="email" autoComplete="off" placeholder="email@exemplo.com" {...field} />
-              </FormControl>
+              {/* O ícone é parte do placeholder: mesmo cinza, e some do caminho do cursor. */}
+              <div className="relative">
+                <Mail className="text-texto-muted pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="off"
+                    placeholder="email@exemplo.com"
+                    className="pl-9"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -68,16 +81,13 @@ export function FormularioDeConvite({
               <FormItem>
                 <FormLabel className="sr-only">Papel do convidado</FormLabel>
                 <FormControl>
-                  <select
-                    className="border-border bg-card focus-visible:ring-ring h-9 rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
-                    {...field}
-                  >
+                  <Select {...field}>
                     {papeis.map((papel) => (
                       <option key={papel} value={papel}>
                         {ROTULOS_DE_PAPEL[papel]}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </FormControl>
               </FormItem>
             )}
@@ -85,14 +95,11 @@ export function FormularioDeConvite({
         ) : null}
 
         <Button type="submit" disabled={criar.isPending || desabilitado || papeis.length === 0}>
+          <Send aria-hidden />
           {criar.isPending ? 'Enviando…' : 'Enviar convite'}
         </Button>
 
-        {formulario.formState.errors.root?.message ? (
-          <p role="alert" className="text-destructive text-sm sm:col-span-3">
-            {formulario.formState.errors.root.message}
-          </p>
-        ) : null}
+        <ErroDoFormulario className="sm:col-span-3" />
       </form>
     </Form>
   )

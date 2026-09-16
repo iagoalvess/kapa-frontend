@@ -18,22 +18,20 @@ export function useMeuPerfil() {
 /**
  * Gravação de uma seção do cadastro.
  *
- * Sem `usuarioId`, é o próprio (`/eu`); com ele, a correção do Presidente (`/{id}`). A resposta
- * traz o cadastro inteiro com a completude nova, então vai direto para o cache — e a lista da
- * comissão recarrega, porque a porcentagem mudou.
+ * Sem `usuario_id`, é o próprio (`/eu`); com ele, a correção do Presidente (`/{id}`). A resposta
+ * traz o cadastro inteiro com a completude nova, então vai direto para o cache. A lista de membros
+ * mostra a porcentagem nova sozinha: ela revalida sempre que monta.
  *
- * @param usuarioId Formando corrigido, quando é a comissão quem grava.
+ * @param usuario_id Formando corrigido, quando é a comissão quem grava.
  */
-export function useSalvarPerfil(usuarioId?: string) {
+export function useSalvarPerfil(usuario_id?: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (dados: AtualizarPerfil) =>
-      usuarioId ? corrigirPerfil(usuarioId, dados) : atualizarMeuPerfil(dados),
-    onSuccess: (perfil: PerfilDoFormando) => {
-      queryClient.setQueryData(usuarioId ? chaves.detalhe(usuarioId) : chaves.meu(), perfil)
-      void queryClient.invalidateQueries({ queryKey: chaves.listas })
-    },
+      usuario_id ? corrigirPerfil(usuario_id, dados) : atualizarMeuPerfil(dados),
+    onSuccess: (perfil: PerfilDoFormando) =>
+      queryClient.setQueryData(usuario_id ? chaves.detalhe(usuario_id) : chaves.meu(), perfil),
   })
 }
 
@@ -43,10 +41,7 @@ export function useEnviarFoto() {
 
   return useMutation({
     mutationFn: enviarFoto,
-    onSuccess: (perfil) => {
-      queryClient.setQueryData(chaves.meu(), perfil)
-      void queryClient.invalidateQueries({ queryKey: chaves.listas })
-    },
+    onSuccess: (perfil) => queryClient.setQueryData(chaves.meu(), perfil),
   })
 }
 
@@ -57,13 +52,13 @@ export function useEnviarFoto() {
  * próprio e a comissão compartilham o cache mesmo baixando por rotas diferentes.
  *
  * @param arquivoId Arquivo da foto; ausente não busca.
- * @param usuarioId Formando visto pela comissão; ausente é a própria foto.
+ * @param usuario_id Formando visto pela comissão; ausente é a própria foto.
  */
-export function useFoto(arquivoId: string | undefined, usuarioId?: string) {
+export function useFoto(arquivoId: string | null | undefined, usuario_id?: string) {
   return useQuery({
     queryKey: chaves.foto(arquivoId ?? ''),
-    queryFn: ({ signal }) => baixarFoto(usuarioId ? { usuarioId } : { arquivoId: arquivoId! }, signal),
-    enabled: arquivoId !== undefined,
+    queryFn: ({ signal }) => baixarFoto(usuario_id ? { usuario_id } : { arquivoId: arquivoId! }, signal),
+    enabled: Boolean(arquivoId),
     staleTime: Infinity,
   })
 }

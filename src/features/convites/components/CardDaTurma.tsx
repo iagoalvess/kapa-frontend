@@ -13,8 +13,8 @@ export function CardDaTurma({ convite }: { convite: ConvitePublico }) {
       <p className="mt-2 text-sm">
         Entrando como: <span className="font-semibold">{ROTULOS_DE_PAPEL[convite.papel]}</span>
       </p>
-      {convite.emailMascarado ? (
-        <p className="text-muted-foreground text-sm">Convite pessoal para {convite.emailMascarado}</p>
+      {convite.email_mascarado ? (
+        <p className="text-muted-foreground text-sm">Convite pessoal para {convite.email_mascarado}</p>
       ) : null}
     </div>
   )

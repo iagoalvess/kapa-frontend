@@ -9,11 +9,11 @@ export interface ConvitePublico {
   instituicao: string
   papel: Papel
   /** Só no convite pessoal: para qual e-mail foi, mascarado (`a*****a@gmail.com`). */
-  emailMascarado?: string
+  email_mascarado?: string
 }
 
 /**
- * Convite como a comissão o acompanha. Espelha `ConviteResumoDTO` — sem link: ele só vem na criação.
+ * Convite como a comissão o acompanha. Espelha `ConviteResumoDTO`.
  *
  * A API omite campo nulo (`WhenWritingNull`): no link da turma `email` nem chega, e comparar com
  * `null` o trataria como convite nominal.
@@ -23,25 +23,28 @@ export interface ConviteResumo {
   /** Ausente no link da turma. */
   email?: string
   papel: Papel
-  expiraEm: string
+  expira_em: string
   /** Ausente é ilimitado até expirar. */
-  usosMaximos?: number
-  usosFeitos: number
+  usos_maximos?: number
+  usos_feitos: number
   status: StatusDoConvite
-  criadoEm: string
+  criado_em: string
+  /** Só no link da turma vigente: o endereço, para copiar de novo. */
+  link?: string
 }
 
-/** Corpo de `POST /formaturas/atual/convites`. Sem e-mail, cria o link da turma. */
+/**
+ * Corpo de `POST /formaturas/atual/convites`. Sem e-mail, cria o link da turma. Validade e limite
+ * de entradas são fixos no backend.
+ */
 export interface CriarConvite {
   email?: string
   papel?: Papel
-  diasDeValidade?: number
-  usosMaximos?: number
 }
 
-/** Convite recém-criado. É a única vez que o link aparece. */
+/** Convite recém-criado. No nominal, é a única vez que o link aparece. */
 export interface ConviteCriado {
   id: string
   link: string
-  expiraEm: string
+  expira_em: string
 }

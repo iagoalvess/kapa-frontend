@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
-import { mensagemDoErro } from '@/lib/http/erros'
 import { descreverTurma } from '../components/SeletorDeFormatura'
 import { SemFormatura } from '../components/SemFormatura'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
@@ -30,20 +31,16 @@ export default function SelecaoDeFormaturaPage() {
   if (formaturas.data?.length === 0) return <SemFormatura />
 
   return (
-    <Card className="mx-auto max-w-xl">
-      <CardHeader>
-        <CardTitle>Escolha a formatura</CardTitle>
-        <CardDescription>Tudo o que você vê no sistema pertence à turma selecionada aqui.</CardDescription>
-      </CardHeader>
+    <>
+      <h1 className={estilos.titulo}>Escolha a formatura</h1>
+      <p className={estilos.subtitulo}>Tudo o que você vê no sistema pertence à turma selecionada aqui.</p>
 
-      <CardContent className="grid gap-2">
-        {formaturas.isPending ? <p className="text-muted-foreground text-sm">Carregando…</p> : null}
-
-        {formaturas.isError ? (
-          <p role="alert" className="text-destructive text-sm">
-            {mensagemDoErro(formaturas.error)}
-          </p>
+      <div className="grid gap-2">
+        {formaturas.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} altura="h-14" className="md:grid-cols-1" />
         ) : null}
+
+        {formaturas.isError ? <ErroDaConsulta erro={formaturas.error} /> : null}
 
         {formaturas.data?.map((formatura) => (
           <Button
@@ -51,7 +48,7 @@ export default function SelecaoDeFormaturaPage() {
             variant="outline"
             disabled={selecionar.isPending}
             onClick={() => escolher(formatura.id)}
-            className="motion-safe:animate-entrar h-auto justify-between py-3"
+            className="motion-safe:animate-entrar h-auto justify-between rounded-lg px-4 py-3"
           >
             <span className="grid text-left">
               <span className="font-medium">{formatura.nome}</span>
@@ -63,12 +60,8 @@ export default function SelecaoDeFormaturaPage() {
           </Button>
         ))}
 
-        {selecionar.isError ? (
-          <p role="alert" className="text-destructive text-sm">
-            {mensagemDoErro(selecionar.error)}
-          </p>
-        ) : null}
-      </CardContent>
-    </Card>
+        {selecionar.isError ? <ErroDaConsulta erro={selecionar.error} /> : null}
+      </div>
+    </>
   )
 }

@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { ROTAS } from '@/config/rotas'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
-import { ErroDoFormulario } from '../components/ErroDoFormulario'
-import { estilos, LayoutDeAutenticacao } from '../components/LayoutDeAutenticacao'
+import { estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useRedefinirSenha } from '../hooks/useConta'
 import { esquemaDeRedefinicao, type FormularioDeRedefinicao } from '../schemas/auth.schema'
 
@@ -34,16 +34,16 @@ export default function RedefinirSenhaPage() {
 
   const formulario = useForm<FormularioDeRedefinicao>({
     resolver: zodResolver(esquemaDeRedefinicao),
-    defaultValues: { novaSenha: '', confirmacao: '' },
+    defaultValues: { nova_senha: '', confirmacao: '' },
   })
 
   const linkInvalido = !email || !token || ehFalhaDoLink(redefinir.error)
 
-  const enviar = formulario.handleSubmit(({ novaSenha }) => {
+  const enviar = formulario.handleSubmit(({ nova_senha }) => {
     if (!email || !token) return
 
     redefinir.mutate(
-      { email, token, novaSenha },
+      { email, token, nova_senha },
       {
         onError: (erro) => {
           if (!ehFalhaDoLink(erro)) exibirErroNoFormulario(erro, formulario.setError)
@@ -84,7 +84,7 @@ export default function RedefinirSenhaPage() {
 
           <FormField
             control={formulario.control}
-            name="novaSenha"
+            name="nova_senha"
             render={({ field }) => (
               <FormItem className={estilos.item}>
                 <FormLabel className={estilos.rotulo}>Nova senha</FormLabel>

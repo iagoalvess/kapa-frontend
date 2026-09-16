@@ -13,17 +13,17 @@ const plano = {
   id: 'p-1',
   codigo: 'completo',
   nome: 'Completo',
-  precoEmCentavos: 34990,
+  preco_em_centavos: 34990,
   ciclo: 'Mensal',
-  limiteDeFormandos: 150,
+  limite_de_formandos: 150,
   recomendado: true,
 }
 
 function entrarComoPresidente() {
   const corpo = { sub: 'u-1', name: 'Ana', formatura_id: 'f-1', papel: 'Presidente' }
   sessao.autenticar({
-    accessToken: `c.${btoa(JSON.stringify(corpo))}.a`,
-    expiraEm: new Date(Date.now() + 900_000).toISOString(),
+    access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
   })
 }
 
@@ -34,7 +34,7 @@ function comStatus(...status: string[]) {
     http.get(ASSINATURA, () => {
       const atual = status[Math.min(pedidos, status.length - 1)]
       pedidos++
-      return HttpResponse.json({ id: 'a-1', status: atual, plano, criadoEm: '2026-09-12T12:00:00Z' })
+      return HttpResponse.json({ id: 'a-1', status: atual, plano, criado_em: '2026-09-12T12:00:00Z' })
     }),
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
       HttpResponse.json({ id: 'f-1', status: 'Ativa' }),

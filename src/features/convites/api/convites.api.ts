@@ -11,7 +11,7 @@ export function listarConvites(signal?: AbortSignal) {
   return api.get<ConviteResumo[]>(GESTAO, { signal })
 }
 
-/** Cria o convite e devolve o link — a única vez que ele aparece. */
+/** Cria o convite e devolve o link. Link da turma novo revoga o vigente. */
 export function criarConvite(dados: CriarConvite) {
   return api.post<ConviteCriado>(GESTAO, { body: dados })
 }

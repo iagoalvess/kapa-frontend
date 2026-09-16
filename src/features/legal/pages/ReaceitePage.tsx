@@ -1,13 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Navigate } from 'react-router'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { EsqueletoDeCartao } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { AceiteObrigatorio } from '@/components/legal/AceiteObrigatorio'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
-import { mensagemDoErro } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useMeusAceites, useRegistrarAceites } from '../hooks/useLegal'
 import { esquemaDeReaceite, type FormularioDeReaceite } from '../schemas/legal.schema'
@@ -24,14 +26,10 @@ export default function ReaceitePage() {
   const aceites = useMeusAceites()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
 
-  if (aceites.isPending) return <p className="text-muted-foreground text-sm">Carregando…</p>
+  if (aceites.isPending) return <EsqueletoDeCartao />
 
   if (aceites.isError) {
-    return (
-      <p role="alert" className="text-destructive text-sm">
-        {mensagemDoErro(aceites.error)}
-      </p>
-    )
+    return <ErroDaConsulta erro={aceites.error} />
   }
 
   if (aceites.data.pendencias.length === 0) return <Navigate to={destino} replace />
@@ -91,11 +89,7 @@ function FormularioDeReaceite({ pendencias }: { pendencias: AceitePendente[] }) 
               />
             ))}
 
-            {formulario.formState.errors.root?.message ? (
-              <p role="alert" className="text-destructive text-sm">
-                {formulario.formState.errors.root.message}
-              </p>
-            ) : null}
+            <ErroDoFormulario />
 
             <Button type="submit" disabled={registrar.isPending}>
               {registrar.isPending ? 'Registrando…' : 'Aceitar e continuar'}

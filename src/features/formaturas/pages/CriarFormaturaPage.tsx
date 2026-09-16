@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form } from '@/components/ui/form'
 import { ROTAS } from '@/config/rotas'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
@@ -28,7 +29,7 @@ const PASSOS = [
   {
     titulo: 'O tamanho',
     descricao: 'Uma estimativa basta — dá para ajustar depois.',
-    campos: ['previsaoDeColacao', 'quantidadeEstimadaDeFormandos'],
+    campos: ['previsao_de_colacao', 'previsao_da_festa', 'quantidade_estimada_de_formandos'],
     Conteudo: PassoDoTamanho,
   },
   {
@@ -41,11 +42,12 @@ const PASSOS = [
   titulo: string
   descricao: string
   campos: readonly (keyof FormularioDeFormatura)[]
-  Conteudo: () => React.ReactNode
+  // Os passos da turma e do tamanho também servem à edição, onde recebem o layout em pares.
+  Conteudo: React.ComponentType
 }[]
 
 /**
- * Criação da formatura em três passos, um card por passo.
+ * Criação da formatura em três passos, dentro do onboarding (`LayoutDeOnboarding`).
  *
  * O estado vive só no cliente e sai num **único** `POST` no fim. Passo salvo pela metade criaria
  * formatura incompleta no banco e um botão "continuar cadastro" que ninguém clica — abandonar no
@@ -66,8 +68,9 @@ export default function CriarFormaturaPage() {
       instituicao: '',
       ano: '',
       semestre: '',
-      previsaoDeColacao: '',
-      quantidadeEstimadaDeFormandos: '',
+      previsao_de_colacao: '',
+      previsao_da_festa: '',
+      quantidade_estimada_de_formandos: '',
       nome: '',
     },
   })
@@ -100,54 +103,59 @@ export default function CriarFormaturaPage() {
     }),
   )
 
+  const voltar = 'h-11 rounded-lg px-5 text-base'
+
   return (
-    <Card className="mx-auto w-full max-w-xl">
-      <CardHeader>
-        <p className="text-muted-foreground text-xs">
-          Passo {passo + 1} de {PASSOS.length}
-        </p>
-        <CardTitle>{atual.titulo}</CardTitle>
-        <CardDescription>{atual.descricao}</CardDescription>
-      </CardHeader>
+    <>
+      <p className="text-muted-foreground mb-1 text-sm font-semibold">
+        Passo {passo + 1} de {PASSOS.length}
+      </p>
 
-      <CardContent>
-        <Form {...formulario}>
-          <form
-            noValidate
-            className="grid gap-6"
-            onSubmit={(evento) => {
-              if (ultimo) return void enviar(evento)
-              evento.preventDefault()
-              void avancar()
-            }}
-          >
-            {/* `key` pelo passo: o conteúdo novo entra com a animação padrão. */}
-            <div key={passo} className="motion-safe:animate-entrar">
-              <atual.Conteudo />
-            </div>
+      {/* `key` pelo passo: título e campos novos entram com a animação padrão. */}
+      <div key={passo} className="motion-safe:animate-entrar">
+        <h1 className={estilos.titulo}>{atual.titulo}</h1>
+        <p className={estilos.subtitulo}>{atual.descricao}</p>
+      </div>
 
-            {formulario.formState.errors.root?.message ? (
-              <p role="alert" className="text-destructive text-sm">
-                {formulario.formState.errors.root.message}
-              </p>
-            ) : null}
+      <Form {...formulario}>
+        <form
+          noValidate
+          className="grid gap-6"
+          onSubmit={(evento) => {
+            if (ultimo) return void enviar(evento)
+            evento.preventDefault()
+            void avancar()
+          }}
+        >
+          <div key={passo} className={`motion-safe:animate-entrar ${estilos.campos}`}>
+            <atual.Conteudo />
+          </div>
 
-            <div className="flex justify-between gap-3">
-              {passo > 0 ? (
-                <Button type="button" variant="outline" onClick={() => definirPasso(passo - 1)}>
-                  Voltar
-                </Button>
-              ) : (
-                <span />
-              )}
+          <ErroDoFormulario />
 
-              <Button type="submit" disabled={criar.isPending}>
-                {!ultimo ? 'Continuar' : criar.isPending ? 'Criando…' : 'Criar formatura'}
+          <div className="flex gap-3">
+            {/* No primeiro passo, voltar é desistir de criar: leva de volta à escolha. */}
+            {passo > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                className={voltar}
+                onClick={() => definirPasso(passo - 1)}
+              >
+                Voltar
               </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            ) : (
+              <Button asChild variant="outline" className={voltar}>
+                <Link to={ROTAS.selecionarFormatura}>Voltar</Link>
+              </Button>
+            )}
+
+            <Button type="submit" disabled={criar.isPending} className={`${estilos.cta} flex-1`}>
+              {!ultimo ? 'Continuar' : criar.isPending ? 'Criando…' : 'Criar formatura'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </>
   )
 }

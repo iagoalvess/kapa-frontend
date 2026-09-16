@@ -190,7 +190,14 @@ const enviar = formulario.handleSubmit((valores) => {
 - **`FormLabel` de verdade**, ligado ao campo. É o que faz `getByLabelText` funcionar no teste —
   e leitor de tela, no mundo real.
 - **`aplicarErrosDaApi`** devolve `true` quando encontrou erro por campo; só aí você dispensa a
-  mensagem geral.
+  mensagem geral. Na prática use `exibirErroNoFormulario(erro, formulario.setError)`, que já faz os
+  dois.
+- **`<ErroDoFormulario />`** desenha o `errors.root`, dentro do `<Form>`. Não repita o `<p
+role="alert">` na tela.
+- **`<AcoesDoFormulario />`** é o rodapé (Cancelar + o principal), e `<DialogoDeFormulario>` é a
+  casca quando o formulário mora num diálogo.
+- **`formState` não se lê solto** quando o valor decide algo (um botão desabilitado por `isDirty`):
+  assine com `useFormState({ control })`. Ver a regra no `CLAUDE.md`.
 
 Preenchendo com dado carregado:
 
@@ -243,8 +250,13 @@ Restrita a um perfil? Envolva num ramo com guarda:
 Filtro, página, aba selecionada e termo de busca vão para a query string:
 
 ```tsx
-const [parametros, definirParametros] = useSearchParams()
-const pagina = Number(parametros.get('pagina') ?? '1')
+const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+
+const situacao = parametros.get('situacao')
+const despesas = useDespesas({ pagina, busca: busca || undefined, situacao })
+
+// Filtro novo volta à página 1; paginar passa `pagina` explícito, que vence.
+<Chip ativo={!situacao} onClick={() => atualizar({ situacao: null })}>Todas</Chip>
 ```
 
 Recarregar, voltar e mandar o link para um colega devolvem a mesma tela. `useState` para isso
@@ -335,6 +347,9 @@ function Cartao({ titulo, children }: { titulo: string; children: React.ReactNod
 }
 ```
 
+- **Antes de escrever, olhe `src/components/`.** O catálogo do que já existe — diálogo de
+  confirmação, rodapé de formulário, planilha, cartão, selo, estados de consulta — está no
+  `CLAUDE.md`. Variação entra como prop no que existe, não como cópia ao lado.
 - **Sem `useMemo`, `useCallback` ou `React.memo`.** O React Compiler faz isso. Ver
   [arquitetura.md](arquitetura.md).
 - **Props tipadas inline** quando são poucas; `interface` própria quando passam de quatro ou são

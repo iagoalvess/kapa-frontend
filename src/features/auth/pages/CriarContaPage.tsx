@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
+import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { AceiteObrigatorio } from '@/components/legal/AceiteObrigatorio'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -8,10 +10,9 @@ import { Input } from '@/components/ui/input'
 import { TIPOS_DE_DOCUMENTO } from '@/config/legal'
 import { ROTAS } from '@/config/rotas'
 import { useDocumentosVigentes } from '@/hooks/useDocumentosVigentes'
-import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import { ehErroDaApi } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
-import { ErroDoFormulario } from '../components/ErroDoFormulario'
-import { estilos, LayoutDeAutenticacao } from '../components/LayoutDeAutenticacao'
+import { estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useRegistrar } from '../hooks/useAutenticacao'
 import { esquemaDeNovaConta, type FormularioDeNovaConta } from '../schemas/auth.schema'
 
@@ -128,11 +129,7 @@ export default function CriarContaPage() {
               )}
             />
 
-            {vigentes.isError ? (
-              <p role="alert" className="text-destructive text-sm">
-                {mensagemDoErro(vigentes.error)}
-              </p>
-            ) : null}
+            {vigentes.isError ? <ErroDaConsulta erro={vigentes.error} /> : null}
           </div>
 
           <ErroDoFormulario />

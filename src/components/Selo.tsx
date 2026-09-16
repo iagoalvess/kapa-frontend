@@ -6,6 +6,8 @@ const TONS = {
   alerta: 'bg-warning-bg text-warning-text',
   perigo: 'bg-danger-bg text-danger-text',
   neutro: 'bg-muted text-muted-foreground',
+  // Um cinza frio, distinto do `neutro`: estado que existe e está em dia, como a parcela aberta.
+  cinza: 'bg-neutral-bg text-neutral-text',
   marca: 'bg-brand-tint text-brand-text',
 } as const
 

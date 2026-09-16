@@ -39,10 +39,10 @@ export const esquemaDePedidoPorEmail = z.object({ email })
  */
 const novaSenhaConfirmada = z
   .object({
-    novaSenha: z.string().min(1, 'A nova senha é obrigatória.'),
+    nova_senha: z.string().min(1, 'A nova senha é obrigatória.'),
     confirmacao: z.string(),
   })
-  .refine((dados) => dados.novaSenha === dados.confirmacao, {
+  .refine((dados) => dados.nova_senha === dados.confirmacao, {
     message: 'As senhas não conferem.',
     path: ['confirmacao'],
   })
@@ -52,7 +52,7 @@ export const esquemaDeRedefinicao = novaSenhaConfirmada
 
 /** Troca de senha por quem está logado. */
 export const esquemaDeTrocaDeSenha = z
-  .object({ senhaAtual: z.string().min(1, 'A senha atual é obrigatória.') })
+  .object({ senha_atual: z.string().min(1, 'A senha atual é obrigatória.') })
   .and(novaSenhaConfirmada)
 
 export type FormularioDeLogin = z.infer<typeof esquemaDeLogin>

@@ -1,11 +1,12 @@
-import { ArrowLeft } from 'lucide-react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
+import { LinkDeVolta } from '@/components/LinkDeVolta'
+import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Selo } from '@/components/Selo'
 import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
-import { mensagemDoErro } from '@/lib/http/erros'
 import { FormularioDePerfil } from '../components/FormularioDePerfil'
 import { FotoDoFormando } from '../components/FotoDoFormando'
 import { IndicadorDeCompletude } from '../components/IndicadorDeCompletude'
@@ -21,30 +22,30 @@ import { useFormando } from '../hooks/useFormandos'
  * só entrega o arquivo ao dono.
  */
 export default function DetalheDoFormandoPage() {
-  const { usuarioId = '' } = useParams()
-  const formando = useFormando(usuarioId)
+  const { usuario_id = '' } = useParams()
+  const formando = useFormando(usuario_id)
   const { ehPresidente } = usePapel()
   const escritaLiberada = useEscritaLiberada()
 
-  const voltar = (
-    <Link
-      to={ROTAS.formandos}
-      className="text-brand-text inline-flex w-fit items-center gap-1 text-sm hover:underline"
-    >
-      <ArrowLeft className="size-4" aria-hidden />
-      Formandos
-    </Link>
-  )
+  const voltar = <LinkDeVolta para={ROTAS.membros}>Membros</LinkDeVolta>
 
-  if (formando.isPending) return <p className="text-muted-foreground text-sm">Carregando…</p>
+  // O "voltar" já pode ficar: ele não depende da consulta, e some-lo faria a tela saltar.
+  if (formando.isPending)
+    return (
+      <>
+        {voltar}
+        <EsqueletoDeCartao />
+        <EsqueletoDeCartao>
+          <EsqueletoDeDados linhas={6} />
+        </EsqueletoDeCartao>
+      </>
+    )
 
   if (formando.isError)
     return (
       <>
         {voltar}
-        <p role="alert" className="text-destructive text-sm">
-          {mensagemDoErro(formando.error)}
-        </p>
+        <ErroDaConsulta erro={formando.error} />
       </>
     )
 
@@ -55,18 +56,18 @@ export default function DetalheDoFormandoPage() {
     <>
       {voltar}
 
-      <section aria-label="Resumo do cadastro" className="bg-card shadow-cartao grid gap-5 rounded-2xl p-5">
+      <section aria-label="Resumo do cadastro" className="bg-card shadow-cartao grid gap-5 rounded-3xl p-5">
         <div className="flex flex-wrap items-center gap-4">
           <FotoDoFormando perfil={dados} daComissao className="size-16 text-xl" />
           <div className="grid min-w-0 text-sm">
             <span className="text-foreground truncate font-medium">
-              {dados.pessoais.nomeCompleto ?? dados.nome}
+              {dados.pessoais.nome_completo ?? dados.nome}
             </span>
             <span className="text-texto-muted truncate">{dados.email}</span>
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
             <Selo>{ROTULOS_DE_PAPEL[dados.papel]}</Selo>
-            {dados.fotoArquivoId ? null : <Selo>Sem foto</Selo>}
+            {dados.foto_arquivo_id ? null : <Selo>Sem foto</Selo>}
           </div>
         </div>
         <IndicadorDeCompletude perfil={dados} proprio={false} />
@@ -76,9 +77,9 @@ export default function DetalheDoFormandoPage() {
       </section>
 
       <FormularioDePerfil
-        key={dados.usuarioId}
+        key={dados.usuario_id}
         perfil={dados}
-        usuarioId={dados.usuarioId}
+        usuarioId={dados.usuario_id}
         editavel={editavel}
       />
     </>

@@ -1,11 +1,13 @@
 import { Menu, X } from 'lucide-react'
 import { useRef } from 'react'
-import { Outlet, useMatches } from 'react-router'
+import { Link, Outlet, useMatches } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
+import { ROTAS } from '@/config/rotas'
+import { useMeuPerfil } from '@/features/formandos'
 import { FaixaDeStatus, SeletorDeFormatura } from '@/features/formaturas'
-import { useSessao } from '@/hooks/useSessao'
+import { useFormaturaAtiva, useSessao } from '@/hooks/useSessao'
 import { BarraLateral } from './BarraLateral'
 
 /** Título da tela, declarado na rota: `{ handle: { titulo: 'Membros' } }` em `router.tsx`. */
@@ -27,9 +29,12 @@ function useTituloDaRota() {
  */
 export function LayoutApp() {
   const { usuario } = useSessao()
+  const { selecionada } = useFormaturaAtiva()
   const titulo = useTituloDaRota()
   const gaveta = useRef<HTMLDialogElement>(null)
   const fecharGaveta = () => gaveta.current?.close()
+  // O cadastro incompleto marca a porta dele, que é o avatar — e não um aviso no meio do Início.
+  const cadastroPendente = useMeuPerfil().data?.essencial_pendente === true
 
   return (
     <div className="flex min-h-full">
@@ -42,7 +47,8 @@ export function LayoutApp() {
         Pular para o conteúdo
       </a>
 
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-y-auto lg:block">
+      {/* Sem rolagem aqui: quem rola é o miolo do menu, para o rodapé (o "Sair") nunca sair da tela. */}
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-hidden lg:block">
         <BarraLateral />
       </aside>
 
@@ -56,7 +62,7 @@ export function LayoutApp() {
         ref={gaveta}
         closedby="any"
         aria-label="Menu"
-        className="bg-background backdrop:bg-foreground/20 m-0 h-dvh max-h-none w-72 max-w-[85vw] -translate-x-full transition-[translate,overlay,display] transition-discrete backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete open:translate-x-0 open:backdrop:opacity-100 motion-reduce:transition-none motion-reduce:backdrop:transition-none lg:hidden starting:open:-translate-x-full starting:open:backdrop:opacity-0"
+        className="bg-background backdrop:bg-foreground/20 m-0 h-dvh max-h-none w-72 max-w-[85vw] -translate-x-full overflow-hidden transition-[translate,overlay,display] transition-discrete backdrop:opacity-0 backdrop:transition-[opacity,overlay,display] backdrop:transition-discrete open:translate-x-0 open:backdrop:opacity-100 motion-reduce:transition-none motion-reduce:backdrop:transition-none lg:hidden starting:open:-translate-x-full starting:open:backdrop:opacity-0"
       >
         <Button
           variant="ghost"
@@ -92,7 +98,25 @@ export function LayoutApp() {
 
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <SeletorDeFormatura />
-            {usuario ? (
+            {/* O avatar é a porta do próprio cadastro, como em quase todo app. Sem formatura não há
+                cadastro na turma para abrir: fica só a identificação. */}
+            {usuario && selecionada ? (
+              <Link
+                to={ROTAS.meuCadastro}
+                title={`${usuario.nome} — meu cadastro`}
+                className="focus-visible:ring-ring relative shrink-0 rounded-full hover:opacity-85 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <span className="sr-only">Meu cadastro{cadastroPendente ? ', incompleto' : ''}</span>
+                <Avatar nome={usuario.nome} semente={usuario.id} className="size-8 text-sm" />
+                {/* O ponto na porta do cadastro: a borda da cor do fundo o descola do avatar. */}
+                {cadastroPendente ? (
+                  <span
+                    aria-hidden
+                    className="bg-warning-text border-background absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2"
+                  />
+                ) : null}
+              </Link>
+            ) : usuario ? (
               <div className="shrink-0" title={usuario.nome}>
                 <span className="sr-only">{usuario.nome}</span>
                 <Avatar nome={usuario.nome} semente={usuario.id} className="size-8 text-sm" />
@@ -102,7 +126,7 @@ export function LayoutApp() {
         </header>
 
         {/* `*:animate-entrar`: toda raiz de tela que entra aqui — rota nova, ou o conteúdo que
-            substitui o "Carregando…" — aparece com a animação padrão. Sem `key`: remontar a
+            substitui o esqueleto — aparece com a animação padrão. Sem `key`: remontar a
             rota zeraria o estado das guardas. */}
         <main
           id="conteudo"
