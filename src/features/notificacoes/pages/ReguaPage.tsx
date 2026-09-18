@@ -1,4 +1,5 @@
-import { Bell, CalendarClock, History, Inbox, Mail, MessageCircle } from 'lucide-react'
+import { Bell, CalendarClock, History, Inbox, Mail } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
@@ -12,15 +13,7 @@ import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { EditorDeTemplate } from '../components/EditorDeTemplate'
 import { useHistorico, useRegua } from '../hooks/useRegras'
-import {
-  destinoDoDegrau,
-  marcoDoDegrau,
-  type Regra,
-  ROTULOS_DE_CANAL,
-  tomDoDegrau,
-} from '../types/notificacoes.types'
-
-const ICONES_DE_CANAL = { Email: Mail, Whatsapp: MessageCircle } as const
+import { destinoDoDegrau, marcoDoDegrau, type Regra, tomDoDegrau } from '../types/notificacoes.types'
 
 /** Em palavras, a distância do gatilho — a coluna que explica o `D-5` ao lado. */
 function quandoDispara(regra: Regra) {
@@ -113,56 +106,27 @@ export default function ReguaPage() {
             </Button>
           }
         >
-          <Tabela
-            cabecalho={
-              <>
-                <th className="py-3 pr-4 font-normal">Momento</th>
-                <th className="py-3 pr-4 font-normal">Quando</th>
-                <th className="py-3 pr-4 font-normal">Vai para</th>
-                <th className="py-3 pr-4 font-normal">Canal</th>
-                <th className="py-3 pr-4 font-normal">Assunto</th>
-                <th className="py-3 pr-4 font-normal">Situação</th>
-                <th className="py-3 text-right font-normal">Ações</th>
-              </>
-            }
-          >
+          <TabelaDeDegraus>
             {vencimentos.map((regra) => (
               <LinhaDoDegrau key={regra.id} regra={regra} aoEditar={() => atualizar({ degrau: regra.id })} />
             ))}
+          </TabelaDeDegraus>
+        </Cartao>
+      ) : null}
 
-            {/* A fila é um degrau como os outros: mesma forma de dado, mesma tabela. Antes era um
-                cartão inteiro desenhando uma linha do tempo de um ponto só — sem linha. */}
-            {fila.length > 0 ? (
-              <>
-                <tr>
-                  <th colSpan={7} className="pt-6 pb-2 text-left">
-                    <span className="text-foreground flex items-center gap-2 font-medium">
-                      <Inbox className="text-muted-foreground size-4" strokeWidth={1.75} aria-hidden />
-                      Fila da tesouraria
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Informe de pagamento parado trava a cobrança da parcela — este aviso lembra quem
-                      confere.
-                    </span>
-                  </th>
-                </tr>
-                {fila.map((regra) => (
-                  <LinhaDoDegrau
-                    key={regra.id}
-                    regra={regra}
-                    aoEditar={() => atualizar({ degrau: regra.id })}
-                  />
-                ))}
-              </>
-            ) : null}
-          </Tabela>
-
-          {/* Fixa no pé do cartão: antes era um cartão à parte que sumia assim que o editor abria. */}
-          <p className="text-texto-muted text-xs">
-            Esta versão envia por {ROTULOS_DE_CANAL.Email}. O {ROTULOS_DE_CANAL.Whatsapp} entra em seguida:
-            ele exige número verificado e template aprovado antes do primeiro disparo, e biblioteca não
-            oficial derruba o número da comissão no pior momento.
-          </p>
+      {/* Cartão próprio, e não uma seção da régua: quem recebe é a tesouraria, e não o formando —
+          a régua acima é a ordem em que a turma é cobrada, e a fila não entra nela. */}
+      {regua.data && fila.length > 0 ? (
+        <Cartao
+          titulo="Fila da tesouraria"
+          icone={Inbox}
+          descricao="Informe de pagamento parado trava a cobrança da parcela — este aviso lembra quem confere."
+        >
+          <TabelaDeDegraus>
+            {fila.map((regra) => (
+              <LinhaDoDegrau key={regra.id} regra={regra} aoEditar={() => atualizar({ degrau: regra.id })} />
+            ))}
+          </TabelaDeDegraus>
         </Cartao>
       ) : null}
 
@@ -186,26 +150,38 @@ export default function ReguaPage() {
   )
 }
 
+/** As colunas dos degraus, iguais nos dois cartões — a régua e a fila da tesouraria. */
+function TabelaDeDegraus({ children }: { children: ReactNode }) {
+  return (
+    <Tabela
+      cabecalho={
+        <>
+          <th className="py-3 pr-4 font-normal">Momento</th>
+          <th className="py-3 pr-4 font-normal">Quando</th>
+          <th className="py-3 pr-4 font-normal">Vai para</th>
+          <th className="py-3 pr-4 font-normal">Assunto</th>
+          <th className="py-3 pr-4 font-normal">Situação</th>
+          <th className="py-3 text-right font-normal">Ações</th>
+        </>
+      }
+    >
+      {children}
+    </Tabela>
+  )
+}
+
 /**
- * Um degrau na tabela: o marco, quando dispara, quem recebe, o canal, o assunto e a situação.
+ * Um degrau na tabela: o marco, quando dispara, quem recebe, o assunto e a situação.
  *
  * O assunto é o que a comissão quer conferir de relance — antes ele só aparecia depois de abrir o
  * editor. Truncado, porque a coluna é a única que cresce.
  */
 function LinhaDoDegrau({ regra, aoEditar }: { regra: Regra; aoEditar: () => void }) {
-  const Canal = ICONES_DE_CANAL[regra.canal]
-
   return (
     <tr className="border-b last:border-0">
       <td className="text-foreground py-3 pr-4 font-medium tabular-nums">{marcoDoDegrau(regra)}</td>
       <td className="py-3 pr-4 whitespace-nowrap">{quandoDispara(regra)}</td>
       <td className="py-3 pr-4 whitespace-nowrap">{destinoDoDegrau(regra)}</td>
-      <td className="py-3 pr-4">
-        <span className="flex items-center gap-1.5 whitespace-nowrap">
-          <Canal className="text-muted-foreground size-4" strokeWidth={1.75} aria-hidden />
-          {ROTULOS_DE_CANAL[regra.canal]}
-        </span>
-      </td>
       <td className="max-w-64 truncate py-3 pr-4" title={regra.assunto}>
         {regra.assunto}
       </td>

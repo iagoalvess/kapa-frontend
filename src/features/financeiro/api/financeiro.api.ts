@@ -2,6 +2,7 @@ import { api } from '@/lib/http/cliente'
 import type { Pagina } from '@/types/paginacao'
 import type {
   Caixa,
+  ContagemDeFornecedores,
   DadosDaDespesa,
   DadosDoFornecedor,
   Despesa,
@@ -21,6 +22,11 @@ const CAIXA = `${BASE}/caixa`
 /** Uma página do cadastro de fornecedores, por nome. */
 export function listarFornecedores(filtro: FiltroDeFornecedores, signal?: AbortSignal) {
   return api.get<Pagina<Fornecedor>>(FORNECEDORES, { query: { ...filtro }, signal })
+}
+
+/** Quantos fornecedores ativos e inativos — os números das pílulas da tela. */
+export function resumirFornecedores(signal?: AbortSignal) {
+  return api.get<ContagemDeFornecedores>(`${FORNECEDORES}/resumo`, { signal })
 }
 
 /** Um fornecedor, para a tela de detalhe. */

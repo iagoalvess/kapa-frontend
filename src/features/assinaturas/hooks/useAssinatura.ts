@@ -1,17 +1,9 @@
 import { type UseQueryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CHAVE_DA_FORMATURA_ATUAL } from '@/hooks/useFormaturaAtual'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
-import { cancelarAssinatura, listarPlanos, obterAssinatura } from '../api/assinaturas.api'
+import { cancelarAssinatura, obterAssinatura } from '../api/assinaturas.api'
 import type { Assinatura } from '../types/assinaturas.types'
 import { chaves } from './chaves'
-
-/** Planos contratáveis. */
-export function usePlanos() {
-  return useQuery({
-    queryKey: chaves.planos(),
-    queryFn: ({ signal }) => listarPlanos(signal),
-  })
-}
 
 /**
  * A assinatura mais recente da formatura selecionada.

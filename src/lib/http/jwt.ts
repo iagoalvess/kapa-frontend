@@ -8,6 +8,13 @@ export interface UsuarioAutenticado {
   formaturaId: string | null
   /** Papel do usuário na formatura selecionada. `null` sem formatura. */
   papel: string | null
+  /**
+   * Quando o usuário foi desligado da formatura selecionada, em ISO. `null` para quem continua nela.
+   *
+   * Vem do token pelo mesmo motivo do papel: é a fonte que o backend lê para decidir o que aceitar,
+   * e a tela precisa decidir o que mostrar pela mesma. O desligado só lê o que é dele.
+   */
+  desligadoEm: string | null
 }
 
 interface CorpoDoToken {
@@ -17,6 +24,7 @@ interface CorpoDoToken {
   role?: string | string[]
   formatura_id?: string
   papel?: string
+  desligado_em?: string
 }
 
 /**
@@ -50,6 +58,7 @@ export function lerAccessToken(token: string): UsuarioAutenticado | null {
       perfis: Array.isArray(papeis) ? papeis : [papeis],
       formaturaId: claims.formatura_id ?? null,
       papel: claims.papel ?? null,
+      desligadoEm: claims.desligado_em ?? null,
     }
   } catch {
     return null

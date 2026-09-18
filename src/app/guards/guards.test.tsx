@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { useState } from 'react'
@@ -19,6 +19,7 @@ import { ExigeAutenticacao } from './ExigeAutenticacao'
 import { ExigeFormatura } from './ExigeFormatura'
 import { ExigePapel } from './ExigePapel'
 import { ExigePerfil } from './ExigePerfil'
+import { SomenteVisitante } from './SomenteVisitante'
 
 /**
  * Monta um access token com as claims pedidas. A assinatura é irrelevante: `sessao.autenticar`
@@ -35,6 +36,24 @@ function tokenCom(perfis: string[], formaturaId?: string): string {
   const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
 
   return `cabecalho.${base64}.assinatura`
+}
+
+/** Sessão de quem foi desligado da turma: a claim `desligado_em` acompanha a `formatura_id`. */
+function entrarDesligado() {
+  const corpo = {
+    sub: 'u-1',
+    name: 'Teste',
+    email: 'teste@exemplo.com',
+    role: [PERFIS.usuario],
+    formatura_id: 'f-1',
+    papel: PAPEIS.formando,
+    desligado_em: '2026-09-16T12:00:00Z',
+  }
+  const base64 = btoa(JSON.stringify(corpo)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
+  sessao.autenticar({
+    access_token: `cabecalho.${base64}.assinatura`,
+    expira_em: new Date(Date.now() + 900_000).toISOString(),
+  })
 }
 
 function entrar(perfis: string[], formaturaId?: string) {
@@ -55,6 +74,7 @@ function renderizarGuarda(guarda: React.ReactElement, rotaInicial = '/protegida'
       { path: ROTAS.login, element: <p>tela de login</p> },
       { path: ROTAS.inicio, element: <p>tela inicial</p> },
       { path: ROTAS.selecionarFormatura, element: <p>escolha a formatura</p> },
+      { path: ROTAS.extrato, element: <p>meu extrato</p> },
     ],
     { initialEntries: [rotaInicial] },
   )
@@ -196,6 +216,22 @@ describe('ExigeFormatura', () => {
 
     expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
   })
+
+  /**
+   * P5: quem foi desligado mantém a sessão na turma **só** para ler o que é dele. O desvio existe
+   * para ele não colecionar 403 clicando no menu — quem recusa de verdade é a API.
+   */
+  it('desvia para o extrato quem foi desligado, e o deixa lê-lo', () => {
+    entrarDesligado()
+
+    renderizarGuarda(<ExigeFormatura />)
+    expect(screen.getByText('meu extrato')).toBeInTheDocument()
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+
+    cleanup()
+    renderizarGuarda(<ExigeFormatura />, ROTAS.extrato)
+    expect(screen.getByText('meu extrato')).toBeInTheDocument()
+  })
 })
 
 /** Entra numa formatura com o papel pedido. */
@@ -334,5 +370,26 @@ describe('ExigeAceites', () => {
 
     await waitFor(() => expect(consultas).toBe(2))
     expect(screen.getByRole('button', { name: 'cache limpo' })).toBeInTheDocument()
+  })
+})
+
+describe('SomenteVisitante', () => {
+  /**
+   * O caminho que o usuário relatou: logado, volta à landing, clica em "Entrar" e cai num
+   * formulário de login que não tem o que fazer — pior, que dá a impressão de a sessão ter caído.
+   */
+  it('manda para o início quem já está autenticado', () => {
+    entrar([PERFIS.usuario])
+
+    renderizarGuarda(<SomenteVisitante />)
+
+    expect(screen.getByText('tela inicial')).toBeInTheDocument()
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+  })
+
+  it('deixa passar quem não tem sessão', () => {
+    renderizarGuarda(<SomenteVisitante />)
+
+    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
   })
 })

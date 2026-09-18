@@ -10,9 +10,18 @@ import {
 import type { AtualizarPerfil, PerfilDoFormando } from '../types/formandos.types'
 import { chaves } from './chaves'
 
-/** O próprio cadastro na formatura selecionada. */
-export function useMeuPerfil() {
-  return useQuery({ queryKey: chaves.meu(), queryFn: ({ signal }) => obterMeuPerfil(signal) })
+/**
+ * O próprio cadastro na formatura selecionada.
+ *
+ * @param habilitado Falso não consulta — quem foi desligado não tem cadastro na turma, e a API
+ *   responderia 403 (P5 da Sprint 15).
+ */
+export function useMeuPerfil(habilitado = true) {
+  return useQuery({
+    queryKey: chaves.meu(),
+    queryFn: ({ signal }) => obterMeuPerfil(signal),
+    enabled: habilitado,
+  })
 }
 
 /**

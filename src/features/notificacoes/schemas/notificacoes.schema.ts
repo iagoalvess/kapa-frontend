@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CanalDeNotificacao, DadosDaRegra, Regra, Regua } from '../types/notificacoes.types'
+import type { DadosDaRegra, Regra, Regua } from '../types/notificacoes.types'
 
 /*
   Validação de **forma**. Quem decide de verdade é a API, que recusa a variável desconhecida na
@@ -62,7 +62,6 @@ export const esquemaDoDegrau = (regua: Regua) => {
   return z.object({
     assunto: texto(regua.tamanho_maximo_do_assunto, 'Escreva o assunto.'),
     template: texto(regua.tamanho_maximo, 'Escreva a mensagem.'),
-    canal: z.string(),
     ativa: z.boolean(),
     avisar_tesouraria: z.boolean(),
   })
@@ -74,7 +73,6 @@ export type FormularioDoDegrau = z.infer<ReturnType<typeof esquemaDoDegrau>>
 export const paraFormularioDoDegrau = (regra: Regra): FormularioDoDegrau => ({
   assunto: regra.assunto,
   template: regra.template,
-  canal: regra.canal,
   ativa: regra.ativa,
   avisar_tesouraria: regra.avisar_tesouraria,
 })
@@ -90,6 +88,4 @@ export const paraFormularioDoDegrau = (regra: Regra): FormularioDoDegrau => ({
  * @param valores O formulário já validado.
  */
 export const paraDadosDaRegua = (regua: Regua, id: string, valores: FormularioDoDegrau): DadosDaRegra[] =>
-  regua.regras.map(({ id: atual, ...regra }) =>
-    atual === id ? { ...regra, ...valores, canal: valores.canal as CanalDeNotificacao } : regra,
-  )
+  regua.regras.map(({ id: atual, ...regra }) => (atual === id ? { ...regra, ...valores } : regra))

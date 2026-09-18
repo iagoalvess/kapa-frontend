@@ -57,6 +57,8 @@ const despesaDoBuffet: Despesa = {
 function comApi() {
   servidor.use(
     http.get(FORNECEDORES, () => HttpResponse.json(pagina([buffet, grafica]))),
+    // Antes de `:id`, que casaria com "resumo" e devolveria um fornecedor no lugar da contagem.
+    http.get(`${FORNECEDORES}/resumo`, () => HttpResponse.json({ ativos: 1, inativos: 1 })),
     http.get(`${FORNECEDORES}/:id`, () => HttpResponse.json(buffet)),
     http.get(DESPESAS, () => HttpResponse.json(pagina([despesaDoBuffet]))),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
@@ -86,6 +88,10 @@ describe('FornecedoresPage', () => {
     expect(within(lista).getByText('Ativo')).toBeInTheDocument()
     expect(within(lista).getByText('Inativo')).toBeInTheDocument()
     expect(within(lista).getByText('2 despesas')).toBeInTheDocument()
+
+    // As pílulas somam o resumo da API, e não o que a página trouxe: 'Todos' é ativos + inativos.
+    expect(screen.getByRole('button', { name: 'Todos 2' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ativos 1' })).toBeInTheDocument()
   })
 
   it('"Novo fornecedor" abre o cadastro em diálogo e grava', async () => {

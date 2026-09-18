@@ -2,9 +2,11 @@ import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { ROTULOS_DE_STATUS } from '@/components/ChipDeStatus'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { SeletorDeFiltro } from '@/components/SeletorDeFiltro'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { diaDeHoje, formatarData } from '@/lib/formato'
+import { cn } from '@/lib/utils'
 import type { StatusDaParcela } from '@/types/cobranca'
 import {
   type CategoriaDeDespesa,
@@ -20,7 +22,6 @@ import {
   type TipoDeRelatorio,
 } from '../types/relatorios.types'
 import { MenuDeExportacao } from './MenuDeExportacao'
-import { SeletorDeFiltro } from './SeletorDeFiltro'
 
 /**
  * Os atalhos do modelo (`7D`, `30D`, `90D`, `1A`), em dias.
@@ -63,6 +64,7 @@ function diasAtras(hoje: string, dias: number) {
  * caractere. Sem rótulo nenhum, os dois campos seriam "dia" e "dia" no leitor de tela.
  *
  * @param rotulo "De" ou "Até" — só para o leitor de tela.
+ * @param ativo Se o período na mão é o que vale; desligado, as duas pílulas só ecoam o atalho aceso.
  * @param aoMudar Recebe o dia escolhido, ou `undefined` quando o campo é esvaziado.
  */
 function CampoDeDia({
@@ -71,6 +73,7 @@ function CampoDeDia({
   valor,
   min,
   max,
+  ativo,
   aoMudar,
 }: {
   id: string
@@ -78,11 +81,19 @@ function CampoDeDia({
   valor: string
   min?: string
   max?: string
+  ativo: boolean
   aoMudar: (dia: string | undefined) => void
 }) {
   return (
     // `h-7`, a mesma altura do `Chip`: ao lado dos atalhos de período, 32px destoavam dos 28 deles.
-    <div className="border-border focus-within:ring-ring flex h-7 w-fit items-center rounded-full border px-2 focus-within:ring-2">
+    // E as cores são as dele: apagada quando o período em vigor é um atalho, preenchida quando o
+    // intervalo na mão é o que vale — a mesma escada dos seletores de recorte ao lado.
+    <div
+      className={cn(
+        'focus-within:ring-ring flex h-7 w-fit items-center rounded-full border px-2 focus-within:ring-2',
+        ativo ? 'bg-border text-foreground border-transparent' : 'border-border text-muted-foreground',
+      )}
+    >
       <Label htmlFor={id} className="sr-only">
         {rotulo}
       </Label>
@@ -93,10 +104,12 @@ function CampoDeDia({
         min={min}
         max={max}
         onChange={(evento) => aoMudar(evento.target.value || undefined)}
-        // A borda e o foco são da pílula em volta: o campo aqui dentro é só a data e o ícone. Os
+        // A cor, a borda e o foco são da pílula em volta: o campo aqui dentro é só a data e o
+        // ícone. Sem `text-current` ele volta ao `--foreground` e a data fica escura dentro de uma
+        // pílula apagada. Os
         // dois `::-webkit-` zeram o respiro que o Chrome põe em volta dos dois — é o que faz caberem
         // em 8rem. `w-32` também vence o `w-full` do `Input` (pelo `twMerge`), senão ele estica.
-        className="h-auto w-32 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:border-0 focus-visible:ring-0 md:text-sm [&::-webkit-calendar-picker-indicator]:m-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-datetime-edit]:p-0"
+        className="h-auto w-32 border-0 bg-transparent p-0 text-sm text-current shadow-none focus-visible:border-0 focus-visible:ring-0 md:text-sm [&::-webkit-calendar-picker-indicator]:m-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:p-0 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-datetime-edit]:p-0"
       />
     </div>
   )
@@ -151,6 +164,8 @@ export function FiltrosDoRelatorio({
 
   const atalhoAtivo = ATALHOS.find((atalho) => ate === hoje && de === diasAtras(hoje, atalho.dias))?.chave
   const noAno = ate === hoje && de === inicioDoAno(hoje)
+  /** Nenhum atalho aceso: o intervalo nos dois campos é o que de fato recorta o relatório. */
+  const periodoNaMao = !atalhoAtivo && !noAno
 
   /** Troca um campo do recorte, preservando o resto. */
   const trocar = (mudanca: Partial<FiltroDoRelatorio>) => aoMudar({ ...filtro, ...mudanca })
@@ -184,6 +199,7 @@ export function FiltrosDoRelatorio({
             rotulo="De"
             valor={de}
             max={ate}
+            ativo={periodoNaMao}
             aoMudar={(dia) => trocar({ de: dia, ate })}
           />
 
@@ -197,6 +213,7 @@ export function FiltrosDoRelatorio({
             rotulo="Até"
             valor={ate}
             min={de}
+            ativo={periodoNaMao}
             aoMudar={(dia) => trocar({ ate: dia, de })}
           />
 

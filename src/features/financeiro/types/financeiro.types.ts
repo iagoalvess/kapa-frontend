@@ -48,6 +48,12 @@ export interface DadosDoFornecedor {
   ativo: boolean
 }
 
+/** Quantos fornecedores a turma tem em cada situação. Espelha `ContagemDeFornecedoresDTO`. */
+export interface ContagemDeFornecedores {
+  ativos: number
+  inativos: number
+}
+
 /** Filtros da lista de fornecedores. */
 export interface FiltroDeFornecedores {
   pagina?: number
@@ -63,6 +69,8 @@ export interface Despesa {
   /** O lançamento que a criou — as parcelas irmãs de uma parcelada têm o mesmo. */
   lancamento_id: string
   fornecedor_id?: string
+  /** Item da festa que esta despesa paga; ausente, é um gasto que não é da festa. */
+  item_da_festa_id?: string
   fornecedor?: string
   descricao: string
   categoria: CategoriaDeDespesa
@@ -82,6 +90,8 @@ export interface Despesa {
 /** O lançamento, como o formulário o envia: o valor é o total do compromisso. */
 export interface NovaDespesa {
   fornecedor_id?: string
+  /** Item da festa que esta despesa paga; ausente, é um gasto que não é da festa. */
+  item_da_festa_id?: string
   descricao: string
   categoria: CategoriaDeDespesa
   valor_em_centavos: number
@@ -95,6 +105,8 @@ export interface NovaDespesa {
 /** A correção de uma linha já lançada. */
 export interface DadosDaDespesa {
   fornecedor_id?: string
+  /** Item da festa que esta despesa paga; ausente, é um gasto que não é da festa. */
+  item_da_festa_id?: string
   descricao: string
   categoria: CategoriaDeDespesa
   valor_em_centavos: number

@@ -4,8 +4,11 @@ import type { FiltroDeInformes } from '../types/pagamentos.types'
 export const chaves = {
   tudo: ['pagamentos'] as const,
   extrato: () => ['pagamentos', 'extrato'] as const,
+  /** Sob `extrato`: quem invalida o extrato depois de um aviso já apaga o selo do menu junto. */
+  pendencias: () => ['pagamentos', 'extrato', 'pendencias'] as const,
   parcela: (parcelaId: string) => ['pagamentos', 'parcela', parcelaId] as const,
   pix: (parcelaId: string) => ['pagamentos', 'pix', parcelaId] as const,
+  pixDeVarias: (parcelaIds: string[]) => ['pagamentos', 'pix', parcelaIds] as const,
   informes: (filtro: FiltroDeInformes) => ['pagamentos', 'informes', filtro] as const,
   divergencias: (filtro: FiltroDeInformes) => ['pagamentos', 'divergencias', filtro] as const,
 }

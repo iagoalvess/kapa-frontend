@@ -2,7 +2,6 @@ import { toast } from 'sonner'
 import { Select } from '@/components/Select'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { mensagemDoErro } from '@/lib/http/erros'
-import { cn } from '@/lib/utils'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
 import type { FormaturaDoUsuario } from '../types/formaturas.types'
 
@@ -20,60 +19,46 @@ export function descreverTurma(formatura: FormaturaDoUsuario) {
 }
 
 /**
- * "Medicina 2027.1": curso e turma, que é como a pessoa reconhece a própria formatura — o nome é
- * texto livre e carrega o que a comissão quiser. Sem curso ou ano cadastrados, fica o nome.
- */
-function rotuloDaTurma(formatura: FormaturaDoUsuario) {
-  return formatura.curso && formatura.ano ? `${formatura.curso} ${turma(formatura)}` : formatura.nome
-}
-
-// No celular o rótulo trunca: o cabeçalho divide a linha com o título e o avatar.
-const LARGURA = 'max-w-[45vw] sm:max-w-80'
-
-/**
- * A formatura da sessão, no cabeçalho ao lado do avatar — e a troca dela, para quem tem mais de uma.
- * O papel do usuário não entra aqui: fica no pé da barra lateral.
+ * A troca de turma, no menu do avatar — e **só** a troca.
+ *
+ * Com uma formatura só ele some: qual é a turma quem diz é o Início, e um seletor de uma opção só
+ * é uma linha que não faz nada. Sem nenhuma selecionada some também, porque a tela de seleção já
+ * está pedindo a escolha.
  *
  * A troca é o `Select` do sistema: a opção fechada já mostra curso, instituição e turma, o que
- * separa duas turmas de nome parecido. Com uma formatura só, fica o rótulo sem seletor: escolher
- * entre uma opção é ruído. Sem nenhuma selecionada, some — a tela de seleção já está pedindo a
- * escolha.
+ * separa duas turmas de nome parecido — escolher a errada abre o caixa de outra formatura.
+ *
+ * @param habilitado Falso não consulta a lista. O menu do avatar está em toda tela, e quase todo
+ *   mundo tem uma turma só — sem isto, toda tela pedia `/formaturas/minhas` para desenhar um
+ *   seletor fechado que, na maioria das contas, nem aparece.
  */
-export function SeletorDeFormatura() {
+export function SeletorDeFormatura({ habilitado = true }: { habilitado?: boolean }) {
   const { formaturaId } = useFormaturaAtiva()
-  const formaturas = useMinhasFormaturas()
+  const formaturas = useMinhasFormaturas(habilitado)
   const selecionar = useSelecionarFormatura()
 
   const atual = formaturas.data?.find((formatura) => formatura.id === formaturaId)
-  if (!formaturas.data || !atual) return null
-
-  if (formaturas.data.length === 1) {
-    return (
-      <span
-        title={descreverTurma(atual)}
-        className={cn('text-foreground truncate rounded-md border px-3 py-1.5 text-sm font-medium', LARGURA)}
-      >
-        {rotuloDaTurma(atual)}
-      </span>
-    )
-  }
+  if (!formaturas.data || !atual || formaturas.data.length === 1) return null
 
   return (
-    <Select
-      aria-label="Formatura selecionada"
-      title={descreverTurma(atual)}
-      className={cn('h-8 truncate font-medium', LARGURA)}
-      value={atual.id}
-      disabled={selecionar.isPending}
-      onChange={(evento) =>
-        selecionar.mutate(evento.target.value, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
-      }
-    >
-      {formaturas.data.map((formatura) => (
-        <option key={formatura.id} value={formatura.id}>
-          {descreverTurma(formatura) || formatura.nome}
-        </option>
-      ))}
-    </Select>
+    <div className="border-border grid gap-1 border-t px-3 py-3">
+      <span className="text-texto-muted text-xs">Trocar de turma</span>
+      <Select
+        aria-label="Formatura selecionada"
+        title={descreverTurma(atual)}
+        className="h-9 w-full truncate text-sm font-medium"
+        value={atual.id}
+        disabled={selecionar.isPending}
+        onChange={(evento) =>
+          selecionar.mutate(evento.target.value, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
+        }
+      >
+        {formaturas.data.map((formatura) => (
+          <option key={formatura.id} value={formatura.id}>
+            {descreverTurma(formatura) || formatura.nome}
+          </option>
+        ))}
+      </Select>
+    </div>
   )
 }

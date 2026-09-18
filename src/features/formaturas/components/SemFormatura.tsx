@@ -1,13 +1,15 @@
-import { Crown, GraduationCap, type LucideIcon } from 'lucide-react'
+import { Crown, GraduationCap, LifeBuoy, type LucideIcon } from 'lucide-react'
 import { type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
+import { usePerfil } from '@/hooks/useSessao'
 import { convitePendente } from '@/lib/convitePendente'
 
-/** Um dos dois caminhos: ícone, quem é a pessoa, o que acontece e a ação. */
+/** Um dos caminhos: ícone, quem é a pessoa, o que acontece e a ação. */
 function Caminho({
   icone: Icone,
   titulo,
@@ -38,9 +40,10 @@ function Caminho({
 /**
  * Porta de entrada de quem ainda não participa de nenhuma formatura.
  *
- * São duas pessoas diferentes chegando na mesma tela, e elas precisam de respostas opostas: a
- * comissão cria a turma, o formando entra pelo convite. Uma frase só — "peça um convite" — manda
- * o presidente da comissão esperar por um convite que ninguém vai mandar.
+ * São pessoas diferentes chegando na mesma tela, e elas precisam de respostas opostas: a comissão
+ * cria a turma, o formando entra pelo convite, e quem atende pela Kapa não entra em turma nenhuma.
+ * Uma frase só — "peça um convite" — manda o presidente da comissão esperar por um convite que
+ * ninguém vai mandar.
  *
  * O campo de convite existe desde já: sem ele, o formando que se cadastra antes de clicar no link
  * fica preso numa tela sem saída. Pede o link e usa o token do fim; colar só o token também
@@ -48,6 +51,7 @@ function Caminho({
  */
 export function SemFormatura() {
   const navegar = useNavigate()
+  const ehSuporte = usePerfil().tem(PERFIS.administrador)
 
   const abrirConvite = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
@@ -94,6 +98,22 @@ export function SemFormatura() {
             </Button>
           </form>
         </Caminho>
+
+        {/* A terceira pessoa que cai aqui, desde a Sprint 16: quem atende. `Administrador` é perfil
+            de plataforma e **não** vira membro de formatura nenhuma, então ele nunca sai desta tela
+            pelos dois caminhos de cima — e, sem sair, nunca chega à barra lateral onde mora o
+            painel. Sem este caminho, a única porta do suporte é digitar a URL. */}
+        {ehSuporte ? (
+          <Caminho
+            icone={LifeBuoy}
+            titulo="Sou do suporte da Kapa"
+            descricao="Seu acesso é da plataforma, não de uma turma. O painel abre qualquer formatura para atender."
+          >
+            <Button asChild variant="outline" className="h-11 rounded-lg">
+              <Link to={ROTAS.suporte}>Abrir o painel de suporte</Link>
+            </Button>
+          </Caminho>
+        ) : null}
       </div>
     </>
   )

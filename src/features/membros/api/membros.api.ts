@@ -1,7 +1,13 @@
 import type { Papel } from '@/config/perfis'
 import { api } from '@/lib/http/cliente'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
-import type { ContagemDeMembros, FiltroDeMembros, MembroDaFormatura } from '../types/membros.types'
+import type {
+  ContagemDeMembros,
+  DesligarMembro,
+  FiltroDeMembros,
+  MembroDaFormatura,
+  ResumoDaSaida,
+} from '../types/membros.types'
 
 // `atual`, e não o id: a formatura vem do token, nunca de um valor que o cliente escolhe.
 const BASE = '/api/v1/formaturas/atual/membros'
@@ -15,6 +21,7 @@ export function listarMembros(filtro: FiltroDeMembros, signal?: AbortSignal) {
       ativo: filtro.ativo,
       papel: filtro.papel,
       cadastro: filtro.cadastro,
+      desligado: filtro.desligado,
     },
     signal,
   })
@@ -33,4 +40,19 @@ export function alterarPapel({ usuario_id, papel }: { usuario_id: string; papel:
 /** Desativa o vínculo de um membro, preservando o histórico dele. Só o Presidente. */
 export function removerMembro(usuario_id: string) {
   return api.delete<void>(`${BASE}/${usuario_id}`)
+}
+
+/** O que o desligamento de um membro vai mexer — os números do diálogo de confirmação. Gestão. */
+export function resumirSaida(usuario_id: string, signal?: AbortSignal) {
+  return api.get<ResumoDaSaida>(`${BASE}/${usuario_id}/resumo-da-saida`, { signal })
+}
+
+/** Desliga um formando: ele deixa de dever o que ainda não venceu. Só o Presidente. */
+export function desligarMembro({ usuario_id, ...body }: DesligarMembro & { usuario_id: string }) {
+  return api.post<void>(`${BASE}/${usuario_id}/desligar`, { body })
+}
+
+/** Desfaz o desligamento. Não ressuscita parcela cancelada. Só o Presidente. */
+export function religarMembro(usuario_id: string) {
+  return api.post<void>(`${BASE}/${usuario_id}/religar`)
 }

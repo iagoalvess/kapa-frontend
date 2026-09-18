@@ -5,7 +5,6 @@ import { useForm, useFormState, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
-import { Select } from '@/components/Select'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -19,7 +18,7 @@ import {
   paraDadosDaRegua,
   paraFormularioDoDegrau,
 } from '../schemas/notificacoes.schema'
-import { CANAIS_DISPONIVEIS, type Regra, type Regua, ROTULOS_DE_CANAL } from '../types/notificacoes.types'
+import type { Regra, Regua } from '../types/notificacoes.types'
 import { PreviaDaMensagem } from './PreviaDaMensagem'
 
 /**
@@ -166,49 +165,23 @@ export function EditorDeTemplate({
           <PreviaDaMensagem assunto={assunto} template={template} />
         </div>
 
-        <div className="grid items-start gap-4 sm:grid-cols-2">
-          <FormField
-            control={formulario.control}
-            name="canal"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Canal</FormLabel>
-                <FormControl>
-                  <Select {...field} disabled={!editavel} className="w-full">
-                    {CANAIS_DISPONIVEIS.map((canal) => (
-                      <option key={canal} value={canal}>
-                        {ROTULOS_DE_CANAL[canal]}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-                <p className="text-texto-muted text-xs">
-                  O WhatsApp entra na próxima etapa: ele exige número verificado e template aprovado pela Meta
-                  antes do primeiro disparo.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
+        <fieldset className="grid gap-3">
+          <legend className="sr-only">Quando e para quem este degrau dispara</legend>
+          <Caixa
+            formulario={formulario}
+            nome="ativa"
+            rotulo="Degrau ativo"
+            dica="Desligado, a régua pula este ponto sem mandar nada."
+            desabilitado={!editavel}
           />
-
-          <fieldset className="grid gap-3 sm:pt-7">
-            <legend className="sr-only">Quando e para quem este degrau dispara</legend>
-            <Caixa
-              formulario={formulario}
-              nome="ativa"
-              rotulo="Degrau ativo"
-              dica="Desligado, a régua pula este ponto sem mandar nada."
-              desabilitado={!editavel}
-            />
-            <Caixa
-              formulario={formulario}
-              nome="avisar_tesouraria"
-              rotulo="Avisar a tesouraria no mesmo dia"
-              dica="Um resumo com quantas parcelas chegaram a este ponto."
-              desabilitado={!editavel || regra.gatilho === 'InformePendente'}
-            />
-          </fieldset>
-        </div>
+          <Caixa
+            formulario={formulario}
+            nome="avisar_tesouraria"
+            rotulo="Avisar a tesouraria no mesmo dia"
+            dica="Um resumo com quantas parcelas chegaram a este ponto."
+            desabilitado={!editavel || regra.gatilho === 'InformePendente'}
+          />
+        </fieldset>
 
         <ErroDoFormulario />
 

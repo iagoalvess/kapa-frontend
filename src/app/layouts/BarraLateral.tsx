@@ -2,51 +2,52 @@ import {
   BadgeCheck,
   BellRing,
   Handshake,
+  LifeBuoy,
   ClipboardCheck,
   Coins,
-  Crown,
   FileSignature,
   FileText,
+  Crown,
   FolderOpen,
-  GraduationCap,
   LogOut,
+  GraduationCap,
+  ShieldCheck,
+  Wallet,
   Megaphone,
   type LucideIcon,
+  PartyPopper,
   PiggyBank,
   Receipt,
   ReceiptText,
   Send,
-  ShieldCheck,
-  UserRound,
   Users,
-  Wallet,
   WalletMinimal,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { env } from '@/config/env'
-import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
+import { PAPEIS, type Papel, PERFIS, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useAdesaoPendente } from '@/features/adesoes'
-import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO, useAssinatura } from '@/features/assinaturas'
+import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO } from '@/config/planos'
+import { useAssinatura } from '@/features/assinaturas'
 import { useSair } from '@/features/auth'
 import { useDespesasAtrasadas } from '@/features/financeiro'
 import { useParcelasVencidas, usePendentesDeConferencia } from '@/features/pagamentos'
-import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
+import { useFormaturaAtiva, usePapel, usePerfil } from '@/hooks/useSessao'
 import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 
-/** Comissão e Formando repetem os ícones da faixa de membros ("Na comissão", "Formandos"). */
-const ICONES_DE_PAPEL: Record<Papel, LucideIcon> = {
-  Presidente: Crown,
-  Tesoureiro: Wallet,
-  Comissao: ShieldCheck,
-  Formando: GraduationCap,
-}
-
+/**
+ * A forma de um item do menu: 32px de altura, ícone de 18 e texto de 14.
+ *
+ * A densidade é o que faz caber: com 36px e 4 de respiro entre itens, os dezesseis do menu da
+ * Gestão passavam de mil pixels e a lista nascia com rolagem numa tela de notebook — e item de
+ * menu que só aparece rolando é item que ninguém acha.
+ */
 const formaDoItem =
-  'flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[15px] [&_svg]:size-5 [&_svg]:shrink-0'
+  'flex h-8 w-full items-center gap-2.5 rounded-lg px-3 text-sm [&_svg]:size-[18px] [&_svg]:shrink-0'
 
 const estiloDoItem = (ativo: boolean) =>
   cn(
@@ -127,6 +128,15 @@ function ItemDeMenu({
   )
 }
 
+/**
+ * O papel na turma, no rodapé do menu: informação, e não link.
+ *
+ * Mesma forma dos itens, sem hover e sem destino — não há tela de "meu papel", e um item que não
+ * leva a lugar nenhum não pode parecer clicável. Fica acima do plano porque a pergunta que ele
+ * responde é a primeira: o que eu sou nesta turma.
+ *
+ * @param papel Papel ativo de quem está na sessão.
+ */
 function PapelNaTurma({ papel }: { papel: Papel }) {
   const Icone = ICONES_DE_PAPEL[papel]
 
@@ -139,8 +149,16 @@ function PapelNaTurma({ papel }: { papel: Papel }) {
   )
 }
 
+/** Comissão e Formando repetem os ícones da faixa de membros ("Na comissão", "Formandos"). */
+const ICONES_DE_PAPEL: Record<Papel, LucideIcon> = {
+  Presidente: Crown,
+  Tesoureiro: Wallet,
+  Comissao: ShieldCheck,
+  Formando: GraduationCap,
+}
+
 /**
- * O plano da turma, embaixo do papel: nome do contratado e, num clique, a vitrine.
+ * O plano contratado pela turma, no rodapé: o nome do que está valendo e, num clique, a vitrine.
  *
  * Só quem é da Gestão monta este item — a rota dos planos e a API da assinatura têm esse mesmo
  * recorte. Sem assinatura (404 de quem ainda não contratou) o item convida a ver os planos.
@@ -149,8 +167,7 @@ function PapelNaTurma({ papel }: { papel: Papel }) {
  * desenhos diferentes para a mesma coisa fazem o menu parecer levar a outro lugar.
  */
 function PlanoDaTurma({ aoNavegar }: { aoNavegar?: () => void }) {
-  const assinatura = useAssinatura()
-  const plano = assinatura.data?.plano
+  const plano = useAssinatura().data?.plano
 
   return (
     <ItemDeMenu
@@ -164,14 +181,15 @@ function PlanoDaTurma({ aoNavegar }: { aoNavegar?: () => void }) {
 }
 
 /**
- * O que é da pessoa, e não da turma: o termo dela, as parcelas dela, o cadastro dela.
+ * O que é da pessoa dentro da turma: o termo dela e as parcelas dela.
  *
- * Os três nomes começam com "Meu/Minhas" de propósito: para quem administra, este bloco convive no
+ * Os dois nomes começam com "Meu/Minhas" de propósito: para quem administra, este bloco convive no
  * mesmo menu com "Parcelas" (as da turma inteira) e com "Adesões" (as de todo mundo), e sem o
  * possessivo os dois pares ficam indistinguíveis.
  *
- * Fica no topo para o formando e no fim para quem administra: para um, é o produto; para o outro,
- * é o canto pessoal, ao lado do papel e do "Sair".
+ * Abre o menu para todo mundo: quem preside a turma também assina o próprio termo e paga as próprias
+ * parcelas. O cadastro e a privacidade **não** estão aqui — são da conta, não da turma, e vivem no
+ * menu do avatar, que é onde o mercado inteiro os põe.
  */
 function Meu({
   aoNavegar,
@@ -183,7 +201,7 @@ function Meu({
   parcelasVencidas?: number
 }) {
   return (
-    <Secao titulo="Meu">
+    <Secao titulo="Minhas coisas">
       {/* Todo membro adere, a comissão inclusive: é o termo de cada um. O ponto é o único lugar em
           que a adesão pendente aparece fora da tela do termo. */}
       <ItemDeMenu
@@ -206,10 +224,6 @@ function Meu({
         rotuloDoSinal="vencidas"
       >
         Minhas parcelas
-      </ItemDeMenu>
-      {/* Também se chega por aqui, e não só pelo avatar: era a única tela pessoal sem porta no menu. */}
-      <ItemDeMenu to={ROTAS.meuCadastro} icone={UserRound} aoNavegar={aoNavegar}>
-        Meus dados
       </ItemDeMenu>
     </Secao>
   )
@@ -271,8 +285,8 @@ function DinheiroDaTurma({
 
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <div className="grid gap-1">
-      <p className="text-texto-muted px-3 pb-1 text-[13px]">{titulo}</p>
+    <div className="grid gap-px">
+      <p className="text-texto-muted px-3 pb-0.5 text-xs">{titulo}</p>
       {children}
     </div>
   )
@@ -289,15 +303,19 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
  */
 export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
   const { papel, tem } = usePapel()
-  const { selecionada } = useFormaturaAtiva()
+  const { selecionada, desligadoEm } = useFormaturaAtiva()
+  // Perfil de plataforma, e não papel de turma: é o que abre o painel de suporte.
+  const ehAdministrador = usePerfil().tem(PERFIS.administrador)
   const sair = useSair()
   // Mesmo recorte das rotas em `router.tsx`: Tesoureiro e Comissão; o Presidente passa sempre.
-  const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
-  const ehTesouraria = tem(PAPEIS.tesoureiro)
+  // Quem foi desligado cai fora dos dois: a claim `papel` sobrevive à saída — ela é a fotografia de
+  // quando ele estava na turma —, mas a API já não aceita nada dele além do próprio histórico.
+  const ehGestao = !desligadoEm && tem(PAPEIS.tesoureiro, PAPEIS.comissao)
+  const ehTesouraria = !desligadoEm && tem(PAPEIS.tesoureiro)
   // As pendências que marcam a porta. Todas passam pelo mesmo critério: zero é o estado normal, e
   // o selo some quando o trabalho é feito. Por isso "Parcelas" e "Adesões" não têm nenhum — numa
   // turma de oitenta pessoas eles nunca zerariam, e número sempre aceso ninguém mais lê.
-  const adesaoPendente = useAdesaoPendente()
+  const adesaoPendente = useAdesaoPendente(!desligadoEm)
   const { data: pendentesDeConferencia } = usePendentesDeConferencia(ehTesouraria)
   const { data: parcelasVencidas } = useParcelasVencidas()
   const { data: despesasAtrasadas } = useDespesasAtrasadas(ehTesouraria)
@@ -306,7 +324,7 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
     // Três faixas: logo e rodapé presos, e só o miolo rola. `min-h-0` no miolo porque, sem ele, um
     // filho de flex não encolhe abaixo do próprio conteúdo — e o menu comprido empurraria o rodapé
     // para fora da tela, que é justamente o que não pode acontecer com o "Sair".
-    <div className="flex h-full flex-col gap-6 px-3 py-5">
+    <div className="flex h-full flex-col gap-4 px-3 py-4">
       {/* A logo leva ao início, como em quase todo produto. Sem formatura na sessão não há para
           onde ir, e aí ela é só a marca. */}
       <div className="shrink-0 px-3">
@@ -317,27 +335,38 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
             aria-label="Kapa — início"
             className="focus-visible:ring-ring inline-block rounded-md hover:opacity-85 focus-visible:ring-2 focus-visible:outline-none"
           >
-            <LogoKapa className="text-foreground h-11" />
+            <LogoKapa className="text-foreground h-9" />
           </Link>
         ) : (
-          <LogoKapa className="text-foreground h-11" />
+          <LogoKapa className="text-foreground h-9" />
         )}
       </div>
 
       {selecionada ? (
         <nav
           aria-label="Principal"
-          className="rolagem-discreta grid min-h-0 flex-1 content-start gap-6 overflow-y-auto"
+          className="rolagem-discreta grid min-h-0 flex-1 content-start gap-4 overflow-y-auto"
         >
           {/* Não há item "Início": quem leva para lá é a logo, como em Linear, Notion e GitHub. Um
               item a mais para o mesmo lugar só encurta a lista de quem tem dezessete. */}
 
-          {/* Para quem administra, o trabalho do dia vem antes do que é dele: a fila de conferência
-              e as parcelas se abrem toda semana, e antes desta ordem elas eram o 13º e o 14º item,
-              atrás de "Formatura", que se edita uma vez na vida. O bloco "Meu" desce para o fim.
-              Para o formando é o contrário, e ele está logo abaixo. */}
-          {ehGestao ? (
+          {/* "Minhas coisas" abre o menu para todo mundo, inclusive para quem administra: o termo e
+              as parcelas são de cada pessoa, e quem preside a turma também assina e paga as dela.
+              São dois itens à frente do trabalho do dia, e em troca o menu tem uma ordem só —
+              antes, o mesmo bloco ficava no topo para o formando e no rodapé para a comissão. */}
+          {desligadoEm ? (
+            /* Quem saiu fica com o que é dele e mais nada: é o mesmo recorte de
+               `LEITURAS_DO_DESLIGADO` e da política `TitularDoProprioHistorico`. Mostrar o menu
+               inteiro seria oferecer dez portas que respondem 403. */
+            <Meu aoNavegar={aoNavegar} adesaoPendente={false} parcelasVencidas={undefined} />
+          ) : ehGestao ? (
             <>
+              <Meu
+                aoNavegar={aoNavegar}
+                adesaoPendente={adesaoPendente}
+                parcelasVencidas={parcelasVencidas}
+              />
+
               <Secao titulo="Cobrança">
                 {/* Mesmo recorte da rota: a Tesouraria confere e monta o plano; a Comissão consulta
                     as parcelas e lê o histórico do que já foi enviado. */}
@@ -388,7 +417,10 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 <ItemDeMenu to={ROTAS.adesoes} icone={ClipboardCheck} aoNavegar={aoNavegar}>
                   Adesões
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar} secao>
+                  A festa
+                </ItemDeMenu>
+                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
                   Mural
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
@@ -398,12 +430,6 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                   Dados da formatura
                 </ItemDeMenu>
               </Secao>
-
-              <Meu
-                aoNavegar={aoNavegar}
-                adesaoPendente={adesaoPendente}
-                parcelasVencidas={parcelasVencidas}
-              />
             </>
           ) : (
             <>
@@ -415,7 +441,10 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
 
               {/* O que não pode se perder na rolagem do grupo, e a turma que ele lê sem administrar. */}
               <Secao titulo="A turma">
-                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar} secao>
+                  A festa
+                </ItemDeMenu>
+                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
                   Mural
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
@@ -432,13 +461,25 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
         </nav>
       ) : null}
 
-      <div className="mt-auto grid shrink-0 gap-1">
-        {/* Mesma forma dos itens, sem hover: é informação, não link. */}
+      {/* O rodapé é a zona presa embaixo, fora da lista que se percorre todo dia: o plano
+          contratado, o suporte de quem atende e a porta de sair — que nunca pode depender de
+          rolagem.
+
+          O suporte fica fora do `selecionada`, e é o único item que fica: quem atende tem perfil de
+          plataforma e normalmente não é membro de turma nenhuma — dentro da condição, ele nunca
+          apareceria para a única pessoa que precisa dele. Exibição só; quem recusa é a API. */}
+      <div className="mt-auto grid shrink-0 gap-px">
         {papel ? <PapelNaTurma papel={papel} /> : null}
-        {selecionada && tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? (
-          <PlanoDaTurma aoNavegar={aoNavegar} />
+        {selecionada && ehGestao ? <PlanoDaTurma aoNavegar={aoNavegar} /> : null}
+
+        {ehAdministrador ? (
+          <nav aria-label="Plataforma">
+            <ItemDeMenu to={ROTAS.suporte} icone={LifeBuoy} aoNavegar={aoNavegar} secao>
+              Suporte
+            </ItemDeMenu>
+          </nav>
         ) : null}
-        {/* "Alterar senha" saiu daqui: é da conta, e vive no cartão do próprio cadastro. */}
+
         <button
           type="button"
           disabled={sair.isPending}

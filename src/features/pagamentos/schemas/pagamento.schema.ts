@@ -35,6 +35,16 @@ export const esquemaDoPagamento = z.object({
 
 export type FormularioDoPagamento = z.infer<typeof esquemaDoPagamento>
 
+/** O aviso de um pagamento que cobriu várias parcelas. O teto de 24 é o do backend. */
+export const esquemaDoLote = esquemaDoPagamento.extend({
+  parcela_ids: z
+    .array(z.string())
+    .min(1, 'Escolha ao menos uma parcela.')
+    .max(24, 'Escolha no máximo 24 parcelas.'),
+})
+
+export type FormularioDoLote = z.infer<typeof esquemaDoLote>
+
 /** A baixa manual: o pagamento e como o dinheiro chegou. */
 export const esquemaDaBaixa = esquemaDoPagamento.extend({
   forma: z.enum(['Pix', 'Dinheiro', 'Transferencia', 'Outro']),

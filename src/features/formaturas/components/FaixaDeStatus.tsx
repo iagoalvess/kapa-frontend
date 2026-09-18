@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
-import { usePapel } from '@/hooks/useSessao'
+import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { FormaturaDetalhe } from '@/types/formatura'
@@ -56,7 +56,18 @@ function faixa(
 export function FaixaDeStatus() {
   const { data } = useFormaturaAtual()
   const { ehPresidente } = usePapel()
-  const conteudo = data ? faixa(data, ehPresidente) : null
+  const { desligadoEm } = useFormaturaAtiva()
+
+  // Vem antes do status da turma: para quem saiu, "o plano da turma venceu" não é a informação que
+  // falta. A saída explica tudo o que ele deixou de ver, e é a única frase que ele precisa ler.
+  const conteudo = desligadoEm
+    ? {
+        tom: 'neutro' as const,
+        texto: `Você foi desligado desta turma em ${formatarData(desligadoEm)}. Seu histórico de pagamentos e o seu termo continuam disponíveis; para voltar, fale com a comissão.`,
+      }
+    : data
+      ? faixa(data, ehPresidente)
+      : null
 
   if (!conteudo) return null
 
@@ -68,7 +79,7 @@ export function FaixaDeStatus() {
       )}
     >
       {conteudo.texto}
-      {ehPresidente && conteudo.acao ? (
+      {ehPresidente && 'acao' in conteudo && conteudo.acao ? (
         <Link to={ROTAS.planos} className="underline underline-offset-4">
           {conteudo.acao}
         </Link>

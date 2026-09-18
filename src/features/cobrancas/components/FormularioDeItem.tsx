@@ -16,6 +16,7 @@ import {
   esquemaDeItem,
   type FormularioDeItem as ValoresDoItem,
   itemEmBranco,
+  mesCorrente,
   paraDadosDoItem,
   paraFormularioDeItem,
 } from '../schemas/cobranca.schema'
@@ -86,7 +87,10 @@ export function FormularioDeItem({
   const salvando = adicionar.isPending || alterar.isPending
   const travaAGrade = !editavel || Boolean(editando?.em_uso)
 
-  const [tipo, modoDoValor] = useWatch({ control: formulario.control, name: ['tipo', 'modoDoValor'] })
+  const [tipo, modoDoValor, rateio] = useWatch({
+    control: formulario.control,
+    name: ['tipo', 'modoDoValor', 'aplicar_a_quem_ja_aderiu'],
+  })
 
   const enviar = formulario.handleSubmit((valores) => {
     const dados = paraDadosDoItem(valores)
@@ -223,7 +227,14 @@ export function FormularioDeItem({
               <FormItem>
                 <FormLabel>Primeiro vencimento</FormLabel>
                 <FormControl>
-                  <Input {...field} type="month" disabled={travaAGrade} />
+                  {/* No rateio, o mês que já passou nasceria vencido — com multa e juros de um
+                      atraso que ninguém teve como cometer. */}
+                  <Input
+                    {...field}
+                    type="month"
+                    min={rateio ? mesCorrente() : undefined}
+                    disabled={travaAGrade}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -239,14 +250,60 @@ export function FormularioDeItem({
 
         {resumo}
 
-        {/* A parcela só nasce na adesão: quem já aderiu não recebe a do item novo. */}
+        {/* A parcela só nasce na adesão, então o item novo não alcança quem já aderiu — a não ser
+            que a turma tenha decidido por todos, e aí é um rateio extraordinário. */}
         {!editando && editavel && jaAderiram > 0 ? (
-          <p className="bg-warning-bg text-warning-text rounded-xl px-4 py-3 text-sm">
-            {jaAderiram === 1
-              ? '1 formando já aderiu e não será cobrado por este item'
-              : `${formatarNumero(jaAderiram)} formandos já aderiram e não serão cobrados por este item`}
-            : ele vale para quem aderir daqui em diante.
-          </p>
+          <div className="border-border grid gap-3 rounded-xl border p-4">
+            <p className={rateio ? 'text-texto-muted text-sm' : 'text-warning-text text-sm'}>
+              {jaAderiram === 1
+                ? '1 formando já aderiu'
+                : `${formatarNumero(jaAderiram)} formandos já aderiram`}
+              {rateio
+                ? ' e serão cobrados por este item, mesmo sem tê-lo aceitado no termo.'
+                : ' e não serão cobrados por este item: ele vale para quem aderir daqui em diante.'}
+            </p>
+
+            <FormField
+              control={formulario.control}
+              name="aplicar_a_quem_ja_aderiu"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={(evento) => field.onChange(evento.target.checked)}
+                      className="accent-primary size-4"
+                    />
+                    Cobrar também quem já aderiu
+                  </label>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {rateio ? (
+              <div className="motion-safe:animate-entrar grid gap-3">
+                <FormField
+                  control={formulario.control}
+                  name="origem_da_decisao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Onde a turma decidiu</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Assembleia de 12/10" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <p className="text-texto-muted text-xs">
+                  Fica gravado no item e é a prova da cobrança. Só use quando a decisão obrigar a turma toda e
+                  o termo de adesão previr cobranças extraordinárias.
+                </p>
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         <ErroDoFormulario />

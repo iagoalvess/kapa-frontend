@@ -50,7 +50,7 @@ describe('PagamentoPage', () => {
     renderizarPagamento()
 
     expect(await screen.findByText('Comissão Medicina 2027')).toBeInTheDocument()
-    const copiar = screen.getByRole('button', { name: 'Copiar código PIX' })
+    const copiar = screen.getByRole('button', { name: 'Copiar' })
     const qr = screen.getByRole('img', { name: 'QR Code do PIX' })
     expect(copiar.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(
@@ -85,7 +85,7 @@ describe('PagamentoPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Já paguei' }))
     expect(screen.getByLabelText('Dia do pagamento')).toHaveValue(diaDeHoje())
     await waitFor(() => expect(screen.getByLabelText('Valor pago')).toHaveValue(formatarCentavos(35_000)))
-    await userEvent.click(screen.getByRole('button', { name: 'Avisar a tesouraria' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
 
     expect(await screen.findByText(/Avisamos a tesouraria\. Você recebe um e-mail/)).toBeInTheDocument()
     expect(informes).toHaveLength(1)

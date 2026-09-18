@@ -9,6 +9,13 @@ export interface FormaturaDoUsuario {
   ano: number
   semestre: number
   papel: Papel
+  /**
+   * Quando ele foi desligado desta turma, em ISO; ausente para quem continua nela.
+   *
+   * A turma desligada segue na lista: o extrato é a prova do que ele pagou, e escondê-la seria
+   * escondê-la também dele (P5 da Sprint 15).
+   */
+  desligado_em?: string
 }
 
 /** Corpo da criação e da edição. Espelha `DadosDaFormaturaRequestDTO`. */

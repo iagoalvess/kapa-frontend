@@ -97,9 +97,16 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       </EsqueletoDeCartao>
     )
 
-  if (conteudo.isError || minha.isError) return <ErroDaConsulta erro={conteudo.error ?? minha.error} />
+  if (minha.isError) return <ErroDaConsulta erro={minha.error} />
 
   const { adesao, pendencias, menor_de_idade } = minha.data
+
+  // O termo assinado não depende do vigente da turma. Quem foi desligado lê o dele e não o dela
+  // (403 em `termos/vigente`), e a prova do que ele aceitou não pode sumir junto com o acesso.
+  if (adesao && conteudo.isError) return <TermoAssinado adesao={adesao} />
+
+  if (conteudo.isError) return <ErroDaConsulta erro={conteudo.error} />
+
   const { termo, plano, hash_do_conteudo } = conteudo.data
   const novaVersao = adesao && termo && termo.versao > adesao.versao ? termo.versao : undefined
 
@@ -362,7 +369,8 @@ function TermoAssinado({
 }: {
   adesao: Adesao
   novaVersao?: number
-  aoLerNova: () => void
+  /** Só existe com `novaVersao`: é o botão que leva à leitura da versão nova. */
+  aoLerNova?: () => void
 }) {
   const pdf = useBaixarPdf()
 

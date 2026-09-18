@@ -23,6 +23,12 @@ export interface Extrato {
   parcelas: Parcela[]
 }
 
+/** O que o extrato tem de pendente, sem o extrato. Espelha `PendenciasDoExtratoDTO`. */
+export interface PendenciasDoExtrato {
+  /** Parcelas vencidas em que o formando ainda não avisou o pagamento. */
+  vencidas_sem_aviso: number
+}
+
 /** O PIX de uma parcela, montado na hora. Espelha `PixDaParcelaDTO`. */
 export interface PixDaParcela {
   copia_e_cola: string

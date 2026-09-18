@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { vencidaSemAviso } from '@/types/cobranca'
-import { obterExtrato, obterParcela } from '../api/pagamentos.api'
+import { obterExtrato, obterParcela, obterPendenciasDoExtrato } from '../api/pagamentos.api'
 import { chaves } from './chaves'
 
 /** O extrato do próprio formando: em aberto, a próxima a pagar e todas as parcelas. */
@@ -11,15 +10,17 @@ export function useExtrato() {
 /**
  * Quantas parcelas próprias venceram sem aviso de pagamento — o número no menu.
  *
- * Mesma chave de {@link useExtrato}: quem abre Minhas parcelas não busca de novo, e dar baixa
- * apaga o selo pela invalidação que já existe. Conta só a **vencida**, nunca a aberta — um selo
- * que fica aceso os três anos da turma é papel de parede.
+ * Consulta própria, e não uma conta sobre {@link useExtrato}: este número aparece na barra lateral
+ * de **toda** tela do app, e o extrato de quem está no fim da turma passa dos 16 KB. Quem conta é a
+ * API — a regra ("vencida, e ninguém avisou") vive uma vez, lá.
+ *
+ * A chave mora sob a do extrato: a invalidação que já existe depois de um aviso apaga o selo junto.
  */
 export function useParcelasVencidas() {
   return useQuery({
-    queryKey: chaves.extrato(),
-    queryFn: ({ signal }) => obterExtrato(signal),
-    select: (extrato) => extrato.parcelas.filter(vencidaSemAviso).length,
+    queryKey: chaves.pendencias(),
+    queryFn: ({ signal }) => obterPendenciasDoExtrato(signal),
+    select: (pendencias) => pendencias.vencidas_sem_aviso,
   })
 }
 

@@ -30,6 +30,13 @@ export interface DadosDoItem {
   dia_de_vencimento: number
   /** `aaaa-mm-dd`, dia 1. */
   primeiro_mes: string
+  /**
+   * Rateio extraordinário: cobra também quem já aderiu. Exige `origem_da_decisao` e um primeiro
+   * mês que ainda não passou. Só na inclusão — a alteração e a simulação ignoram.
+   */
+  aplicar_a_quem_ja_aderiu?: boolean
+  /** Onde a turma decidiu: "assembleia de 12/10". */
+  origem_da_decisao?: string
 }
 
 /** Um item gravado. Espelha `ItemDeCobrancaDTO`; a API omite os nulos. */
@@ -51,6 +58,11 @@ export interface DadosDoPlano {
   percentual_de_juros_ao_mes: number
   carencia_em_dias: number
   percentual_de_desconto_por_antecipacao: number
+  /**
+   * Dias de antecedência que o desconto exige. Obrigatório acima de zero quando há desconto — sem
+   * ele, quem paga um dia antes leva o desconto inteiro (revisão de 17/09/2026).
+   */
+  dias_minimos_para_desconto: number
 }
 
 /** Espelha `PlanoDeCobrancaResumoDTO`. */
@@ -67,7 +79,10 @@ export interface PlanoDeCobranca extends DadosDoPlano {
   status: StatusDoPlano
   vigente_desde?: string
   itens: ItemDeCobranca[]
-  /** Quantos já aderiram. Item incluído agora vale só para quem aderir depois (decisão de 14/09/2026). */
+  /**
+   * Quantos já aderiram. Item incluído agora vale só para quem aderir depois (decisão de
+   * 14/09/2026) — a não ser que seja um rateio extraordinário (revisão de 17/09/2026).
+   */
   formandos_com_parcela: number
 }
 

@@ -6,6 +6,10 @@ services:
         # Do navegador do usuário, não de dentro da rede do compose: é o navegador que chama a API.
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
         VITE_APP_NOME: ${VITE_APP_NOME:-Frontend}
+    environment:
+      # Entra em connect-src da CSP (nginx/default.conf.template). Mesmo endereço do VITE_API_URL:
+      # é para lá que o navegador chama, e é a única origem externa que a página precisa alcançar.
+      API_ORIGIN: ${VITE_API_URL:-http://localhost:8080}
     ports:
       - '${FRONTEND_PORT:-3000}:80'
     restart: unless-stopped

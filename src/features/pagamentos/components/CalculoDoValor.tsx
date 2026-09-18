@@ -14,6 +14,9 @@ export function CalculoDoValor({ valor }: { valor: ValorDoDia }) {
   if (valor.multa_em_centavos) linhas.push(['Multa por atraso', valor.multa_em_centavos])
   if (valor.juros_em_centavos) linhas.push([`Juros de ${dias}`, valor.juros_em_centavos])
   if (valor.desconto_em_centavos) linhas.push(['Desconto por pagar antes', -valor.desconto_em_centavos])
+  // Sem esta linha o balão mostra "R$ 350" em cima e "R$ 150" no total, sem dizer para onde foram
+  // os R$ 200 — e valor sem explicação é chamado no grupo da turma no mesmo minuto.
+  if (valor.ja_pago_em_centavos) linhas.push(['Já pago', -valor.ja_pago_em_centavos])
 
   return (
     <dl className="grid gap-1 text-sm tabular-nums">
@@ -23,7 +26,7 @@ export function CalculoDoValor({ valor }: { valor: ValorDoDia }) {
           <dd>{formatarCentavos(centavos)}</dd>
         </div>
       ))}
-      <div className="text-foreground flex justify-between gap-4 border-t pt-1 font-medium">
+      <div className="text-foreground flex justify-between gap-4 border-t pt-1 font-semibold">
         <dt>Total de hoje</dt>
         <dd>{formatarCentavos(valor.total_em_centavos)}</dd>
       </div>

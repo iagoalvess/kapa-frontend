@@ -35,10 +35,19 @@ export function usePerfil() {
  */
 export function useFormaturaAtiva() {
   const { usuario } = useSessao()
+  const formaturaId = usuario?.formaturaId ?? null
 
   return {
-    formaturaId: usuario?.formaturaId ?? null,
-    selecionada: (usuario?.formaturaId ?? null) !== null,
+    formaturaId,
+    selecionada: formaturaId !== null,
+    /**
+     * Quando o usuário foi desligado desta turma, em ISO, ou `null` se continua nela.
+     *
+     * Quem foi desligado mantém a sessão na turma **só para ler o próprio histórico** (P5): o
+     * extrato e o termo dele. Toda outra tela a API recusa — e é por isso que o menu e a guarda
+     * `ExigeVinculoAtivo` olham para cá.
+     */
+    desligadoEm: formaturaId ? (usuario?.desligadoEm ?? null) : null,
   }
 }
 

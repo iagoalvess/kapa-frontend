@@ -31,6 +31,7 @@ const vencida: Parcela = {
     desconto_em_centavos: 0,
     total_em_centavos: 36_120,
     dias_de_atraso: 36,
+    ja_pago_em_centavos: 0,
   },
 }
 

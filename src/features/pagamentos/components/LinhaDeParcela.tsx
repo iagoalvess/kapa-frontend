@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { rotaDoPagamento } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { cn } from '@/lib/utils'
-import { emAberto, rotuloDoItem, type TipoDeCobranca } from '@/types/cobranca'
+import { emAberto, pagaEmParte, rotuloDoItem, type TipoDeCobranca, valorNaLista } from '@/types/cobranca'
 import type { Parcela } from '../types/pagamentos.types'
 import { CalculoDoValor, temEncargoOuDesconto } from './CalculoDoValor'
 
@@ -40,10 +40,7 @@ export function LinhaDeParcela({ parcela, proxima = false }: { parcela: Parcela;
   const podePagar = emAberto(parcela) && !parcela.em_conferencia
   const calculo =
     emAberto(parcela) && temEncargoOuDesconto(parcela.valor_do_dia) ? parcela.valor_do_dia : undefined
-  const valor =
-    parcela.valor_pago_em_centavos ??
-    parcela.valor_do_dia?.total_em_centavos ??
-    parcela.valor_original_em_centavos
+  const valor = valorNaLista(parcela)
 
   return (
     <tr className="border-b last:border-0">
@@ -67,6 +64,12 @@ export function LinhaDeParcela({ parcela, proxima = false }: { parcela: Parcela;
         {formatarData(parcela.vencimento)}
         {parcela.pago_em ? (
           <span className="text-texto-muted block text-xs">Paga em {formatarData(parcela.pago_em)}</span>
+        ) : null}
+        {/* O parcial precisa aparecer: sem isso, a coluna Valor cai sozinha e parece erro de cobrança. */}
+        {pagaEmParte(parcela) ? (
+          <span className="text-texto-muted block text-xs">
+            Já pagou {formatarCentavos(parcela.valor_pago_em_centavos ?? 0)}
+          </span>
         ) : null}
       </td>
       <td className="py-3 pr-4 text-right">

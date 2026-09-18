@@ -1,14 +1,15 @@
 import { Menu, X } from 'lucide-react'
 import { useRef } from 'react'
-import { Link, Outlet, useMatches } from 'react-router'
-import { Avatar } from '@/components/Avatar'
+import { Outlet, useMatches } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
 import { useMeuPerfil } from '@/features/formandos'
-import { FaixaDeStatus, SeletorDeFormatura } from '@/features/formaturas'
+import { BuscaGlobal } from '@/features/busca'
+import { SinoDeNovidades } from '@/features/comunicacao'
+import { FaixaDeStatus } from '@/features/formaturas'
 import { useFormaturaAtiva, useSessao } from '@/hooks/useSessao'
 import { BarraLateral } from './BarraLateral'
+import { MenuDaConta } from './MenuDaConta'
 
 /** Título da tela, declarado na rota: `{ handle: { titulo: 'Membros' } }` em `router.tsx`. */
 function useTituloDaRota() {
@@ -29,12 +30,14 @@ function useTituloDaRota() {
  */
 export function LayoutApp() {
   const { usuario } = useSessao()
-  const { selecionada } = useFormaturaAtiva()
+  const { selecionada, desligadoEm } = useFormaturaAtiva()
   const titulo = useTituloDaRota()
   const gaveta = useRef<HTMLDialogElement>(null)
   const fecharGaveta = () => gaveta.current?.close()
   // O cadastro incompleto marca a porta dele, que é o avatar — e não um aviso no meio do Início.
-  const cadastroPendente = useMeuPerfil().data?.essencial_pendente === true
+  // Quem foi desligado não tem cadastro na turma para completar: o ponto some, e a consulta também.
+  const perfil = useMeuPerfil(!desligadoEm).data
+  const cadastroPendente = perfil?.essencial_pendente === true
 
   return (
     <div className="flex min-h-full">
@@ -97,30 +100,20 @@ export function LayoutApp() {
           )}
 
           <div className="ml-auto flex min-w-0 items-center gap-3">
-            <SeletorDeFormatura />
-            {/* O avatar é a porta do próprio cadastro, como em quase todo app. Sem formatura não há
-                cadastro na turma para abrir: fica só a identificação. */}
-            {usuario && selecionada ? (
-              <Link
-                to={ROTAS.meuCadastro}
-                title={`${usuario.nome} — meu cadastro`}
-                className="focus-visible:ring-ring relative shrink-0 rounded-full hover:opacity-85 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-              >
-                <span className="sr-only">Meu cadastro{cadastroPendente ? ', incompleto' : ''}</span>
-                <Avatar nome={usuario.nome} semente={usuario.id} className="size-8 text-sm" />
-                {/* O ponto na porta do cadastro: a borda da cor do fundo o descola do avatar. */}
-                {cadastroPendente ? (
-                  <span
-                    aria-hidden
-                    className="bg-warning-text border-background absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2"
-                  />
-                ) : null}
-              </Link>
-            ) : usuario ? (
-              <div className="shrink-0" title={usuario.nome}>
-                <span className="sr-only">{usuario.nome}</span>
-                <Avatar nome={usuario.nome} semente={usuario.id} className="size-8 text-sm" />
-              </div>
+            {/* A busca é do que a turma tem — gente, despesa, fornecedor, aviso —, e por isso só
+                existe com uma turma na sessão. */}
+            {selecionada ? <BuscaGlobal /> : null}
+            {/* O sino é do mural, e por isso só existe com uma turma na sessão. */}
+            {selecionada ? <SinoDeNovidades /> : null}
+            {/* O avatar abre o que é da conta — cadastro, privacidade, papel, plano e "Sair" —, e é
+                por isso que nada disso ocupa linha no menu da esquerda, que é o menu da turma. */}
+            {usuario ? (
+              <MenuDaConta
+                usuario={usuario}
+                perfil={perfil}
+                comCadastro={Boolean(selecionada) && !desligadoEm}
+                cadastroPendente={cadastroPendente}
+              />
             ) : null}
           </div>
         </header>

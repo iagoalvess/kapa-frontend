@@ -17,6 +17,7 @@ import { sessao } from '@/lib/http/sessao'
  * @param rota Caminho inicial do roteador — ou `{ pathname, search, state }` quando a tela lê a
  * query string ou o recado deixado pela tela anterior.
  * @param caminho Padrão da rota, para a tela que lê parâmetro (`/extrato/parcelas/:id/pagar`).
+ * @returns O resultado do `render`, com o `router` junto — é nele que se lê para onde a tela foi.
  */
 export function renderizar(elemento: ReactElement, rota: InitialEntry = '/', caminho = '*') {
   const cliente = new QueryClient({
@@ -27,11 +28,14 @@ export function renderizar(elemento: ReactElement, rota: InitialEntry = '/', cam
     initialEntries: [rota],
   })
 
-  return render(
-    <QueryClientProvider client={cliente}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
+  return {
+    ...render(
+      <QueryClientProvider client={cliente}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    ),
+    router,
+  }
 }
 
 /**

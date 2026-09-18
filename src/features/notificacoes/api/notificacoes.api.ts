@@ -25,12 +25,12 @@ export function testarRegra(id: string) {
   return api.post<void>(`${NOTIFICACOES}/regras/${id}/testar`)
 }
 
-/** Uma página do histórico: quem recebeu o quê, quando, por qual canal e com qual resultado. */
+/** Uma página do histórico: quem recebeu o quê, quando e com qual resultado. */
 export function listarHistorico(filtro: FiltroDeNotificacoes, signal?: AbortSignal) {
-  const { canal, status, busca, ...paginacao } = filtro
+  const { status, busca, ...paginacao } = filtro
 
   return api.get<Pagina<Notificacao>>(`${NOTIFICACOES}/historico`, {
-    query: { ...paginacaoNaQuery(paginacao), canal, status, busca },
+    query: { ...paginacaoNaQuery(paginacao), status, busca },
     signal,
   })
 }

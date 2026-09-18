@@ -9,6 +9,8 @@ interface Props {
   rotulo?: string
   /** Ícone no bloco cinza à esquerda do título, como nos cartões do modelo de design. */
   icone?: LucideIcon
+  /** Número do passo no lugar do ícone: o cartão é uma etapa de um caminho ("1", depois "2"). */
+  passo?: number
   /** Etiqueta logo depois do título — a situação do que o cartão mostra. */
   selo?: ReactNode
   /** Uma linha, em cinza, embaixo do título: para que serve o cartão. */
@@ -26,7 +28,17 @@ interface Props {
  * descrição curta embaixo e as ações encostadas à direita. Tudo opcional — sem título, é só a
  * superfície.
  */
-export function Cartao({ titulo, rotulo, icone: Icone, selo, descricao, acao, className, children }: Props) {
+export function Cartao({
+  titulo,
+  rotulo,
+  icone: Icone,
+  passo,
+  selo,
+  descricao,
+  acao,
+  className,
+  children,
+}: Props) {
   return (
     <section
       aria-label={titulo ?? rotulo}
@@ -35,7 +47,14 @@ export function Cartao({ titulo, rotulo, icone: Icone, selo, descricao, acao, cl
       {titulo ? (
         // Sem descrição, o título sozinho centra na altura do ícone.
         <header className={cn('flex flex-wrap gap-3', descricao ? 'items-start' : 'items-center')}>
-          {Icone ? (
+          {passo === undefined ? null : (
+            // Redondo, e não o bloco quadrado do ícone: número em círculo é passo, e a tela toda
+            // se lê como uma sequência.
+            <span className="bg-brand-tint text-brand-text inline-flex size-10 shrink-0 items-center justify-center rounded-full font-medium tabular-nums">
+              {passo}
+            </span>
+          )}
+          {Icone && passo === undefined ? (
             <span className="bg-brand-tint text-brand-text inline-flex size-10 shrink-0 items-center justify-center rounded-xl">
               <Icone className="size-5" strokeWidth={1.75} aria-hidden />
             </span>

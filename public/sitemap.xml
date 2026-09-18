@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  As quatro páginas públicas do Kapa: a institucional e os três documentos que a LGPD manda deixar
+  legíveis antes do cadastro. Nenhuma rota do app entra aqui — todas exigem sessão.
+
+  As URLs são relativas porque o domínio só existe no go-live (P1 da Sprint 16). Ao publicar,
+  troque por absolutas: o protocolo de sitemap pede a URL completa, e um caminho relativo é
+  ignorado por parte dos robôs.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>/termos-de-uso</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>/privacidade</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>/operadores</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

@@ -21,6 +21,7 @@ const ana = {
   ativo: true,
   completude: 100,
   essencial_pendente: false,
+  tem_adesao: false,
 }
 const bruno = {
   usuario_id: 'u-2',
@@ -30,6 +31,7 @@ const bruno = {
   ativo: true,
   completude: 0,
   essencial_pendente: true,
+  tem_adesao: false,
 }
 
 function pagina(itens: unknown[], numero = 1, total_paginas = 1, total = total_paginas * 20) {
@@ -58,17 +60,28 @@ function entrarComo(papel: string) {
   })
 }
 
-/** Ativos: 1 Presidente e 2 Formandos; removidos: 1 Formando. */
-const RESUMO = [
-  { papel: 'Presidente', ativo: true, quantidade: 1 },
-  { papel: 'Formando', ativo: true, quantidade: 2 },
-  { papel: 'Formando', ativo: false, quantidade: 1 },
-]
-
 /**
- * Guarda a query string de cada listagem pedida, para conferir o que foi à API. A de `tamanho=1`
- * é a contagem de quem deve o essencial, na faixa: responde à parte e não entra na conta.
+ * Ativos: 1 Presidente e 2 Formandos; removidos: 1 Formando. Nenhum desligado.
+ *
+ * O cadastro pendente é mais uma dimensão do agrupamento, e por isso divide a linha dos formandos
+ * ativos em vez de somar a ela — é assim que a API responde, e é o que faz o número da faixa e o
+ * das pílulas saírem do mesmo resumo. Grupo vazio não vem: um `GROUP BY` não devolve zero.
  */
+const resumo = (pendentes: number) =>
+  [
+    { papel: 'Presidente', ativo: true, desligado: false, essencial_pendente: false, quantidade: 1 },
+    { papel: 'Formando', ativo: true, desligado: false, essencial_pendente: true, quantidade: pendentes },
+    {
+      papel: 'Formando',
+      ativo: true,
+      desligado: false,
+      essencial_pendente: false,
+      quantidade: 2 - pendentes,
+    },
+    { papel: 'Formando', ativo: false, desligado: false, essencial_pendente: false, quantidade: 1 },
+  ].filter((contagem) => contagem.quantidade > 0)
+
+/** Guarda a query string de cada listagem pedida, para conferir o que foi à API. */
 function registrarListagens(
   resposta: (url: URL) => ReturnType<typeof pagina> = () => pagina([ana, bruno]),
   pendentes = 1,
@@ -76,10 +89,9 @@ function registrarListagens(
   const pedidas: URLSearchParams[] = []
   servidor.use(
     http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status: 'Ativa' })),
-    http.get(`${MEMBROS}/resumo`, () => HttpResponse.json(RESUMO)),
+    http.get(`${MEMBROS}/resumo`, () => HttpResponse.json(resumo(pendentes))),
     http.get(MEMBROS, ({ request }) => {
       const url = new URL(request.url)
-      if (url.searchParams.get('tamanho') === '1') return HttpResponse.json(pagina([bruno], 1, 1, pendentes))
       pedidas.push(url.searchParams)
       return HttpResponse.json(resposta(url))
     }),
@@ -177,7 +189,7 @@ describe('MembrosPage', () => {
 
   /** O nome civil, quando informado, identifica melhor que o da conta — e abre o cadastro. */
   it('mostra o cadastro de cada um, com o nome abrindo o detalhe', async () => {
-    registrarListagens(() => pagina([{ ...ana, nome_completo: 'Ana Souza' }, bruno]), 7)
+    registrarListagens(() => pagina([{ ...ana, nome_completo: 'Ana Souza' }, bruno]), 2)
     entrarComo(PAPEIS.comissao)
 
     renderizar(<MembrosPage />)
@@ -192,8 +204,10 @@ describe('MembrosPage', () => {
     expect(screen.getByText('Completo')).toBeInTheDocument()
 
     const faixa = screen.getByRole('region', { name: 'Resumo dos membros' })
-    expect(await within(faixa).findByText('7')).toBeInTheDocument()
-    expect(within(faixa).getByText('pendente')).toBeInTheDocument()
+    // Pelo indicador, e não pelo texto solto: `2` também é o número de formandos, ao lado.
+    const semEssencial = (await within(faixa).findByText('Sem o essencial')).closest('dl')!
+    expect(within(semEssencial).getByText('2')).toBeInTheDocument()
+    expect(within(semEssencial).getByText('pendente')).toBeInTheDocument()
   })
 
   /** Removido não tem cadastro para abrir: a API só mostra o de quem ainda está na turma. */
@@ -285,5 +299,148 @@ describe('MembrosPage', () => {
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Remover' }))
 
     await waitFor(() => expect(removido).toBe(true))
+  })
+
+  /**
+   * Decisão 1: quem aderiu deve, e sai por Desligar; quem não aderiu é erro de cadastro, e sai por
+   * Remover. Duas portas para o mesmo estado, com efeitos diferentes sobre dinheiro, é como alguém
+   * apaga uma dívida sem querer.
+   */
+  it('oferece Desligar a quem tem adesão e Remover a quem não tem', async () => {
+    registrarListagens(() => pagina([ana, { ...bruno, tem_adesao: true }]))
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(<MembrosPage />)
+
+    const linhaDeBruno = (await screen.findByText('Bruno')).closest('tr')!
+    expect(within(linhaDeBruno).getByRole('button', { name: 'Desligar' })).toBeInTheDocument()
+    expect(within(linhaDeBruno).queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument()
+
+    const linhaDeAna = screen.getByText('Ana').closest('tr')!
+    expect(within(linhaDeAna).getByRole('button', { name: 'Remover' })).toBeInTheDocument()
+    expect(within(linhaDeAna).queryByRole('button', { name: 'Desligar' })).not.toBeInTheDocument()
+  })
+
+  /** Os números do resumo vêm antes da escolha do motivo: desligar sem vê-los é assinar em branco. */
+  it('mostra o que será cancelado e manda motivo e a escolha sobre o atraso', async () => {
+    let corpo: unknown = null
+    registrarListagens(() => pagina([{ ...bruno, tem_adesao: true }]))
+    servidor.use(
+      http.get(`${MEMBROS}/u-2/resumo-da-saida`, () =>
+        HttpResponse.json({
+          nome: 'Bruno',
+          tem_adesao: true,
+          ja_pago_em_centavos: 420_000,
+          parcelas_em_aberto: 14,
+          em_aberto_em_centavos: 630_000,
+          parcelas_em_atraso: 2,
+          em_atraso_em_centavos: 90_000,
+        }),
+      ),
+      http.post(`${MEMBROS}/u-2/desligar`, async ({ request }) => {
+        corpo = await request.json()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(<MembrosPage />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Desligar' }))
+
+    const dialogo = await screen.findByRole('alertdialog', { name: 'Desligar Bruno da turma?' })
+    expect(await within(dialogo).findByText('R$ 4.200,00')).toBeInTheDocument()
+    expect(within(dialogo).getByText('(14 parcelas)')).toBeInTheDocument()
+
+    await userEvent.selectOptions(within(dialogo).getByLabelText('Motivo da saída'), 'DificuldadeFinanceira')
+    await userEvent.click(within(dialogo).getByRole('checkbox'))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Desligar' }))
+
+    await waitFor(() => expect(corpo).toEqual({ motivo: 'DificuldadeFinanceira', cancelar_atraso: true }))
+  })
+
+  /** "Outro" sem justificativa não sai da tela: dois anos depois, é a resposta que alguém vai pedir. */
+  it('exige a justificativa quando o motivo é Outro', async () => {
+    let chamou = false
+    registrarListagens(() => pagina([{ ...bruno, tem_adesao: true }]))
+    servidor.use(
+      http.get(`${MEMBROS}/u-2/resumo-da-saida`, () =>
+        HttpResponse.json({
+          nome: 'Bruno',
+          tem_adesao: true,
+          ja_pago_em_centavos: 0,
+          parcelas_em_aberto: 3,
+          em_aberto_em_centavos: 90_000,
+          parcelas_em_atraso: 0,
+          em_atraso_em_centavos: 0,
+        }),
+      ),
+      http.post(`${MEMBROS}/u-2/desligar`, () => {
+        chamou = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(<MembrosPage />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Desligar' }))
+
+    const dialogo = await screen.findByRole('alertdialog', { name: 'Desligar Bruno da turma?' })
+    // Sem atraso não há o que cancelar, e a caixa nem aparece.
+    expect(within(dialogo).queryByRole('checkbox')).not.toBeInTheDocument()
+
+    await userEvent.selectOptions(within(dialogo).getByLabelText('Motivo da saída'), 'Outro')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Desligar' }))
+
+    expect(await within(dialogo).findByText('Diga qual foi o motivo.')).toBeInTheDocument()
+    expect(chamou).toBe(false)
+  })
+
+  /** Ele não some da lista — sumir esconderia o histórico de quem pagou parte —, e dá para desfazer. */
+  it('desligado fica na lista com selo próprio e oferece Religar', async () => {
+    let religou = false
+    const desligado = {
+      ...bruno,
+      ativo: false,
+      tem_adesao: true,
+      desligado_em: '2026-09-16T12:00:00Z',
+      motivo_do_desligamento: 'Trancamento',
+    }
+    registrarListagens(() => pagina([desligado]))
+    servidor.use(
+      http.post(`${MEMBROS}/u-2/religar`, () => {
+        religou = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(<MembrosPage />)
+
+    const linha = (await screen.findByText('Bruno')).closest('tr')!
+    expect(within(linha).getByText('Desligado')).toBeInTheDocument()
+    expect(within(linha).queryByRole('button', { name: 'Desligar' })).not.toBeInTheDocument()
+
+    await userEvent.click(within(linha).getByRole('button', { name: 'Religar' }))
+    const dialogo = await screen.findByRole('alertdialog', { name: 'Religar Bruno?' })
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Religar' }))
+
+    await waitFor(() => expect(religou).toBe(true))
+  })
+
+  /** A pílula nova é um filtro à parte: desligado e removido compartilham `ativo=false`. */
+  it('o filtro Desligados vai para a API separado de Removidos', async () => {
+    const pedidas = registrarListagens()
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(<MembrosPage />)
+    await screen.findByText('Bruno')
+
+    await userEvent.click(screen.getByRole('button', { name: /^Desligados/ }))
+    await waitFor(() => expect(pedidas.at(-1)?.get('desligado')).toBe('true'))
+    expect(pedidas.at(-1)?.get('ativo')).toBe('false')
+
+    await userEvent.click(screen.getByRole('button', { name: /^Removidos/ }))
+    await waitFor(() => expect(pedidas.at(-1)?.get('desligado')).toBe('false'))
+    expect(pedidas.at(-1)?.get('ativo')).toBe('false')
   })
 })

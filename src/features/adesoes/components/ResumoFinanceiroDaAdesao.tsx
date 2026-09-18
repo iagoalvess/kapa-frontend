@@ -1,5 +1,5 @@
-import { CalendarClock, ChevronDown, Hash, TriangleAlert, Wallet } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { CalendarClock, Hash, TriangleAlert, Wallet } from 'lucide-react'
+import { CABECALHO_GRUDADO, CaixaRolavel } from '@/components/CaixaRolavel'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { rotuloDoItem } from '@/types/cobranca'
@@ -68,15 +68,6 @@ const primeiraDoItem = (plano: PlanoAceito, item: ItemAceito) =>
  * o leitor de tela já sabem abrir.
  */
 export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
-  const lista = useRef<HTMLDivElement>(null)
-  const [temMais, definirTemMais] = useState(false)
-
-  // A lista rola sem barra: a seta no pé avisa que ainda há parcelas para baixo.
-  const conferirSeTemMais = () => {
-    const caixa = lista.current
-    if (caixa) definirTemMais(caixa.scrollHeight - caixa.scrollTop - caixa.clientHeight > 1)
-  }
-
   return (
     <div className="grid gap-4">
       <div className="overflow-x-auto">
@@ -128,22 +119,18 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
 
       <p className="bg-muted/60 text-foreground rounded-xl px-4 py-3 text-sm">{regrasDeAtraso(plano)}</p>
 
-      <details className="group rounded-xl border px-4 py-3" onToggle={conferirSeTemMais}>
+      <details className="group rounded-xl border px-4 py-3">
         <summary className="text-foreground cursor-pointer text-sm font-medium">
           Ver as {formatarNumero(plano.parcelas.length)} parcelas
         </summary>
-        <div
-          ref={lista}
-          onScroll={conferirSeTemMais}
-          className="mt-3 max-h-80 [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden"
-        >
+        <CaixaRolavel className="mt-3">
           <table className="w-full text-sm">
             <caption className="sr-only">Parcelas, por vencimento</caption>
-            <thead className="text-texto-muted bg-card sticky top-0 text-left text-xs">
-              <tr className="border-b">
-                <th className="py-2 pr-3 font-normal">Parcela</th>
-                <th className="py-2 pr-3 font-normal">Vencimento</th>
-                <th className="py-2 text-right font-normal">Valor</th>
+            <thead className="text-texto-muted sticky top-0 text-left text-xs">
+              <tr>
+                <th className={`${CABECALHO_GRUDADO} pr-3 font-normal`}>Parcela</th>
+                <th className={`${CABECALHO_GRUDADO} pr-3 font-normal`}>Vencimento</th>
+                <th className={`${CABECALHO_GRUDADO} text-right font-normal`}>Valor</th>
               </tr>
             </thead>
             <tbody className="tabular-nums">
@@ -161,16 +148,7 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
               ))}
             </tbody>
           </table>
-          {/* Altura zero no fluxo (`-mt-10` desfaz o `h-10`): cobre a última linha visível sem mudar a rolagem. */}
-          {temMais ? (
-            <div
-              aria-hidden
-              className="from-card pointer-events-none sticky bottom-0 -mt-10 flex h-10 items-end justify-center bg-linear-to-t to-transparent"
-            >
-              <ChevronDown className="text-muted-foreground size-4" />
-            </div>
-          ) : null}
-        </div>
+        </CaixaRolavel>
       </details>
     </div>
   )

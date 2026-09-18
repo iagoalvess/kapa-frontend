@@ -3,9 +3,9 @@ import { Landmark, type LucideIcon, Package, Rocket, Sprout } from 'lucide-react
 /**
  * O ícone de cada plano do catálogo, pelo código.
  *
- * Mora fora do card porque a barra lateral mostra o ícone do plano contratado, e tem que ser o
- * mesmo desenho: dois ícones para a mesma coisa fazem o menu parecer levar a outro lugar. Escolher
- * por posição na vitrine funcionava no card, mas a barra não sabe a posição de nada.
+ * Mora em `config/` porque três telas o desenham: a vitrine de planos, a barra lateral (que mostra
+ * o plano contratado) e a tabela de preços da página institucional. Dois ícones para a mesma coisa
+ * fazem o menu parecer levar a outro lugar.
  *
  * Os dois ciclos repetem o ícone: o pacote é o mesmo, só a periodicidade muda.
  */

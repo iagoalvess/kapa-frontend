@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -23,7 +23,6 @@ const degrau = (id: string, dias: number, extras: Partial<Regra> = {}): Regra =>
   id,
   gatilho: 'Vencimento',
   dias_de_deslocamento: dias,
-  canal: 'Email',
   assunto: `Assunto ${id}`,
   template: 'Oi, {nome}. São {valor}.',
   ativa: true,
@@ -84,14 +83,14 @@ describe('ReguaPage', () => {
     expect(screen.getByText('Assunto r-1')).toBeInTheDocument()
   })
 
-  it('traz a fila da tesouraria na mesma tabela, depois dos degraus de vencimento', async () => {
+  it('traz a fila da tesouraria em cartão próprio, depois da régua', async () => {
     entrarComo('Tesoureiro')
     comApi()
 
     renderizar(<ReguaPage />)
 
-    expect(await screen.findByText('Fila da tesouraria')).toBeInTheDocument()
-    expect(screen.getByText('Parado há 3 dias')).toBeInTheDocument()
+    const cartao = await screen.findByRole('region', { name: 'Fila da tesouraria' })
+    expect(within(cartao).getByText('Parado há 3 dias')).toBeInTheDocument()
     // Vem por último, depois dos quatro degraus de vencimento.
     expect(screen.getAllByRole('row').at(-1)).toHaveTextContent('Fila')
   })

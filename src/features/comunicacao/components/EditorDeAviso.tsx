@@ -95,10 +95,13 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
               <FormItem>
                 <FormLabel>Texto</FormLabel>
                 <FormControl>
+                  {/* Caixas altas, como as do termo: o aviso do mural é lido inteiro de uma vez, e
+                      em 18rem a prévia mostrava três linhas e uma barra de rolagem. */}
                   <EditorDeMarkdown
                     {...field}
                     rotuloDaPrevia="Como a turma vai ler"
                     placeholder={'A pauta é o **contrato do buffet**.\n\n- Horário: 19h\n- Local: sala 12'}
+                    folha="min-h-[28rem]"
                     disabled={!editavel}
                   />
                 </FormControl>
@@ -114,7 +117,10 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
               desabilitado={!editavel}
             />
 
-            <fieldset className="grid gap-3 sm:pt-7">
+            {/* Os dois lado a lado: são a mesma pergunta ("aparece com que destaque?"), e empilhados
+                a linha da visibilidade ao lado ficava com o dobro da altura. Só a partir de `lg`:
+                em meia tela de tablet, rótulo e dica de cada um ficariam em duas colunas de 150px. */}
+            <fieldset className="grid gap-3 sm:pt-7 lg:grid-cols-2">
               <legend className="sr-only">Destaque no mural</legend>
               <Caixa
                 controle={formulario.control}

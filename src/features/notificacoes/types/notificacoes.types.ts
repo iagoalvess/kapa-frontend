@@ -3,20 +3,11 @@ import type { PaginacaoRequest } from '@/types/paginacao'
 /** O que faz um degrau da régua disparar. Espelha `GatilhoDaRegua` do backend. */
 export type GatilhoDaRegua = 'Vencimento' | 'InformePendente'
 
-/** Por onde a mensagem sai. Espelha `CanalDeNotificacao`. */
-export type CanalDeNotificacao = 'Email' | 'Whatsapp'
-
 /** O desfecho de um envio. Espelha `StatusDaNotificacao`. */
 export type StatusDaNotificacao = 'Enfileirada' | 'Entregue' | 'Falhou'
 
 /** O assunto de uma mensagem automática. Espelha `TipoDeNotificacao`. */
 export type TipoDeNotificacao = 'Cobranca' | 'Aviso' | 'Adesao' | 'Sistema'
-
-/** Como cada canal aparece na tela. */
-export const ROTULOS_DE_CANAL = {
-  Email: 'E-mail',
-  Whatsapp: 'WhatsApp',
-} as const satisfies Record<CanalDeNotificacao, string>
 
 /** Como cada resultado aparece no histórico. */
 export const ROTULOS_DE_STATUS = {
@@ -41,16 +32,12 @@ export const DICAS_DE_TIPO = {
   Sistema: 'Mudanças na conta e recados da Kapa.',
 } as const satisfies Record<TipoDeNotificacao, string>
 
-/** O canal que esta versão entrega; o WhatsApp entra na sprint seguinte, atrás da mesma interface. */
-export const CANAIS_DISPONIVEIS: CanalDeNotificacao[] = ['Email']
-
 /** Um degrau da régua. */
 export interface Regra {
   id: string
   gatilho: GatilhoDaRegua
   /** Dias de distância do gatilho; negativo é antes do vencimento. */
   dias_de_deslocamento: number
-  canal: CanalDeNotificacao
   assunto: string
   template: string
   ativa: boolean
@@ -76,7 +63,6 @@ export interface Notificacao {
   /** Ausente no resumo à tesouraria, que não tem vínculo. */
   nome?: string
   assunto: string
-  canal: CanalDeNotificacao
   status: StatusDaNotificacao
   /** Ausente enquanto não falhou. */
   erro?: string
@@ -88,7 +74,6 @@ export interface Notificacao {
 
 /** Filtros do histórico. */
 export interface FiltroDeNotificacoes extends PaginacaoRequest {
-  canal?: CanalDeNotificacao
   status?: StatusDaNotificacao
   busca?: string
 }

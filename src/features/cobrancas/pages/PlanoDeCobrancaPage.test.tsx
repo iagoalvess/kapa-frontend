@@ -42,6 +42,7 @@ const plano = (itens: PlanoDeCobranca['itens'] = [mensalidade]): PlanoDeCobranca
   percentual_de_juros_ao_mes: 100,
   carencia_em_dias: 0,
   percentual_de_desconto_por_antecipacao: 0,
+  dias_minimos_para_desconto: 0,
   itens,
   formandos_com_parcela: 0,
 })
@@ -106,6 +107,7 @@ describe('PlanoDeCobrancaPage', () => {
         percentual_de_juros_ao_mes: 100,
         carencia_em_dias: 0,
         percentual_de_desconto_por_antecipacao: 0,
+        dias_minimos_para_desconto: 0,
       }),
     )
   })
@@ -225,5 +227,69 @@ describe('PlanoDeCobrancaPage', () => {
 
     await waitFor(() => expect(alterado).toMatchObject({ tipo: 'Mensalidade' }))
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+  })
+
+  it('com gente já aderida, o item novo avisa que não a alcança — e o rateio cobra todo mundo', async () => {
+    entrarComo(PAPEIS.tesoureiro)
+    const vigente = { ...plano(), status: 'Vigente' as const, formandos_com_parcela: 62 }
+    servir(vigente)
+    let incluido: unknown
+    servidor.use(
+      http.post(`${PLANOS}/p-1/itens`, async ({ request }) => {
+        incluido = await request.json()
+        return HttpResponse.json(vigente)
+      }),
+    )
+
+    renderizar(<PlanoDeCobrancaPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Incluir item' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    expect(within(dialogo).getByText(/62 formandos já aderiram e não serão cobrados/)).toBeInTheDocument()
+
+    await userEvent.type(within(dialogo).getByLabelText('Valor de cada parcela'), '10000')
+    await userEvent.clear(within(dialogo).getByLabelText('Parcelas'))
+    await userEvent.type(within(dialogo).getByLabelText('Parcelas'), '1')
+    await userEvent.click(within(dialogo).getByLabelText('Cobrar também quem já aderiu'))
+
+    expect(within(dialogo).getByText(/62 formandos já aderiram e serão cobrados/)).toBeInTheDocument()
+
+    // Sem a origem, a API recusaria: o esquema barra antes.
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Incluir item' }))
+    expect(await within(dialogo).findByText(/Informe onde a turma decidiu/)).toBeInTheDocument()
+    expect(incluido).toBeUndefined()
+
+    await userEvent.type(within(dialogo).getByLabelText('Onde a turma decidiu'), 'assembleia de 12/10')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Incluir item' }))
+
+    await waitFor(() =>
+      expect(incluido).toMatchObject({
+        aplicar_a_quem_ja_aderiu: true,
+        origem_da_decisao: 'assembleia de 12/10',
+      }),
+    )
+  })
+
+  it('o item de rateio mostra na lista de onde veio a decisão', async () => {
+    entrarComo(PAPEIS.tesoureiro)
+    servir(
+      plano([
+        mensalidade,
+        {
+          ...mensalidade,
+          id: 'i-2',
+          tipo: 'Avulsa',
+          descricao: 'Rateio do buffet',
+          numero_de_parcelas: 1,
+          em_uso: true,
+          origem_da_decisao: 'assembleia de 12/10',
+        },
+      ]),
+    )
+
+    renderizar(<PlanoDeCobrancaPage />)
+
+    const linha = await screen.findByRole('row', { name: /Rateio do buffet/ })
+    expect(within(linha).getByText('Rateio — assembleia de 12/10')).toBeInTheDocument()
   })
 })

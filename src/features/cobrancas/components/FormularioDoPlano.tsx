@@ -118,6 +118,29 @@ export function FormularioDoPlano({ plano, editavel, aoConcluir }: Props) {
               </FormItem>
             )}
           />
+
+          {/* Sem antecedência, o desconto pensado para a quitação à vista sai para quem paga um dia
+              antes — a turma inteira, todo mês. */}
+          <FormField
+            control={formulario.control}
+            name="dias_minimos_para_desconto"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Antecedência do desconto (dias)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={365}
+                    disabled={!editavel}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {acimaDoMercado ? (

@@ -1,12 +1,7 @@
 import { api } from '@/lib/http/cliente'
-import type { Assinatura, Checkout, Plano } from '../types/assinaturas.types'
+import type { Assinatura, Checkout } from '../types/assinaturas.types'
 
 const BASE = '/api/v1/formaturas/atual/assinatura'
-
-/** Planos contratáveis. Público: é vitrine. */
-export function listarPlanos(signal?: AbortSignal) {
-  return api.get<Plano[]>('/api/v1/planos', { signal, autenticar: false })
-}
 
 /** A assinatura mais recente da formatura selecionada. 404 `assinatura.nao_encontrada` se nunca contratou. */
 export function obterAssinatura(signal?: AbortSignal) {

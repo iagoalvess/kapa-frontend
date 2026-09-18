@@ -5,4 +5,5 @@ export const chaves = {
   tudo: ['membros'] as const,
   lista: (filtro: FiltroDeMembros) => ['membros', 'lista', filtro] as const,
   resumo: () => ['membros', 'resumo'] as const,
+  saida: (usuario_id: string) => ['membros', 'saida', usuario_id] as const,
 }

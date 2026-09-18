@@ -1,7 +1,7 @@
 import { GraduationCap, ShieldCheck, TriangleAlert, Users } from 'lucide-react'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { PAPEIS } from '@/config/perfis'
-import { contar, usePendentesDeCadastro, useResumoDeMembros } from '../hooks/useMembros'
+import { contar, useResumoDeMembros } from '../hooks/useMembros'
 
 /**
  * Os números da turma no topo da tela: ativos, quem organiza, formandos e quem deve o essencial.
@@ -13,11 +13,12 @@ import { contar, usePendentesDeCadastro, useResumoDeMembros } from '../hooks/use
  */
 export function IndicadoresDeMembros() {
   const { data } = useResumoDeMembros()
-  const pendentes = usePendentesDeCadastro()
   const valor = (filtro: Parameters<typeof contar>[1]) => (data ? contar(data, filtro) : null)
 
   const ativos = valor({ ativo: true })
   const formandos = valor({ ativo: true, papel: PAPEIS.formando })
+  // Sai do mesmo resumo: o cadastro pendente é uma dimensão do agrupamento, e não uma segunda ida.
+  const pendentes = valor({ ativo: true, essencialPendente: true })
 
   return (
     <FaixaDeIndicadores
@@ -32,12 +33,12 @@ export function IndicadoresDeMembros() {
         { rotulo: 'Formandos', valor: formandos, icone: GraduationCap },
         {
           rotulo: 'Sem o essencial',
-          valor: pendentes.data ?? null,
+          valor: pendentes,
           icone: TriangleAlert,
           sinal:
-            pendentes.data === undefined
+            pendentes === null
               ? undefined
-              : pendentes.data === 0
+              : pendentes === 0
                 ? { texto: 'em dia', tom: 'positivo' }
                 : { texto: 'pendente', tom: 'negativo' },
         },

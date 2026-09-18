@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { diaDeHoje } from '@/lib/formato'
+import type { ItemDaFesta } from '@/types/festa'
 import type {
   DadosDaDespesa,
   DadosDoFornecedor,
@@ -94,6 +95,7 @@ export const esquemaDeDespesa = z
     /** `parcela`: o valor digitado é o de cada parcela; `total`: o de todas juntas. */
     modoDoValor: z.enum(['parcela', 'total']),
     fornecedor_id: z.string(),
+    item_da_festa_id: z.string(),
     categoria: z.enum(CATEGORIAS),
     competencia: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Informe o mês, como 2026-03.'),
     vencimento: z.string().regex(DIA, 'Informe o vencimento.'),
@@ -121,6 +123,7 @@ export const despesaEmBranco = (): FormularioDeDespesa => ({
   valor_em_centavos: 0,
   modoDoValor: 'total',
   fornecedor_id: '',
+  item_da_festa_id: '',
   categoria: 'Buffet',
   competencia: mesDo(diaDeHoje()),
   vencimento: diaDeHoje(),
@@ -135,6 +138,7 @@ export const paraFormularioDeDespesa = (despesa: Despesa): FormularioDeDespesa =
   valor_em_centavos: despesa.valor_em_centavos,
   modoDoValor: 'total',
   fornecedor_id: despesa.fornecedor_id ?? '',
+  item_da_festa_id: despesa.item_da_festa_id ?? '',
   categoria: despesa.categoria,
   competencia: mesDo(despesa.competencia),
   vencimento: despesa.vencimento,
@@ -149,6 +153,7 @@ export function paraNovaDespesa(formulario: FormularioDeDespesa): NovaDespesa {
 
   return {
     fornecedor_id: formulario.fornecedor_id || undefined,
+    item_da_festa_id: formulario.item_da_festa_id || undefined,
     descricao: formulario.descricao.trim(),
     categoria: formulario.categoria,
     valor_em_centavos:
@@ -166,6 +171,7 @@ export function paraNovaDespesa(formulario: FormularioDeDespesa): NovaDespesa {
 export function paraDadosDaDespesa(formulario: FormularioDeDespesa): DadosDaDespesa {
   return {
     fornecedor_id: formulario.fornecedor_id || undefined,
+    item_da_festa_id: formulario.item_da_festa_id || undefined,
     descricao: formulario.descricao.trim(),
     categoria: formulario.categoria,
     valor_em_centavos: formulario.valor_em_centavos,
@@ -183,3 +189,21 @@ export const esquemaDePagamento = z.object({
 })
 
 export type FormularioDePagamento = z.infer<typeof esquemaDePagamento>
+
+/**
+ * O lançamento que nasce do botão "Contratar" do cartão da festa.
+ *
+ * Preenche o que o item já sabe — descrição, categoria, valor e o próprio vínculo —, e deixa para a
+ * tesouraria só o que ele não sabe: fornecedor, parcelas e vencimento. É o que evita o mesmo dado
+ * digitado duas vezes, uma em cada tela.
+ *
+ * O valor vem do custo do item, e não do valor por formando: o que a turma deve ao fotógrafo é o
+ * preço vezes quantos compraram, não o preço de um.
+ */
+export const despesaParaContratar = (item: ItemDaFesta): FormularioDeDespesa => ({
+  ...despesaEmBranco(),
+  descricao: item.titulo,
+  categoria: item.categoria,
+  valor_em_centavos: item.custo_previsto_em_centavos,
+  item_da_festa_id: item.id,
+})

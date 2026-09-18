@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { Plano } from '../types/assinaturas.types'
-import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO } from './iconesDePlano'
+import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO } from '@/config/planos'
 
 const POR_CICLO = { Mensal: '/mês', Anual: '/ano' } as const
 

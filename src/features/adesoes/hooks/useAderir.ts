@@ -15,11 +15,20 @@ export function useMinhaAdesao() {
  *
  * Só com a turma ativa: é quando o aceite grava. Quem aderiu a uma versão anterior não conta como
  * pendente — continua na versão dele até a comissão pedir.
+ *
+ * O termo vigente só é consultado por quem ainda não aderiu. Ele vem com o texto inteiro e o plano
+ * simulado (uns 5 KB), e este ponto está na barra lateral de toda tela: para quem já assinou — que
+ * é quase todo mundo, quase sempre — a resposta já está decidida sem ele.
+ *
+ * @param habilitado Falso não consulta o termo vigente — quem foi desligado não adere a nada, e a
+ *   API responderia 403 (P5 da Sprint 15).
  */
-export function useAdesaoPendente() {
+export function useAdesaoPendente(habilitado = true) {
   const formatura = useFormaturaAtual()
-  const conteudo = useConteudoParaAdesao()
   const minha = useMinhaAdesao()
+  const conteudo = useConteudoParaAdesao(
+    habilitado && formatura.data?.status === 'Ativa' && minha.data !== undefined && !minha.data.adesao,
+  )
 
   return (
     formatura.data?.status === 'Ativa' &&

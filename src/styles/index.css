@@ -113,6 +113,9 @@
 @theme inline {
   /* Plus Jakarta Sans variável (200–800), carregada em main.tsx. Botões herdam pelo preflight. */
   --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Manuscrita da landing: legendas das polaroids e recadinhos soltos. É decoração — nada de texto
+     longo nem rótulo de formulário nessa fonte. */
+  --font-hand: 'Caveat Variable', 'Segoe Script', cursive;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -600,5 +603,65 @@
 
   [data-select] option::checkmark {
     display: none;
+  }
+}
+
+/*
+  Movimento da página institucional (Sprint 16).
+
+  A referência é a dinzo.com.br: a página respira — ilustração que flutua, cartão que sobe no
+  hover, seção que aparece quando entra na tela. Nada disso é decisão de produto dentro do app,
+  então as animações vivem aqui e não se misturam com as do carrossel.
+
+  `flutuar` e `oscilar` são infinitas e curtas de propósito: a diferença entre "vivo" e "inquieto"
+  é a amplitude, não a velocidade. Duas durações diferentes evitam que dois mascotes na mesma
+  seção subam e desçam em sincronia, que é o que denuncia a animação.
+*/
+@theme {
+  --animate-flutuar: flutuar 6s ease-in-out infinite;
+  --animate-flutuar-devagar: flutuar 8.5s ease-in-out infinite;
+  --animate-oscilar: oscilar 9s ease-in-out infinite;
+
+  @keyframes flutuar {
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes oscilar {
+    33% {
+      transform: translate(6px, -8px) rotate(1.5deg);
+    }
+    66% {
+      transform: translate(-5px, 5px) rotate(-1deg);
+    }
+  }
+}
+
+/*
+  Seção que aparece ao entrar na tela, com a linha do tempo de rolagem **nativa** do CSS. Sem
+  IntersectionObserver, sem biblioteca e sem um `useEffect` por seção.
+
+  A regra inteira fica dentro do `@supports`: sem suporte a `animation-timeline`, o elemento nunca
+  recebe `opacity: 0` e a página aparece inteira, que é o comportamento certo — conteúdo que
+  depende de animação para existir é conteúdo que some quando a animação falha.
+
+  `motion-reduce` desliga junto, pelo mesmo motivo.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .revelar {
+      animation: revelar linear both;
+      animation-timeline: view();
+      /* Começa a revelar quando entra 120px pela borda de baixo e termina a 40% da tela. */
+      animation-range: entry 120px cover 40%;
+    }
+  }
+}
+
+@keyframes revelar {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
   }
 }

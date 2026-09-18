@@ -1,10 +1,12 @@
 import { createBrowserRouter } from 'react-router'
-import { PAPEIS } from '@/config/perfis'
+import { PAPEIS, PERFIS } from '@/config/perfis'
 import { ROTAS, SUFIXO_DE_VERSAO } from '@/config/rotas'
 import { ExigeAceites } from './guards/ExigeAceites'
 import { ExigeAutenticacao } from './guards/ExigeAutenticacao'
 import { ExigeFormatura } from './guards/ExigeFormatura'
 import { ExigePapel } from './guards/ExigePapel'
+import { ExigePerfil } from './guards/ExigePerfil'
+import { SomenteVisitante } from './guards/SomenteVisitante'
 import { LayoutApp } from './layouts/LayoutApp'
 import { LayoutDeOnboarding } from './layouts/LayoutDeOnboarding'
 import { PaginaDeErro } from './PaginaDeErro'
@@ -25,17 +27,23 @@ export const router = createBrowserRouter([
   {
     errorElement: <PaginaDeErro />,
     children: [
+      // As portas de entrada: com sessão aberta elas não têm o que fazer e mandam para o Início.
       {
-        path: ROTAS.login,
-        lazy: pagina(() => import('@/features/auth/pages/LoginPage')),
-      },
-      {
-        path: ROTAS.criarConta,
-        lazy: pagina(() => import('@/features/auth/pages/CriarContaPage')),
-      },
-      {
-        path: ROTAS.esqueciSenha,
-        lazy: pagina(() => import('@/features/auth/pages/EsqueciSenhaPage')),
+        element: <SomenteVisitante />,
+        children: [
+          {
+            path: ROTAS.login,
+            lazy: pagina(() => import('@/features/auth/pages/LoginPage')),
+          },
+          {
+            path: ROTAS.criarConta,
+            lazy: pagina(() => import('@/features/auth/pages/CriarContaPage')),
+          },
+          {
+            path: ROTAS.esqueciSenha,
+            lazy: pagina(() => import('@/features/auth/pages/EsqueciSenhaPage')),
+          },
+        ],
       },
       // Os links dos e-mails caem nestas duas; ficam fora da guarda porque quem clica pode estar
       // num aparelho sem sessão.
@@ -60,6 +68,19 @@ export const router = createBrowserRouter([
       {
         path: ROTAS.privacidade + SUFIXO_DE_VERSAO,
         lazy: pagina(() => import('@/features/legal/pages/PrivacidadePage')),
+      },
+      // Público pelo mesmo motivo dos dois acima: quem ainda está decidindo se cria conta tem
+      // direito de saber para onde o dado dele vai (LGPD, art. 18, VII).
+      {
+        path: ROTAS.operadores,
+        lazy: pagina(() => import('@/features/privacidade/pages/OperadoresPage')),
+      },
+      // A página institucional, na raiz: é o endereço que a Kapa divulga, e é por isso que o
+      // início do app desceu para `/inicio` (Sprint 16). Pública e fora do `LayoutApp` — aqui não
+      // há sessão, barra lateral nem formatura, e ela traz o próprio cabeçalho e rodapé.
+      {
+        index: true,
+        lazy: pagina(() => import('@/features/landing/pages/LandingPage')),
       },
       {
         Component: ExigeAutenticacao,
@@ -95,11 +116,46 @@ export const router = createBrowserRouter([
               {
                 Component: LayoutApp,
                 children: [
+                  // **Fora de `ExigeFormatura`**, e é a única tela do app que fica: o portal LGPD é
+                  // do titular, não da turma. Quem está em duas formaturas, quem não está em
+                  // nenhuma e quem foi desligado têm o mesmo direito de acesso — e mandá-los
+                  // escolher uma turma antes seria condicionar um direito a uma escolha que não
+                  // tem nada a ver com ele. A API dele pede só sessão, pelo mesmo motivo.
+                  {
+                    path: ROTAS.minhaPrivacidade,
+                    handle: { titulo: 'Privacidade' },
+                    lazy: pagina(() => import('@/features/privacidade/pages/MinhaPrivacidadePage')),
+                  },
+                  // O painel de suporte (Sprint 16), também fora de `ExigeFormatura`: quem atende
+                  // tem perfil de plataforma e não é membro de turma nenhuma — exigir uma formatura
+                  // selecionada trancaria o painel para a única pessoa que precisa dele.
+                  {
+                    element: <ExigePerfil perfil={PERFIS.administrador} />,
+                    children: [
+                      {
+                        path: ROTAS.suporte,
+                        handle: { titulo: 'Suporte' },
+                        lazy: pagina(() => import('@/features/suporte/pages/BuscaDoSuportePage')),
+                      },
+                      {
+                        path: `${ROTAS.suporte}/formaturas/:id`,
+                        handle: { titulo: 'Turma' },
+                        lazy: pagina(() => import('@/features/suporte/pages/TurmaNoSuportePage')),
+                      },
+                      {
+                        path: `${ROTAS.suporte}/usuarios/:id`,
+                        handle: { titulo: 'Conta' },
+                        lazy: pagina(() => import('@/features/suporte/pages/ContaNoSuportePage')),
+                      },
+                    ],
+                  },
                   {
                     Component: ExigeFormatura,
                     children: [
                       // `handle.titulo` é o título que o `LayoutApp` mostra no topo da tela.
-                      { index: true, handle: { titulo: 'Início' }, Component: PaginaInicial },
+                      // Caminho explícito, e não `index`: a raiz agora é a página institucional
+                      // (Sprint 16), e o início do app mora em `/inicio`.
+                      { path: ROTAS.inicio, handle: { titulo: 'Início' }, Component: PaginaInicial },
                       // Todo membro lê; o formulário é do Presidente, e a assinatura é da Gestão.
                       {
                         path: ROTAS.formatura,
@@ -130,6 +186,12 @@ export const router = createBrowserRouter([
                         handle: { titulo: 'Pagar parcela' },
                         lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoPage')),
                       },
+                      // O mesmo caminho, para o PIX que cobre vários meses: um QR com a soma.
+                      {
+                        path: `${ROTAS.extrato}/pagar`,
+                        handle: { titulo: 'Pagar parcelas' },
+                        lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoEmLotePage')),
+                      },
                       // Prestação de contas: todo membro lê, o formando inclusive. São somas e
                       // contratos, sem nome de ninguém — quem paga a turma tem direito de ver no que
                       // ela gasta. Lançar, pagar e cancelar continuam da Tesouraria, na própria API.
@@ -144,6 +206,13 @@ export const router = createBrowserRouter([
                         path: ROTAS.despesas,
                         handle: { titulo: 'Despesas' },
                         lazy: pagina(() => import('@/features/financeiro/pages/DespesasPage')),
+                      },
+                      // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
+                      // escrita do formando, e o cartão nem oferece as ações a ele.
+                      {
+                        path: ROTAS.festa,
+                        handle: { titulo: 'A festa' },
+                        lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
                       },
                       // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao
                       // formando; publicar, enviar e excluir são da Gestão, na própria API.
@@ -220,6 +289,14 @@ export const router = createBrowserRouter([
                             path: ROTAS.avisosEnviados,
                             handle: { titulo: 'Avisos enviados' },
                             lazy: pagina(() => import('@/features/notificacoes/pages/HistoricoDeAvisosPage')),
+                          },
+                          // Quem fez o quê com o dinheiro da turma. Gestão, e não todo membro: a
+                          // trilha nomeia as pessoas, e o que é público é o dashboard, onde tudo é
+                          // soma. Só leitura — não há ação nenhuma na tela.
+                          {
+                            path: ROTAS.auditoria,
+                            handle: { titulo: 'Auditoria' },
+                            lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
                           },
                         ],
                       },

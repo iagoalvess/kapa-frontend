@@ -7,6 +7,7 @@ export const chaves = {
   todosOsFornecedores: ['financeiro', 'fornecedores'] as const,
   fornecedores: (filtro: FiltroDeFornecedores) => ['financeiro', 'fornecedores', filtro] as const,
   fornecedor: (id: string) => ['financeiro', 'fornecedores', 'um', id] as const,
+  resumoDeFornecedores: ['financeiro', 'fornecedores', 'resumo'] as const,
   /** Prefixo de toda despesa: lançar, pagar e cancelar mudam lista, resumo e caixa. */
   todasAsDespesas: ['financeiro', 'despesas'] as const,
   despesas: (filtro: FiltroDeDespesas) => ['financeiro', 'despesas', filtro] as const,

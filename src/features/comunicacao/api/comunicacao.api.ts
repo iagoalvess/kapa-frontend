@@ -7,6 +7,7 @@ import type {
   Documento,
   FiltroDeAvisos,
   FiltroDeDocumentos,
+  NovidadesDoMural,
   ResumoDoAcervo,
   ResumoDoMural,
 } from '../types/comunicacao.types'
@@ -107,4 +108,14 @@ export function excluirDocumento(id: string) {
  */
 export function baixarDocumento(id: string) {
   return api.get<Blob>(`${DOCUMENTOS}/${id}/download`, { resposta: 'blob' })
+}
+
+/** O que entrou no mural desde a última visita — o sino do cabeçalho. */
+export function obterNovidades(signal?: AbortSignal) {
+  return api.get<NovidadesDoMural>(`${AVISOS}/novidades`, { signal })
+}
+
+/** Marca o mural como visto agora: o sino zera. */
+export function marcarMuralVisto() {
+  return api.post<void>(`${AVISOS}/novidades/visto`)
 }

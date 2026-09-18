@@ -1,4 +1,5 @@
 import { Clock, Megaphone, Pin, Plus, Star } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import mascoteLendo from '@/assets/mascote/lendo.webp'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
@@ -22,7 +23,7 @@ import { cn } from '@/lib/utils'
 import { DetalheDoAviso } from '../components/DetalheDoAviso'
 import { EditorDeAviso } from '../components/EditorDeAviso'
 import { LinhaDoMural } from '../components/LinhaDoMural'
-import { useAviso, useAvisos, useResumoDoMural } from '../hooks/useAvisos'
+import { useAviso, useAvisos, useMarcarMuralVisto, useResumoDoMural } from '../hooks/useAvisos'
 import { LIMITE_DE_FIXADOS, type ResumoDoMural } from '../types/comunicacao.types'
 
 const TAMANHO_DA_PAGINA = 20
@@ -93,52 +94,74 @@ export default function MuralPage() {
   const resumo = useResumoDoMural()
   const itens = avisos.data?.itens ?? []
 
+  // Abrir o mural é o que zera o sino: uma vez por visita, e não a cada filtro ou página.
+  const marcarVisto = useMarcarMuralVisto()
+  const jaMarcou = useRef(false)
+
+  useEffect(() => {
+    if (jaMarcou.current) return
+
+    jaMarcou.current = true
+    marcarVisto.mutate()
+  }, [marcarVisto])
+
   // Sem id na rota, o primeiro da lista é o que abre — o mural nunca fica com a direita vazia.
   const escolhido = id ?? itens[0]?.id
   // O aviso escolhido quase sempre está na página que já veio; só o link direto para um aviso fora
-  // dela (outro filtro, outra página) precisa da consulta pelo id.
+  // dela (outro filtro, outra página) precisa da consulta pelo id. Enquanto a lista não chega não
+  // se sabe qual dos dois casos é — e perguntar assim mesmo pedia à API um aviso que vinha junto
+  // com a lista, em toda abertura de `/mural/:id`.
   const naLista = itens.find((aviso) => aviso.id === escolhido)
-  const umAviso = useAviso(naLista ? '' : (escolhido ?? ''))
+  const umAviso = useAviso(naLista || avisos.isPending ? '' : (escolhido ?? ''))
   const aberto = naLista ?? umAviso.data
 
   const escrevendo = gestao && parametros.get('novo') === '1'
   const corrigindo = gestao && parametros.get('editar') === '1' ? aberto : undefined
 
-  // O editor toma a tela inteira: markdown e prévia lado a lado não cabem em dois terços dela.
+  const faixa = (
+    <FaixaDeIndicadores
+      rotulo="Resumo do mural"
+      indicadores={[
+        { rotulo: 'Avisos publicados', valor: resumo.data?.quantidade ?? null, icone: Megaphone },
+        { rotulo: 'Importantes', valor: resumo.data?.importantes ?? null, icone: Star },
+        {
+          rotulo: 'Fixados',
+          valor: resumo.data?.fixados ?? null,
+          unidade: `de ${LIMITE_DE_FIXADOS}`,
+          icone: Pin,
+        },
+        {
+          rotulo: 'Último aviso',
+          valor: resumo.data
+            ? resumo.data.ultima_publicacao
+              ? formatarDataRelativa(resumo.data.ultima_publicacao)
+              : 'Nenhum'
+            : null,
+          icone: Clock,
+        },
+      ]}
+    />
+  )
+
+  // O editor toma a tela no lugar da lista: markdown e prévia lado a lado não cabem em dois terços
+  // dela. A faixa fica — é ela que diz quantos fixados ainda cabem, que é o que decide a caixa de
+  // fixar logo abaixo, como em "Publicar nova versão" do termo.
   if (escrevendo || corrigindo) {
     return (
-      <EditorDeAviso
-        aviso={corrigindo}
-        aoCancelar={() => atualizar({ novo: null, editar: null, pagina: String(pagina) })}
-        aoConcluir={(aviso) => navegar(rotaDoAviso(aviso.id))}
-      />
+      <>
+        {faixa}
+        <EditorDeAviso
+          aviso={corrigindo}
+          aoCancelar={() => atualizar({ novo: null, editar: null, pagina: String(pagina) })}
+          aoConcluir={(aviso) => navegar(rotaDoAviso(aviso.id))}
+        />
+      </>
     )
   }
 
   return (
     <>
-      <FaixaDeIndicadores
-        rotulo="Resumo do mural"
-        indicadores={[
-          { rotulo: 'Avisos publicados', valor: resumo.data?.quantidade ?? null, icone: Megaphone },
-          { rotulo: 'Importantes', valor: resumo.data?.importantes ?? null, icone: Star },
-          {
-            rotulo: 'Fixados',
-            valor: resumo.data?.fixados ?? null,
-            unidade: `de ${LIMITE_DE_FIXADOS}`,
-            icone: Pin,
-          },
-          {
-            rotulo: 'Último aviso',
-            valor: resumo.data
-              ? resumo.data.ultima_publicacao
-                ? formatarDataRelativa(resumo.data.ultima_publicacao)
-                : 'Nenhum'
-              : null,
-            icone: Clock,
-          },
-        ]}
-      />
+      {faixa}
 
       {/* Os filtros ficam acima das duas colunas, como em Membros e Despesas: é a lista inteira que
           eles recortam, e não o cartão da esquerda. No celular somem junto com a lista. */}

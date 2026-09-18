@@ -1,5 +1,4 @@
-import { CircleCheck, Hourglass, QrCode, Send } from 'lucide-react'
-import { useState } from 'react'
+import { CircleCheck, Hourglass, Info, ReceiptText } from 'lucide-react'
 import { useParams } from 'react-router'
 import mascoteCelular from '@/assets/mascote/celular.webp'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
@@ -8,13 +7,12 @@ import { ChipDeStatus } from '@/components/ChipDeStatus'
 import { EsqueletoDeCartao, EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { QrCodePix } from '@/components/QrCodePix'
-import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
-import { emAberto, rotuloDoItem } from '@/types/cobranca'
+import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { CalculoDoValor, temEncargoOuDesconto } from '../components/CalculoDoValor'
-import { FormularioDeInforme } from '../components/FormularioDeInforme'
+import { DialogoDeInforme } from '../components/DialogoDeInforme'
 import { useParcela } from '../hooks/useExtrato'
 import { usePix } from '../hooks/usePix'
 import type { Parcela } from '../types/pagamentos.types'
@@ -22,9 +20,10 @@ import type { Parcela } from '../types/pagamentos.types'
 /**
  * O PIX de uma parcela e o "Já paguei" — o caminho de trinta segundos no celular.
  *
- * O botão de copiar vem acima do QR, e o nome do titular em destaque: é o que o banco vai mostrar, e
- * conferir o nome é o que protege o formando de uma chave trocada. O PIX é montado na hora, com o
- * valor de hoje; não há poll — quem avisa a confirmação é o e-mail.
+ * O valor de hoje abre a tela, grande, e o resto é uma sequência numerada: copiar a chave (1) e
+ * avisar a tesouraria (2). Copiar vem antes e separado do QR, e o nome do titular fica em destaque:
+ * é o que o banco vai mostrar, e conferir o nome é o que protege o formando de uma chave trocada. O
+ * PIX é montado na hora, com o valor de hoje; não há poll — quem avisa a confirmação é o e-mail.
  */
 export default function PagamentoPage() {
   const { id = '' } = useParams()
@@ -49,38 +48,64 @@ export default function PagamentoPage() {
   )
 }
 
-/** Quanto, qual parcela e em que situação — como o cabeçalho de detalhe dos modelos. */
+/** O que a data de vencimento significa agora — vazio quando não há o que dizer. */
+function notaDoVencimento(parcela: Parcela) {
+  if (parcela.em_conferencia && emAberto(parcela)) return 'Você já avisou a tesouraria.'
+  if (parcela.status === 'Vencida') return 'Esta parcela está em atraso.'
+  if (parcela.status === 'Aberta') return 'Pague até esta data.'
+  // Paga, cancelada, renegociada: quem conta o que aconteceu é o cartão de baixo, e repetir aqui
+  // deixa a mesma frase duas vezes na tela.
+  return undefined
+}
+
+/** Quanto se deve hoje, em letra grande, e o vencimento na coluna ao lado. */
 function Cabecalho({ parcela }: { parcela: Parcela }) {
-  const valor =
-    parcela.valor_pago_em_centavos ??
-    parcela.valor_do_dia?.total_em_centavos ??
-    parcela.valor_original_em_centavos
+  const valor = valorNaLista(parcela)
+  const nota = notaDoVencimento(parcela)
 
   return (
-    <section aria-label="Parcela" className="bg-card shadow-cartao grid gap-1 rounded-3xl p-5">
-      <p className="text-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-2xl font-medium tracking-tight tabular-nums">
-        {formatarCentavos(valor)}
-        <span className="text-muted-foreground text-base font-normal">
-          · parcela {parcela.numero}/{parcela.de}
+    // Mesma superfície da faixa de indicadores: o topo da tela é sempre a mesma coisa no app.
+    <section
+      aria-label="Parcela"
+      className="bg-card shadow-faixa grid gap-5 rounded-3xl px-5 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
+    >
+      <div className="flex items-center gap-4">
+        <span className="bg-brand-tint text-brand-text inline-flex size-14 shrink-0 items-center justify-center rounded-2xl">
+          <ReceiptText className="size-7" strokeWidth={1.75} aria-hidden />
         </span>
-        <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
-      </p>
-      <p className="text-muted-foreground text-sm">
-        {rotuloDoItem(parcela)}, vencimento em {formatarData(parcela.vencimento)}
-      </p>
+        <div className="grid min-w-0 gap-1">
+          <p className="text-muted-foreground text-sm">
+            Parcela {parcela.numero}/{parcela.de}
+          </p>
+          <p className="text-foreground flex flex-wrap items-center gap-3 text-4xl leading-none font-semibold tracking-tight tabular-nums">
+            {formatarCentavos(valor)}
+            <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
+          </p>
+          <p className="text-muted-foreground text-sm">{rotuloDoItem(parcela)}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-0.5 md:border-l md:pl-6">
+        <p className="text-muted-foreground text-sm">Vencimento</p>
+        <p className="text-foreground text-xl font-medium tabular-nums">{formatarData(parcela.vencimento)}</p>
+        {nota ? <p className="text-muted-foreground text-sm">{nota}</p> : null}
+      </div>
     </section>
   )
 }
 
-/** O QR e o "Já paguei", lado a lado no computador e empilhados no celular. */
+/** Os dois passos, lado a lado no computador e empilhados no celular. */
 function Pagamento({ parcela }: { parcela: Parcela }) {
   const pix = usePix(parcela.id, true)
-  const [informando, definirInformando] = useState(false)
   const semConta = ehErroDaApi(pix.error) && pix.error.codigo === 'pagamento.sem_conta'
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-2">
-      <Cartao titulo="Pague pelo PIX" icone={QrCode} descricao="Copie o código e cole no app do seu banco.">
+      <Cartao
+        passo={1}
+        titulo="Copie a chave PIX"
+        descricao="Cole a chave no app do seu banco para realizar o pagamento."
+      >
         {pix.isPending ? (
           <EsqueletoDeCartoes quantidade={1} altura="h-56" className="md:grid-cols-1" />
         ) : null}
@@ -95,53 +120,43 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
 
         {pix.data ? (
           <div className="motion-safe:animate-entrar grid gap-4">
-            <p className="text-muted-foreground text-sm">
-              Para{' '}
-              <strong className="text-foreground block text-base uppercase">
-                {pix.data.nome_do_titular}
-              </strong>
-            </p>
             <QrCodePix copiaECola={pix.data.copia_e_cola} destaque />
-            <ul className="text-muted-foreground grid list-inside list-disc gap-1 text-sm">
-              <li>Confira se o seu banco mostra este nome antes de confirmar.</li>
-              <li>O valor, {formatarCentavos(pix.data.valor_em_centavos)}, vale para hoje.</li>
-            </ul>
+            <p className="text-muted-foreground grid justify-items-center text-sm">
+              Para
+              <strong className="text-foreground text-base uppercase">{pix.data.nome_do_titular}</strong>
+            </p>
+            <div className="bg-muted text-muted-foreground flex gap-3 rounded-2xl p-4 text-sm">
+              <Info className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
+              <ul className="grid list-inside list-disc gap-1">
+                <li>Confira se o seu banco mostra este nome antes de confirmar.</li>
+                <li>O valor, {formatarCentavos(pix.data.valor_em_centavos)}, vale para hoje.</li>
+              </ul>
+            </div>
           </div>
         ) : null}
       </Cartao>
 
       <Cartao
+        passo={2}
         titulo="Já pagou?"
-        icone={Send}
         descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — a parcela muda quando ela confirmar."
       >
         {temEncargoOuDesconto(parcela.valor_do_dia) ? (
-          <div className="bg-muted rounded-lg p-3">
+          <div className="bg-muted grid gap-3 rounded-2xl p-4">
+            <p className="text-foreground font-medium">Resumo da parcela</p>
             <CalculoDoValor valor={parcela.valor_do_dia} />
           </div>
         ) : null}
 
-        {informando ? (
-          <FormularioDeInforme
-            parcelaId={parcela.id}
-            valor_em_centavos={
-              pix.data?.valor_em_centavos ??
-              parcela.valor_do_dia?.total_em_centavos ??
-              parcela.valor_original_em_centavos
-            }
-            aoConcluir={() => definirInformando(false)}
-            aoCancelar={() => definirInformando(false)}
-          />
-        ) : (
-          <Button
-            size="lg"
-            className="w-full sm:w-fit"
-            disabled={semConta}
-            onClick={() => definirInformando(true)}
-          >
-            Já paguei
-          </Button>
-        )}
+        <DialogoDeInforme
+          parcelaIds={[parcela.id]}
+          valor_em_centavos={
+            pix.data?.valor_em_centavos ??
+            parcela.valor_do_dia?.total_em_centavos ??
+            parcela.valor_original_em_centavos
+          }
+          desabilitado={semConta}
+        />
       </Cartao>
     </div>
   )

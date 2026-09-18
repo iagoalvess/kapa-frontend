@@ -1,0 +1,10 @@
+# A página institucional é para ser achada. O resto do produto é sessão: indexar rota de app só
+# rende resultado de busca que leva a uma tela de login.
+User-agent: *
+Allow: /$
+Allow: /termos-de-uso
+Allow: /privacidade
+Allow: /operadores
+Disallow: /
+
+Sitemap: /sitemap.xml

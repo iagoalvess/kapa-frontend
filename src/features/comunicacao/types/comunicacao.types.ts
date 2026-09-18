@@ -146,3 +146,22 @@ export function tipoDoArquivo(content_type: string): TipoDeArquivo | undefined {
   if (content_type.includes('wordprocessingml')) return 'word'
   return undefined
 }
+
+/** Um aviso no sino: o mínimo para reconhecê-lo e abri-lo. */
+export interface NovidadeDoMural {
+  id: string
+  titulo: string
+  publicado_em: string
+  destaque: boolean
+}
+
+/**
+ * O que entrou no mural desde a última visita desta pessoa.
+ *
+ * `quantidade` é o total e vai no selo; `itens` traz só os primeiros — trinta avisos novos não
+ * viram trinta linhas num balão de cabeçalho.
+ */
+export interface NovidadesDoMural {
+  quantidade: number
+  itens: NovidadeDoMural[]
+}

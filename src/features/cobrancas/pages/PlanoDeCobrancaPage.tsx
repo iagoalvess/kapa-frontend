@@ -269,7 +269,16 @@ function ListaDeItens({
                 <span className="bg-muted inline-flex size-9 shrink-0 items-center justify-center rounded-lg">
                   <Icone className="size-4.5" strokeWidth={1.75} aria-hidden />
                 </span>
-                {rotuloDoItem(item)}
+                {/* A origem só existe no rateio extraordinário, e é a resposta a "por que isto foi
+                    cobrado de quem já tinha aderido?" — fica junto do nome do item. */}
+                <div className="grid">
+                  {rotuloDoItem(item)}
+                  {item.origem_da_decisao ? (
+                    <span className="text-muted-foreground text-xs font-normal">
+                      Rateio — {item.origem_da_decisao}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </td>
             <td className="py-3 pr-4 text-right whitespace-nowrap">

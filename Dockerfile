@@ -28,8 +28,17 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 FROM nginx:1.29-alpine AS runtime
 
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+# Template, e não conf pronta: o entrypoint do nginx roda envsubst em /etc/nginx/templates e
+# escreve o resultado em /etc/nginx/conf.d. É o que põe o endereço da API na CSP sem uma imagem
+# por domínio. `$uri` e `$csp` sobrevivem porque envsubst só troca o que existe no ambiente.
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# A CSP precisa liberar a origem da API em connect-src. O ARG é redeclarado porque um ARG vale
+# só no estágio onde aparece, e o padrão acompanha o VITE_API_URL do build — é o mesmo endereço.
+# Em produção dá para sobrescrever no compose, sem rebuildar, com a variável API_ORIGIN.
+ARG VITE_API_URL
+ENV API_ORIGIN=$VITE_API_URL
 
 EXPOSE 80
 

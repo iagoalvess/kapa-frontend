@@ -5,6 +5,7 @@ import {
   excluirFornecedor,
   listarFornecedores,
   obterFornecedor,
+  resumirFornecedores,
 } from '../api/financeiro.api'
 import type { FiltroDeFornecedores } from '../types/financeiro.types'
 import { chaves } from './chaves'
@@ -22,21 +23,16 @@ export function useFornecedores(filtro: FiltroDeFornecedores, habilitado = true)
 /**
  * Quantos fornecedores em cada situação, para o número nas pílulas.
  *
- * Não há endpoint de resumo de fornecedores como o de membros ou o de despesas: a contagem sai de
- * duas listas pedidas com `tamanho: 1`, das quais só se lê o `total`. São duas idas baratas, e o
- * cache as compartilha entre as trocas de filtro.
+ * Uma consulta agrupada na API. Até 17/09/2026 eram duas listas pedidas com `tamanho: 1` das quais
+ * só se lia o `total` — o que não havia era o endpoint de resumo, e agora há.
  */
 export function useContagemDeFornecedores() {
-  const ativos = useFornecedores({ ativo: true, tamanho: 1 })
-  const inativos = useFornecedores({ ativo: false, tamanho: 1 })
+  const { data } = useQuery({
+    queryKey: chaves.resumoDeFornecedores,
+    queryFn: ({ signal }) => resumirFornecedores(signal),
+  })
 
-  if (ativos.data === undefined || inativos.data === undefined) return undefined
-
-  return {
-    ativos: ativos.data.total,
-    inativos: inativos.data.total,
-    todos: ativos.data.total + inativos.data.total,
-  }
+  return data && { ...data, todos: data.ativos + data.inativos }
 }
 
 /** Um fornecedor, para a tela de detalhe. */

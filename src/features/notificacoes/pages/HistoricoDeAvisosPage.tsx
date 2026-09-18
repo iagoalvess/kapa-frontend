@@ -12,7 +12,6 @@ import { useHistorico } from '../hooks/useRegras'
 import {
   marcoDoDegrau,
   type Notificacao,
-  ROTULOS_DE_CANAL,
   ROTULOS_DE_STATUS,
   type StatusDaNotificacao,
 } from '../types/notificacoes.types'
@@ -29,7 +28,7 @@ const TONS: Record<StatusDaNotificacao, 'sucesso' | 'cinza' | 'perigo'> = {
 const SITUACOES: StatusDaNotificacao[] = ['Enfileirada', 'Entregue', 'Falhou']
 
 /**
- * Quem recebeu o quê, quando, por qual canal e com qual resultado.
+ * Quem recebeu o quê, quando e com qual resultado.
  *
  * É o que a tesouraria abre quando alguém diz "nunca fui avisado" — e é onde o e-mail recusado em
  * definitivo aparece com o motivo, porque a régua para de tentar aquele endereço.
@@ -130,7 +129,6 @@ export default function HistoricoDeAvisosPage() {
             <ColunaOrdenavel coluna="destinatario">Destinatário</ColunaOrdenavel>
             <th className="py-3 pr-4 font-normal">Assunto</th>
             <th className="py-3 pr-4 font-normal">Degrau</th>
-            <th className="py-3 pr-4 font-normal">Canal</th>
             <ColunaOrdenavel coluna="data">Dia</ColunaOrdenavel>
             <th className="py-3 font-normal">Resultado</th>
           </>
@@ -154,7 +152,6 @@ function Linha({ aviso }: { aviso: Notificacao }) {
       </td>
       <td className="text-muted-foreground max-w-72 truncate py-3 pr-4">{aviso.assunto}</td>
       <td className="text-muted-foreground py-3 pr-4">{marcoDoDegrau(aviso)}</td>
-      <td className="text-muted-foreground py-3 pr-4">{ROTULOS_DE_CANAL[aviso.canal]}</td>
       <td className="text-muted-foreground py-3 pr-4 whitespace-nowrap">
         {formatarData(aviso.data_de_referencia)}
       </td>

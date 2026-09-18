@@ -1,0 +1,72 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # Cabeçalhos de segurança.
+    #
+    # Estão repetidos em cada location que usa add_header, e não por engano: no nginx um
+    # add_header dentro de um bloco DESCARTA todos os herdados do bloco acima. Sem a repetição,
+    # o /index.html — justamente o documento que o clickjacking ataca — sairia sem nenhum deles.
+    #
+    # A CSP entrou na Sprint 16, no go-live, e só pôde entrar agora: ela depende de saber quais
+    # domínios o produto usa, e a resposta é "nenhum". Fonte, ícone e imagem vêm todos do bundle;
+    # o único destino externo é a própria API, e o endereço dela muda por ambiente — por isso este
+    # arquivo é um template do entrypoint do nginx, com ${API_ORIGIN} vindo do ambiente.
+    #
+    # Se API_ORIGIN não estiver definida, a CSP sai com o marcador literal e o navegador recusa a
+    # chamada à API. É de propósito: falhar na primeira tela é melhor que uma CSP que parece
+    # existir e não protege nada.
+    #
+    #   'unsafe-inline' em style-src: React escreve style="" em elemento (altura de gráfico,
+    #   posição de popover). Em script-src ele NÃO aparece, que é onde ele importaria.
+    #   data: e blob: em img-src: QR do PIX e pré-visualização de foto antes do upload.
+    set $csp "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${API_ORIGIN}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
+
+    add_header Content-Security-Policy $csp always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header X-Frame-Options DENY always;
+
+    # Arquivos com hash no nome nunca mudam de conteúdo: cache longo e imutável.
+    location /assets/ {
+        add_header Content-Security-Policy $csp always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header X-Frame-Options DENY always;
+
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # index.html precisa ser revalidado sempre, senão o navegador serve uma versão antiga que
+    # aponta para chunks que o deploy já apagou — a tela branca clássica depois de publicar.
+    location = /index.html {
+        add_header Content-Security-Policy $csp always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header X-Frame-Options DENY always;
+
+        add_header Cache-Control "no-cache";
+    }
+
+    # robots.txt e sitemap.xml precisam ser servidos como estáticos e cacheados de leve: eles são
+    # lidos por robô, não por pessoa, e uma resposta de SPA no lugar deles tira a landing do índice.
+    location ~ ^/(robots\.txt|sitemap\.xml)$ {
+        add_header Content-Security-Policy $csp always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header X-Frame-Options DENY always;
+
+        expires 1h;
+    }
+
+    # SPA: qualquer caminho desconhecido devolve o index e o roteador decide.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

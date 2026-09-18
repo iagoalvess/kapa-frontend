@@ -8,11 +8,12 @@ import { chaves } from './chaves'
  * Sem `staleTime`: o hash precisa ser o do conteúdo que está na tela agora, e o conteúdo muda
  * quando a comissão publica ou a tesouraria mexe no plano.
  */
-export function useConteudoParaAdesao() {
+export function useConteudoParaAdesao(habilitado = true) {
   return useQuery({
     queryKey: chaves.conteudo(),
     queryFn: ({ signal }) => obterConteudoParaAdesao(signal),
     staleTime: 0,
+    enabled: habilitado,
   })
 }
 

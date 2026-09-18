@@ -22,19 +22,28 @@ import {
   contar,
   useAlterarPapel,
   useMembros,
+  useReligarMembro,
   useRemoverMembro,
   useResumoDeMembros,
 } from '../hooks/useMembros'
+import { DialogoDeDesligamento } from '../components/DialogoDeDesligamento'
 import { IndicadoresDeMembros } from '../components/IndicadoresDeMembros'
+import { SeloDeDesligado } from '../components/SeloDeDesligado'
 import type { MembroDaFormatura, SituacaoDoCadastro } from '../types/membros.types'
 
 const TAMANHO_DA_PAGINA = 20
 
-/** Situação do vínculo, como vai na URL, e o filtro `ativo` que ela vira na API. */
+/**
+ * Situação do vínculo, como vai na URL, e o filtro que ela vira na API.
+ *
+ * Desligado e removido compartilham `ativo: false` e se separam por `desligado` — são dois fatos
+ * diferentes com o mesmo efeito no acesso (decisão 1 da Sprint 15).
+ */
 const SITUACOES = {
-  ativos: { rotulo: 'Ativos', ativo: true },
-  removidos: { rotulo: 'Removidos', ativo: false },
-  todos: { rotulo: 'Todos', ativo: undefined },
+  ativos: { rotulo: 'Ativos', ativo: true, desligado: undefined },
+  desligados: { rotulo: 'Desligados', ativo: false, desligado: true },
+  removidos: { rotulo: 'Removidos', ativo: false, desligado: false },
+  todos: { rotulo: 'Todos', ativo: undefined, desligado: undefined },
 } as const
 
 type Situacao = keyof typeof SITUACOES
@@ -73,7 +82,7 @@ export default function MembrosPage() {
   const papel = ehPapel(papelNaUrl) ? papelNaUrl : undefined
   const cadastroNaUrl = parametros.get('cadastro')
   const cadastro = ehCadastro(cadastroNaUrl) ? cadastroNaUrl : undefined
-  const ativo = SITUACOES[situacao].ativo
+  const { ativo, desligado } = SITUACOES[situacao]
 
   /** Grava mudanças na URL; `null` remove o parâmetro. Filtro novo sempre volta à página 1. */
   const ordenacao = useOrdenacao(atualizar)
@@ -82,6 +91,7 @@ export default function MembrosPage() {
     tamanho: TAMANHO_DA_PAGINA,
     busca: busca || undefined,
     ativo,
+    desligado,
     papel,
     cadastro,
     ...ordenacao.filtro,
@@ -105,17 +115,19 @@ export default function MembrosPage() {
         principal={
           <fieldset className="flex flex-wrap gap-2">
             <legend className="sr-only">Situação</legend>
-            {Object.entries(SITUACOES).map(([valor, { rotulo, ativo: filtroAtivo }]) => (
-              <Chip
-                key={valor}
-                tom="claro"
-                ativo={situacao === valor}
-                contagem={contagem({ ativo: filtroAtivo, papel })}
-                onClick={() => atualizar({ situacao: valor === 'ativos' ? null : valor })}
-              >
-                {rotulo}
-              </Chip>
-            ))}
+            {Object.entries(SITUACOES).map(
+              ([valor, { rotulo, ativo: filtroAtivo, desligado: filtroDesligado }]) => (
+                <Chip
+                  key={valor}
+                  tom="claro"
+                  ativo={situacao === valor}
+                  contagem={contagem({ ativo: filtroAtivo, desligado: filtroDesligado, papel })}
+                  onClick={() => atualizar({ situacao: valor === 'ativos' ? null : valor })}
+                >
+                  {rotulo}
+                </Chip>
+              ),
+            )}
           </fieldset>
         }
         legenda="Papel"
@@ -123,7 +135,7 @@ export default function MembrosPage() {
           <Chip
             key={valor}
             ativo={papel === valor}
-            contagem={contagem({ ativo, papel: valor })}
+            contagem={contagem({ ativo, desligado, papel: valor })}
             onClick={() => atualizar({ papel: papel === valor ? null : valor })}
           >
             {ROTULOS_DE_PAPEL[valor]}
@@ -209,10 +221,59 @@ function avisarErro(erro: unknown) {
   toast.error(mensagemDoErro(erro))
 }
 
+/**
+ * A porta de saída de um membro ativo — **uma só**, escolhida pela adesão dele (decisão 1 da
+ * Sprint 15).
+ *
+ * Quem tem adesão aderiu, deve e pagou parte: sai por Desligar, que cancela o que ainda não venceu
+ * e registra o porquê. Quem não tem é erro de cadastro: sai por Remover, que não toca em dinheiro
+ * nenhum. Duas portas para o mesmo estado, com efeitos diferentes sobre dinheiro, é como alguém
+ * apaga uma dívida sem querer.
+ *
+ * A adesão vem na própria linha (`tem_adesao`), e não de uma consulta por membro: a lista tem vinte
+ * linhas, e vinte requisições para decidir o rótulo de um botão é uma tela que pisca.
+ */
+function AcaoDeSaida({
+  membro,
+  ocupado,
+  ehOProprio,
+  nome,
+}: {
+  membro: MembroDaFormatura
+  ocupado: boolean
+  ehOProprio: boolean
+  nome: string
+}) {
+  const remover = useRemoverMembro()
+
+  if (membro.tem_adesao) {
+    return <DialogoDeDesligamento membro={membro} desabilitado={ocupado} />
+  }
+
+  return (
+    <DialogoDeConfirmacao
+      gatilho={
+        <Button variant="outline" size="sm" disabled={ocupado}>
+          Remover
+        </Button>
+      }
+      titulo={ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`}
+      descricao={
+        ehOProprio
+          ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
+          : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.'
+      }
+      rotulo={ehOProprio ? 'Sair' : 'Remover'}
+      destrutivo
+      aoConfirmar={() => remover.mutate(membro.usuario_id, { onError: avisarErro })}
+    />
+  )
+}
+
 function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editavel: boolean }) {
   const { usuario } = useSessao()
   const alterar = useAlterarPapel()
-  const remover = useRemoverMembro()
+  const religar = useReligarMembro()
 
   // Papel escolhido para si mesmo, aguardando confirmação: deixar a presidência tira o próprio acesso.
   const [papelAConfirmar, definirPapelAConfirmar] = useState<Papel | null>(null)
@@ -220,7 +281,7 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
   const escritaLiberada = useEscritaLiberada('editavel')
 
   // Formatura fora de Ativa: os controles ficam, desabilitados — quem recusa de verdade é a API.
-  const ocupado = alterar.isPending || remover.isPending || !escritaLiberada
+  const ocupado = alterar.isPending || religar.isPending || !escritaLiberada
   const podeEditar = editavel && membro.ativo
   const ehOProprio = membro.usuario_id === usuario?.id
   const nome = membro.nome_completo ?? membro.nome
@@ -296,25 +357,24 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
           ) : null}
         </div>
       </td>
-      <td className="py-3 pr-4">{membro.ativo ? <Selo tom="sucesso">Ativo</Selo> : <Selo>Removido</Selo>}</td>
+      <td className="py-3 pr-4">
+        <SeloDeDesligado membro={membro} />
+      </td>
       {editavel ? (
         <td className="py-3 text-right">
           {membro.ativo ? (
+            <AcaoDeSaida membro={membro} ocupado={ocupado} ehOProprio={ehOProprio} nome={nome} />
+          ) : membro.desligado_em ? (
             <DialogoDeConfirmacao
               gatilho={
                 <Button variant="outline" size="sm" disabled={ocupado}>
-                  Remover
+                  Religar
                 </Button>
               }
-              titulo={ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`}
-              descricao={
-                ehOProprio
-                  ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
-                  : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.'
-              }
-              rotulo={ehOProprio ? 'Sair' : 'Remover'}
-              destrutivo
-              aoConfirmar={() => remover.mutate(membro.usuario_id, { onError: avisarErro })}
+              titulo={`Religar ${nome}?`}
+              descricao="O acesso dele volta. As parcelas canceladas no desligamento continuam canceladas — para voltar a cobrar, lance de novo."
+              rotulo="Religar"
+              aoConfirmar={() => religar.mutate(membro.usuario_id, { onError: avisarErro })}
             />
           ) : null}
         </td>

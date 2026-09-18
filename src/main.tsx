@@ -5,6 +5,7 @@ import { sessao } from '@/lib/http/sessao'
 // Fonte auto-hospedada: o Vite copia os woff2 (um por conjunto de caracteres) para /assets, e o
 // navegador baixa só o conjunto que a página usa. Sem depender do Google Fonts em produção.
 import '@fontsource-variable/plus-jakarta-sans'
+import '@fontsource-variable/caveat'
 import '@/styles/index.css'
 
 const raiz = document.querySelector('#root')

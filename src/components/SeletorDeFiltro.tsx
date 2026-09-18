@@ -1,6 +1,11 @@
 import { Select } from '@/components/Select'
 import { cn } from '@/lib/utils'
-import type { OpcaoDeFiltro } from '../types/relatorios.types'
+
+/** Uma opção da lista: o que vai no `value` e o que se lê. */
+export interface OpcaoDeFiltro {
+  id: string
+  nome: string
+}
 
 /**
  * Um seletor de recorte da barra de filtros.
@@ -48,8 +53,11 @@ export function SeletorDeFiltro({
       // social comprida é cortada pelo próprio campo, e não empurra o resto da linha.
       className={cn(
         'border-border h-7 w-auto max-w-56 rounded-full text-sm shadow-none md:text-sm',
+        // `!` no cinza: o `[data-select]:has(option[value='']:checked)` do CSS base pinta o campo
+        // vazio de `--text-muted`, que é a cor de placeholder de formulário — dois tons mais claro
+        // que o `Chip` apagado ao lado, e à distância lia-se como "desabilitado".
         valor === undefined
-          ? 'text-muted-foreground bg-transparent'
+          ? 'text-muted-foreground! bg-transparent'
           : 'bg-border text-foreground border-transparent',
       )}
       value={valor ?? ''}

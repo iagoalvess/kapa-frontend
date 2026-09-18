@@ -2,8 +2,11 @@ import { env } from '@/config/env'
 import { ErroDaApi, ErroDeRede, type ProblemDetails } from './erros'
 import { sessao } from './sessao'
 
-/** Valores aceitos na query string. `undefined` e `null` são omitidos. */
-type ValorDeQuery = string | number | boolean | undefined | null
+/**
+ * Valores aceitos na query string. `undefined` e `null` são omitidos; a lista vira um par por item
+ * (`?id=a&id=b`), que é como o ASP.NET lê uma coleção — junta numa vírgula só, ele não separa.
+ */
+type ValorDeQuery = string | number | boolean | undefined | null | readonly string[]
 
 /** Opções de uma chamada à API. */
 export interface OpcoesDaRequisicao extends Omit<RequestInit, 'body' | 'method' | 'signal'> {
@@ -49,7 +52,9 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
 
   const url = new URL(`${env.VITE_API_URL}${caminho}`)
   for (const [chave, valor] of Object.entries(query ?? {})) {
-    if (valor !== undefined && valor !== null) url.searchParams.set(chave, String(valor))
+    if (valor === undefined || valor === null) continue
+    if (Array.isArray(valor)) for (const item of valor) url.searchParams.append(chave, item)
+    else url.searchParams.set(chave, String(valor))
   }
 
   const executar = async (token: string | null) => {

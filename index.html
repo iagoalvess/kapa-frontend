@@ -5,7 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Kapa</title>
+
+    <title>Kapa — a formatura da sua turma organizada</title>
+    <meta
+      name="description"
+      content="Cobrança recorrente, QR do PIX por parcela, conferência em lote e prestação de contas para comissões de formatura. O dinheiro cai na conta da turma, não na nossa."
+    />
+
+    <!--
+      Open Graph e Twitter: é o cartão que aparece quando alguém cola o link no grupo do WhatsApp,
+      que é exatamente como uma comissão descobre a Kapa. A imagem é o produto rodando, com a marca
+      no canto — 1200x630, a proporção que as duas redes recortam sem cortar nada.
+
+      As URLs são absolutas de propósito: crawler não resolve caminho relativo. O domínio entra no
+      go-live (P1 da Sprint 16), junto com a razão social do rodapé.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kapa" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Kapa — a formatura da sua turma organizada" />
+    <meta
+      property="og:description"
+      content="Cobrança recorrente, QR do PIX por parcela e prestação de contas pronta. O dinheiro cai na conta da turma, não na nossa."
+    />
+    <meta property="og:image" content="/og-kapa.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A tela de caixa do Kapa, com o que entrou e o que saiu da turma" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body class="h-full">
     <div id="root" class="h-full"></div>

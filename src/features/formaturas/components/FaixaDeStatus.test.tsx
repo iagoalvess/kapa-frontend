@@ -102,4 +102,29 @@ describe('FaixaDeStatus', () => {
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
+
+  /**
+   * A saída vem antes do status da turma: para quem já não está nela, "o plano da turma venceu" não
+   * é a informação que falta — e a frase precisa dizer que o histórico dele continua de pé (P5).
+   */
+  it('avisa quem foi desligado, na frente do status da turma', async () => {
+    const corpo = {
+      sub: 'u-1',
+      name: 'Ana',
+      formatura_id: 'f-1',
+      papel: 'Formando',
+      desligado_em: '2026-09-16T12:00:00Z',
+    }
+    sessao.autenticar({
+      access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+      expira_em: new Date(Date.now() + 900_000).toISOString(),
+    })
+    comStatus('Suspensa')
+
+    renderizar(<FaixaDeStatus />)
+
+    const faixa = await screen.findByRole('status')
+    expect(faixa).toHaveTextContent(/desligado desta turma em 16\/09\/2026/)
+    expect(faixa).not.toHaveTextContent(/plano da turma venceu/)
+  })
 })

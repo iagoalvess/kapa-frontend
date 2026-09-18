@@ -14,12 +14,14 @@ import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useAtualizarDespesa, useLancarDespesa } from '../hooks/useDespesas'
 import {
   despesaEmBranco,
+  despesaParaContratar,
   esquemaDeDespesa,
   type FormularioDeDespesa as ValoresDaDespesa,
   paraDadosDaDespesa,
   paraFormularioDeDespesa,
   paraNovaDespesa,
 } from '../schemas/financeiro.schema'
+import type { ItemDaFesta } from '@/types/festa'
 import {
   type CategoriaDeDespesa,
   type Despesa,
@@ -30,6 +32,10 @@ import {
 interface Props {
   /** Fornecedores ativos, para o seletor. A categoria de cada um vira o padrão do formulário. */
   fornecedores: Fornecedor[]
+  /** Itens da festa de pé, para o seletor do vínculo. */
+  itensDaFesta: ItemDaFesta[]
+  /** Item já escolhido: o botão "Contratar" do cartão da festa abre o formulário preenchido por ele. */
+  contratando?: ItemDaFesta
   /** Despesa em edição; ausente, o formulário lança uma nova. */
   editando?: Despesa
   /** Falso trava os campos — formatura fora de `Ativa`. */
@@ -49,7 +55,14 @@ interface Props {
  * Na correção, a linha é uma só: parcelas e "já paga" somem — quem paga é o diálogo de pagamento,
  * que exige o comprovante.
  */
-export function FormularioDeDespesa({ fornecedores, editando, editavel, aoConcluir }: Props) {
+export function FormularioDeDespesa({
+  fornecedores,
+  itensDaFesta,
+  contratando,
+  editando,
+  editavel,
+  aoConcluir,
+}: Props) {
   const [comprovante, definirComprovante] = useState<File | undefined>(undefined)
   const [categoriaTocada, definirCategoriaTocada] = useState(false)
   const lancar = useLancarDespesa()
@@ -58,7 +71,11 @@ export function FormularioDeDespesa({ fornecedores, editando, editavel, aoConclu
 
   const formulario = useForm<ValoresDaDespesa>({
     resolver: zodResolver(esquemaDeDespesa),
-    defaultValues: editando ? paraFormularioDeDespesa(editando) : despesaEmBranco(),
+    defaultValues: editando
+      ? paraFormularioDeDespesa(editando)
+      : contratando
+        ? despesaParaContratar(contratando)
+        : despesaEmBranco(),
   })
 
   const [parcelas, modoDoValor, valor, jaPaga] = useWatch({
@@ -141,6 +158,38 @@ export function FormularioDeDespesa({ fornecedores, editando, editavel, aoConclu
                     ))}
                   </Select>
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={formulario.control}
+            name="item_da_festa_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Item da festa</FormLabel>
+                <FormControl>
+                  <Select
+                    {...field}
+                    disabled={!editavel}
+                    onChange={(evento) => {
+                      field.onChange(evento)
+                      const item = itensDaFesta.find((opcao) => opcao.id === evento.target.value)
+                      if (item && !categoriaTocada) formulario.setValue('categoria', item.categoria)
+                    }}
+                  >
+                    <option value="">Nenhum — não é da festa</option>
+                    {itensDaFesta.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.titulo}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+                <p className="text-texto-muted text-xs">
+                  Vinculada a um item, esta despesa passa a contar no cartão dele em "A festa".
+                </p>
                 <FormMessage />
               </FormItem>
             )}

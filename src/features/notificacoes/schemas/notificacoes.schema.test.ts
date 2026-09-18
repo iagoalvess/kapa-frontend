@@ -12,7 +12,6 @@ const REGUA: Regua = {
 const degrau = (template: string, assunto = 'Oi, {nome}') => ({
   assunto,
   template,
-  canal: 'Email',
   ativa: true,
   avisar_tesouraria: false,
 })

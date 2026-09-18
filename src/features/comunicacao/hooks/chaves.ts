@@ -7,6 +7,7 @@ export const chaves = {
   avisos: (filtro: FiltroDeAvisos) => ['comunicacao', 'avisos', filtro] as const,
   aviso: (id: string) => ['comunicacao', 'avisos', 'um', id] as const,
   resumoDoMural: ['comunicacao', 'avisos', 'resumo'] as const,
+  novidades: ['comunicacao', 'avisos', 'novidades'] as const,
   /** Prefixo de todo documento: enviar, substituir e excluir mudam a lista e o resumo. */
   todosOsDocumentos: ['comunicacao', 'documentos'] as const,
   documentos: (filtro: FiltroDeDocumentos) => ['comunicacao', 'documentos', filtro] as const,

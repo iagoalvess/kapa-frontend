@@ -10,11 +10,17 @@ import {
 } from '../api/formaturas.api'
 import { chaves } from './chaves'
 
-/** Formaturas em que o usuário tem vínculo ativo. Funciona sem formatura selecionada. */
-export function useMinhasFormaturas() {
+/**
+ * Formaturas em que o usuário tem vínculo ativo. Funciona sem formatura selecionada.
+ *
+ * @param habilitado Falso não consulta — o seletor do menu do avatar só precisa da lista quando o
+ *   menu abre, e ele está em toda tela do app.
+ */
+export function useMinhasFormaturas(habilitado = true) {
   return useQuery({
     queryKey: chaves.minhas(),
     queryFn: ({ signal }) => listarMinhasFormaturas(signal),
+    enabled: habilitado,
   })
 }
 

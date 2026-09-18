@@ -87,8 +87,8 @@ describe('MeuExtratoPage', () => {
 
     const pagar = await screen.findAllByRole('link', { name: /^Pagar a parcela/ })
     expect(pagar.map((link) => link.getAttribute('href'))).toEqual([
-      '/extrato/parcelas/pa-venc/pagar',
-      '/extrato/parcelas/pa-aberta/pagar',
+      '/minhas-parcelas/parcelas/pa-venc/pagar',
+      '/minhas-parcelas/parcelas/pa-aberta/pagar',
     ])
     expect(screen.getByText('Em conferência', { selector: 'span' })).toBeInTheDocument()
     expect(screen.getByText('Paga em 09/07/2026')).toBeInTheDocument()
@@ -100,6 +100,101 @@ describe('MeuExtratoPage', () => {
     renderizar(<MeuExtratoPage />)
 
     expect(await screen.findByText('Nenhuma parcela ainda')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'termo da turma' })).toHaveAttribute('href', '/adesao')
+    expect(screen.getByRole('link', { name: 'termo da turma' })).toHaveAttribute('href', '/meu-termo')
+  })
+
+  /** Um PIX cobrindo dois meses: escolher é só o passo 1, e o QR da soma está na tela seguinte. */
+  it('escolhe as parcelas do mesmo pagamento e leva o PIX da soma para a tela de pagar', async () => {
+    responder()
+
+    const { router } = renderizar(<MeuExtratoPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    // A avisada e a paga ficam de fora: a API não as aceita no mesmo pagamento.
+    const daLinha = within(dialogo).getAllByRole('checkbox', { name: /^Incluir a parcela/ })
+    const [daVencida, daAberta] = daLinha
+    expect(daLinha).toHaveLength(2)
+
+    // Uma planilha, como a grade do termo: número da parcela, vencimento e valor em colunas.
+    // A primeira coluna não tem texto: é o check que marca a grade inteira.
+    const cabecalho = within(dialogo)
+      .getAllByRole('columnheader')
+      .map((coluna) => coluna.textContent)
+    expect(cabecalho).toEqual(['', 'Parcela', 'Vencimento', 'Valor'])
+    const linhaDaVencida = daVencida!.closest('tr')!
+    expect(within(linhaDaVencida).getByText('2/24')).toBeInTheDocument()
+    expect(within(linhaDaVencida).getByText('10/08/2026')).toBeInTheDocument()
+    expect(within(linhaDaVencida).getByText(reais(36_120))).toBeInTheDocument()
+
+    await userEvent.click(daVencida!)
+    await userEvent.click(daAberta!)
+    expect(within(dialogo).getByText(/somam/)).toHaveTextContent(reais(71_120))
+
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Continuar' }))
+
+    const { pathname, search } = router.state.location
+    expect(pathname + search).toBe('/minhas-parcelas/pagar?parcelas=pa-venc,pa-aberta')
+  })
+
+  it('o check do cabeçalho marca e desmarca a grade inteira', async () => {
+    responder()
+
+    renderizar(<MeuExtratoPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    const todas = within(dialogo).getByRole('checkbox', {
+      name: 'Incluir todas as parcelas no pagamento',
+    })
+
+    await userEvent.click(todas)
+    for (const campo of within(dialogo).getAllByRole('checkbox')) expect(campo).toBeChecked()
+    expect(within(dialogo).getByText(/somam/)).toHaveTextContent(reais(71_120))
+
+    await userEvent.click(todas)
+    expect(within(dialogo).queryByText(/somam/)).not.toBeInTheDocument()
+  })
+
+  it('sem nada escolhido, não dá para continuar', async () => {
+    responder()
+
+    renderizar(<MeuExtratoPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
+    const dialogo = await screen.findByRole('alertdialog')
+
+    expect(within(dialogo).getByRole('button', { name: 'Continuar' })).toBeDisabled()
+  })
+
+  it('pagamento parcial: a coluna mostra o que falta, e a linha diz quanto já entrou', async () => {
+    responder({
+      em_aberto_em_centavos: 15_000,
+      parcelas: [
+        parcelaDeTeste({
+          id: 'pa-parcial',
+          valor_pago_em_centavos: 20_000,
+          valor_do_dia: {
+            original_em_centavos: 35_000,
+            multa_em_centavos: 0,
+            juros_em_centavos: 0,
+            desconto_em_centavos: 0,
+            total_em_centavos: 15_000,
+            dias_de_atraso: 0,
+            ja_pago_em_centavos: 20_000,
+          },
+        }),
+      ],
+    })
+
+    renderizar(<MeuExtratoPage />)
+
+    const linha = await screen.findByRole('row', { name: /Mensalidade/ })
+    expect(within(linha).getByText(`Já pagou ${reais(20_000)}`)).toBeInTheDocument()
+    // O valor da coluna é o que falta, e o balão abre a conta com o abatimento.
+    await userEvent.click(within(linha).getByRole('button', { name: 'Por que este valor?' }))
+    const balao = within(linha).getByText('Já pago').closest('dl')!
+    expect(balao).toHaveTextContent(`Já pago-${reais(20_000)}`)
+    expect(balao).toHaveTextContent(`Total de hoje${reais(15_000)}`)
   })
 })

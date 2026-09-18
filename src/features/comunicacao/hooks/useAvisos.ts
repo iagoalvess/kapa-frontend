@@ -3,7 +3,9 @@ import {
   atualizarAviso,
   excluirAviso,
   listarAvisos,
+  marcarMuralVisto,
   obterAviso,
+  obterNovidades,
   publicarAviso,
   resumirMural,
 } from '../api/comunicacao.api'
@@ -56,3 +58,33 @@ function useEscritaDoMural<T, R>(escrever: (variaveis: T) => Promise<R>) {
 export const usePublicarAviso = () => useEscritaDoMural(publicarAviso)
 export const useAtualizarAviso = () => useEscritaDoMural(atualizarAviso)
 export const useExcluirAviso = () => useEscritaDoMural(excluirAviso)
+
+/**
+ * O que há de novo no mural — o selo e a lista do sino.
+ *
+ * Recarrega sozinho de minuto em minuto e ao voltar para a aba: um aviso publicado agora precisa
+ * aparecer para quem está com a tela aberta, e é isso que um sino promete.
+ */
+export function useNovidadesDoMural() {
+  return useQuery({
+    queryKey: chaves.novidades,
+    queryFn: ({ signal }) => obterNovidades(signal),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+/**
+ * Marca o mural como visto — quem chama é a tela do mural, ao abrir.
+ *
+ * `void` na invalidação, como no resto do módulo: a promessa devolvida faria quem chamou esperar o
+ * recarregamento do sino por nada.
+ */
+export function useMarcarMuralVisto() {
+  const cliente = useQueryClient()
+
+  return useMutation({
+    mutationFn: marcarMuralVisto,
+    onSuccess: () => void cliente.invalidateQueries({ queryKey: chaves.novidades }),
+  })
+}

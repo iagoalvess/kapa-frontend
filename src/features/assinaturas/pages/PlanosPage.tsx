@@ -5,11 +5,12 @@ import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Selo } from '@/components/Selo'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
+import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { usePapel } from '@/hooks/useSessao'
 import { mensagemDoErro } from '@/lib/http/erros'
 import { CardDePlano } from '../components/CardDePlano'
 import { CartaoDeModulos } from '../components/CartaoDeModulos'
-import { useAssinatura, usePlanos } from '../hooks/useAssinatura'
+import { useAssinatura } from '../hooks/useAssinatura'
 import { useCheckout } from '../hooks/useCheckout'
 import type { CicloDeCobranca, Plano } from '../types/assinaturas.types'
 
@@ -36,7 +37,7 @@ function maiorDesconto(planos: Plano[]) {
  */
 export default function PlanosPage() {
   const [parametros, definirParametros] = useSearchParams()
-  const planos = usePlanos()
+  const planos = usePlanosDoCatalogo()
   const assinatura = useAssinatura()
   const formatura = useFormaturaAtual()
   const { ehPresidente } = usePapel()

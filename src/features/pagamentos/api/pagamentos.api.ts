@@ -8,6 +8,7 @@ import type {
   FormaDePagamento,
   Informe,
   Parcela,
+  PendenciasDoExtrato,
   PixDaParcela,
   ResultadoDaConferencia,
 } from '../types/pagamentos.types'
@@ -39,6 +40,16 @@ export function obterExtrato(signal?: AbortSignal) {
   return api.get<Extrato>(`${BASE}/extrato/eu`, { signal })
 }
 
+/**
+ * Quantas parcelas próprias venceram sem aviso de pagamento — o selo do menu.
+ *
+ * Endpoint próprio, e não uma conta sobre o extrato: o selo está na barra lateral de toda tela, e o
+ * extrato de quem está no fim da turma passa de dezenas de parcelas.
+ */
+export function obterPendenciasDoExtrato(signal?: AbortSignal) {
+  return api.get<PendenciasDoExtrato>(`${BASE}/extrato/eu/pendencias`, { signal })
+}
+
 /** Uma parcela, com o valor de hoje. O dono, ou a gestão. */
 export function obterParcela(parcelaId: string, signal?: AbortSignal) {
   return api.get<Parcela>(`${BASE}/parcelas/${parcelaId}`, { signal })
@@ -49,9 +60,34 @@ export function obterPix(parcelaId: string, signal?: AbortSignal) {
   return api.get<PixDaParcela>(`${BASE}/parcelas/${parcelaId}/pix`, { signal })
 }
 
+/**
+ * O PIX de várias parcelas: um BR Code só, com a soma do que elas cobram hoje.
+ *
+ * Um QR por parcela viraria um PIX pela metade: quem paga no celular paga o primeiro e fecha a tela.
+ */
+export function obterPixDeVarias(parcelaIds: string[], signal?: AbortSignal) {
+  return api.get<PixDaParcela>(`${BASE}/parcelas/pix`, { query: { parcela_ids: parcelaIds }, signal })
+}
+
 /** O "já paguei". A parcela não muda até a tesouraria conferir. */
 export function informarPagamento({ parcelaId, ...dados }: DadosDoPagamento & { parcelaId: string }) {
   return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/informes`, { body: formulario(dados) })
+}
+
+/**
+ * O "já paguei" de um PIX que cobriu várias parcelas — os meses atrasados de uma vez.
+ *
+ * O valor total é distribuído pela API, da parcela mais antiga para a mais nova. O comprovante é um
+ * só: foi um pagamento só.
+ */
+export function informarPagamentoEmLote({
+  parcela_ids,
+  ...dados
+}: DadosDoPagamento & { parcela_ids: string[] }) {
+  const corpo = formulario(dados)
+  for (const id of parcela_ids) corpo.append('parcela_ids', id)
+
+  return api.post<Parcela[]>(`${BASE}/parcelas/informes`, { body: corpo })
 }
 
 /** A fila da conferência: pendentes do mais antigo ao mais novo. */

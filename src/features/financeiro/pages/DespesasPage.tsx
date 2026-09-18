@@ -10,6 +10,7 @@ import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
+import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { usePapel } from '@/hooks/useSessao'
@@ -83,8 +84,25 @@ export default function DespesasPage() {
     ...ordenacao.filtro,
   })
   const resumo = useResumoDeDespesas({ categoria, de, ate, busca: busca || undefined }).data
-  // Cadastro de fornecedor é da Tesouraria: para os demais a consulta nem sai, e voltaria 403.
-  const fornecedores = useFornecedores({ ativo: true, tamanho: 100 }, tesouraria).data?.itens ?? []
+  // A lista alimenta o `select` do diálogo de lançamento, e só ele: fechado, não se consulta.
+  // Cadastro de fornecedor é da Tesouraria — para os demais a consulta nem sai, e voltaria 403.
+  const fornecedores =
+    useFornecedores({ ativo: true, tamanho: 100 }, tesouraria && lancamento !== false).data?.itens ?? []
+
+  /*
+    O botão "Contratar" do cartão da festa chega aqui como `?item=<id>`: a tela abre o lançamento já
+    preenchido pelo item. O estado vem da URL, e não de um `useEffect`, porque o link também é o
+    caminho de volta — recarregar a página reabre o mesmo diálogo, e fechar limpa o parâmetro.
+  */
+  const itemNaUrl = parametros.get('item')
+  const itensDaFesta =
+    useItensDaFesta(lancamento !== false || itemNaUrl !== null).data?.filter((item) => !item.cancelado) ?? []
+  const contratando = itemNaUrl ? itensDaFesta.find((item) => item.id === itemNaUrl) : undefined
+
+  const fecharLancamento = () => {
+    definirLancamento(false)
+    if (itemNaUrl) atualizar({ item: null })
+  }
 
   // A página pedida deixou de existir (filtro mais estreito): volta para a última que existe.
   if (despesas.data && despesas.data.itens.length === 0 && pagina > 1) {
@@ -236,9 +254,11 @@ export default function DespesasPage() {
       </Planilha>
 
       <DialogoDeDespesa
-        aberto={lancamento}
+        aberto={lancamento !== false ? lancamento : contratando ? {} : false}
         fornecedores={fornecedores}
-        aoFechar={() => definirLancamento(false)}
+        itensDaFesta={itensDaFesta}
+        contratando={contratando}
+        aoFechar={fecharLancamento}
       />
     </>
   )

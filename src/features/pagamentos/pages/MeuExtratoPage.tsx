@@ -11,7 +11,8 @@ import { ColunaOrdenavel, Tabela } from '@/components/Planilha'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import { emAberto, type Parcela, rotuloDoItem } from '@/types/cobranca'
+import { emAberto, type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { DialogoDeEscolhaDeParcelas } from '../components/DialogoDeEscolhaDeParcelas'
 import { LinhaDeParcela } from '../components/LinhaDeParcela'
 import { ResumoDoExtrato } from '../components/ResumoDoExtrato'
 import { useExtrato } from '../hooks/useExtrato'
@@ -35,9 +36,33 @@ const ehSituacao = (valor: string | null): valor is Situacao => valor !== null &
 const CHAVES: Record<string, (p: Parcela) => number | string> = {
   parcela: (p) => `${rotuloDoItem(p)} ${String(p.numero).padStart(4, '0')}`,
   vencimento: (p) => p.vencimento,
-  valor: (p) => p.valor_pago_em_centavos ?? p.valor_do_dia?.total_em_centavos ?? p.valor_original_em_centavos,
+  valor: (p) => valorNaLista(p),
   situacao: (p) => (p.em_conferencia && emAberto(p) ? 'Em conferência' : ROTULOS_DE_STATUS[p.status]),
 }
+
+/**
+ * Se a parcela casa com o que foi digitado.
+ *
+ * Busca **na tela**, e não na API: o extrato vem inteiro numa consulta só — é a grade de um
+ * formando — e um `?busca=` no servidor só acrescentaria uma ida à rede para filtrar o que já está
+ * na memória. Compara sem acento, como o resto do produto: quem procura "adesao" acha "Adesão".
+ *
+ * @param termo O que a pessoa digitou; vazio deixa tudo passar.
+ */
+function combina(parcela: Parcela, termo: string) {
+  const procurado = semAcento(termo)
+  if (!procurado) return true
+
+  return semAcento(`${rotuloDoItem(parcela)} ${parcela.numero}/${parcela.de}`).includes(procurado)
+}
+
+/** Minúsculas e sem acento, para os dois lados da comparação. */
+const semAcento = (texto: string) =>
+  texto
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase('pt-BR')
+    .trim()
 
 /** `toSorted` porque a lista é do cache do React Query: ordenar no lugar mexeria no cache. */
 function ordenar(parcelas: Parcela[], por: string | undefined, descendente: boolean) {
@@ -64,17 +89,21 @@ function ordenar(parcelas: Parcela[], por: string | undefined, descendente: bool
  */
 export default function MeuExtratoPage() {
   const extrato = useExtrato()
-  const { parametros, atualizar } = useFiltrosDaUrl()
+  const { parametros, busca, atualizar } = useFiltrosDaUrl()
 
   const situacaoNaUrl = parametros.get('situacao')
   const situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : undefined
   const ordenacao = useOrdenacao(atualizar)
   const todas = extrato.data?.parcelas ?? []
   const parcelas = ordenar(
-    situacao ? todas.filter(FILTROS[situacao].combina) : todas,
+    todas.filter(
+      (parcela) => (situacao ? FILTROS[situacao].combina(parcela) : true) && combina(parcela, busca),
+    ),
     ordenacao.por,
     ordenacao.descendente,
   )
+  // Quem não tem parcela nenhuma vê uma coisa; quem recortou a lista, outra.
+  const recortando = Boolean(situacao) || Boolean(busca)
   const contar = (filtro: Situacao) =>
     extrato.data ? todas.filter(FILTROS[filtro].combina).length : undefined
 
@@ -84,6 +113,14 @@ export default function MeuExtratoPage() {
 
       {todas.length > 0 ? (
         <FiltrosDaPlanilha
+          acoes={
+            <DialogoDeEscolhaDeParcelas parcelas={todas.filter((p) => emAberto(p) && !p.em_conferencia)} />
+          }
+          busca={{
+            valor: busca,
+            rotulo: 'Buscar parcela',
+            aoBuscar: (termo) => atualizar({ busca: termo }),
+          }}
           principal={
             <Chip
               tom="claro"
@@ -118,12 +155,20 @@ export default function MeuExtratoPage() {
 
         {extrato.data && parcelas.length === 0 ? (
           <div className="motion-safe:animate-entrar grid justify-items-center gap-2 py-6 text-center">
-            <img src={situacao ? mascoteLupa : mascoteCofrinho} alt="" className="w-28 drop-shadow-lg" />
+            <img src={recortando ? mascoteLupa : mascoteCofrinho} alt="" className="w-28 drop-shadow-lg" />
             <p className="text-foreground font-medium">
-              {situacao ? 'Nenhuma parcela nesta situação' : 'Nenhuma parcela ainda'}
+              {/* Três vazios diferentes: quem nunca teve parcela, quem filtrou e quem procurou. Dizer
+                  "aparecem quando você aderir" a quem só digitou um termo é responder outra coisa. */}
+              {busca
+                ? `Nada encontrado para “${busca}”`
+                : situacao
+                  ? 'Nenhuma parcela nesta situação'
+                  : 'Nenhuma parcela ainda'}
             </p>
             <p className="text-muted-foreground text-sm">
-              {situacao ? (
+              {busca ? (
+                'Procure pelo nome da cobrança — "mensalidade", "rifa" — ou limpe a busca.'
+              ) : situacao ? (
                 'Toque em "Todas" para ver a grade inteira.'
               ) : (
                 <>

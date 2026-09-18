@@ -33,8 +33,11 @@ export interface ValorDoDia {
   multa_em_centavos: number
   juros_em_centavos: number
   desconto_em_centavos: number
+  /** Já abatido o `ja_pago_em_centavos`. */
   total_em_centavos: number
   dias_de_atraso: number
+  /** O que já entrou por esta parcela em pagamentos parciais; zero na maioria. */
+  ja_pago_em_centavos: number
 }
 
 /**
@@ -57,9 +60,13 @@ export interface Parcela {
   status: StatusDaParcela
   /** Tem aviso de pagamento esperando a tesouraria. Leitura, não status. */
   em_conferencia: boolean
+  /**
+   * Quanto já entrou por esta parcela — a soma das baixas. Numa parcela em aberto quer dizer
+   * pagamento parcial: ela não fecha antes de o dinheiro cobrir o que ela cobra.
+   */
   valor_pago_em_centavos?: number
   pago_em?: string
-  /** Só na aberta e na vencida. */
+  /** Só na aberta e na vencida, e já abatido o que foi pago em parte. */
   valor_do_dia?: ValorDoDia
 }
 
@@ -67,10 +74,16 @@ export interface Parcela {
 export const emAberto = ({ status }: Pick<Parcela, 'status'>) => status === 'Aberta' || status === 'Vencida'
 
 /**
- * Venceu e o dono ainda não avisou o pagamento — o que o selo do menu conta.
+ * O número que a coluna "Valor" mostra: o que entrou, na paga; o que ainda se deve, nas demais.
  *
- * O `em_conferencia` fica de fora de propósito: quem já mandou o comprovante fez a parte dele, e
- * um número que continua aceso enquanto a tesouraria não confere ensina a pessoa a ignorar o menu.
+ * Na parcela em aberto com pagamento parcial, o pago **não** serve — quem lê a grade quer saber
+ * quanto falta, e o `valor_do_dia` já vem com o abatimento feito pela API.
  */
-export const vencidaSemAviso = ({ status, em_conferencia }: Pick<Parcela, 'status' | 'em_conferencia'>) =>
-  status === 'Vencida' && !em_conferencia
+export const valorNaLista = (parcela: Parcela) =>
+  parcela.status === 'Paga'
+    ? (parcela.valor_pago_em_centavos ?? parcela.valor_original_em_centavos)
+    : (parcela.valor_do_dia?.total_em_centavos ?? parcela.valor_original_em_centavos)
+
+/** Pagou parte e a parcela continua em aberto — o que falta é o `valor_do_dia`. */
+export const pagaEmParte = (parcela: Parcela) =>
+  emAberto(parcela) && (parcela.valor_pago_em_centavos ?? 0) > 0

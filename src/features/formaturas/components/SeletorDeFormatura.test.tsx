@@ -107,8 +107,11 @@ describe('SeletorDeFormatura', () => {
     expect(screen.queryByText(/teste 1789/)).not.toBeInTheDocument()
   })
 
-  /** Um seletor de uma opção só é ruído no cabeçalho: fica o rótulo com curso e turma. */
-  it('vira rótulo quando o usuário só tem uma formatura', async () => {
+  /**
+   * Com uma turma só não há troca a oferecer, e o nome dela já está no Início: o seletor some em
+   * vez de virar uma linha que não faz nada.
+   */
+  it('some quando o usuário só tem uma formatura', async () => {
     entrarNa('f-1')
     servidor.use(
       http.get(MINHAS, () =>
@@ -126,9 +129,9 @@ describe('SeletorDeFormatura', () => {
       ),
     )
 
-    renderizar(<SeletorDeFormatura />)
+    const { container } = renderizar(<SeletorDeFormatura />)
 
-    expect(await screen.findByText('Medicina 2027.1')).toBeInTheDocument()
+    await waitFor(() => expect(container).toBeEmptyDOMElement())
     expect(screen.queryByLabelText('Formatura selecionada')).not.toBeInTheDocument()
   })
 })

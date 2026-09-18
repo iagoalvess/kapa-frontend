@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDaDespesa, rotaDoFornecedor } from '@/config/rotas'
 import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarMesCurto, formatarNumero } from '@/lib/formato'
 import { mensagemDoErro } from '@/lib/http/erros'
@@ -58,8 +59,11 @@ export default function DetalheDaDespesaPage() {
   const editavel = useEscritaLiberada() && tesouraria
   const cancelar = useCancelarDespesa()
   const comprovante = useAbrirComprovante()
-  // Cadastro de fornecedor é da Tesouraria: para os demais a consulta nem sai, e voltaria 403.
-  const fornecedores = useFornecedores({ ativo: true, tamanho: 100 }, tesouraria).data?.itens ?? []
+  // A lista alimenta o `select` do diálogo de edição, e só ele: fechado, não se consulta. Cadastro
+  // de fornecedor é da Tesouraria — para os demais a consulta nem sai, e voltaria 403.
+  const fornecedores =
+    useFornecedores({ ativo: true, tamanho: 100 }, tesouraria && editando).data?.itens ?? []
+  const itensDaFesta = useItensDaFesta(editando).data?.filter((item) => !item.cancelado) ?? []
 
   const voltar = <LinkDeVolta para={ROTAS.despesas}>Despesas</LinkDeVolta>
 
@@ -208,6 +212,7 @@ export default function DetalheDaDespesaPage() {
 
       <DialogoDeDespesa
         aberto={editando ? { despesa: dados } : false}
+        itensDaFesta={itensDaFesta}
         fornecedores={fornecedores}
         aoFechar={() => definirEditando(false)}
       />
