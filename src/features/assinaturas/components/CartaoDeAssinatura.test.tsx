@@ -16,11 +16,11 @@ const ativa = {
   status: 'Ativa',
   plano: {
     id: 'p-1',
-    codigo: 'completo',
-    nome: 'Completo',
-    preco_em_centavos: 34990,
+    codigo: 'premium',
+    nome: 'Premium',
+    preco_em_centavos: 4990,
     ciclo: 'Mensal',
-    limite_de_formandos: 150,
+    limite_de_formandos: 400,
     recomendado: true,
   },
   vigente_ate: '2026-10-12T15:00:00Z',
@@ -45,8 +45,8 @@ describe('CartaoDeAssinatura', () => {
 
     renderizar(<CartaoDeAssinatura />)
 
-    expect(await screen.findByText('Plano Completo')).toBeInTheDocument()
-    expect(screen.getByText(/R\$\s?349,90/)).toBeInTheDocument()
+    expect(await screen.findByText('Plano Premium')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s?49,90/)).toBeInTheDocument()
     expect(screen.getAllByText('12/10/2026')).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Cancelar renovação' })).not.toBeInTheDocument()
   })

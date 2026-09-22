@@ -92,7 +92,13 @@ export default function MeuExtratoPage() {
   const { parametros, busca, atualizar } = useFiltrosDaUrl()
 
   const situacaoNaUrl = parametros.get('situacao')
-  const situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : undefined
+  // Sem `?situacao=` a tela abre no que ainda vai vencer — é o que o formando vem ver. Por isso
+  // "Todas" é explícito na URL: apagar o parâmetro voltaria ao padrão no F5.
+  const situacao = ehSituacao(situacaoNaUrl)
+    ? situacaoNaUrl
+    : situacaoNaUrl === 'todas'
+      ? undefined
+      : 'a-vencer'
   const ordenacao = useOrdenacao(atualizar)
   const todas = extrato.data?.parcelas ?? []
   const parcelas = ordenar(
@@ -102,8 +108,9 @@ export default function MeuExtratoPage() {
     ordenacao.por,
     ordenacao.descendente,
   )
-  // Quem não tem parcela nenhuma vê uma coisa; quem recortou a lista, outra.
-  const recortando = Boolean(situacao) || Boolean(busca)
+  // Quem não tem parcela nenhuma vê uma coisa; quem recortou a lista, outra. Como a tela já abre
+  // filtrada, ter parcela e não ver nenhuma é sempre recorte.
+  const recortando = todas.length > 0
   const contar = (filtro: Situacao) =>
     extrato.data ? todas.filter(FILTROS[filtro].combina).length : undefined
 
@@ -126,7 +133,7 @@ export default function MeuExtratoPage() {
               tom="claro"
               ativo={!situacao}
               contagem={todas.length}
-              onClick={() => atualizar({ situacao: null })}
+              onClick={() => atualizar({ situacao: 'todas' })}
             >
               Todas
             </Chip>
@@ -137,7 +144,7 @@ export default function MeuExtratoPage() {
               key={valor}
               ativo={situacao === valor}
               contagem={contar(valor as Situacao)}
-              onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+              onClick={() => atualizar({ situacao: situacao === valor ? 'todas' : valor })}
             >
               {rotulo}
             </Chip>
@@ -161,14 +168,14 @@ export default function MeuExtratoPage() {
                   "aparecem quando você aderir" a quem só digitou um termo é responder outra coisa. */}
               {busca
                 ? `Nada encontrado para “${busca}”`
-                : situacao
+                : recortando
                   ? 'Nenhuma parcela nesta situação'
                   : 'Nenhuma parcela ainda'}
             </p>
             <p className="text-muted-foreground text-sm">
               {busca ? (
                 'Procure pelo nome da cobrança — "mensalidade", "rifa" — ou limpe a busca.'
-              ) : situacao ? (
+              ) : recortando ? (
                 'Toque em "Todas" para ver a grade inteira.'
               ) : (
                 <>

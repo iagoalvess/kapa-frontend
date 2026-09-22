@@ -16,35 +16,35 @@ const ESSENCIAL = {
   codigo: 'essencial',
   nome: 'Essencial',
   descricao: 'Para a turma que está começando.',
-  preco_em_centavos: 14990,
+  preco_em_centavos: 2990,
   ciclo: 'Mensal',
-  limite_de_formandos: 60,
+  limite_de_formandos: 50,
   modulos: MODULOS,
   recomendado: false,
 }
 
-const COMPLETO = {
+const PREMIUM = {
   id: 'p-2',
-  codigo: 'completo',
-  nome: 'Completo',
+  codigo: 'premium',
+  nome: 'Premium',
   descricao: 'O dia a dia da comissão inteiro.',
-  preco_em_centavos: 34990,
+  preco_em_centavos: 4990,
   ciclo: 'Mensal',
-  limite_de_formandos: 150,
+  limite_de_formandos: 400,
   modulos: [...MODULOS, 'Caixa e relatórios'],
   recomendado: true,
 }
 
-const COMPLETO_ANUAL = {
-  ...COMPLETO,
+const PREMIUM_ANUAL = {
+  ...PREMIUM,
   id: 'p-3',
-  codigo: 'completo-anual',
-  preco_em_centavos: 356900,
-  preco_cheio_em_centavos: 419880,
+  codigo: 'premium-anual',
+  preco_em_centavos: 47900,
+  preco_cheio_em_centavos: 59880,
   ciclo: 'Anual',
 }
 
-const PLANOS = [ESSENCIAL, COMPLETO, COMPLETO_ANUAL]
+const PLANOS = [ESSENCIAL, PREMIUM, PREMIUM_ANUAL]
 
 function entrarComo(papel: string) {
   const corpo = { sub: 'u-1', name: 'Ana', formatura_id: 'f-1', papel }
@@ -55,7 +55,7 @@ function entrarComo(papel: string) {
 }
 
 /** @param assinatura A assinatura da turma; ausente, a API responde 404, como antes de contratar. */
-function comFormatura(status: string, assinatura?: { status: string; plano: typeof COMPLETO }) {
+function comFormatura(status: string, assinatura?: { status: string; plano: typeof PREMIUM }) {
   servidor.use(
     http.get(`${env.VITE_API_URL}/api/v1/planos`, () => HttpResponse.json(PLANOS)),
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status })),
@@ -90,11 +90,11 @@ describe('PlanosPage', () => {
     const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />)
-    expect(await screen.findByText(/R\$\s?349,90/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Contratar Completo' }))
+    expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
-    expect(pedido).toEqual({ planoCodigo: 'completo' })
+    expect(pedido).toEqual({ planoCodigo: 'premium' })
   })
 
   it('quem não é Presidente vê os planos com o motivo no próprio botão', async () => {
@@ -103,19 +103,19 @@ describe('PlanosPage', () => {
 
     renderizar(<PlanosPage />)
 
-    expect(await screen.findByRole('button', { name: /Contratar Completo/ })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /Contratar Premium/ })).toBeDisabled()
     expect(screen.getAllByText('Só o Presidente da comissão contrata o plano.')).not.toHaveLength(0)
   })
 
   it('turma ativa não contrata de novo, e o plano assinado vem marcado', async () => {
     entrarComo(PAPEIS.presidente)
-    comFormatura('Ativa', { status: 'Ativa', plano: COMPLETO })
+    comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM })
 
     renderizar(<PlanosPage />)
 
     expect(await screen.findByRole('button', { name: 'Plano atual' })).toBeDisabled()
     expect(screen.getByRole('button', { name: /Contratar Essencial/ })).toBeDisabled()
-    const contratado = screen.getByRole('article', { name: 'Completo' })
+    const contratado = screen.getByRole('article', { name: 'Premium' })
     expect(within(contratado).getByText('Plano atual', { selector: 'p' })).toBeInTheDocument()
   })
 
@@ -126,7 +126,7 @@ describe('PlanosPage', () => {
 
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Anual' })
 
-    expect(await screen.findByText(/R\$\s?3\.569,00/)).toBeInTheDocument()
+    expect(await screen.findByText(/R\$\s?479,00/)).toBeInTheDocument()
   })
 
   it('o filtro Anual troca os preços', async () => {
@@ -135,14 +135,14 @@ describe('PlanosPage', () => {
     const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />)
-    expect(await screen.findByText(/R\$\s?349,90/)).toBeInTheDocument()
+    expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
 
     await usuario.click(screen.getByRole('button', { name: /^Anual/ }))
 
-    expect(await screen.findByText(/R\$\s?3\.569,00/)).toBeInTheDocument()
-    expect(screen.queryByText(/R\$\s?349,90/)).not.toBeInTheDocument()
+    expect(await screen.findByText(/R\$\s?479,00/)).toBeInTheDocument()
+    expect(screen.queryByText(/R\$\s?49,90/)).not.toBeInTheDocument()
     // No filtro e no card: a porcentagem sai do preço cheio do catálogo, nunca de texto fixo.
-    expect(screen.getAllByText('Economize 15%')).toHaveLength(2)
+    expect(screen.getAllByText('Economize 20%')).toHaveLength(2)
   })
 
   it('a tabela mostra o que cada plano do ciclo inclui', async () => {
@@ -154,6 +154,6 @@ describe('PlanosPage', () => {
     const tabela = within(await screen.findByRole('table'))
     const linha = tabela.getByRole('row', { name: /Caixa e relatórios/ })
     expect(within(linha).getByText('Não incluído no Essencial')).toBeInTheDocument()
-    expect(within(linha).getByText('Incluído no Completo')).toBeInTheDocument()
+    expect(within(linha).getByText('Incluído no Premium')).toBeInTheDocument()
   })
 })

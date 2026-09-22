@@ -28,8 +28,6 @@ describe('FaixaDeStatus', () => {
   afterEach(() => sessao.encerrar())
 
   it.each([
-    ['Rascunho', /ainda não está ativa/],
-    ['AguardandoPagamento', /ainda não está ativa/],
     ['Suspensa', /plano da turma venceu/],
     ['Encerrada', /encerrada em 20\/12\/2026/],
   ] as const)('com a formatura %s, avisa', async (status, texto) => {
@@ -57,26 +55,6 @@ describe('FaixaDeStatus', () => {
     renderizar(<FaixaDeStatus />)
 
     expect(await screen.findByRole('status')).toHaveTextContent(/plano da turma venceu/)
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
-  })
-
-  /** Quem contrata é o Presidente: o resto da comissão não recebe a tarefa dele. */
-  it('antes de contratar, pede o plano ao Presidente e explica a espera ao resto', async () => {
-    entrarNaFormatura()
-    comStatus('Rascunho')
-
-    const { unmount } = renderizar(<FaixaDeStatus />)
-    expect(await screen.findByRole('status')).toHaveTextContent(/Contrate um plano/)
-    unmount()
-
-    const corpo = { sub: 'u-2', name: 'Bia', formatura_id: 'f-1', papel: 'Tesoureiro' }
-    sessao.autenticar({
-      access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
-      expira_em: new Date(Date.now() + 900_000).toISOString(),
-    })
-    renderizar(<FaixaDeStatus />)
-
-    expect(await screen.findByRole('status')).toHaveTextContent(/Falta o presidente concluir/)
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 

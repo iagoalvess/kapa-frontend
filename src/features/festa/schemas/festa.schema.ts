@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { DadosDoItemDaFesta, ItemDaFesta } from '@/types/festa'
+import type { DadosDaProposta, DadosDoItemDaFesta, ItemDaFesta, Proposta } from '@/types/festa'
 
 /*
   Validação de **forma**. O que depende do estado — item cancelado não aceita correção, item com
@@ -72,5 +72,36 @@ export function paraDadosDoItem(formulario: FormularioDoItem): DadosDoItemDaFest
     rateio: formulario.rateio,
     valor_previsto_em_centavos: formulario.valor_previsto_em_centavos,
     quantidade_estimada: formulario.rateio === 'Turma' ? 1 : Number(formulario.quantidade_estimada),
+  }
+}
+
+export const esquemaDeProposta = z.object({
+  titulo: z.string().trim().min(1, 'Informe quem está propondo.').max(120, 'No máximo 120 caracteres.'),
+  valor_em_centavos: z.number().int().min(0, 'O valor não pode ser negativo.'),
+  o_que_inclui: z.string().trim().max(1000, 'No máximo 1000 caracteres.'),
+})
+
+export type FormularioDaProposta = z.infer<typeof esquemaDeProposta>
+
+/** O formulário vazio de uma proposta. */
+export const propostaEmBranco = (): FormularioDaProposta => ({
+  titulo: '',
+  valor_em_centavos: 0,
+  o_que_inclui: '',
+})
+
+/** Uma proposta gravada, de volta ao formulário. */
+export const paraFormularioDaProposta = (proposta: Proposta): FormularioDaProposta => ({
+  titulo: proposta.titulo,
+  valor_em_centavos: proposta.valor_em_centavos,
+  o_que_inclui: proposta.o_que_inclui ?? '',
+})
+
+/** O que o formulário vira na API: campo vazio não vai como texto em branco. */
+export function paraDadosDaProposta(formulario: FormularioDaProposta): DadosDaProposta {
+  return {
+    titulo: formulario.titulo.trim(),
+    valor_em_centavos: formulario.valor_em_centavos,
+    o_que_inclui: formulario.o_que_inclui.trim() || undefined,
   }
 }

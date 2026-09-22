@@ -1,4 +1,4 @@
-import { Menu, X } from 'lucide-react'
+import { GraduationCap, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
@@ -58,7 +58,10 @@ export function CabecalhoDaLanding() {
             </Link>
           </Button>
           <Button asChild>
-            <a href="#contato">Falar com a gente</a>
+            <Link to={ROTAS.criarConta}>
+              <GraduationCap className="size-4" aria-hidden />
+              Criar minha turma
+            </Link>
           </Button>
         </div>
 
@@ -96,9 +99,10 @@ export function CabecalhoDaLanding() {
             </Link>
           </Button>
           <Button asChild>
-            <a href="#contato" onClick={() => definirGavetaAberta(false)}>
-              Falar com a gente
-            </a>
+            <Link to={ROTAS.criarConta} onClick={() => definirGavetaAberta(false)}>
+              <GraduationCap className="size-4" aria-hidden />
+              Criar minha turma
+            </Link>
           </Button>
         </div>
       ) : null}

@@ -189,7 +189,7 @@ function CenaCaixa() {
         <span className="bg-success text-primary-foreground grid size-4 place-items-center rounded-full">
           <Check className="size-3" strokeWidth={3} />
         </span>
-        Plano Completo ativo
+        Plano Premium ativo
       </span>
 
       {/* Os dois últimos pagamentos, no alto à direita — a quina de baixo é do mascote. */}

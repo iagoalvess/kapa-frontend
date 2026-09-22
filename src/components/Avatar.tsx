@@ -18,14 +18,36 @@ function corDe(semente: string) {
 }
 
 /**
- * Círculo com a inicial da pessoa, no pastel que o id dela sorteia.
+ * Círculo com a inicial ou foto da pessoa, no pastel que o id dela sorteia.
  *
  * Decorativo: o nome sempre aparece ao lado, então o leitor de tela pula o círculo.
  *
  * @param nome De onde sai a inicial.
  * @param semente O que decide a cor — o id, para não mudar quando o nome muda.
+ * @param foto Caminho da imagem (opcional). Quando fornecida, exibe o avatar com a foto.
  */
-export function Avatar({ nome, semente, className }: { nome: string; semente: string; className?: string }) {
+export function Avatar({
+  nome,
+  semente,
+  foto,
+  className,
+}: {
+  nome: string
+  semente: string
+  foto?: string
+  className?: string
+}) {
+  if (foto) {
+    return (
+      <img
+        src={foto}
+        alt=""
+        aria-hidden
+        className={cn('size-6 shrink-0 rounded-full object-cover', className)}
+      />
+    )
+  }
+
   return (
     <span
       aria-hidden

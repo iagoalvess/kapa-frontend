@@ -6,10 +6,11 @@ import type {
   Extrato,
   FiltroDeInformes,
   FormaDePagamento,
+  MeioDeRecebimento,
   Informe,
   Parcela,
   PendenciasDoExtrato,
-  PixDaParcela,
+  CobrancaDaParcela,
   ResultadoDaConferencia,
 } from '../types/pagamentos.types'
 
@@ -20,6 +21,7 @@ export interface DadosDoPagamento {
   /** `aaaa-mm-dd`. */
   pago_em: string
   valor_em_centavos: number
+  /** Opcional em qualquer meio: em dinheiro não existe comprovante para anexar (P6). */
   comprovante?: File
 }
 
@@ -55,23 +57,33 @@ export function obterParcela(parcelaId: string, signal?: AbortSignal) {
   return api.get<Parcela>(`${BASE}/parcelas/${parcelaId}`, { signal })
 }
 
-/** O PIX da parcela: a chave vigente e o valor de hoje. */
-export function obterPix(parcelaId: string, signal?: AbortSignal) {
-  return api.get<PixDaParcela>(`${BASE}/parcelas/${parcelaId}/pix`, { signal })
+/** A cobrança da parcela: os meios que a turma aceita e o valor de hoje. */
+export function obterCobranca(parcelaId: string, signal?: AbortSignal) {
+  return api.get<CobrancaDaParcela>(`${BASE}/parcelas/${parcelaId}/cobranca`, { signal })
 }
 
 /**
- * O PIX de várias parcelas: um BR Code só, com a soma do que elas cobram hoje.
+ * A cobrança de várias parcelas: a soma do que elas cobram hoje, pelos mesmos meios.
  *
- * Um QR por parcela viraria um PIX pela metade: quem paga no celular paga o primeiro e fecha a tela.
+ * No PIX é um BR Code só — um QR por parcela viraria um PIX pela metade: quem paga no celular paga
+ * o primeiro e fecha a tela.
  */
-export function obterPixDeVarias(parcelaIds: string[], signal?: AbortSignal) {
-  return api.get<PixDaParcela>(`${BASE}/parcelas/pix`, { query: { parcela_ids: parcelaIds }, signal })
+export function obterCobrancaDeVarias(parcelaIds: string[], signal?: AbortSignal) {
+  return api.get<CobrancaDaParcela>(`${BASE}/parcelas/cobranca`, {
+    query: { parcela_ids: parcelaIds },
+    signal,
+  })
 }
 
-/** O "já paguei". A parcela não muda até a tesouraria conferir. */
-export function informarPagamento({ parcelaId, ...dados }: DadosDoPagamento & { parcelaId: string }) {
-  return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/informes`, { body: formulario(dados) })
+/** O "já paguei", com o meio que o formando usou. A parcela não muda até a tesouraria conferir. */
+export function informarPagamento({
+  parcelaId,
+  meio,
+  ...dados
+}: DadosDoPagamento & { parcelaId: string; meio: MeioDeRecebimento }) {
+  return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/informes`, {
+    body: formulario(dados, { meio }),
+  })
 }
 
 /**
@@ -82,9 +94,10 @@ export function informarPagamento({ parcelaId, ...dados }: DadosDoPagamento & { 
  */
 export function informarPagamentoEmLote({
   parcela_ids,
+  meio,
   ...dados
-}: DadosDoPagamento & { parcela_ids: string[] }) {
-  const corpo = formulario(dados)
+}: DadosDoPagamento & { parcela_ids: string[]; meio: MeioDeRecebimento }) {
+  const corpo = formulario(dados, { meio })
   for (const id of parcela_ids) corpo.append('parcela_ids', id)
 
   return api.post<Parcela[]>(`${BASE}/parcelas/informes`, { body: corpo })

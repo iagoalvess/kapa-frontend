@@ -4,6 +4,8 @@ const DATA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short' })
 const DATA_HORA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short', timeStyle: 'short' })
 const MES_ANO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: 'numeric' })
 const MES_CURTO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: '2-digit' })
+const MES_LONGO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'long', year: 'numeric' })
+const DIA_SEMANA = new Intl.DateTimeFormat(LOCALIDADE, { weekday: 'short' })
 const DIA_MES = new Intl.DateTimeFormat(LOCALIDADE, { day: '2-digit', month: '2-digit' })
 // en-CA sai como 2026-09-14: é só tirar os hífens.
 const DATA_COMPACTA = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -57,6 +59,30 @@ export function formatarMesAno(valor: string | Date | null | undefined) {
 }
 
 /**
+ * Mês por extenso, como `Outubro de 2026` — o cabeçalho que separa os meses da agenda.
+ *
+ * Abreviado ele não serve: "out. de 2026" num título grande parece texto cortado, e o cabeçalho é
+ * o que substitui o calendário na tela.
+ *
+ * A maiúscula é daqui, e não do `capitalize` do CSS: a classe sobe a inicial de **toda** palavra e
+ * escreve "Outubro De 2026". Só a primeira letra é nossa; o resto é o que o idioma manda.
+ */
+export function formatarMesLongo(valor: string | Date | null | undefined) {
+  const mes = formatar(valor, MES_LONGO)
+
+  return mes.charAt(0).toUpperCase() + mes.slice(1)
+}
+
+/**
+ * O dia da semana abreviado, sem ponto: `qua` — o que vai embaixo do dia, no cartão da agenda.
+ *
+ * @param valor Data, tipicamente `yyyy-MM-dd`.
+ */
+export function formatarDiaDaSemana(valor: string | Date | null | undefined) {
+  return formatar(valor, DIA_SEMANA).replace('.', '')
+}
+
+/**
  * Mês e ano curtos, como `mar./26`.
  *
  * É o rótulo de eixo de gráfico: `mar. de 2026` não cabe numa coluna de mês e os rótulos se
@@ -77,6 +103,21 @@ export function formatarDiaMes(valor: string | Date | null | undefined) {
 /** Data e hora no formato `31/12/2026 14:05`, no fuso de quem está olhando. */
 export function formatarDataHora(valor: string | Date | null | undefined) {
   return formatar(valor, DATA_HORA)
+}
+
+/**
+ * A hora de um evento, como `19:30` — o `TimeOnly` da API, que vem `19:30:00`.
+ *
+ * Não passa por `Date` nem por fuso, de propósito: a hora de um evento da agenda não é um instante
+ * em UTC, é "19h no ateliê", e continua sendo 19h em qualquer relógio que abra a tela. Converter
+ * aqui é o que faria a reunião das 19h aparecer às 22h.
+ *
+ * @param valor Hora como `HH:mm` ou `HH:mm:ss`; nula é evento de dia inteiro.
+ */
+export function formatarHora(valor: string | null | undefined) {
+  const hora = valor === null || valor === undefined ? null : /^(\d{2}:\d{2})/.exec(valor)
+
+  return hora ? hora[1] : VAZIO
 }
 
 /**

@@ -2,10 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { chavesDaFesta } from '@/hooks/useItensDaFesta'
 import {
   atualizarItemDaFesta,
+  atualizarProposta,
   cancelarItemDaFesta,
   criarItemDaFesta,
+  criarProposta,
+  desvotarNoItem,
   excluirItemDaFesta,
+  excluirProposta,
   reativarItemDaFesta,
+  votarNaProposta,
 } from '../api/festa.api'
 
 /**
@@ -49,4 +54,29 @@ export function useReativarItem() {
 /** Exclui um item sem despesa. */
 export function useExcluirItem() {
   return useEscritaDaFesta(excluirItemDaFesta)
+}
+
+/** Acrescenta uma candidata ao item. */
+export function useCriarProposta() {
+  return useEscritaDaFesta(criarProposta)
+}
+
+/** Corrige uma proposta. */
+export function useAtualizarProposta() {
+  return useEscritaDaFesta(atualizarProposta)
+}
+
+/** Tira uma proposta da disputa. */
+export function useExcluirProposta() {
+  return useEscritaDaFesta(excluirProposta)
+}
+
+/** O formando escolhe uma proposta, ou troca a que já tinha escolhido. */
+export function useVotar() {
+  return useEscritaDaFesta(votarNaProposta)
+}
+
+/** Tira o voto do formando naquele item. */
+export function useDesvotar() {
+  return useEscritaDaFesta(desvotarNoItem)
 }

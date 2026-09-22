@@ -3,12 +3,29 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * A lista de dados de um cadastro: a chave PIX, o fornecedor, a despesa, o registro do aceite.
+ * A lista de dados de um cadastro: os meios de recebimento, o fornecedor, a despesa, o aceite.
  *
+ * @param rotulo Título acima da lista, quando o cartão traz mais de um bloco de dados. Sem ele a
+ *   lista é a única do cartão, e quem a nomeia é o cabeçalho.
  * @param className Do lado de quem chama; o espaçamento é daqui.
  */
-export function ListaDeDados({ children, className }: { children: ReactNode; className?: string }) {
-  return <dl className={cn('grid gap-3 text-[15px]', className)}>{children}</dl>
+export function ListaDeDados({
+  rotulo,
+  children,
+  className,
+}: {
+  rotulo?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('grid gap-2', className)}>
+      {rotulo ? (
+        <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{rotulo}</h3>
+      ) : null}
+      <dl className="grid gap-3 text-[15px]">{children}</dl>
+    </div>
+  )
 }
 
 /**

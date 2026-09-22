@@ -1,4 +1,4 @@
-import { Fingerprint, ShieldCheck, UserRound } from 'lucide-react'
+import { Fingerprint, GraduationCap, ShieldCheck, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
@@ -6,7 +6,7 @@ import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { FotoDoFormando, type PerfilDoFormando } from '@/features/formandos'
 import { SeletorDeFormatura } from '@/features/formaturas'
-import { usePapel } from '@/hooks/useSessao'
+import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { cn } from '@/lib/utils'
 
 /** Um menu da conta por tela — o header é único. */
@@ -51,6 +51,7 @@ export function MenuDaConta({
   cadastroPendente: boolean
 }) {
   const { tem } = usePapel()
+  const { selecionada } = useFormaturaAtiva()
   // Mesmo recorte da rota da auditoria: `comCadastro` já exclui quem não tem turma na sessão e
   // quem foi desligado.
   const ehGestao = comCadastro && tem(PAPEIS.tesoureiro, PAPEIS.comissao)
@@ -120,6 +121,17 @@ export function MenuDaConta({
             <ShieldCheck strokeWidth={1.75} aria-hidden />
             Privacidade
           </Link>
+
+          {/* O cadastro da turma — nome, instituição, data da colação — sai do menu da esquerda pelo
+              mesmo motivo da auditoria: abre-se uma vez, quando a turma nasce, e ocupava ali a
+              altura de "Membros", que se abre toda semana. O recorte é o da rota: basta ter turma na
+              sessão, inclusive para quem foi desligado, que continua lendo o que é dela. */}
+          {selecionada ? (
+            <Link to={ROTAS.formatura} onClick={fechar} className={estiloDoItem}>
+              <GraduationCap strokeWidth={1.75} aria-hidden />
+              Formatura
+            </Link>
+          ) : null}
 
           {/* A trilha da turma mora aqui, e não no menu da esquerda: ela se abre uma vez por
               assembleia, e ocupava no menu a mesma altura de "Membros", que se abre toda semana.

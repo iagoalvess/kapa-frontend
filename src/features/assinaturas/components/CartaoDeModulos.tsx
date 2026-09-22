@@ -1,3 +1,4 @@
+import { nomeDoModulo } from '@/config/planos'
 import { Check, LayoutGrid, Minus } from 'lucide-react'
 import { Cartao } from '@/components/Cartao'
 import { cn } from '@/lib/utils'
@@ -40,7 +41,7 @@ export function CartaoDeModulos({ planos }: { planos: Plano[] }) {
             {modulos.map((modulo) => (
               <tr key={modulo} className="border-b last:border-0">
                 <th scope="row" className="text-foreground py-2.5 pr-4 text-left font-normal">
-                  {modulo}
+                  {nomeDoModulo(modulo)}
                 </th>
                 {planos.map((plano) => (
                   <td key={plano.id} className="px-3 py-2.5 text-center">

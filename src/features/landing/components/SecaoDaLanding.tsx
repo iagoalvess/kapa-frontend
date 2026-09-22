@@ -2,7 +2,11 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 interface Props {
-  /** Âncora do menu do cabeçalho (`#recursos`). */
+  /**
+   * Âncora do menu do cabeçalho (`#recursos`).
+   *
+   * Vai no conteúdo, não na `<section>` — ver o comentário no corpo.
+   */
   id?: string
   /** A palavra pequena acima do título, em laranja. */
   etiqueta?: string
@@ -10,6 +14,8 @@ interface Props {
   titulo?: ReactNode
   /** Uma ou duas linhas embaixo do título. */
   descricao?: ReactNode
+  /** Menos respiro em cima e embaixo, para a seção caber na tela sem rolagem. */
+  compacta?: boolean
   /** Fundo creme, para alternar com o branco e dar ritmo à rolagem. */
   creme?: boolean
   /** Alinha o cabeçalho à esquerda — usado onde o conteúdo ao lado é uma imagem. */
@@ -34,13 +40,20 @@ export function SecaoDaLanding({
   titulo,
   descricao,
   creme = false,
+  compacta = false,
   aEsquerda = false,
   className,
   children,
 }: Props) {
   return (
-    <section id={id} className={cn('scroll-mt-24 px-4 py-16 sm:py-24', creme && 'bg-brand-wash')}>
-      <div className={cn('mx-auto grid w-full max-w-6xl gap-10', className)}>
+    <section className={cn('px-4', compacta ? 'py-10 sm:py-12' : 'py-16 sm:py-24', creme && 'bg-brand-wash')}>
+      {/*
+        A âncora fica no conteúdo, e não na `<section>`: o respiro de cima é `py-24`, e um
+        `scroll-mt` na seção **soma** a ele — a pessoa clicava em "Planos", caía 96px acima do
+        título e os cards terminavam 170px abaixo da dobra, parecendo cortados. Mirando o conteúdo,
+        o `scroll-mt` só precisa dar conta do cabeçalho grudado (64px) e de um respiro.
+      */}
+      <div id={id} className={cn('mx-auto grid w-full max-w-6xl scroll-mt-20 gap-10', className)}>
         {/* `col-span-full` no cabeçalho: numa seção de coluna única não faz nada, e nas de duas
             colunas (contato, perguntas) é o que impede o título de ocupar só a primeira e empurrar
             o conteúdo para a linha de baixo, deixando meia tela vazia ao lado dele. */}

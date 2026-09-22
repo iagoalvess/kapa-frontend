@@ -28,15 +28,15 @@ export function useFormaturaAtual() {
 /**
  * Status em que cada tipo de escrita passa — espelha as políticas `ExigeFormatura*` da API.
  *
- * - `ativa`: o dia a dia da turma. Só depois de pagar, e nunca em modo leitura.
- * - `editavel`: montar a comissão (convidar e ajustar membros). Vale desde o rascunho, porque
- *   contratar é decisão da comissão, não do Presidente sozinho.
- * - `aberta`: o cadastro da própria pessoa. Só a turma encerrada é arquivo.
+ * - `ativa`: o dia a dia da turma, e nunca em modo leitura.
+ * - `aberta`: o cadastro da própria pessoa. Encerrada e descartada são arquivo.
+ *
+ * `editavel` sumiu em 18/09/2026 junto com `Rascunho`: montar a comissão passou a pedir turma
+ * ativa, como todo o resto, porque toda turma nasce ativa no gratuito.
  */
 const STATUS_QUE_ESCREVEM = {
   ativa: ['Ativa'],
-  editavel: ['Rascunho', 'AguardandoPagamento', 'Ativa'],
-  aberta: ['Rascunho', 'AguardandoPagamento', 'Ativa', 'Suspensa'],
+  aberta: ['Ativa', 'Suspensa'],
 } as const satisfies Record<string, readonly StatusDaFormatura[]>
 
 /**

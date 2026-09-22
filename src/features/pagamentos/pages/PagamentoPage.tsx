@@ -1,29 +1,32 @@
-import { CircleCheck, Hourglass, Info, ReceiptText } from 'lucide-react'
+import { CircleCheck, Hourglass, ReceiptText } from 'lucide-react'
 import { useParams } from 'react-router'
 import mascoteCelular from '@/assets/mascote/celular.webp'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Cartao } from '@/components/Cartao'
 import { ChipDeStatus } from '@/components/ChipDeStatus'
-import { EsqueletoDeCartao, EsqueletoDeCartoes } from '@/components/Esqueleto'
+import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { QrCodePix } from '@/components/QrCodePix'
 import { ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
-import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import { ehErroDaApi } from '@/lib/http/erros'
 import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { CalculoDoValor, temEncargoOuDesconto } from '../components/CalculoDoValor'
+import { ComoPagar } from '../components/ComoPagar'
 import { DialogoDeInforme } from '../components/DialogoDeInforme'
+import { useCobranca, useMeioEscolhido } from '../hooks/useCobranca'
 import { useParcela } from '../hooks/useExtrato'
-import { usePix } from '../hooks/usePix'
 import type { Parcela } from '../types/pagamentos.types'
 
 /**
- * O PIX de uma parcela e o "Já paguei" — o caminho de trinta segundos no celular.
+ * A cobrança de uma parcela e o "Já paguei" — o caminho de trinta segundos no celular.
  *
- * O valor de hoje abre a tela, grande, e o resto é uma sequência numerada: copiar a chave (1) e
- * avisar a tesouraria (2). Copiar vem antes e separado do QR, e o nome do titular fica em destaque:
- * é o que o banco vai mostrar, e conferir o nome é o que protege o formando de uma chave trocada. O
- * PIX é montado na hora, com o valor de hoje; não há poll — quem avisa a confirmação é o e-mail.
+ * O valor de hoje abre a tela, grande, e o resto é uma sequência numerada: pagar (1) e avisar a
+ * tesouraria (2). No PIX, copiar vem antes e separado do QR, e o nome do titular fica em destaque:
+ * é o que o banco vai mostrar, e conferir o nome é o que protege o formando de uma chave trocada.
+ * Com mais de um meio habilitado, o passo 1 abre com as pílulas de escolha.
+ *
+ * A cobrança é montada na hora, com o valor de hoje; não há poll — quem avisa a confirmação é o
+ * e-mail.
  */
 export default function PagamentoPage() {
   const { id = '' } = useParams()
@@ -96,45 +99,18 @@ function Cabecalho({ parcela }: { parcela: Parcela }) {
 
 /** Os dois passos, lado a lado no computador e empilhados no celular. */
 function Pagamento({ parcela }: { parcela: Parcela }) {
-  const pix = usePix(parcela.id, true)
-  const semConta = ehErroDaApi(pix.error) && pix.error.codigo === 'pagamento.sem_conta'
+  const cobranca = useCobranca(parcela.id, true)
+  const semConta = ehErroDaApi(cobranca.error) && cobranca.error.codigo === 'pagamento.sem_conta'
+  const [escolhido, escolher] = useMeioEscolhido(cobranca.data)
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-2">
-      <Cartao
-        passo={1}
-        titulo="Copie a chave PIX"
-        descricao="Cole a chave no app do seu banco para realizar o pagamento."
-      >
-        {pix.isPending ? (
-          <EsqueletoDeCartoes quantidade={1} altura="h-56" className="md:grid-cols-1" />
-        ) : null}
-
-        {pix.isError ? (
-          <p role="alert" className="text-destructive text-sm">
-            {semConta
-              ? 'A comissão ainda está configurando a conta de recebimento da turma. Volte em alguns dias.'
-              : mensagemDoErro(pix.error)}
-          </p>
-        ) : null}
-
-        {pix.data ? (
-          <div className="motion-safe:animate-entrar grid gap-4">
-            <QrCodePix copiaECola={pix.data.copia_e_cola} destaque />
-            <p className="text-muted-foreground grid justify-items-center text-sm">
-              Para
-              <strong className="text-foreground text-base uppercase">{pix.data.nome_do_titular}</strong>
-            </p>
-            <div className="bg-muted text-muted-foreground flex gap-3 rounded-2xl p-4 text-sm">
-              <Info className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
-              <ul className="grid list-inside list-disc gap-1">
-                <li>Confira se o seu banco mostra este nome antes de confirmar.</li>
-                <li>O valor, {formatarCentavos(pix.data.valor_em_centavos)}, vale para hoje.</li>
-              </ul>
-            </div>
-          </div>
-        ) : null}
-      </Cartao>
+      <ComoPagar
+        cobranca={cobranca}
+        escolhido={escolhido}
+        aoEscolher={escolher}
+        descricao="Pague por onde a turma aceita receber, e depois avise a tesouraria."
+      />
 
       <Cartao
         passo={2}
@@ -151,10 +127,11 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
         <DialogoDeInforme
           parcelaIds={[parcela.id]}
           valor_em_centavos={
-            pix.data?.valor_em_centavos ??
+            cobranca.data?.valor_em_centavos ??
             parcela.valor_do_dia?.total_em_centavos ??
             parcela.valor_original_em_centavos
           }
+          meio={escolhido?.meio}
           desabilitado={semConta}
         />
       </Cartao>

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http/cliente'
-import type { ItemDaFesta, MetaDaFesta } from '@/types/festa'
+import type { ItemDaFesta, ItemDaFestaDetalhe, MetaDaFesta } from '@/types/festa'
 
 /**
  * As chaves de cache da festa.
@@ -13,6 +13,7 @@ export const chavesDaFesta = {
   tudo: ['festa'] as const,
   itens: ['festa', 'itens'] as const,
   meta: ['festa', 'meta'] as const,
+  detalhe: (id: string) => ['festa', 'detalhe', id] as const,
 }
 
 /**
@@ -49,5 +50,22 @@ export function useMetaDaFesta() {
   return useQuery({
     queryKey: chavesDaFesta.meta,
     queryFn: ({ signal }) => api.get<MetaDaFesta>('/api/v1/festa/meta', { signal }),
+  })
+}
+
+/**
+ * Um item com as propostas levantadas para ele — o painel da direita da tela da festa.
+ *
+ * Consulta separada da lista de propósito: as propostas só interessam ao item aberto, e é este
+ * endpoint que sabe de quem é cada voto, porque é o único que o servidor resolve contra quem está
+ * lendo. Trazer tudo na lista carregaria toda abertura da tela com o que um item por vez mostra.
+ *
+ * @param id Item aberto. Vazio não consulta — é o estado da tela antes de a lista chegar.
+ */
+export function useDetalheDoItem(id: string) {
+  return useQuery({
+    queryKey: chavesDaFesta.detalhe(id),
+    queryFn: ({ signal }) => api.get<ItemDaFestaDetalhe>(`/api/v1/festa/itens/${id}/detalhe`, { signal }),
+    enabled: !!id,
   })
 }

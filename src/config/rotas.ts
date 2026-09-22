@@ -41,6 +41,8 @@ export const ROTAS = {
   // A régua de cobrança (Tesouraria) e o que ela já enviou (Gestão).
   regua: '/notificacoes/lembretes',
   avisosEnviados: '/notificacoes/enviados',
+  // Todas as datas da turma — colação, festa, reunião, prazo: a Gestão escreve, todo membro lê.
+  agenda: '/agenda',
   // O que a turma está comprando e quanto falta juntar: a Gestão escreve, todo membro lê.
   festa: '/festa',
   // O mural de avisos e o acervo de documentos: a comissão publica, todo membro lê e baixa.
@@ -82,6 +84,9 @@ export const rotaDoMembro = (usuarioId: string) => `${ROTAS.membros}/${usuarioId
 
 /** Uma despesa lançada, onde ela se corrige, paga e cancela: `/financeiro/despesas/:id`. */
 export const rotaDaDespesa = (id: string) => `${ROTAS.despesas}/${id}`
+
+/** Um item da festa, aberto na tela: `/festa/:id`. */
+export const rotaDoItemDaFesta = (id: string) => `${ROTAS.festa}/${id}`
 
 /** Um aviso do mural, inteiro: `/mural/:id`. */
 export const rotaDoAviso = (id: string) => `${ROTAS.mural}/${id}`

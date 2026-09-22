@@ -13,15 +13,19 @@ import { Input } from '@/components/ui/input'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { diaDeHoje } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
-import { useInformarPagamento, useInformarVariasParcelas } from '../hooks/usePix'
+import { MEIOS } from '@/types/recebimento'
+import { useInformarPagamento, useInformarVariasParcelas } from '../hooks/useCobranca'
 import { esquemaDoPagamento, type FormularioDoPagamento } from '../schemas/pagamento.schema'
+import type { MeioDeRecebimento } from '../types/pagamentos.types'
 
 interface Props {
   /** A parcela, ou as várias que este mesmo PIX cobriu. */
   parcelaIds: string[]
-  /** O valor do QR — é o que o formando pagou, quase sempre. */
+  /** O valor cobrado — é o que o formando pagou, quase sempre. */
   valor_em_centavos: number
-  /** Sem conta de recebimento não há o que avisar. */
+  /** O meio que a pessoa escolheu no passo 1; ausente enquanto a cobrança carrega. */
+  meio?: MeioDeRecebimento
+  /** Sem meio de recebimento não há o que avisar. */
   desabilitado?: boolean
 }
 
@@ -37,7 +41,12 @@ interface Props {
  * Serve às duas telas de pagamento, e o caminho da parcela avulsa não passa pelo do lote: é o
  * `POST /parcelas/{id}/informes` que grava o id da parcela na auditoria.
  */
-export function DialogoDeInforme({ parcelaIds, valor_em_centavos, desabilitado = false }: Props) {
+export function DialogoDeInforme({
+  parcelaIds,
+  valor_em_centavos,
+  meio = 'Pix',
+  desabilitado = false,
+}: Props) {
   const [aberto, definirAberto] = useState(false)
   const avulso = useInformarPagamento()
   const varias = useInformarVariasParcelas()
@@ -57,8 +66,9 @@ export function DialogoDeInforme({ parcelaIds, valor_em_centavos, desabilitado =
     }
     const [unica, ...demais] = parcelaIds
 
-    if (unica !== undefined && demais.length === 0) avulso.mutate({ parcelaId: unica, ...valores }, opcoes)
-    else varias.mutate({ parcela_ids: parcelaIds, ...valores }, opcoes)
+    if (unica !== undefined && demais.length === 0)
+      avulso.mutate({ parcelaId: unica, meio, ...valores }, opcoes)
+    else varias.mutate({ parcela_ids: parcelaIds, meio, ...valores }, opcoes)
   })
 
   /** Cada abertura recomeça: hoje, o valor do PIX de agora e nenhum anexo. */
@@ -78,7 +88,7 @@ export function DialogoDeInforme({ parcelaIds, valor_em_centavos, desabilitado =
         aberto={aberto}
         aoFechar={() => definirAberto(false)}
         titulo="Avisar o pagamento"
-        descricao="A tesouraria confere no extrato do banco e confirma. O comprovante ajuda, mas não é obrigatório."
+        descricao={`Você pagou por ${MEIOS[meio].rotulo.toLowerCase()}. A tesouraria confere e confirma — o comprovante ajuda, mas não é obrigatório.`}
       >
         <Form {...formulario}>
           <form onSubmit={enviar} noValidate className="grid gap-4">

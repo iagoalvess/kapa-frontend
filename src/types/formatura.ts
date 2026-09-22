@@ -1,6 +1,5 @@
 /** Ciclo de vida da formatura. Espelha `StatusDaFormatura`. */
-export type StatusDaFormatura =
-  'Rascunho' | 'AguardandoPagamento' | 'Ativa' | 'Suspensa' | 'Encerrada' | 'Descartada'
+export type StatusDaFormatura = 'Ativa' | 'Suspensa' | 'Encerrada' | 'Descartada'
 
 /** A formatura selecionada. Espelha `FormaturaDetalheDTO`. */
 export interface FormaturaDetalhe {
@@ -19,4 +18,6 @@ export interface FormaturaDetalhe {
   criado_em: string
   ativada_em: string | null
   encerrada_em: string | null
+  /** Se a turma já contratou um plano alguma vez. Falsa é a turma no gratuito. */
+  ja_contratou: boolean
 }

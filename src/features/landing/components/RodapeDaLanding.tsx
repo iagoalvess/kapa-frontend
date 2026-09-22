@@ -17,10 +17,7 @@ const COLUNAS = [
   },
   {
     titulo: 'Suporte',
-    links: [
-      { rotulo: 'Perguntas frequentes', href: '#perguntas' },
-      { rotulo: 'Falar com a gente', href: '#contato' },
-    ],
+    links: [{ rotulo: 'Perguntas frequentes', href: '#perguntas' }],
   },
 ] as const
 

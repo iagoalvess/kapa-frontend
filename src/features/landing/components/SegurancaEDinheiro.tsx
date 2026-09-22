@@ -1,77 +1,86 @@
-import { ArrowRight, Landmark, ScrollText, ShieldCheck } from 'lucide-react'
-import { Link } from 'react-router'
-import mascoteLendoDocumento from '@/assets/mascote/lendo-documento.webp'
-import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
+import { FingerprintPattern, RotateCcwClock, WalletMinimal } from 'lucide-react'
+import mascoteCadeado from '@/assets/mascote/cadeado.webp'
+import carteira from '@/assets/outros/carteira.webp'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
 const GARANTIAS = [
   {
-    icone: Landmark,
-    titulo: 'A conta é da turma, não nossa',
+    icone: WalletMinimal,
+    titulo: 'O dinheiro fica com a turma',
     texto:
-      'O formando paga direto na chave PIX da comissão. O Kapa monta o QR e registra a baixa — o dinheiro nunca passa por nós, e não há saldo nosso para segurar, reter ou atrasar.',
+      'O PIX vai direto para a conta da comissão. O Kapa organiza as cobranças e registra os pagamentos, sem receber ou reter o dinheiro.',
   },
   {
-    icone: ScrollText,
-    titulo: 'Trilha de auditoria',
+    icone: RotateCcwClock,
+    titulo: 'Cada mudança tem um registro',
     texto:
-      'Baixa manual, estorno, troca da chave PIX e mudança de papel deixam uma linha com autor, data e o que mudou. É o que a assembleia abre quando alguém pergunta.',
+      'Pagamentos, estornos e alterações na chave PIX ficam no histórico, com autor e data. Mais transparência para prestar contas à turma.',
   },
   {
-    icone: ShieldCheck,
-    titulo: 'LGPD levada a sério',
+    icone: FingerprintPattern,
+    titulo: 'Seus dados protegidos',
     texto:
-      'CPF criptografado no banco e mascarado nas telas, consentimento registrado com versão e data, e o portal do titular para exportar, revogar e pedir eliminação.',
+      'CPF criptografado e mascarado nas telas. Você pode exportar seus dados, revogar consentimentos e solicitar a exclusão pelo portal do titular.',
   },
 ] as const
 
-/**
- * A seção que responde à pergunta que decide a venda: "vocês ficam com o nosso dinheiro?".
- *
- * Não. E é por isso que ela vem antes dos planos — quem chega desconfiado de assessoria de
- * formatura chegou assim por um bom motivo, e nenhuma tabela de preço convence antes dessa
- * resposta (decisão de 14/09/2026, Sprint 8).
- */
+/** Mascote e garantias lado a lado, com o destino do PIX em destaque abaixo da ilustração. */
 export function SegurancaEDinheiro() {
   return (
-    <SecaoDaLanding creme className="lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-      <div className="revelar grid justify-items-start gap-5">
-        <p className="text-brand-text text-sm font-semibold tracking-wide uppercase">Segurança e dinheiro</p>
-        <h2 className="text-foreground text-3xl font-semibold text-balance sm:text-4xl">
-          O dinheiro da turma <span className="text-brand-text">não passa pela gente</span>
-        </h2>
-        <p className="text-muted-foreground text-lg text-pretty">
-          O Kapa é software de gestão, não meio de pagamento. Você cobra na conta da própria comissão e nós
-          organizamos o resto.
-        </p>
+    <SecaoDaLanding
+      creme
+      className="max-w-5xl items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16 lg:gap-24"
+    >
+      <div className="grid justify-items-center gap-6 sm:gap-8">
+        <img
+          src={mascoteCadeado}
+          alt="Mascote do Kapa segurando um cadeado"
+          loading="lazy"
+          decoding="async"
+          width={1280}
+          height={1280}
+          className="h-auto w-56 max-w-full sm:w-64 md:w-80"
+        />
 
-        <img src={mascoteLendoDocumento} alt="" className="motion-safe:animate-flutuar w-40 drop-shadow-xl" />
-
-        <Button asChild variant="outline">
-          <Link to={ROTAS.privacidade}>
-            Ler a Política de Privacidade
-            <ArrowRight aria-hidden />
-          </Link>
-        </Button>
+        {/* Seção creme, cartão no claro do hero — o mesmo par dos cartões de Recursos. */}
+        <div className="border-brand-tint/70 bg-background flex w-full max-w-sm items-center gap-4 rounded-2xl border px-5 py-4">
+          <img
+            src={carteira}
+            alt=""
+            loading="lazy"
+            width={1280}
+            height={1280}
+            className="size-14 shrink-0 object-contain"
+          />
+          <p className="text-muted-foreground text-xs leading-5 sm:text-sm">
+            <strong className="text-foreground block font-semibold">
+              Direto para a carteira da comissão
+            </strong>
+            <span className="block">O dinheiro não passa pelo Kapa.</span>
+          </p>
+        </div>
       </div>
 
-      <ul className="grid gap-4">
-        {GARANTIAS.map((garantia) => (
-          <li
-            key={garantia.titulo}
-            className="revelar bg-card shadow-cartao flex items-start gap-4 rounded-3xl p-6"
-          >
-            <span className="bg-brand-tint text-brand-text inline-flex size-11 shrink-0 items-center justify-center rounded-2xl">
-              <garantia.icone className="size-5" strokeWidth={1.75} aria-hidden />
-            </span>
-            <div className="grid gap-1">
-              <h3 className="text-foreground text-lg font-semibold">{garantia.titulo}</h3>
-              <p className="text-muted-foreground text-pretty">{garantia.texto}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="grid gap-7 sm:gap-8">
+        <h2 className="text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+          Segurança para
+          <span className="block">sua turma</span>
+        </h2>
+
+        <ul className="grid gap-6">
+          {GARANTIAS.map((garantia) => (
+            <li key={garantia.titulo} className="flex items-start gap-3.5">
+              <span className="text-brand-text inline-flex size-8 shrink-0 items-center justify-center">
+                <garantia.icone className="size-6" strokeWidth={1.5} aria-hidden />
+              </span>
+              <div className="grid gap-1">
+                <h3 className="text-foreground text-base leading-6 font-semibold">{garantia.titulo}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed text-pretty">{garantia.texto}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </SecaoDaLanding>
   )
 }

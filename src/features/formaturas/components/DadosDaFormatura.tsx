@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CircleCheck, GraduationCap } from 'lucide-react'
 import { useForm, useFormState } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
@@ -30,9 +30,6 @@ const paraFormulario = (formatura: FormaturaDetalhe): FormularioDeFormatura => (
   quantidade_estimada_de_formandos: String(formatura.quantidade_estimada_de_formandos),
 })
 
-const naoContratada = (formatura: FormaturaDetalhe) =>
-  formatura.status === 'Rascunho' || formatura.status === 'AguardandoPagamento'
-
 /**
  * Os dados cadastrais da formatura: todo membro lê, só o Presidente edita.
  *
@@ -43,7 +40,7 @@ const naoContratada = (formatura: FormaturaDetalhe) =>
  */
 export function DadosDaFormatura({ formatura }: { formatura: FormaturaDetalhe }) {
   const { ehPresidente } = usePapel()
-  const editavel = ehPresidente && (naoContratada(formatura) || formatura.status === 'Ativa')
+  const editavel = ehPresidente && formatura.status === 'Ativa'
 
   // Chave pelo id: trocar de turma remonta o formulário com os valores da nova.
   if (editavel) return <FormularioDeEdicao key={formatura.id} formatura={formatura} />
@@ -57,8 +54,11 @@ export function DadosDaFormatura({ formatura }: { formatura: FormaturaDetalhe })
 }
 
 /**
- * Fim da vida da turma, para o Presidente: encerrar depois de pagar, descartar antes. Para os
- * demais — e para a turma já encerrada — não há o que mostrar.
+ * Fim da vida da turma, para o Presidente: a turma do gratuito descarta, a que contratou encerra.
+ * Para os demais — e para a turma já encerrada — não há o que mostrar.
+ *
+ * A escolha é por `ja_contratou`, e não por status: desde que toda turma nasce ativa, o status não
+ * distingue mais quem pagou de quem não pagou.
  *
  * @param formatura A formatura da sessão, já carregada.
  */
@@ -66,7 +66,7 @@ export function CicloDaFormatura({ formatura }: { formatura: FormaturaDetalhe })
   const { ehPresidente } = usePapel()
   if (!ehPresidente) return null
 
-  if (naoContratada(formatura)) return <DescartarFormatura />
+  if (formatura.status === 'Ativa' && !formatura.ja_contratou) return <DescartarFormatura />
   if (formatura.status === 'Ativa' || formatura.status === 'Suspensa') return <EncerrarFormatura />
   return null
 }
@@ -105,8 +105,18 @@ function FormularioDeEdicao({ formatura }: { formatura: FormaturaDetalhe }) {
               <CampoDeNome />
             </div>
             <PassoDaTurma emPares />
-            <PassoDoTamanho emPares />
+            {/* Sem as duas datas: elas são eventos da agenda desde a Sprint 19, e editá-las aqui
+                também seria um segundo lugar de escrita para o mesmo dia. */}
+            <PassoDoTamanho emPares comDatas={false} />
           </div>
+
+          <p className="text-muted-foreground text-sm">
+            As datas da turma — colação, festa e o que mais for marcado — vivem na{' '}
+            <Link to={ROTAS.agenda} className="text-brand-text underline-offset-4 hover:underline">
+              Agenda
+            </Link>
+            .
+          </p>
 
           <ErroDoFormulario />
 

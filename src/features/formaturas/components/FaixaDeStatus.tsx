@@ -12,21 +12,8 @@ const TONS = {
   neutro: 'bg-neutral-bg text-neutral-text',
 } as const
 
-function faixa(
-  formatura: FormaturaDetalhe,
-  ehPresidente: boolean,
-): { tom: keyof typeof TONS; texto: string; acao?: string } | null {
+function faixa(formatura: FormaturaDetalhe): { tom: keyof typeof TONS; texto: string; acao?: string } | null {
   switch (formatura.status) {
-    case 'Rascunho':
-    case 'AguardandoPagamento':
-      // Quem contrata é o Presidente: para ele o aviso é a próxima tarefa; para o resto, a espera.
-      return {
-        tom: 'alerta',
-        texto: ehPresidente
-          ? 'Sua formatura ainda não está ativa. Contrate um plano para liberar a turma.'
-          : 'A formatura ainda não está ativa. Falta o presidente concluir a contratação.',
-        acao: 'Contratar',
-      }
     case 'Suspensa':
       return {
         tom: 'perigo',
@@ -66,7 +53,7 @@ export function FaixaDeStatus() {
         texto: `Você foi desligado desta turma em ${formatarData(desligadoEm)}. Seu histórico de pagamentos e o seu termo continuam disponíveis; para voltar, fale com a comissão.`,
       }
     : data
-      ? faixa(data, ehPresidente)
+      ? faixa(data)
       : null
 
   if (!conteudo) return null

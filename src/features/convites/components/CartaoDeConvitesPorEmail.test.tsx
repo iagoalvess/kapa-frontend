@@ -36,9 +36,11 @@ const pendente = { ...aceito, id: 'c-3', email: 'carla@exemplo.com', usos_feitos
 // O link da turma vem na mesma lista, sem `email`: este cartão não o mostra.
 const link = { ...aceito, id: 'c-1', email: undefined, usos_maximos: 80, status: 'Pendente' }
 
-function responder(convites: unknown[] = [], status = 'Ativa') {
+function responder(convites: unknown[] = [], status = 'Ativa', extras: object = { ja_contratou: true }) {
   servidor.use(
-    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status, quantidade_estimada_de_formandos: 80 })),
+    http.get(ATUAL, () =>
+      HttpResponse.json({ id: 'f-1', status, quantidade_estimada_de_formandos: 80, ...extras }),
+    ),
     http.get(CONVITES, () => HttpResponse.json(convites)),
   )
 }
@@ -60,14 +62,14 @@ describe('CartaoDeConvitesPorEmail', () => {
     expect(await screen.findByLabelText('Papel do convidado')).toBeInTheDocument()
   })
 
-  /** Antes de pagar, a comissão se monta por e-mail; formando espera a contratação. */
-  it('em rascunho, o Presidente convida só a comissão', async () => {
-    responder([], 'Rascunho')
+  /** No gratuito a comissão se monta por e-mail; formando espera a contratação. */
+  it('no plano gratuito, o Presidente convida só a comissão', async () => {
+    responder([], 'Ativa', { ja_contratou: false })
     entrarComo(PAPEIS.presidente)
 
     renderizar(<CartaoDeConvitesPorEmail />)
 
-    await screen.findByText(/Antes de contratar, chame a comissão/)
+    await screen.findByText(/Para convidar formandos, contrate um plano/)
     await waitFor(() => {
       const papeis = within(screen.getByLabelText('Papel do convidado')).getAllByRole('option')
       expect(papeis.map((opcao) => opcao.textContent)).toEqual(['Tesoureiro', 'Comissão', 'Presidente'])

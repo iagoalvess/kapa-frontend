@@ -1,4 +1,4 @@
-import type { Parcela } from './types/pagamentos.types'
+import type { CobrancaDaParcela, MeioDaCobranca, Parcela } from './types/pagamentos.types'
 
 /**
  * Uma parcela como a API devolve, para os testes da feature: sem descrição nem pagamento, os campos
@@ -60,3 +60,53 @@ export const pagaDeTeste = (mudancas: Partial<Parcela> = {}) =>
     valor_do_dia: undefined,
     ...mudancas,
   })
+
+/** Um BR Code de verdade — o do manual do Banco Central. */
+export const COPIA_E_COLA =
+  '00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D'
+
+/** O PIX pronto para pagar, com a chave da comissão. */
+export const pixDeTeste = (): MeioDaCobranca => ({
+  meio: 'Pix',
+  pix: {
+    copia_e_cola: COPIA_E_COLA,
+    chave: '52998224725',
+    nome_do_titular: 'Comissão Medicina 2027',
+  },
+  transferencia: null,
+  instrucao: null,
+})
+
+/** A conta para transferência, como a comissão a digitou. */
+export const tedDeTeste = (): MeioDaCobranca => ({
+  meio: 'Transferencia',
+  pix: null,
+  transferencia: {
+    banco: 'Banco do Brasil',
+    agencia: '1234-5',
+    conta: '98765-4',
+    tipo_de_conta: 'Corrente',
+    titular: 'Comissão Medicina 2027',
+  },
+  instrucao: null,
+})
+
+/** O dinheiro em mãos, que é só instrução. */
+export const dinheiroDeTeste = (): MeioDaCobranca => ({
+  meio: 'Dinheiro',
+  pix: null,
+  transferencia: null,
+  instrucao: 'Entregue a Bruna Tesoureira, nas reuniões de quinta.',
+})
+
+/**
+ * A cobrança como a API a devolve. Sem meios informados, só o PIX — é a turma de antes da Sprint 18,
+ * e a tela dela não tem seletor.
+ *
+ * @param meios Os meios habilitados, na ordem em que a tela os oferece.
+ */
+export const cobrancaDeTeste = (meios: MeioDaCobranca[] = [pixDeTeste()]): CobrancaDaParcela => ({
+  valor_em_centavos: 35_000,
+  identificador: 'KAPA0123456789ABCDEF01234',
+  meios,
+})

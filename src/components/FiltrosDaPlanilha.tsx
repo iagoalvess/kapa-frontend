@@ -13,8 +13,8 @@ interface Props {
   busca?: { valor: string; rotulo: string; aoBuscar: (termo: string | null) => void }
   /** Botões à direita da busca: o painel de filtros e a ação da tela. */
   acoes?: ReactNode
-  /** A ação sobre o que está marcado na planilha; fica colada à esquerda da contagem. */
-  lote?: ReactNode
+  /** O que fica colado à esquerda da contagem: a ação do lote, uma legenda de cores. */
+  antesDaContagem?: ReactNode
   /** "Mostrando 20 de 80 membros" — o da página sobre o total do filtro. */
   contagem?: { mostrando: number; total: number; unidade: string }
   /** Texto no lugar da contagem, para a tela que não lista registros ("1 de janeiro a 16 de setembro"). */
@@ -33,7 +33,7 @@ export function FiltrosDaPlanilha({
   legenda,
   busca,
   acoes,
-  lote,
+  antesDaContagem,
   contagem,
   nota,
 }: Props) {
@@ -50,7 +50,7 @@ export function FiltrosDaPlanilha({
         </div>
       </div>
 
-      {filtros || lote || contagem || nota ? (
+      {filtros || antesDaContagem || contagem || nota ? (
         <div className="flex flex-wrap items-center gap-2">
           {filtros ? (
             <fieldset className="flex flex-wrap gap-2">
@@ -59,10 +59,10 @@ export function FiltrosDaPlanilha({
             </fieldset>
           ) : null}
 
-          {/* A ação do lote encosta na contagem, e não no rodapé da tela: é aqui que se lê quantos
-              itens a lista tem, e é onde a pessoa já está olhando ao terminar de marcar. */}
+          {/* Encosta na contagem, e não no rodapé da tela: é aqui que se lê quantos itens a lista
+              tem, e é onde a pessoa já está olhando ao terminar de marcar. */}
           <div className="ml-auto flex flex-wrap items-center gap-3">
-            {lote}
+            {antesDaContagem}
 
             {contagem && contagem.mostrando > 0 ? (
               <p className="text-muted-foreground text-sm">

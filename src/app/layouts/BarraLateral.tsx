@@ -1,9 +1,9 @@
 import {
   BadgeCheck,
+  CalendarDays,
   BellRing,
   Handshake,
   LifeBuoy,
-  ClipboardCheck,
   Coins,
   FileSignature,
   FileText,
@@ -414,10 +414,10 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 <ItemDeMenu to={ROTAS.membros} icone={Users} aoNavegar={aoNavegar} secao>
                   Membros
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.adesoes} icone={ClipboardCheck} aoNavegar={aoNavegar}>
-                  Adesões
+                <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
+                  Agenda
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
                   A festa
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
@@ -425,9 +425,6 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
                   Documentos
-                </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.formatura} icone={GraduationCap} aoNavegar={aoNavegar}>
-                  Dados da formatura
                 </ItemDeMenu>
               </Secao>
             </>
@@ -441,7 +438,10 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
 
               {/* O que não pode se perder na rolagem do grupo, e a turma que ele lê sem administrar. */}
               <Secao titulo="A turma">
-                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
+                  Agenda
+                </ItemDeMenu>
+                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
                   A festa
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
@@ -449,9 +449,6 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
                   Documentos
-                </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.formatura} icone={GraduationCap} aoNavegar={aoNavegar}>
-                  Dados da formatura
                 </ItemDeMenu>
               </Secao>
 

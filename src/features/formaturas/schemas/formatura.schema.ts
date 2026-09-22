@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { DadosDoEvento } from '@/types/agenda'
 import type { DadosDaFormatura } from '../types/formaturas.types'
 
 /*
@@ -54,7 +55,12 @@ export function sugerirNome({ curso, ano }: FormularioDeFormatura) {
   return `${curso.trim()} ${ano}`
 }
 
-/** Converte o formulário no corpo da API. */
+/**
+ * Converte o formulário no corpo da API.
+ *
+ * Sem as duas datas: desde a Sprint 19 elas são eventos da agenda, e vão num `POST /agenda` logo
+ * depois — ver {@link paraEventosIniciais}. O cadastro da turma não as guarda mais.
+ */
 export function paraDados(formulario: FormularioDeFormatura): DadosDaFormatura {
   return {
     nome: formulario.nome.trim(),
@@ -62,8 +68,41 @@ export function paraDados(formulario: FormularioDeFormatura): DadosDaFormatura {
     instituicao: formulario.instituicao.trim(),
     ano: Number(formulario.ano),
     semestre: Number(formulario.semestre),
-    previsao_de_colacao: formulario.previsao_de_colacao || null,
-    previsao_da_festa: formulario.previsao_da_festa || null,
     quantidade_estimada_de_formandos: Number(formulario.quantidade_estimada_de_formandos),
   }
+}
+
+/**
+ * As datas que o wizard perguntou, como eventos da agenda — nenhuma, uma ou duas.
+ *
+ * O wizard continua perguntando a colação e a festa porque é o momento em que a comissão as tem na
+ * cabeça; o que mudou é onde elas caem. Elas não podem ir no mesmo `POST` da formatura: o
+ * isolamento por turma carimba a linha com a formatura **da sessão**, e no momento em que a turma
+ * nasce a sessão ainda é a de antes dela. Só depois de o token novo entrar é que existe turma para
+ * a agenda pertencer.
+ *
+ * Nascem `AConfirmar`: é o que o campo dizia — "previsão".
+ *
+ * @param formulario O formulário preenchido.
+ */
+export function paraEventosIniciais(formulario: FormularioDeFormatura): DadosDoEvento[] {
+  const eventos: DadosDoEvento[] = []
+
+  if (formulario.previsao_de_colacao)
+    eventos.push({
+      titulo: 'Colação de grau',
+      tipo: 'Colacao',
+      situacao: 'AConfirmar',
+      data: formulario.previsao_de_colacao,
+    })
+
+  if (formulario.previsao_da_festa)
+    eventos.push({
+      titulo: 'Festa de formatura',
+      tipo: 'Festa',
+      situacao: 'AConfirmar',
+      data: formulario.previsao_da_festa,
+    })
+
+  return eventos
 }

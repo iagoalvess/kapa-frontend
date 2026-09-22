@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { Plano } from '../types/assinaturas.types'
-import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO } from '@/config/planos'
+import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO, nomeDoModulo } from '@/config/planos'
 
 const POR_CICLO = { Mensal: '/mês', Anual: '/ano' } as const
 
@@ -102,7 +102,7 @@ export function CardDePlano({
           {plano.modulos.map((modulo) => (
             <li key={modulo} className="text-foreground flex items-start gap-2">
               <Check className="text-brand-text mt-0.5 size-4 shrink-0" strokeWidth={2.5} aria-hidden />
-              {modulo}
+              {nomeDoModulo(modulo)}
             </li>
           ))}
         </ul>

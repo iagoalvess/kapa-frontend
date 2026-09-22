@@ -61,6 +61,8 @@ export interface ItemDaFesta {
   pago_em_centavos: number
   /** Quanto o item pesa no custo da festa: o contratado, ou o previsto. Zero no cancelado. */
   custo_em_centavos: number
+  /** Candidatas levantadas pela comissão; o detalhe traz cada uma. */
+  quantidade_de_propostas: number
   /** Despesas vinculadas — com alguma, excluir devolve 409 e o caminho é cancelar. */
   quantidade_de_despesas: number
   estado: EstadoDoItem
@@ -105,4 +107,35 @@ export function percentualDaMeta(arrecadado: number, custo: number) {
   if (custo <= 0) return 0
 
   return Math.min(100, Math.round((arrecadado / custo) * 100))
+}
+
+/**
+ * Uma candidata a ser contratada para um item: "Banda X, R$ 8.000".
+ *
+ * Existe só enquanto o item está "a contratar" — depois da despesa a escolha já aconteceu. Não some
+ * quando o item é contratado: fica como o registro de por que a turma escolheu aquela.
+ */
+export interface Proposta {
+  id: string
+  titulo: string
+  valor_em_centavos: number
+  /** O que ela entrega, em Markdown. Nulo: só o nome e o preço. */
+  o_que_inclui: string | null
+  /** Quantos formandos escolheram esta. Contagem, nunca contador gravado. */
+  votos: number
+  /** Se o voto de quem está lendo é nesta. */
+  meu_voto: boolean
+}
+
+/** Um item com as candidatas levantadas para ele — o painel da direita. Espelha `ItemDaFestaDetalheDTO`. */
+export interface ItemDaFestaDetalhe {
+  item: ItemDaFesta
+  propostas: Proposta[]
+}
+
+/** Uma proposta como a tela a envia. Espelha `PropostaRequestDTO`. */
+export interface DadosDaProposta {
+  titulo: string
+  valor_em_centavos: number
+  o_que_inclui?: string
 }

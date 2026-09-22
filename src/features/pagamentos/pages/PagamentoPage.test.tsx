@@ -6,35 +6,30 @@ import { env } from '@/config/env'
 import { diaDeHoje, formatarCentavos } from '@/lib/formato'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
-import { pagaDeTeste, parcelaDeTeste } from '../dadosDeTeste'
+import {
+  cobrancaDeTeste,
+  dinheiroDeTeste,
+  pagaDeTeste,
+  parcelaDeTeste,
+  pixDeTeste,
+  tedDeTeste,
+} from '../dadosDeTeste'
 import type { Parcela } from '../types/pagamentos.types'
 import PagamentoPage from './PagamentoPage'
 
 const PARCELA = `${env.VITE_API_URL}/api/v1/parcelas/pa-1`
 
-/** Um BR Code de verdade — o do manual do Banco Central. */
-const COPIA_E_COLA =
-  '00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D'
-
 const renderizarPagamento = () =>
   renderizar(<PagamentoPage />, '/extrato/parcelas/pa-1/pagar', '/extrato/parcelas/:id/pagar')
 
-function responder(parcela: Parcela = parcelaDeTeste()) {
+function responder(parcela: Parcela = parcelaDeTeste(), cobranca = cobrancaDeTeste()) {
   const informes: FormData[] = []
   servidor.use(
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
       HttpResponse.json({ id: 'f-1', status: 'Ativa' }),
     ),
     http.get(PARCELA, () => HttpResponse.json(parcela)),
-    http.get(`${PARCELA}/pix`, () =>
-      HttpResponse.json({
-        copia_e_cola: COPIA_E_COLA,
-        valor_em_centavos: 35_000,
-        chave: '52998224725',
-        nome_do_titular: 'Comissão Medicina 2027',
-        identificador: 'KAPA0123456789ABCDEF01234',
-      }),
-    ),
+    http.get(`${PARCELA}/cobranca`, () => HttpResponse.json(cobranca)),
     http.post(`${PARCELA}/informes`, async ({ request }) => {
       informes.push(await request.formData())
       return HttpResponse.json({ ...parcela, em_conferencia: true })
@@ -58,10 +53,47 @@ describe('PagamentoPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('sem chave cadastrada, explica que a comissão ainda está configurando', async () => {
+  /** Critério de aceite da Sprint 18: turma que nunca abriu a tela de meios não vê seletor nenhum. */
+  it('com um meio só, não há escolha a fazer', async () => {
+    responder()
+
+    renderizarPagamento()
+
+    await screen.findByText('Comissão Medicina 2027')
+    expect(screen.queryByRole('group', { name: 'Como você quer pagar' })).not.toBeInTheDocument()
+  })
+
+  it('com dois meios, escolher dinheiro troca o conteúdo e o aviso vai com o meio escolhido', async () => {
+    const informes = responder(parcelaDeTeste(), cobrancaDeTeste([pixDeTeste(), dinheiroDeTeste()]))
+
+    renderizarPagamento()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Dinheiro' }))
+    expect(screen.getByText('Entregue a Bruna Tesoureira, nas reuniões de quinta.')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'QR Code do PIX' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Já paguei' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
+
+    expect(informes[0]?.get('meio')).toBe('Dinheiro')
+    expect(informes[0]?.has('comprovante')).toBe(false)
+  })
+
+  it('a transferência mostra os dados da conta, e não um QR', async () => {
+    responder(parcelaDeTeste(), cobrancaDeTeste([tedDeTeste()]))
+
+    renderizarPagamento()
+
+    expect(await screen.findByText('Banco do Brasil')).toBeInTheDocument()
+    expect(screen.getByText('1234-5')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar agência' })).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'QR Code do PIX' })).not.toBeInTheDocument()
+  })
+
+  it('sem meio cadastrado, explica que a comissão ainda está configurando', async () => {
     responder()
     servidor.use(
-      http.get(`${PARCELA}/pix`, () =>
+      http.get(`${PARCELA}/cobranca`, () =>
         HttpResponse.json(
           { status: 409, codigo: 'pagamento.sem_conta', detail: 'Sem conta.' },
           { status: 409 },
@@ -91,10 +123,11 @@ describe('PagamentoPage', () => {
     expect(informes).toHaveLength(1)
     expect(informes[0]?.get('pago_em')).toBe(diaDeHoje())
     expect(informes[0]?.get('valor_em_centavos')).toBe('35000')
+    expect(informes[0]?.get('meio')).toBe('Pix')
     expect(informes[0]?.has('comprovante')).toBe(false)
   })
 
-  it('parcela paga não pede PIX nenhum', async () => {
+  it('parcela paga não pede cobrança nenhuma', async () => {
     responder(pagaDeTeste({ id: 'pa-1' }))
 
     renderizarPagamento()

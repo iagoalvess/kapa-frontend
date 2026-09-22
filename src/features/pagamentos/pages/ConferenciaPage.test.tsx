@@ -29,8 +29,10 @@ const informe = (id: string, nome: string, dados: Partial<Informe> = {}): Inform
   valor_em_centavos: 35_000,
   devido_em_centavos: 35_000,
   tem_comprovante: false,
+  meio_escolhido: 'Pix',
   status: 'Pendente',
   informado_em: '2026-09-12T13:00:00Z',
+  conferido_em: null,
   ...dados,
 })
 

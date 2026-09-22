@@ -1,12 +1,10 @@
 import type { Parcela } from '@/types/cobranca'
 import type { PaginacaoRequest } from '@/types/paginacao'
+import type { DadosBancarios, MeioDeRecebimento } from '@/types/recebimento'
+
+export type { MeioDeRecebimento } from '@/types/recebimento'
 
 export type { Parcela, StatusDaParcela, ValorDoDia } from '@/types/cobranca'
-
-/*
-  A API omite campo nulo (`WhenWritingNull`): o que pode faltar é opcional aqui, e se testa por
-  presença — nunca `=== null`.
-*/
 
 /** Como o dinheiro chegou. Espelha `FormaDePagamento`. */
 export type FormaDePagamento = 'Pix' | 'Dinheiro' | 'Transferencia' | 'Outro'
@@ -18,8 +16,8 @@ export type StatusDoInforme = 'Pendente' | 'Confirmado' | 'Recusado'
 export interface Extrato {
   /** Soma do valor de hoje das abertas e vencidas. */
   em_aberto_em_centavos: number
-  /** A primeira a pagar — aberta ou vencida, sem aviso pendente. */
-  proxima?: Parcela
+  /** A primeira a pagar — aberta ou vencida, sem aviso pendente; nula quando não há. */
+  proxima: Parcela | null
   parcelas: Parcela[]
 }
 
@@ -29,15 +27,34 @@ export interface PendenciasDoExtrato {
   vencidas_sem_aviso: number
 }
 
-/** O PIX de uma parcela, montado na hora. Espelha `PixDaParcelaDTO`. */
-export interface PixDaParcela {
+/** O PIX pronto para pagar. Espelha `PixParaPagarDTO`. */
+export interface PixParaPagar {
   copia_e_cola: string
-  /** O valor de hoje. */
-  valor_em_centavos: number
   chave: string
   /** O nome que o banco vai mostrar. */
   nome_do_titular: string
+}
+
+/**
+ * Um meio que a turma aceita, com o que a tela precisa mostrar. Espelha `MeioDaCobrancaDTO`.
+ *
+ * Só o campo do próprio meio vem preenchido; os outros vêm `null`.
+ */
+export interface MeioDaCobranca {
+  meio: MeioDeRecebimento
+  pix: PixParaPagar | null
+  transferencia: DadosBancarios | null
+  /** Com quem falar, em `Dinheiro`. */
+  instrucao: string | null
+}
+
+/** A cobrança da parcela, montada na hora. Espelha `CobrancaDaParcelaDTO`. */
+export interface CobrancaDaParcela {
+  /** O valor de hoje, somado quando são várias parcelas. */
+  valor_em_centavos: number
   identificador: string
+  /** Os meios habilitados, ao menos um. Com um só, a tela não desenha seletor. */
+  meios: MeioDaCobranca[]
 }
 
 /** Um aviso de pagamento na fila da tesouraria. Espelha `InformeDTO`. */
@@ -49,10 +66,12 @@ export interface Informe {
   /** O valor da parcela no dia informado. */
   devido_em_centavos: number
   tem_comprovante: boolean
+  /** Como o formando diz ter pago; nulo nos avisos anteriores à Sprint 18. */
+  meio_escolhido: MeioDeRecebimento | null
   status: StatusDoInforme
   informado_em: string
-  /** Quando a tesouraria confirmou ou recusou; ausente enquanto pendente. */
-  conferido_em?: string
+  /** Quando a tesouraria confirmou ou recusou; nulo enquanto pendente. */
+  conferido_em: string | null
 }
 
 /** Filtros de `GET /api/v1/informes`. */

@@ -1,4 +1,5 @@
-import { ArrowRight, Check, GraduationCap, Play } from 'lucide-react'
+import { Check, Gift, GraduationCap, Play } from 'lucide-react'
+import { Link } from 'react-router'
 import fotoBaile from '@/assets/fotos/baile.webp'
 import fotoBeca from '@/assets/fotos/beca.webp'
 import fotoConvite from '@/assets/fotos/convite.webp'
@@ -7,9 +8,10 @@ import fotoTurma from '@/assets/fotos/turma.webp'
 import fotoViagem from '@/assets/fotos/viagem.webp'
 import pin from '@/assets/fotos/pin.webp'
 import mascoteEncostado from '@/assets/mascote/encostado.webp'
-import alvo from '@/assets/outros/alvo.webp'
 import { Button } from '@/components/ui/button'
+import { ROTAS } from '@/config/rotas'
 import { cn } from '@/lib/utils'
+import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
 
 /**
  * A primeira tela: uma frase de valor para a comissão, o CTA primário e o mascote.
@@ -18,8 +20,9 @@ import { cn } from '@/lib/utils'
  * comissão que passa três anos cobrando os colegas num grupo de WhatsApp. A promessa da tela é a
  * dor dela, e não uma descrição de módulos.
  *
- * O selo do PIX aparece logo aqui, antes de qualquer recurso, porque é a primeira pergunta de toda
- * comissão ("vocês ficam com o dinheiro?") e a resposta é o que decide a venda (Sprint 8).
+ * A linha do presente carrega a promessa do grátis, que é o CTA: a comissão monta a turma inteira
+ * sem pagar nada, e só entra conta quando as parcelas começam. Ela vem antes de qualquer recurso
+ * pelo mesmo motivo.
  *
  * <b>O visual é de mural de formatura</b>: fotos em polaroid presas com percevejo, rabiscos de
  * caderno e recadinhos à mão em volta do card do produto. Tudo que é ornamento — percevejo,
@@ -63,12 +66,6 @@ export function Hero() {
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:[@media(max-height:700px)]:mt-5">
-            <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
-              <a href="#contato">
-                Falar com a gente
-                <ArrowRight aria-hidden />
-              </a>
-            </Button>
             <Button asChild size="lg" variant="outline" className="h-11 rounded-xl text-sm">
               <a href="#como-funciona">
                 <span className="bg-brand-tint text-brand-text grid size-7 place-items-center rounded-full">
@@ -77,13 +74,19 @@ export function Hero() {
                 Ver como funciona
               </a>
             </Button>
+            <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
+              <Link to={ROTAS.criarConta}>
+                <GraduationCap className="size-4" aria-hidden />
+                Criar minha turma
+              </Link>
+            </Button>
           </div>
 
           <p className="text-texto-muted mt-3 flex items-center gap-2 text-xs leading-[18px] lg:[@media(max-height:700px)]:mt-2.5">
             <span className="bg-brand-tint text-brand-text grid size-5 shrink-0 place-items-center rounded-full">
-              <Check className="size-3" aria-hidden strokeWidth={3} />
+              <Gift className="size-3" aria-hidden />
             </span>
-            Sem taxa por boleto, sem intermediar o dinheiro da turma. Você paga só a assinatura.
+            Grátis até a turma começar a pagar as parcelas.
           </p>
         </div>
 
@@ -194,24 +197,7 @@ function CardDaTurma() {
       <div className="from-brand-wash to-brand-tint/70 border-brand-tint relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 shadow-[0_30px_60px_-30px_rgba(26,26,24,0.35)] sm:p-5">
         {/* O card da meta é uma carta solta sobre o painel: recuado da quina e com a base
             entrando nele (`-mb`), não uma faixa encaixada em cima. */}
-        <div className="bg-card relative z-10 -mb-6 grid gap-2 rounded-2xl p-3.5 shadow-md lg:ml-5 lg:max-w-[47%]">
-          <div className="flex items-center gap-2.5">
-            <img src={alvo} alt="" className="size-9 shrink-0" />
-            <div className="grid">
-              <span className="text-muted-foreground text-xs">Meta da turma</span>
-              <strong className="text-foreground text-xl font-extrabold tracking-tight">R$ 48.000</strong>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="bg-muted h-3 flex-1 overflow-hidden rounded-full">
-              <div className="bg-brand h-full w-[72%] rounded-full" />
-            </div>
-            <span className="text-foreground text-xs font-semibold tabular-nums">72%</span>
-          </div>
-
-          <span className="text-muted-foreground text-xs">R$ 34.560 arrecadados</span>
-        </div>
+        <MetaDaTurmaAnimada grande className="z-10 -mb-6 lg:ml-5 lg:max-w-[47%]" />
 
         <div className="relative mt-4 grid rounded-2xl bg-white/45 px-2 pt-8 pb-4 sm:px-4">
           <img

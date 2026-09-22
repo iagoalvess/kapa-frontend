@@ -1,7 +1,9 @@
 import { Megaphone } from 'lucide-react'
 import { Link } from 'react-router'
 import { Cartao } from '@/components/Cartao'
+import { LinkDoCartao } from '@/components/LinkDoCartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { ROTAS, rotaDoAviso } from '@/config/rotas'
 import { useAvisos } from '@/features/comunicacao'
 import { formatarDataRelativa } from '@/lib/formato'
@@ -22,18 +24,13 @@ export function CartaoDoMural() {
 
   return (
     <Cartao
-      titulo="No mural"
+      titulo="Recados para a turma"
+      className="[&>header]:flex-nowrap [&>header>div]:basis-auto"
       icone={Megaphone}
       descricao="O que a comissão deixou fixado para a turma."
-      acao={
-        <Link
-          to={ROTAS.mural}
-          className="text-brand-text text-sm underline underline-offset-4 hover:opacity-85"
-        >
-          Ver o mural
-        </Link>
-      }
+      acao={<LinkDoCartao to={ROTAS.mural} rotulo="Ver o mural" />}
     >
+      {avisos.isError ? <ErroDaConsulta erro={avisos.error} /> : null}
       {avisos.isPending ? <EsqueletoDeTexto linhas={3} /> : null}
 
       {avisos.data && itens.length === 0 ? (

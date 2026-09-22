@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
@@ -31,10 +32,15 @@ export default function AdesoesPage() {
   const conteudo = useConteudoParaAdesao()
   const [parametros, definirParametros] = useSearchParams()
 
+  // Adesões deixou de ser item do menu e passou a ser porta de Membros: sem o "voltar", quem
+  // entrasse aqui só sairia pelo botão do navegador.
+  const voltar = <LinkDeVolta para={ROTAS.membros}>Membros</LinkDeVolta>
+
   // A faixa de números e a lista de quem aderiu, o desenho que vem.
   if (conteudo.isPending)
     return (
       <>
+        {voltar}
         <EsqueletoDeCartoes quantidade={1} altura="h-32" className="md:grid-cols-1" />
         <EsqueletoDeCartao>
           <EsqueletoDeTabela colunas={5} />
@@ -42,7 +48,13 @@ export default function AdesoesPage() {
       </>
     )
 
-  if (conteudo.isError) return <ErroDaConsulta erro={conteudo.error} />
+  if (conteudo.isError)
+    return (
+      <>
+        {voltar}
+        <ErroDaConsulta erro={conteudo.error} />
+      </>
+    )
 
   const { termo, plano } = conteudo.data
   // Turma fora de Ativa é leitura: o editor nem abre, e a faixa de aviso diz por quê.
@@ -59,6 +71,7 @@ export default function AdesoesPage() {
 
   return (
     <>
+      {voltar}
       <FaixaDeIndicadores
         rotulo="Resumo das adesões"
         indicadores={[

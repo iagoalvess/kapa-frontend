@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
   esquemaDeFormatura,
   type FormularioDeFormatura,
   paraDados,
+  paraEventosIniciais,
   sugerirNome,
 } from '../schemas/formatura.schema'
 
@@ -89,18 +91,28 @@ export default function CriarFormaturaPage() {
   }
 
   const enviar = formulario.handleSubmit((dados) =>
-    criar.mutate(paraDados(dados), {
-      onSuccess: () => navegar(ROTAS.inicio, { replace: true }),
-      onError: (erro) => {
-        exibirErroNoFormulario(erro, formulario.setError)
+    criar.mutate(
+      { dados: paraDados(dados), eventos: paraEventosIniciais(dados) },
+      {
+        onSuccess: (datasMarcadas) => {
+          // A turma existe de qualquer jeito; o que pode faltar são as duas datas, e aí a comissão
+          // precisa saber onde informá-las — calar aqui seria perder o que ela digitou.
+          if (!datasMarcadas)
+            toast.warning('Turma criada. Não consegui marcar as datas — informe-as na Agenda.')
 
-        // Erro de campo de outro passo ficaria invisível: volta para onde ele está.
-        const comErro = PASSOS.findIndex((p) =>
-          p.campos.some((campo) => formulario.getFieldState(campo).error),
-        )
-        if (comErro >= 0) definirPasso(comErro)
+          navegar(ROTAS.inicio, { replace: true })
+        },
+        onError: (erro) => {
+          exibirErroNoFormulario(erro, formulario.setError)
+
+          // Erro de campo de outro passo ficaria invisível: volta para onde ele está.
+          const comErro = PASSOS.findIndex((p) =>
+            p.campos.some((campo) => formulario.getFieldState(campo).error),
+          )
+          if (comErro >= 0) definirPasso(comErro)
+        },
       },
-    }),
+    ),
   )
 
   const voltar = 'h-11 rounded-lg px-5 text-base'

@@ -45,6 +45,20 @@ describe('MeuExtratoPage', () => {
     expect(within(resumo).queryByRole('link', { name: 'Pagar' })).not.toBeInTheDocument()
   })
 
+  it('abre em "A vencer", e "Todas" fica explícito na URL', async () => {
+    responder()
+
+    const { router } = renderizar(<MeuExtratoPage />)
+
+    expect(await screen.findByRole('button', { name: 'A vencer 2' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Mostrando 2 de 4 parcelas')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Todas 4' }))
+
+    expect(router.state.location.search).toBe('?situacao=todas')
+    expect(screen.getByText('Mostrando 4 de 4 parcelas')).toBeInTheDocument()
+  })
+
   it('filtra a grade pelas pílulas de situação, com a contagem de cada uma', async () => {
     responder()
 
@@ -66,7 +80,7 @@ describe('MeuExtratoPage', () => {
   it('a vencida mostra o valor com multa e juros, e a conta aberta ao tocar', async () => {
     responder()
 
-    renderizar(<MeuExtratoPage />)
+    renderizar(<MeuExtratoPage />, '/?situacao=todas')
 
     const linha = (await screen.findByText('10/08/2026')).closest('tr')!
     expect(within(linha).getAllByText(reais(36_120))[0]).toBeVisible()
@@ -83,7 +97,7 @@ describe('MeuExtratoPage', () => {
   it('só a parcela que dá para pagar tem o botão; a avisada lê "Em conferência"', async () => {
     responder()
 
-    renderizar(<MeuExtratoPage />)
+    renderizar(<MeuExtratoPage />, '/?situacao=todas')
 
     const pagar = await screen.findAllByRole('link', { name: /^Pagar a parcela/ })
     expect(pagar.map((link) => link.getAttribute('href'))).toEqual([
@@ -95,7 +109,7 @@ describe('MeuExtratoPage', () => {
   })
 
   it('sem adesão, diz de onde as parcelas vêm', async () => {
-    responder({ em_aberto_em_centavos: 0, parcelas: [] })
+    responder({ em_aberto_em_centavos: 0, proxima: null, parcelas: [] })
 
     renderizar(<MeuExtratoPage />)
 
@@ -170,6 +184,7 @@ describe('MeuExtratoPage', () => {
   it('pagamento parcial: a coluna mostra o que falta, e a linha diz quanto já entrou', async () => {
     responder({
       em_aberto_em_centavos: 15_000,
+      proxima: null,
       parcelas: [
         parcelaDeTeste({
           id: 'pa-parcial',

@@ -18,16 +18,17 @@ export interface FormaturaDoUsuario {
   desligado_em?: string
 }
 
-/** Corpo da criação e da edição. Espelha `DadosDaFormaturaRequestDTO`. */
+/**
+ * Corpo da criação e da edição. Espelha `DadosDaFormaturaRequestDTO`.
+ *
+ * Sem a colação e a festa: elas são eventos da agenda desde a Sprint 19. O detalhe da turma
+ * continua devolvendo as duas — lidas de lá —, mas quem as escreve é `POST /agenda`.
+ */
 export interface DadosDaFormatura {
   nome: string
   instituicao: string
   curso: string
   ano: number
   semestre: number
-  /** `yyyy-MM-dd`, ou nulo. */
-  previsao_de_colacao: string | null
-  /** `yyyy-MM-dd`, ou nulo. */
-  previsao_da_festa: string | null
   quantidade_estimada_de_formandos: number
 }

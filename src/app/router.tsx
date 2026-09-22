@@ -207,10 +207,24 @@ export const router = createBrowserRouter([
                         handle: { titulo: 'Despesas' },
                         lazy: pagina(() => import('@/features/financeiro/pages/DespesasPage')),
                       },
+                      // As datas da turma: todo membro lê, a Gestão escreve. A colação e a festa
+                      // moram aqui desde a Sprint 19 — o cadastro da turma não as guarda mais.
+                      {
+                        path: ROTAS.agenda,
+                        handle: { titulo: 'Agenda' },
+                        lazy: pagina(() => import('@/features/agenda/pages/AgendaPage')),
+                      },
                       // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
                       // escrita do formando, e o cartão nem oferece as ações a ele.
                       {
                         path: ROTAS.festa,
+                        handle: { titulo: 'A festa' },
+                        lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                      },
+                      // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
+                      // rota é a seleção: o link de um item continua sendo um link.
+                      {
+                        path: `${ROTAS.festa}/:id`,
                         handle: { titulo: 'A festa' },
                         lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
                       },

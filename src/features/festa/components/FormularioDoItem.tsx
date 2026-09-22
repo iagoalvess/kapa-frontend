@@ -104,9 +104,7 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
                     ))}
                   </Select>
                 </FormControl>
-                <p className="text-texto-muted text-xs">
-                  A mesma das despesas — é o que faz os dois lados somarem igual.
-                </p>
+                <p className="text-texto-muted text-xs">A mesma das despesas.</p>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,7 +121,7 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
                 <EditorDeMarkdown
                   {...field}
                   rotuloDaPrevia="Como a turma vai ler"
-                  folha="min-h-40"
+                  folha="min-h-28"
                   placeholder="4 horas de open bar, três tipos de canapé, bolo de três andares…"
                   disabled={!editavel}
                 />
@@ -133,52 +131,53 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
           )}
         />
 
-        <FormField
-          control={formulario.control}
-          name="documento_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contrato</FormLabel>
-              <FormControl>
-                <Select {...field} disabled={!editavel}>
-                  <option value="">Nenhum — sem contrato no acervo</option>
-                  {documentos.map((documento) => (
-                    <option key={documento.id} value={documento.id}>
-                      {documento.titulo}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-              <p className="text-texto-muted text-xs">
-                Só documentos do acervo visíveis para a turma — o cartão é lido por todo mundo. Para ligar um
-                contrato novo, envie-o em Documentos primeiro.
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Em pares, e não um campo por linha: os quatro que sobram são curtos — dois seletores e
+            dois números —, e empilhados faziam o diálogo passar da altura da tela e rolar. */}
+        <div className="grid items-start gap-4 sm:grid-cols-2">
+          <FormField
+            control={formulario.control}
+            name="rateio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quem paga</FormLabel>
+                <FormControl>
+                  <Select {...field} disabled={!editavel}>
+                    <option value="Turma">A turma inteira, pelo plano de cobrança</option>
+                    <option value="PorFormando">Só quem quiser, por formando</option>
+                  </Select>
+                </FormControl>
+                <p className="text-texto-muted text-xs">
+                  {porFormando
+                    ? 'O custo soma o preço vezes quantos devem comprar.'
+                    : 'O custo soma o valor total do contrato.'}
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={formulario.control}
-          name="rateio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Quem paga</FormLabel>
-              <FormControl>
-                <Select {...field} disabled={!editavel}>
-                  <option value="Turma">A turma inteira, pelo plano de cobrança</option>
-                  <option value="PorFormando">Só quem quiser, por formando</option>
-                </Select>
-              </FormControl>
-              <p className="text-texto-muted text-xs">
-                {porFormando
-                  ? 'O custo da festa soma o preço vezes quantos você espera que comprem.'
-                  : 'O custo da festa soma o valor total do contrato.'}
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={formulario.control}
+            name="documento_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contrato</FormLabel>
+                <FormControl>
+                  <Select {...field} disabled={!editavel}>
+                    <option value="">Nenhum — sem contrato no acervo</option>
+                    {documentos.map((documento) => (
+                      <option key={documento.id} value={documento.id}>
+                        {documento.titulo}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+                <p className="text-texto-muted text-xs">Só o que está no acervo e visível para a turma.</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="grid items-start gap-4 sm:grid-cols-2">
           <FormField
@@ -191,7 +190,7 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
                   <CampoDeMoeda {...field} disabled={!editavel} />
                 </FormControl>
                 <p className="text-texto-muted text-xs">
-                  Vale até a primeira despesa ser lançada; depois, o custo é o que foi contratado.
+                  Vale até a primeira despesa; depois, o custo é o contratado.
                 </p>
                 <FormMessage />
               </FormItem>

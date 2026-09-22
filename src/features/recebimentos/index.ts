@@ -1,1 +1,1 @@
-export { ChaveDeRecebimento, ComoODinheiroChega } from './components/ChaveDeRecebimento'
+export { ComoODinheiroChega, MeiosDeRecebimento } from './components/MeiosDeRecebimento'

@@ -117,7 +117,7 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
  *
  * @param acoes Corrigir e excluir, para a Gestão.
  */
-function CartaoDeDocumento({
+export function CartaoDeDocumento({
   documento,
   acoes,
 }: {

@@ -1,7 +1,8 @@
 import { api } from '@/lib/http/cliente'
-import type { DadosDoItemDaFesta, ItemDaFesta } from '@/types/festa'
+import type { DadosDaProposta, DadosDoItemDaFesta, ItemDaFesta, Proposta } from '@/types/festa'
 
 const ITENS = '/api/v1/festa/itens'
+const PROPOSTAS = '/api/v1/festa/propostas'
 
 /*
   Só as escritas moram aqui. As leituras — a lista dos itens e a meta — ficam em
@@ -32,4 +33,29 @@ export function reativarItemDaFesta(id: string) {
 /** Exclui um item sem despesa; com despesa, a API devolve `festa.item_em_uso`. */
 export function excluirItemDaFesta(id: string) {
   return api.delete<void>(`${ITENS}/${id}`)
+}
+
+/** Acrescenta uma candidata ao item; item já contratado devolve `festa.disputa_encerrada`. */
+export function criarProposta({ itemId, dados }: { itemId: string; dados: DadosDaProposta }) {
+  return api.post<Proposta>(`${ITENS}/${itemId}/propostas`, { body: dados })
+}
+
+/** Corrige uma proposta. */
+export function atualizarProposta({ id, dados }: { id: string; dados: DadosDaProposta }) {
+  return api.put<Proposta>(`${PROPOSTAS}/${id}`, { body: dados })
+}
+
+/** Tira uma proposta da disputa — os votos nela vão junto. */
+export function excluirProposta(id: string) {
+  return api.delete<void>(`${PROPOSTAS}/${id}`)
+}
+
+/** O formando escolhe esta proposta, ou troca a que já tinha escolhido. */
+export function votarNaProposta(id: string) {
+  return api.put<void>(`${PROPOSTAS}/${id}/voto`)
+}
+
+/** Tira o voto do formando naquele item. */
+export function desvotarNoItem(itemId: string) {
+  return api.delete<void>(`${ITENS}/${itemId}/voto`)
 }

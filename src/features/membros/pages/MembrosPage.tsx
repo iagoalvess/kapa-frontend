@@ -1,3 +1,4 @@
+import { ClipboardCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { toast } from 'sonner'
@@ -147,10 +148,21 @@ export default function MembrosPage() {
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
         acoes={
-          <FiltrosDeCadastro
-            cadastro={cadastro}
-            aoEscolher={(valor) => atualizar({ cadastro: cadastro === valor ? null : valor })}
-          />
+          <>
+            <FiltrosDeCadastro
+              cadastro={cadastro}
+              aoEscolher={(valor) => atualizar({ cadastro: cadastro === valor ? null : valor })}
+            />
+            {/* Adesões saiu do menu da esquerda e virou porta daqui: é a mesma turma vista de outro
+                ângulo — quem já assinou o termo —, e quem vai atrás disso chegou por esta lista.
+                O recorte é o mesmo da rota, então quem lê Membros lê Adesões. */}
+            <Button asChild size="sm" className="h-8">
+              <Link to={ROTAS.adesoes}>
+                <ClipboardCheck aria-hidden />
+                Adesões
+              </Link>
+            </Button>
+          </>
         }
         contagem={{
           mostrando: membros.data?.itens.length ?? 0,
@@ -278,7 +290,7 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
   // Papel escolhido para si mesmo, aguardando confirmação: deixar a presidência tira o próprio acesso.
   const [papelAConfirmar, definirPapelAConfirmar] = useState<Papel | null>(null)
 
-  const escritaLiberada = useEscritaLiberada('editavel')
+  const escritaLiberada = useEscritaLiberada()
 
   // Formatura fora de Ativa: os controles ficam, desabilitados — quem recusa de verdade é a API.
   const ocupado = alterar.isPending || religar.isPending || !escritaLiberada

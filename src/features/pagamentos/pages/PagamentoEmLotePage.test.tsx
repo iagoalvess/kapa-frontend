@@ -5,12 +5,8 @@ import { describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { servidor } from '@/test/msw/server'
 import { reais, renderizar } from '@/test/utils'
-import { pagaDeTeste, parcelaDeTeste, vencidaDeTeste } from '../dadosDeTeste'
+import { cobrancaDeTeste, pagaDeTeste, parcelaDeTeste, vencidaDeTeste } from '../dadosDeTeste'
 import PagamentoEmLotePage from './PagamentoEmLotePage'
-
-/** Um BR Code de verdade — o do manual do Banco Central. */
-const COPIA_E_COLA =
-  '00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D'
 
 const vencida = vencidaDeTeste()
 const aberta = parcelaDeTeste({ id: 'pa-aberta', numero: 5, vencimento: '2026-10-10' })
@@ -22,7 +18,7 @@ const renderizarLote = (parcelas = 'pa-venc,pa-aberta') =>
     '/minhas-parcelas/pagar',
   )
 
-/** @returns Os multipart que o "Já paguei" mandou, e a query com que o PIX foi pedido. */
+/** @returns Os multipart que o "Já paguei" mandou, e a query com que a cobrança foi pedida. */
 function responder() {
   const informes: FormData[] = []
   const pedidos: string[][] = []
@@ -38,15 +34,9 @@ function responder() {
         parcelas: [pagaDeTeste(), vencida, aberta],
       }),
     ),
-    http.get(`${env.VITE_API_URL}/api/v1/parcelas/pix`, ({ request }) => {
+    http.get(`${env.VITE_API_URL}/api/v1/parcelas/cobranca`, ({ request }) => {
       pedidos.push(new URL(request.url).searchParams.getAll('parcela_ids'))
-      return HttpResponse.json({
-        copia_e_cola: COPIA_E_COLA,
-        valor_em_centavos: 71_120,
-        chave: '52998224725',
-        nome_do_titular: 'Comissão Medicina 2027',
-        identificador: 'KAPA0123456789ABCDEF01234',
-      })
+      return HttpResponse.json({ ...cobrancaDeTeste(), valor_em_centavos: 71_120 })
     }),
     http.post(`${env.VITE_API_URL}/api/v1/parcelas/informes`, async ({ request }) => {
       informes.push(await request.formData())
@@ -61,12 +51,12 @@ function responder() {
 }
 
 describe('PagamentoEmLotePage', () => {
-  it('pede um PIX só com a soma e mostra o que ele cobre', async () => {
+  it('pede uma cobrança só com a soma e mostra o que ela cobre', async () => {
     const { pedidos } = responder()
 
     renderizarLote()
 
-    // A soma é da API: a tela mostra o valor do QR, e não uma conta refeita aqui.
+    // A soma é da API: a tela mostra o valor cobrado, e não uma conta refeita aqui.
     expect(await screen.findByText(reais(71_120))).toBeInTheDocument()
     expect(pedidos).toEqual([['pa-venc', 'pa-aberta']])
     expect(screen.getByText('2 parcelas num pagamento só')).toBeInTheDocument()
@@ -77,7 +67,7 @@ describe('PagamentoEmLotePage', () => {
     expect(within(cobertas).getByText(/vence 10\/10\/2026/)).toBeInTheDocument()
   })
 
-  it('o "Já paguei" avisa as duas parcelas de uma vez, com o valor do QR', async () => {
+  it('o "Já paguei" avisa as duas parcelas de uma vez, com o valor cobrado e o meio', async () => {
     const { informes } = responder()
 
     renderizarLote()
@@ -89,12 +79,13 @@ describe('PagamentoEmLotePage', () => {
     await waitFor(() => expect(informes).toHaveLength(1))
     expect(informes[0]!.getAll('parcela_ids').map(String)).toEqual(['pa-venc', 'pa-aberta'])
     expect(informes[0]!.get('valor_em_centavos')).toBe('71120')
+    expect(informes[0]!.get('meio')).toBe('Pix')
   })
 
-  it('sem conta cadastrada, explica e não deixa avisar', async () => {
+  it('sem meio cadastrado, explica e não deixa avisar', async () => {
     responder()
     servidor.use(
-      http.get(`${env.VITE_API_URL}/api/v1/parcelas/pix`, () =>
+      http.get(`${env.VITE_API_URL}/api/v1/parcelas/cobranca`, () =>
         HttpResponse.json(
           { status: 409, codigo: 'pagamento.sem_conta', detail: 'Sem conta.' },
           { status: 409 },

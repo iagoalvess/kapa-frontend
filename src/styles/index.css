@@ -58,6 +58,21 @@
   --grafico-5: #f2afa8;
   --grafico-outras: #e0dfda;
 
+  /*
+    Tipos de evento da agenda (modelo docs/design/modelo/agenda.png). Um matiz por tipo, usado
+    cheio na barra da esquerda do cartão e a 10% no fundo — daí um token por tipo, e não dois: o
+    fundo é o mesmo matiz diluído, e não tem como os dois se desencontrarem.
+
+    São pastéis de mesma força, como as fatias do gráfico: a agenda tem quatro tipos à vista ao
+    mesmo tempo e nenhum deles é mais urgente que o outro. A colação fica com o laranja da marca —
+    é o dia que a turma inteira está esperando.
+  */
+  --evento-colacao: #f2994a;
+  --evento-festa: #a58bd0;
+  --evento-reuniao: #6d97d4;
+  --evento-prazo: #dda13c;
+  --evento-outro: #79b394;
+
   /* Neutros */
   --page: #f7f6f3;
   --surface: #ffffff;
@@ -162,6 +177,11 @@
   --color-avatar-4: var(--avatar-4);
   --color-avatar-5: var(--avatar-5);
   --color-avatar-6: var(--avatar-6);
+  --color-evento-colacao: var(--evento-colacao);
+  --color-evento-festa: var(--evento-festa);
+  --color-evento-reuniao: var(--evento-reuniao);
+  --color-evento-prazo: var(--evento-prazo);
+  --color-evento-outro: var(--evento-outro);
   --color-sinal-positivo-bg: var(--sinal-positivo-bg);
   --color-sinal-positivo-text: var(--sinal-positivo-text);
   --color-sinal-negativo-bg: var(--sinal-negativo-bg);
@@ -547,10 +567,26 @@
     appearance: base-select;
   }
 
-  /* No modo customizável o texto escolhido sobe para o topo da caixa; aqui ele volta ao meio. */
+  /*
+    No modo customizável o texto escolhido sobe para o topo da caixa; aqui ele volta ao meio.
+
+    E ele **não quebra linha**: `base-select` faz do `<select>` um elemento de verdade, e a opção
+    escolhida passa a se comportar como texto comum — "A turma inteira, pelo plano de cobrança" numa
+    coluna estreita virava duas linhas e crescia a caixa, coisa que o `<select>` nativo nunca fez.
+    Reticências no fim, como no nativo: a lista aberta continua mostrando a opção inteira, que é
+    onde se precisa lê-la.
+  */
   [data-select] {
     display: flex;
     align-items: center;
+    white-space: nowrap;
+    /*
+      `clip` com margem no `content-box`, e não `hidden`: `hidden` corta na borda da caixa, e o
+      texto longo passava por baixo da seta antes de sumir. Assim o corte acontece onde o `pr-10`
+      termina — a seta fica sempre em campo limpo.
+    */
+    overflow: clip;
+    overflow-clip-margin: content-box;
   }
 
   /* A seta é o ícone do componente, que gira ao abrir. */
@@ -653,8 +689,13 @@
     .revelar {
       animation: revelar linear both;
       animation-timeline: view();
-      /* Começa a revelar quando entra 120px pela borda de baixo e termina a 40% da tela. */
-      animation-range: entry 120px cover 40%;
+      /*
+        Começa quando o bloco encosta na borda de baixo e termina quando ele acabou de entrar
+        inteiro — nunca depois. Com o fim em `cover`, o alcance passava da entrada e o bloco ficava
+        translúcido parado no meio da tela; era por isso que metade das seções desligava a
+        revelação à mão.
+      */
+      animation-range: entry 0% entry 100%;
     }
   }
 }
@@ -663,5 +704,115 @@
   from {
     opacity: 0;
     transform: translateY(24px);
+  }
+}
+
+/*
+  Movimento dentro dos cartões de Recursos.
+
+  Dois tipos, e nada além disso: o que **repete** (item que entra, some e volta — a parcela sendo
+  marcada, o aviso da régua chegando) e o que **acompanha a rolagem** (barra e rosca que se enchem
+  quando o cartão entra na tela).
+
+  O segundo reaproveita os keyframes `crescer` e `encher` do carrossel, só trocando a linha do
+  tempo: lá o gatilho é a montagem do slide, aqui é a rolagem. Sem suporte a `animation-timeline`
+  ou com movimento reduzido, a barra já está cheia e a rosca já está no valor — é o dado, não a
+  animação, que a pessoa veio ver.
+*/
+@theme {
+  --animate-surgir-em-loop: surgir-em-loop 6s ease-in-out infinite both;
+
+  @keyframes surgir-em-loop {
+    0%,
+    6% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    16%,
+    80% {
+      opacity: 1;
+      transform: none;
+    }
+    92%,
+    100% {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+}
+
+/* A comemoração tem duração própria: nunca fica congelada quando a rolagem para. */
+.meta-confete,
+.meta-onda {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .meta-confete {
+    animation: meta-confete 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .meta-onda {
+    animation: meta-onda 650ms ease-out both;
+  }
+}
+
+@keyframes meta-confete {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  12% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+    transform: translate(calc(var(--confete-x) * 0.7), var(--confete-y))
+      rotate(calc(var(--confete-giro) * 0.5));
+    animation-timing-function: ease-in;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confete-x), 22px) rotate(var(--confete-giro)) scale(0.7);
+  }
+}
+
+@keyframes meta-onda {
+  from {
+    opacity: 0.55;
+    transform: scale(0.25);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+      A linha do tempo nasce no cartão, não em cada peça: barra e rosca moram dentro de trilhas
+      `overflow-hidden`, e um `view()` solto mediria a peça contra essa trilha — que não rola nunca,
+      então a animação já nascia no fim. Nomear aqui faz todas lerem a entrada do cartão na tela.
+    */
+    .cartao-ao-rolar {
+      view-timeline-name: --cartao;
+    }
+
+    .crescer-ao-rolar,
+    .encher-ao-rolar {
+      animation-timeline: --cartao;
+      /* Termina quando o cartão acaba de entrar inteiro: quem não rolar mais nada já vê o valor cheio. */
+      animation-range: entry 0% entry 100%;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+    }
+
+    .crescer-ao-rolar {
+      animation-name: crescer;
+    }
+
+    .encher-ao-rolar {
+      animation-name: encher;
+    }
   }
 }

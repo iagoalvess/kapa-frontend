@@ -2,7 +2,9 @@ import { WalletMinimal } from 'lucide-react'
 import { Link } from 'react-router'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import { Cartao } from '@/components/Cartao'
+import { LinkDoCartao } from '@/components/LinkDoCartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoPagamento } from '@/config/rotas'
 import { useExtrato } from '@/features/pagamentos'
@@ -43,16 +45,11 @@ export function CartaoDaProximaParcela() {
   return (
     <Cartao
       titulo="Sua próxima parcela"
+      className="[&>header]:flex-nowrap [&>header>div]:basis-auto"
       icone={WalletMinimal}
-      acao={
-        <Link
-          to={ROTAS.extrato}
-          className="text-brand-text text-sm underline underline-offset-4 hover:opacity-85"
-        >
-          Ver todas
-        </Link>
-      }
+      acao={<LinkDoCartao to={ROTAS.extrato} rotulo="Ver todas as parcelas" />}
     >
+      {extrato.isError ? <ErroDaConsulta erro={extrato.error} /> : null}
       {extrato.isPending ? <EsqueletoDeTexto linhas={2} /> : null}
 
       {extrato.data && !proxima ? (
@@ -65,9 +62,9 @@ export function CartaoDaProximaParcela() {
       ) : null}
 
       {proxima ? (
-        <div className="grid gap-4">
+        <div className="bg-background grid gap-5 rounded-2xl p-5">
           <div className="grid gap-1">
-            <p className="text-foreground text-3xl leading-none font-medium tracking-tight tabular-nums">
+            <p className="text-foreground py-2 text-4xl leading-none font-semibold tracking-tight tabular-nums">
               {formatarCentavos(valorNaLista(proxima))}
             </p>
             <p className="text-muted-foreground text-[15px]">
@@ -76,7 +73,7 @@ export function CartaoDaProximaParcela() {
             <p className="text-texto-muted text-sm tabular-nums">{formatarData(proxima.vencimento)}</p>
           </div>
 
-          <Button asChild size="sm" className="w-fit">
+          <Button asChild size="sm" className="h-11 w-full rounded-xl">
             <Link to={rotaDoPagamento(proxima.id)}>Pagar com PIX</Link>
           </Button>
         </div>

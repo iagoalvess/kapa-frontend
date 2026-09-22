@@ -5,7 +5,7 @@ import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicado
 import { PAPEIS } from '@/config/perfis'
 import { CartaoDeAssinatura } from '@/features/assinaturas'
 import { CartaoDeConvitesPorEmail, CartaoDoLinkDaTurma } from '@/features/convites'
-import { ChaveDeRecebimento, ComoODinheiroChega } from '@/features/recebimentos'
+import { ComoODinheiroChega, MeiosDeRecebimento } from '@/features/recebimentos'
 import { CicloDaFormatura, DadosDaFormatura } from '@/features/formaturas'
 import { contar, useResumoDeMembros } from '@/features/membros'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
@@ -14,14 +14,9 @@ import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { FormaturaDetalhe, StatusDaFormatura } from '@/types/formatura'
 
-/**
- * Curto de propósito: vai no número grande da faixa. `Rascunho` é nome interno — para quem usa, a
- * turma que ainda não assinou plano está "a contratar"; com o checkout aberto, "a pagar".
- */
+/** Curto de propósito: vai no número grande da faixa. */
 const SITUACOES: Record<StatusDaFormatura, Pick<Indicador, 'valor' | 'sinal'>> = {
-  // Sem sinal: o texto é longo demais para dividir a linha, e a faixa de status do topo já avisa.
-  Rascunho: { valor: 'A contratar' },
-  AguardandoPagamento: { valor: 'A pagar', sinal: { texto: 'pendente', tom: 'negativo' } },
+  // Sem sinal nos demais: o texto é longo para dividir a linha, e a faixa do topo já avisa.
   Ativa: { valor: 'Ativa', sinal: { texto: 'em dia', tom: 'positivo' } },
   Suspensa: { valor: 'Suspensa' },
   Encerrada: { valor: 'Encerrada' },
@@ -97,7 +92,7 @@ export default function PaginaDaFormatura() {
             <div className="grid gap-5">
               <DadosDaFormatura formatura={dados} />
               <CartaoDeConvitesPorEmail />
-              {tesouraria ? <ChaveDeRecebimento /> : null}
+              {tesouraria ? <MeiosDeRecebimento /> : null}
             </div>
             <div className="grid gap-5">
               <CartaoDeAssinatura />

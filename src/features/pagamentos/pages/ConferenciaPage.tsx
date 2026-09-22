@@ -30,6 +30,7 @@ import {
 import { mensagemDoErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import { rotuloDoItem } from '@/types/cobranca'
+import { rotuloDoMeio } from '@/types/recebimento'
 import { DialogoDeTexto } from '../components/DialogoDeTexto'
 import {
   useAbrirComprovante,
@@ -252,7 +253,7 @@ export default function ConferenciaPage() {
             </Button>
           </>
         }
-        lote={
+        antesDaContagem={
           <ConfirmarLote
             informes={selecionados}
             total={totalSelecionado}
@@ -507,8 +508,11 @@ function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoR
 
       <td className="py-3 pr-4 whitespace-nowrap">
         {formatarData(informe.pago_em)}
+        {/* O meio que o formando avisou fica aqui, e não em coluna própria: é o que a tesouraria
+            procura no extrato junto com o dia, e uma coluna a mais empurraria o campo do valor. */}
         <span className="text-texto-muted block text-xs">
-          {dias === 0 ? 'avisou hoje' : `avisou há ${formatarNumero(dias)}d`}
+          {rotuloDoMeio(informe.meio_escolhido)} ·{' '}
+          {dias === 0 ? 'avisou hoje' : `há ${formatarNumero(dias)}d`}
         </span>
       </td>
 

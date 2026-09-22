@@ -2,7 +2,7 @@ import { api } from '@/lib/http/cliente'
 import type {
   ContaDeRecebimento,
   ContaDeRecebimentoDaTurma,
-  DadosDaConta,
+  MeiosDaConta,
   PixDeTeste,
 } from '../types/recebimentos.types'
 
@@ -13,9 +13,9 @@ export function obterConta(signal?: AbortSignal) {
   return api.get<ContaDeRecebimentoDaTurma>(CONTA, { signal })
 }
 
-/** Cadastra ou troca a chave; a conta volta a não conferida. Só o Presidente. */
-export function gravarConta(dados: DadosDaConta) {
-  return api.put<ContaDeRecebimento>(CONTA, { body: dados })
+/** Cadastra ou troca os meios; mexer no PIX desfaz a conferência. Só o Presidente. */
+export function gravarConta(meios: MeiosDaConta) {
+  return api.put<ContaDeRecebimento>(CONTA, { body: meios })
 }
 
 /** O copia-e-cola de R$ 1,00 para a chave gravada. Só o Presidente. */

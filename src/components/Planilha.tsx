@@ -1,9 +1,9 @@
 import type { UseQueryResult } from '@tanstack/react-query'
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import { createContext, type ReactNode, use } from 'react'
-import mascoteLupa from '@/assets/mascote/lupa.webp'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
 import { cn } from '@/lib/utils'
 import type { Pagina } from '@/types/paginacao'
@@ -80,13 +80,7 @@ export function Planilha<T>({
 
         {consulta.isError ? <ErroDaConsulta erro={consulta.error} className="py-4" /> : null}
 
-        {consulta.data && itens.length === 0 ? (
-          <div className="motion-safe:animate-entrar grid justify-items-center gap-2 py-8 text-center">
-            <img src={vazio.mascote ?? mascoteLupa} alt="" className="w-28 drop-shadow-lg" />
-            <p className="text-foreground font-medium">{vazio.titulo}</p>
-            <p className="text-muted-foreground text-sm">{vazio.dica}</p>
-          </div>
-        ) : null}
+        {consulta.data && itens.length === 0 ? <ListaVazia {...vazio} /> : null}
 
         {itens.length > 0 ? (
           <Tabela cabecalho={cabecalho} ordenacao={ordenacao}>

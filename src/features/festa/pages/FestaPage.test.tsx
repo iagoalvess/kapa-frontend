@@ -6,11 +6,12 @@ import { env } from '@/config/env'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { entrarComo, reais, renderizar } from '@/test/utils'
-import type { ItemDaFesta, MetaDaFesta } from '@/types/festa'
+import type { ItemDaFesta, MetaDaFesta, Proposta } from '@/types/festa'
 import FestaPage from './FestaPage'
 
 const ITENS = `${env.VITE_API_URL}/api/v1/festa/itens`
 const META = `${env.VITE_API_URL}/api/v1/festa/meta`
+const PROPOSTAS = `${env.VITE_API_URL}/api/v1/festa/propostas`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
 /** Um item "a contratar": sem despesa, o custo é o que a comissão orçou. */
@@ -29,6 +30,7 @@ const aContratar: ItemDaFesta = {
   pago_em_centavos: 0,
   custo_em_centavos: 60_000_00,
   quantidade_de_despesas: 0,
+  quantidade_de_propostas: 0,
   estado: 'AContratar',
   cancelado: false,
   ordem: 1,
@@ -77,48 +79,99 @@ const meta: MetaDaFesta = {
   pagos: 0,
 }
 
-function comApi(itens: ItemDaFesta[] = [aContratar, contratado, porFormando]) {
+/**
+ * A API da tela: a lista, a meta e o detalhe de qualquer item dela.
+ *
+ * O detalhe é resolvido a partir da própria lista — é o que a API faz —, então cada teste declara
+ * só os itens e, quando precisa, as propostas de um deles.
+ *
+ * @param itens Os itens da turma.
+ * @param propostas As propostas, por id de item.
+ */
+function comApi(
+  itens: ItemDaFesta[] = [aContratar, contratado, porFormando],
+  propostas: Record<string, Proposta[]> = {},
+) {
   servidor.use(
     http.get(ITENS, () => HttpResponse.json(itens)),
     http.get(META, () => HttpResponse.json(meta)),
+    http.get(`${ITENS}/:id/detalhe`, ({ params }) => {
+      const item = itens.find((candidato) => candidato.id === params.id)
+
+      return item
+        ? HttpResponse.json({ item, propostas: propostas[item.id] ?? [] })
+        : new HttpResponse(null, { status: 404 })
+    }),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
   )
 }
 
-const cartao = (titulo: string) => screen.findByRole('region', { name: titulo })
+/** O painel da direita, que é onde o item aberto é desenhado. */
+const detalhe = (titulo: string) => screen.findByRole('region', { name: titulo })
+
+/** Uma seção da lista da esquerda. */
+const secao = (estado: string) => screen.findByRole('region', { name: estado })
 
 describe('FestaPage', () => {
   afterEach(() => sessao.encerrar())
 
-  it('o custo do item é o orçado enquanto não há despesa, e o contratado depois dela', async () => {
+  it('a lista agrupa por estado e o primeiro item abre à direita', async () => {
     entrarComo('Comissao')
     comApi()
 
     renderizar(<FestaPage />)
 
-    const buffet = await cartao('Buffet')
+    // Cada estado é uma seção da lista, e só os que têm item aparecem.
+    expect(within(await secao('A contratar')).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(await secao('Contratado')).getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.queryByRole('region', { name: 'Pago' })).not.toBeInTheDocument()
+
+    // Sem id na rota, o primeiro abre: a direita nunca fica vazia.
+    const buffet = await detalhe('Buffet')
     expect(within(buffet).getByText('Orçado')).toBeInTheDocument()
     expect(within(buffet).getByText(reais(60_000_00))).toBeInTheDocument()
-    expect(within(buffet).getByText('A contratar')).toBeInTheDocument()
+  })
 
-    const espaco = await cartao('Espaço')
+  it('o item da rota é o que abre, e o custo contratado toma o lugar do orçado', async () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<FestaPage />, '/festa/i-2', '/festa/:id')
+
+    const espaco = await detalhe('Espaço')
     expect(within(espaco).getByText('Contratado', { selector: 'dt' })).toBeInTheDocument()
     // O contratado (R$ 35.000), e não o orçado (R$ 40.000): o real toma o lugar do previsto.
     expect(within(espaco).getByText(reais(35_000_00))).toBeInTheDocument()
     expect(within(espaco).queryByText(reais(40_000_00))).not.toBeInTheDocument()
-    expect(within(espaco).getByText('Clube Central')).toBeInTheDocument()
   })
 
-  it('o item por formando mostra o preço de cada um e o custo da expectativa', async () => {
+  it('o item por formando mostra o preço de cada um e some com a expectativa depois de contratado', async () => {
     entrarComo('Comissao')
     comApi()
 
-    renderizar(<FestaPage />)
+    const { unmount } = renderizar(<FestaPage />, '/festa/i-3', '/festa/:id')
 
-    const foto = await cartao('Fotografia')
+    const foto = await detalhe('Fotografia')
     expect(within(foto).getByText(reais(14_000_00))).toBeInTheDocument()
-    expect(within(foto).getByText(reais(350_00))).toBeInTheDocument()
     expect(within(foto).getByText(/40 estimados/)).toBeInTheDocument()
+
+    unmount()
+    comApi([
+      {
+        ...porFormando,
+        contratado_em_centavos: 12_950_00,
+        custo_em_centavos: 12_950_00,
+        quantidade_de_despesas: 1,
+        estado: 'Contratado',
+      },
+    ])
+
+    renderizar(<FestaPage />, '/festa/i-3', '/festa/:id')
+
+    const contratada = await detalhe('Fotografia')
+    expect(within(contratada).getByText(reais(12_950_00))).toBeInTheDocument()
+    expect(within(contratada).getByText(reais(350_00))).toBeInTheDocument()
+    expect(within(contratada).queryByText(/estimados/)).not.toBeInTheDocument()
   })
 
   it('o formando lê a tela e não recebe nenhuma ação de escrita', async () => {
@@ -127,7 +180,7 @@ describe('FestaPage', () => {
 
     renderizar(<FestaPage />)
 
-    await cartao('Buffet')
+    await detalhe('Buffet')
     expect(screen.queryByRole('button', { name: 'Novo item' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
@@ -139,7 +192,7 @@ describe('FestaPage', () => {
 
     renderizar(<FestaPage />)
 
-    const buffet = await cartao('Buffet')
+    const buffet = await detalhe('Buffet')
     expect(within(buffet).getByRole('button', { name: 'Editar' })).toBeInTheDocument()
     expect(within(buffet).queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
   })
@@ -150,15 +203,9 @@ describe('FestaPage', () => {
 
     renderizar(<FestaPage />)
 
-    const buffet = await cartao('Buffet')
+    const buffet = await detalhe('Buffet')
     expect(within(buffet).getByRole('button', { name: 'Excluir' })).toBeInTheDocument()
     expect(within(buffet).getByRole('button', { name: 'Contratar' })).toBeInTheDocument()
-
-    const espaco = await cartao('Espaço')
-    expect(within(espaco).getByRole('button', { name: 'Cancelar item' })).toBeInTheDocument()
-    expect(within(espaco).queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
-    // Contratado já: contratar de novo seria um segundo contrato para o mesmo item.
-    expect(within(espaco).queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
   })
 
   it('cancelar avisa que as despesas já lançadas continuam no caixa', async () => {
@@ -172,10 +219,14 @@ describe('FestaPage', () => {
       }),
     )
 
-    renderizar(<FestaPage />)
+    renderizar(<FestaPage />, '/festa/i-2', '/festa/:id')
 
-    const espaco = await cartao('Espaço')
-    await userEvent.click(within(espaco).getByRole('button', { name: 'Cancelar item' }))
+    const espaco = await detalhe('Espaço')
+    // Contratado já: contratar de novo seria um segundo contrato para o mesmo item.
+    expect(within(espaco).queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
+    expect(within(espaco).queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
+
+    await userEvent.click(within(espaco).getByRole('button', { name: 'Cancelar' }))
 
     const dialogo = await screen.findByRole('alertdialog')
     expect(within(dialogo).getByText(/não são canceladas/)).toBeInTheDocument()
@@ -184,7 +235,7 @@ describe('FestaPage', () => {
     await waitFor(() => expect(cancelou).toBe(true))
   })
 
-  it('o contrato ligado ao item aparece no cartão e abre o arquivo do acervo', async () => {
+  it('o contrato ligado ao item abre o arquivo do acervo', async () => {
     entrarComo('Formando')
     comApi([
       {
@@ -207,19 +258,119 @@ describe('FestaPage', () => {
 
     renderizar(<FestaPage />)
 
-    const espaco = await cartao('Espaço')
-    await userEvent.click(within(espaco).getByRole('button', { name: 'Contrato do buffet' }))
+    const espaco = await detalhe('Espaço')
+    // O botão diz "Contrato"; o nome do arquivo fica no nome acessível, para quem usa leitor de tela.
+    await userEvent.click(within(espaco).getByRole('button', { name: 'Abrir Contrato do buffet' }))
 
-    // O arquivo continua no acervo: o cartão só o linka, e quem autoriza é o endpoint de lá.
+    // O arquivo continua no acervo: o painel só o linka, e quem autoriza é o endpoint de lá.
     await waitFor(() => expect(baixou).toBe(true))
   })
 
-  it('turma sem item nenhum explica a tela em vez de mostrar uma grade vazia', async () => {
+  it('turma sem item nenhum explica a tela em vez de mostrar uma lista vazia', async () => {
     entrarComo('Formando')
     comApi([])
 
     renderizar(<FestaPage />)
 
-    expect(await screen.findByText(/ainda não descreveu o que a turma está comprando/)).toBeInTheDocument()
+    expect(await screen.findByText('A festa ainda não tem itens')).toBeInTheDocument()
+    expect(screen.getByText(/ainda não descreveu/)).toBeInTheDocument()
+  })
+})
+
+describe('FestaPage — propostas e votos', () => {
+  afterEach(() => sessao.encerrar())
+
+  const bandaX: Proposta = {
+    id: 'p-1',
+    titulo: 'Banda X',
+    valor_em_centavos: 8_000_00,
+    o_que_inclui: 'Quatro horas de show.',
+    votos: 18,
+    meu_voto: false,
+  }
+
+  const bandaY: Proposta = {
+    id: 'p-2',
+    titulo: 'Banda Y',
+    valor_em_centavos: 6_500_00,
+    o_que_inclui: null,
+    votos: 7,
+    meu_voto: true,
+  }
+
+  it('o formando vê as propostas com o placar e vota numa delas', async () => {
+    entrarComo('Formando')
+    comApi([aContratar], { 'i-1': [bandaX, bandaY] })
+    let votou = ''
+    servidor.use(
+      http.put(`${PROPOSTAS}/:id/voto`, ({ params }) => {
+        votou = String(params.id)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderizar(<FestaPage />)
+
+    const propostas = await screen.findByRole('region', { name: 'Propostas' })
+    expect(within(propostas).getByText('Banda X')).toBeInTheDocument()
+    expect(within(propostas).getByText(reais(8_000_00))).toBeInTheDocument()
+
+    await userEvent.click(within(propostas).getByRole('button', { name: /18 votos/ }))
+
+    await waitFor(() => expect(votou).toBe('p-1'))
+  })
+
+  it('clicar na proposta que já é minha tira o voto, e não soma um segundo', async () => {
+    entrarComo('Formando')
+    comApi([aContratar], { 'i-1': [bandaX, bandaY] })
+    let desvotou = ''
+    servidor.use(
+      http.delete(`${ITENS}/:id/voto`, ({ params }) => {
+        desvotou = String(params.id)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderizar(<FestaPage />)
+
+    const propostas = await screen.findByRole('region', { name: 'Propostas' })
+    const minha = within(propostas).getByRole('button', { name: /7 votos/ })
+    expect(minha).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(minha)
+
+    // O voto é por item, não por proposta: tirá-lo é um DELETE no item.
+    await waitFor(() => expect(desvotou).toBe('i-1'))
+  })
+
+  it('contratado o item, a disputa fecha: o placar fica, o voto e o cadastro somem', async () => {
+    entrarComo('Comissao')
+    comApi([contratado], { 'i-2': [bandaX] })
+
+    renderizar(<FestaPage />)
+
+    const propostas = await screen.findByRole('region', { name: 'Propostas' })
+    expect(within(propostas).getByText('Propostas levantadas')).toBeInTheDocument()
+    expect(within(propostas).getByRole('button', { name: /18 votos/ })).toBeDisabled()
+    expect(within(propostas).queryByRole('button', { name: 'Nova proposta' })).not.toBeInTheDocument()
+  })
+
+  it('o formando não cadastra proposta; a Gestão cadastra', async () => {
+    entrarComo('Formando')
+    comApi([aContratar], { 'i-1': [bandaX] })
+
+    const { unmount } = renderizar(<FestaPage />)
+
+    await screen.findByRole('region', { name: 'Propostas' })
+    expect(screen.queryByRole('button', { name: 'Nova proposta' })).not.toBeInTheDocument()
+
+    unmount()
+    sessao.encerrar()
+    entrarComo('Comissao')
+    comApi([aContratar], { 'i-1': [bandaX] })
+
+    renderizar(<FestaPage />)
+
+    expect(await screen.findByRole('button', { name: 'Nova proposta' })).toBeInTheDocument()
   })
 })

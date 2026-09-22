@@ -1,8 +1,6 @@
 import { CabecalhoDaLanding } from '../components/CabecalhoDaLanding'
 import { ComoFunciona } from '../components/ComoFunciona'
-import { FormularioDeContato } from '../components/FormularioDeContato'
 import { Hero } from '../components/Hero'
-import { MockupDoProduto } from '../components/MockupDoProduto'
 import { PerguntasFrequentes } from '../components/PerguntasFrequentes'
 import { PlanosPublicos } from '../components/PlanosPublicos'
 import { Recursos } from '../components/Recursos'
@@ -13,9 +11,9 @@ import { SegurancaEDinheiro } from '../components/SegurancaEDinheiro'
  * A página institucional do Kapa: o que é, como funciona, quanto custa e onde deixar contato.
  *
  * É a única tela pública com objetivo comercial, e a ordem das seções é o argumento: valor →
- * produto de verdade → como funciona → recursos → **quem fica com o dinheiro** → preço → dúvidas →
- * contato. A resposta sobre o dinheiro vem antes do preço de propósito (Sprint 8): é a primeira
- * pergunta de toda comissão, e nenhuma tabela convence antes dela.
+ * recursos → como funciona → **quem fica com o dinheiro** → preço → dúvidas → contato. A resposta
+ * sobre o dinheiro vem antes do preço de propósito (Sprint 8): é a primeira pergunta de toda
+ * comissão, e nenhuma tabela convence antes dela.
  *
  * O CTA se repete a cada duas ou três seções — cabeçalho, hero, planos, rodapé do FAQ — porque a
  * página é longa e a decisão acontece em pontos diferentes para pessoas diferentes.
@@ -34,13 +32,11 @@ export default function LandingPage() {
 
       <main>
         <Hero />
-        <MockupDoProduto />
-        <ComoFunciona />
         <Recursos />
+        <ComoFunciona />
         <SegurancaEDinheiro />
         <PlanosPublicos />
         <PerguntasFrequentes />
-        <FormularioDeContato />
       </main>
 
       <RodapeDaLanding />

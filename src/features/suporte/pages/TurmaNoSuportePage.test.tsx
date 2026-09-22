@@ -21,9 +21,9 @@ const PENDENTE = {
   ativada_em: null,
   assinatura: {
     id: 'a-1',
-    plano_nome: 'Completo',
-    plano_codigo: 'completo',
-    limite_de_formandos: 150,
+    plano_nome: 'Premium',
+    plano_codigo: 'premium',
+    limite_de_formandos: 400,
     status: 'Pendente',
     vigente_ate: null,
     cancelada_em: null,

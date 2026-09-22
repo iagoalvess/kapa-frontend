@@ -12,7 +12,7 @@ import { formatarCentavos } from '@/lib/formato'
 import { mensagemDoErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import { useConferirConta, usePixDeTeste } from '../hooks/useContaDeRecebimento'
-import type { ContaDeRecebimento } from '../types/recebimentos.types'
+import type { ChavePix } from '../types/recebimentos.types'
 
 /**
  * O único jeito de conferir a chave sem banco: o Presidente paga R$ 1,00 do próprio celular e vê o
@@ -21,7 +21,7 @@ import type { ContaDeRecebimento } from '../types/recebimentos.types'
  * Recomendado, não obrigatório (decisão de 14/09/2026): a turma pode começar a pagar sem ele, mas
  * chave digitada errada é dinheiro na conta de um desconhecido, sem volta.
  */
-export function PixDeTeste({ conta, className }: { conta: ContaDeRecebimento; className?: string }) {
+export function PixDeTeste({ chave, className }: { chave: ChavePix; className?: string }) {
   const pix = usePixDeTeste(true)
   const conferir = useConferirConta()
   const liberado = useEscritaLiberada()
@@ -56,7 +56,7 @@ export function PixDeTeste({ conta, className }: { conta: ContaDeRecebimento; cl
             </Passo>
             <Passo numero={2}>Antes de confirmar o pagamento, veja o nome que o banco mostra.</Passo>
             <Passo numero={3}>
-              Se for <strong className="text-foreground font-medium">{conta.nome_do_titular}</strong>, a chave
+              Se for <strong className="text-foreground font-medium">{chave.nome_do_titular}</strong>, a chave
               está certa. Se aparecer outro nome, não pague: troque a chave.
             </Passo>
           </ol>

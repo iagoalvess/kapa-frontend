@@ -11,11 +11,11 @@ const ASSINATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura`
 
 const plano = {
   id: 'p-1',
-  codigo: 'completo',
-  nome: 'Completo',
-  preco_em_centavos: 34990,
+  codigo: 'premium',
+  nome: 'Premium',
+  preco_em_centavos: 4990,
   ciclo: 'Mensal',
-  limite_de_formandos: 150,
+  limite_de_formandos: 400,
   recomendado: true,
 }
 

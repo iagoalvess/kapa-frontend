@@ -8,7 +8,7 @@ import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
-import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
 import { mensagemDoErro } from '@/lib/http/erros'
@@ -28,7 +28,7 @@ const SITUACOES: Record<StatusDoConvite, { texto: string; tom: 'alerta' | 'suces
  * O que quem está logado pode oferecer por e-mail agora.
  *
  * @param ehPresidente Só o Presidente convida para a comissão.
- * @param contratada Com a turma paga, formando também entra.
+ * @param contratada Com a turma paga, formando também entra — no gratuito o plano tem zero vagas.
  */
 function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
   const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao, PAPEIS.presidente]
@@ -41,13 +41,17 @@ function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
  * Convites por e-mail: o formulário e os convites já enviados, com a situação de cada um.
  *
  * Gestão (Comissão e Tesouraria) convida formandos; só o Presidente escolhe outro papel — a tela
- * esconde a escolha, e a API recusa com `convite.papel_restrito` de qualquer forma. Antes de
- * pagar, a comissão já se monta por aqui; formando só entra com a turma ativa.
+ * esconde a escolha, e a API recusa com `convite.papel_restrito` de qualquer forma. No plano
+ * gratuito a comissão se monta por aqui; formando só entra depois de contratar, porque o plano
+ * gratuito tem zero vagas de formando (a API recusa com `convite.limite_do_plano`).
  */
 export function CartaoDeConvitesPorEmail() {
   const { ehPresidente } = usePapel()
-  const contratada = useEscritaLiberada()
-  const montavel = useEscritaLiberada('editavel')
+  const { data } = useFormaturaAtual()
+  // Enquanto carrega, assume contratada — pelo mesmo motivo de `useEscritaLiberada`, e porque
+  // trocar a lista de papéis depois remonta o formulário e apaga o que já foi digitado.
+  const contratada = data?.ja_contratou ?? true
+  const montavel = useEscritaLiberada()
   const papeis = papeisOferecidos(ehPresidente, contratada)
   const convites = useConvites()
 
@@ -58,7 +62,7 @@ export function CartaoDeConvitesPorEmail() {
       descricao={
         contratada
           ? 'O link vai para o e-mail da pessoa e só funciona numa conta com esse e-mail. Vale por 7 dias.'
-          : 'Antes de contratar, chame a comissão para decidir o plano junto. O link vai para o e-mail da pessoa e vale por 7 dias.'
+          : 'No plano gratuito você monta a comissão. Para convidar formandos, contrate um plano. O link vai para o e-mail da pessoa e vale por 7 dias.'
       }
     >
       {/* Chave pelos papéis: a escolha padrão muda quando o status da turma termina de carregar. */}
@@ -106,7 +110,7 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
 
 function LinhaDeConvite({ convite }: { convite: ConviteResumo }) {
   const revogar = useRevogarConvite()
-  const escritaLiberada = useEscritaLiberada('editavel')
+  const escritaLiberada = useEscritaLiberada()
   const situacao = SITUACOES[convite.status]
 
   return (

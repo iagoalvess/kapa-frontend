@@ -1,5 +1,8 @@
 import { Camera, Check, GraduationCap, IdCard, Mail, MapPin, PartyPopper, ReceiptText } from 'lucide-react'
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react'
+import avatarAna from '@/assets/avatares/ana-clara.webp'
+import avatarBruno from '@/assets/avatares/bruno-lima.webp'
+import avatarCarla from '@/assets/avatares/carla-souza.webp'
 import mascoteAcenando from '@/assets/mascote/acenando.webp'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import mascoteLendo from '@/assets/mascote/lendo.webp'
@@ -44,9 +47,9 @@ export function Mensagem({
  * o essencial" para "Completo" no instante em que a barra fecha — é a lista de Membros do app.
  */
 const CADASTROS = [
-  { nome: 'Ana Souza', semente: 'Ana', completude: 100, atraso: 0.3, vira: true },
-  { nome: 'Bruno Lima', semente: 'Bruno-6', completude: 60, atraso: 0.9, vira: false },
-  { nome: 'Carla Dias', semente: 'Carla', completude: 20, atraso: 1.5, vira: false },
+  { nome: 'Ana Clara', foto: avatarAna, semente: 'Ana', completude: 100, atraso: 0.3, vira: true },
+  { nome: 'Bruno Lima', foto: avatarBruno, semente: 'Bruno-6', completude: 60, atraso: 0.9, vira: false },
+  { nome: 'Carla Souza', foto: avatarCarla, semente: 'Carla', completude: 20, atraso: 1.5, vira: false },
 ] as const
 
 /** A barra começa 0,2 s depois da linha e leva 1,8 s (`--animate-crescer`): é quando ela fecha. */
@@ -66,14 +69,14 @@ function CenaCadastro() {
       </div>
 
       {/* Até 80%: a quina de baixo, à direita, é do mascote. */}
-      {CADASTROS.map(({ nome, semente, completude, atraso, vira }) => (
+      {CADASTROS.map(({ nome, foto, semente, completude, atraso, vira }) => (
         <div
           key={nome}
           style={{ animationDelay: `${atraso}s` }}
           className="motion-safe:animate-surgir bg-card grid max-w-[80%] gap-1.5 rounded-2xl px-3 py-2 shadow-sm"
         >
           <div className="flex items-center gap-2">
-            <Avatar nome={nome} semente={semente} className="text-[11px] font-bold" />
+            <Avatar nome={nome} semente={semente} foto={foto} className="text-[11px] font-bold" />
             <span className="text-foreground text-[13px] font-semibold">{nome}</span>
             <span className="ml-auto grid">
               {vira ? (
