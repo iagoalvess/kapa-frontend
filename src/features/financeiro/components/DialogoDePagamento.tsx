@@ -2,11 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { CreditCard } from 'lucide-react'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CampoDeComprovante } from '@/components/CampoDeComprovante'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
-import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { diaDeHoje, formatarCentavos, formatarData } from '@/lib/formato'
@@ -65,9 +66,7 @@ export function DialogoDePagamento({
 
   return (
     <>
-      <Button variant="outline" size="sm" disabled={desabilitado} onClick={abrir}>
-        Pagar
-      </Button>
+      <AcaoDaLinha rotulo="Pagar" icone={CreditCard} desabilitada={desabilitado} onClick={abrir} />
       <DialogoDeFormulario
         aberto={aberto}
         aoFechar={() => definirAberto(false)}

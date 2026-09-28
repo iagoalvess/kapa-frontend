@@ -1,0 +1,21 @@
+# O Worker que apaga as inscrições da lista de espera com mais de 12 meses (Sprint 36, P8).
+#
+# À parte do site porque Pages Functions não têm Cron Trigger. Usa o mesmo D1 da Function
+# (`functions/api/lista-de-espera.ts`), e é daqui que saem as migrations do banco:
+#   npx wrangler d1 migrations apply kapa-lista-de-espera --remote
+#   npx wrangler deploy
+name = "kapa-lista-de-espera-limpeza"
+main = "limpeza.ts"
+compatibility_date = "2026-09-01"
+# Só o agendamento o aciona: sem endereço público no workers.dev.
+workers_dev = false
+
+[triggers]
+crons = ["0 6 * * *"]
+
+[[d1_databases]]
+binding = "LISTA_DE_ESPERA"
+database_name = "kapa-lista-de-espera"
+# Criado em 28/09/2026, na região ENAM (leste da América do Norte): o D1 não tem região na América do Sul.
+database_id = "02d5ddea-6918-47eb-b055-3355af75ffe7"
+migrations_dir = "migrations"

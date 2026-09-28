@@ -1,5 +1,11 @@
 import { api } from '@/lib/http/cliente'
-import type { AcaoNaConta, ResultadoDaBusca, TurmaNoSuporte, UsuarioNoSuporte } from '../types/suporte.types'
+import type {
+  AcaoNaConta,
+  ModoDeEstorno,
+  ResultadoDaBusca,
+  TurmaNoSuporte,
+  UsuarioNoSuporte,
+} from '../types/suporte.types'
 
 const SUPORTE = '/api/v1/admin/suporte'
 
@@ -16,6 +22,18 @@ export function obterTurmaNoSuporte(id: string, signal?: AbortSignal) {
 /** Ativa a licença à mão — o pagamento entrou e o webhook se perdeu. */
 export function ativarAssinatura(id: string) {
   return api.post<TurmaNoSuporte>(`${SUPORTE}/formaturas/${id}/ativar-assinatura`)
+}
+
+/** Estorna um pagamento do plano e encerra a assinatura na hora (P7). Devolve a turma atualizada. */
+export function estornarPagamento(id: string, cobrancaId: string, modo: ModoDeEstorno) {
+  return api.post<TurmaNoSuporte>(`${SUPORTE}/formaturas/${id}/pagamentos/${cobrancaId}/estornar`, {
+    body: { modo },
+  })
+}
+
+/** A planilha (.xlsx) dos pagamentos do plano confirmados no mês — a base da nota fiscal manual (P6). */
+export function baixarPagamentosDoMes(ano: number, mes: number) {
+  return api.get<Blob>(`${SUPORTE}/pagamentos`, { query: { ano, mes }, resposta: 'blob' })
 }
 
 /** A conta: acesso, bloqueio e em que turmas a pessoa está. */

@@ -1,6 +1,8 @@
+import { FileCheck } from 'lucide-react'
+import { Undo2 } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -31,7 +33,7 @@ export function AcoesDaParcela({ parcela }: { parcela: Parcela }) {
       {parcela.recebimento_id ? (
         <BotaoDeRecibo
           recebimentoId={parcela.recebimento_id}
-          rotulo={`Recibo de ${parcela.nome}, parcela ${parcela.numero}/${parcela.de}`}
+          descricaoAcessivel={`Recibo de ${parcela.nome}, parcela ${parcela.numero}/${parcela.de}`}
         />
       ) : null}
       <Acao parcela={parcela} />
@@ -47,9 +49,11 @@ function Acao({ parcela }: { parcela: Parcela }) {
 
   if (emAberto(parcela) && tem(PAPEIS.tesoureiro)) {
     return parcela.em_conferencia ? (
-      <Button asChild variant="outline" size="sm">
-        <Link to={ROTAS.conferencia}>Conferir</Link>
-      </Button>
+      <AcaoDaLinha asChild rotulo="Conferir">
+        <Link to={ROTAS.conferencia} aria-label="Conferir">
+          <FileCheck aria-hidden className="size-4" />
+        </Link>
+      </AcaoDaLinha>
     ) : (
       <DialogoDeBaixaManual parcela={parcela} desabilitado={!liberado} />
     )
@@ -59,6 +63,7 @@ function Acao({ parcela }: { parcela: Parcela }) {
     return (
       <DialogoDeTexto
         gatilho="Estornar"
+        gatilhoIcone={{ icone: Undo2, tom: 'perigo' }}
         titulo="Estornar a baixa"
         descricao={
           <>

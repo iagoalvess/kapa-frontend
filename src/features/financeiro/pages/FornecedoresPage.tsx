@@ -1,9 +1,9 @@
-import { Handshake, Plus, Wallet } from 'lucide-react'
+import { Handshake, Plus, Wallet, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { toast } from 'sonner'
+import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Chip } from '@/components/Chip'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
@@ -147,9 +147,6 @@ export default function FornecedoresPage() {
             <th className="py-3 pr-4 text-right font-normal">Pago</th>
             <th className="py-3 pr-4 text-right font-normal">A pagar</th>
             <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
-            <th className="py-3 font-normal">
-              <span className="sr-only">Ações</span>
-            </th>
           </>
         }
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
@@ -224,26 +221,26 @@ function ExcluirFornecedor({ fornecedor, desabilitado }: { fornecedor: Fornecedo
   const excluir = useExcluirFornecedor()
 
   return (
-    <DialogoDeConfirmacao
-      gatilho={
-        <Button variant="outline" size="sm" disabled={desabilitado} aria-label={`Excluir ${fornecedor.nome}`}>
-          Excluir
-        </Button>
-      }
-      titulo={`Excluir “${fornecedor.nome}”?`}
-      descricao={
-        fornecedor.quantidade_de_despesas > 0
-          ? 'Ele tem despesa lançada, e a API não vai deixar excluir. Desative o fornecedor na tela dele: some do seletor de despesa e o histórico de gastos fica.'
-          : 'O cadastro é apagado. Não há como recuperar.'
-      }
-      rotulo="Excluir"
-      destrutivo
-      aoConfirmar={() =>
-        excluir.mutate(fornecedor.id, {
-          onSuccess: () => toast.info('Fornecedor excluído.'),
-          onError: avisarErro,
-        })
-      }
-    />
+    <AcoesDaLinha rotulo={`Ações de ${fornecedor.nome}`}>
+      <AcaoComConfirmacao
+        rotulo="Excluir"
+        descricaoAcessivel={`Excluir ${fornecedor.nome}`}
+        icone={X}
+        desabilitada={desabilitado}
+        confirmacao={{
+          titulo: `Excluir “${fornecedor.nome}”?`,
+          descricao:
+            fornecedor.quantidade_de_despesas > 0
+              ? 'Ele tem despesa lançada, e a API não vai deixar excluir. Desative o fornecedor na tela dele: some do seletor de despesa e o histórico de gastos fica.'
+              : 'O cadastro é apagado. Não há como recuperar.',
+          rotulo: 'Excluir',
+          aoConfirmar: () =>
+            excluir.mutate(fornecedor.id, {
+              onSuccess: () => toast.info('Fornecedor excluído.'),
+              onError: avisarErro,
+            }),
+        }}
+      />
+    </AcoesDaLinha>
   )
 }

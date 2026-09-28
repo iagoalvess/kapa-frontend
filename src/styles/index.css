@@ -76,6 +76,12 @@
   /* Ilustração da landing: o avião de papel da maquete da régua de cobrança, no coral do envelope
      ao lado dele — é desenho, não estado, e não tem par entre as cores de interface. */
   --ilustracao-coral: #ff735f;
+  /* A dobra do avião e o envelope rosa ao lado dele, na mesma maquete. */
+  --ilustracao-coral-claro: #ffad9e;
+  --ilustracao-envelope: #ffd5d8;
+  --ilustracao-envelope-aba: #ffb0b1;
+  --ilustracao-envelope-lacre: #ff807e;
+  --ilustracao-envelope-dobra: #fff0f0;
 
   /* Neutros */
   --page: #f7f6f3;
@@ -193,6 +199,11 @@
   --color-evento-prazo: var(--evento-prazo);
   --color-evento-outro: var(--evento-outro);
   --color-ilustracao-coral: var(--ilustracao-coral);
+  --color-ilustracao-coral-claro: var(--ilustracao-coral-claro);
+  --color-ilustracao-envelope: var(--ilustracao-envelope);
+  --color-ilustracao-envelope-aba: var(--ilustracao-envelope-aba);
+  --color-ilustracao-envelope-lacre: var(--ilustracao-envelope-lacre);
+  --color-ilustracao-envelope-dobra: var(--ilustracao-envelope-dobra);
   --color-sinal-positivo-bg: var(--sinal-positivo-bg);
   --color-sinal-positivo-text: var(--sinal-positivo-text);
   --color-sinal-negativo-bg: var(--sinal-negativo-bg);
@@ -206,6 +217,16 @@
 
   /* A faixa de indicadores é o topo da tela: a mesma sombra, mais funda embaixo, para ela assentar sobre o resto. */
   --shadow-faixa: 0 2px 2px rgb(28 28 26 / 0.08), 0 11px 24px -6px rgb(28 28 26 / 0.16);
+
+  /* Landing: o cartão solto sobre o creme, e a mesma sombra mais alta quando o ponteiro passa. */
+  --shadow-vitrine: 0 3px 10px -5px rgb(26 26 24 / 0.12);
+  --shadow-vitrine-hover: 0 14px 30px -18px rgb(26 26 24 / 0.3);
+  /* O painel do hero e a foto da meta que sai dele: longe do fundo, sombra longa e difusa. */
+  --shadow-painel: 0 30px 60px -30px rgb(26 26 24 / 0.35);
+  --shadow-foto: 0 16px 30px -16px rgb(26 26 24 / 0.45);
+  /* O que flutua sobre o laranja (o plano destacado, a maquete da régua): sombra quente, e não cinza. */
+  --shadow-destaque: 0 18px 40px -24px rgb(166 73 100 / 0.55);
+  --shadow-flutuante: 0 10px 25px -15px rgb(166 73 100 / 0.3);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

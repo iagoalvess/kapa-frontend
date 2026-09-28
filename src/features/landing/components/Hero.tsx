@@ -8,8 +8,8 @@ import fotoViagem from '@/assets/fotos/viagem.webp'
 import pin from '@/assets/fotos/pin.webp'
 import mascoteEncostado from '@/assets/mascote/encostado.webp'
 import { Button } from '@/components/ui/button'
-import { ROTAS, urlDoApp } from '@/config/rotas'
 import { cn } from '@/lib/utils'
+import { ChamadaPrincipal } from './ChamadaPrincipal'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
 
 /**
@@ -73,12 +73,7 @@ export function Hero() {
                 Ver como funciona
               </a>
             </Button>
-            <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
-              <a href={urlDoApp(ROTAS.criarConta)}>
-                <GraduationCap className="size-4" aria-hidden />
-                Criar minha turma
-              </a>
-            </Button>
+            <ChamadaPrincipal size="lg" className="h-11 rounded-xl text-sm shadow-lg" />
           </div>
 
           <p className="text-texto-muted mt-3 flex items-center gap-2 text-xs leading-[18px] lg:[@media(max-height:700px)]:mt-2.5">
@@ -190,7 +185,7 @@ function CardDaTurma() {
         className="relative z-20 mx-auto -mb-10 w-40 drop-shadow-xl sm:w-48 lg:hidden"
       />
 
-      <div className="from-brand-wash to-brand-tint/70 border-brand-tint relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 shadow-[0_30px_60px_-30px_rgba(26,26,24,0.35)] sm:p-5">
+      <div className="from-brand-wash to-brand-tint/70 border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">
         {/* O card da meta é uma carta solta sobre o painel: recuado da quina e com a base
             entrando nele (`-mb`), não uma faixa encaixada em cima. */}
         <MetaDaTurmaAnimada grande className="z-10 -mb-6 lg:ml-5 lg:max-w-[47%]" />
@@ -291,7 +286,7 @@ function CardDaTurma() {
             >
               <path
                 d="M35 10 C57 1 89 7 105 18 C119 29 121 52 109 65 C96 79 65 80 43 72 C19 70 3 56 5 37 Q6 24 19 17 L7 -10 Q24 1 35 10 Z"
-                fill="white"
+                className="fill-card"
                 stroke="currentColor"
                 strokeWidth="1.2"
                 strokeLinejoin="round"
@@ -344,12 +339,7 @@ function Polaroid({
         className="absolute -top-4 left-1/2 z-10 size-7 -translate-x-1/2 -rotate-12 drop-shadow-md"
       />
 
-      <figure
-        className={cn(
-          'bg-card rounded-[4px] p-2.5 pt-6 pb-1 shadow-[0_16px_30px_-16px_rgba(26,26,24,0.45)]',
-          rotacao,
-        )}
-      >
+      <figure className={cn('bg-card shadow-foto rounded-[4px] p-2.5 pt-6 pb-1', rotacao)}>
         <img src={foto} alt="" loading="lazy" className="aspect-square w-full rounded-[2px] object-cover" />
         {/* A legenda é centralizada de verdade: o coração sai do fluxo para não empurrá-la para o
             lado nas fotos que o têm. */}

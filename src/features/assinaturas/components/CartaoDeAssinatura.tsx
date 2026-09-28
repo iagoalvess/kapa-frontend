@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Cartao } from '@/components/Cartao'
+import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,9 @@ import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
-import { useAssinatura, useCancelarAssinatura } from '../hooks/useAssinatura'
+import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
+import { useAssinatura, useCancelarAssinatura, useTrocarMeio } from '../hooks/useAssinatura'
+import { usePagarCiclo } from '../hooks/useCheckout'
 import type { Assinatura } from '../types/assinaturas.types'
 import { SeloDeStatus } from './SeloDeStatus'
 
@@ -81,12 +84,18 @@ export function CartaoDeAssinatura() {
         </Item>
         <Item rotulo="Formandos">Até {formatarNumero(dados.plano.limite_de_formandos)}</Item>
         <Item rotulo="Vigente até">{formatarData(dados.vigente_ate)}</Item>
-        <Item rotulo="Próxima cobrança">
+        <Item rotulo={dados.meio === 'Pix' ? 'Próximo PIX' : 'Próxima cobrança'}>
           {dados.proxima_cobranca_em ? formatarData(dados.proxima_cobranca_em) : 'Nenhuma'}
+        </Item>
+        <Item rotulo="Pagamento">
+          {MEIOS_DE_PAGAMENTO[dados.meio].rotulo}
+          {dados.meio === 'Cartao' ? ', automático' : ', a cada ciclo'}
         </Item>
       </dl>
 
       <Situacao assinatura={dados} presidente={ehPresidente} />
+
+      {dados.status === 'Ativa' ? <Andamento assinatura={dados} presidente={ehPresidente} /> : null}
 
       {ehPresidente && dados.status === 'Ativa' ? <CancelarRenovacao vigenteAte={dados.vigente_ate} /> : null}
     </Cartao>
@@ -122,6 +131,97 @@ function Situacao({ assinatura, presidente }: { assinatura: Assinatura; presiden
     case 'Ativa':
       return null
   }
+}
+
+/**
+ * O que está em curso na assinatura ativa (Sprint 37): a descida de plano agendada, o cartão que espera
+ * autorização, o PIX da renovação e a troca de meio.
+ *
+ * A troca de meio confirma antes porque as duas mexem em dinheiro de outro jeito: ir para o PIX cancela o
+ * débito automático na hora; ir para o cartão leva à página do Mercado Pago, e a primeira cobrança é no
+ * vencimento — sem cobrar em dobro (P5).
+ */
+function Andamento({ assinatura, presidente }: { assinatura: Assinatura; presidente: boolean }) {
+  const trocarMeio = useTrocarMeio()
+  const pagarCiclo = usePagarCiclo()
+  const vencimento = formatarData(assinatura.vigente_ate)
+  const paraOPix = assinatura.meio === 'Cartao'
+
+  return (
+    <>
+      {assinatura.proximo_plano ? (
+        <Recado>
+          A partir da renovação de {vencimento}, o plano passa a ser o {assinatura.proximo_plano.nome}.
+        </Recado>
+      ) : null}
+
+      {assinatura.cartao_aguardando_autorizacao ? (
+        <Recado>
+          O cartão ainda não foi autorizado no Mercado Pago. Até lá, a renovação continua pelo PIX.
+          {presidente ? (
+            <Button
+              variant="outline"
+              className="w-1/2"
+              disabled={trocarMeio.isPending}
+              onClick={() => trocarMeio.mutate('Cartao', { onError: avisarErro })}
+            >
+              Autorizar cartão
+            </Button>
+          ) : null}
+        </Recado>
+      ) : null}
+
+      {presidente && assinatura.meio === 'Pix' ? (
+        <div className="border-border grid gap-2 border-t pt-5">
+          <h3 className="text-foreground text-sm font-medium">Renovação pelo PIX</h3>
+          <p className="text-muted-foreground text-sm">
+            O PIX da renovação fica disponível sete dias antes de {vencimento}. Você paga na página do Mercado
+            Pago, e a vigência se estende sozinha.
+          </p>
+          <Button
+            className="w-1/2"
+            disabled={pagarCiclo.isPending || pagarCiclo.isSuccess}
+            onClick={() => pagarCiclo.mutate(undefined, { onError: avisarErro })}
+          >
+            {pagarCiclo.isPending || pagarCiclo.isSuccess ? 'Indo para o pagamento…' : 'Pagar renovação'}
+          </Button>
+        </div>
+      ) : null}
+
+      {presidente && !assinatura.cartao_aguardando_autorizacao ? (
+        <div className="border-border grid gap-2 border-t pt-5">
+          <h3 className="text-foreground text-sm font-medium">Meio de pagamento</h3>
+          <p className="text-muted-foreground text-sm">
+            {paraOPix
+              ? 'Prefere pagar um PIX a cada ciclo? O débito automático no cartão para, e nada é cobrado em dobro.'
+              : 'Prefere o débito automático? Cadastre o cartão, e a primeira cobrança sai no vencimento.'}
+          </p>
+          <DialogoDeConfirmacao
+            titulo={paraOPix ? 'Trocar para o PIX?' : 'Trocar para o cartão?'}
+            descricao={
+              paraOPix
+                ? `O débito automático no cartão é cancelado agora. A partir da renovação de ${vencimento}, você paga um PIX por ciclo pela tela da assinatura.`
+                : `Você vai à página do Mercado Pago cadastrar o cartão. A primeira cobrança é em ${vencimento}, e até lá nada muda.`
+            }
+            rotulo={paraOPix ? 'Trocar para o PIX' : 'Ir para o cartão'}
+            aoConfirmar={() =>
+              trocarMeio.mutate(paraOPix ? 'Pix' : 'Cartao', {
+                onSuccess: ({ url }) => {
+                  if (!url) toast.success('A renovação agora é pelo PIX.')
+                },
+                onError: avisarErro,
+              })
+            }
+            gatilho={
+              <Button variant="outline" className="w-1/2" disabled={trocarMeio.isPending}>
+                {paraOPix ? 'Trocar para o PIX' : 'Trocar para o cartão'}
+              </Button>
+            }
+          />
+        </div>
+      ) : null}
+    </>
+  )
 }
 
 /**

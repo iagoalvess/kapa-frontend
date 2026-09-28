@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 import { ehOpcao } from '@/lib/opcao'
 import { contemBusca } from '@/lib/busca'
 import { type EstadoDoItem, type ItemDaFesta, percentualDaMeta, ROTULOS_DE_ESTADO } from '@/types/festa'
-import { AvisoDaMinhaMesa } from '../components/AvisoDaMinhaMesa'
+import { MapaDaMinhaMesa } from '../components/MapaDaMinhaMesa'
 import { DetalheDoItem } from '../components/DetalheDoItem'
 import { DialogoDeItem } from '../components/DialogoDeItem'
 import { LinhaDoItem } from '../components/LinhaDoItem'
@@ -161,7 +161,7 @@ export default function FestaPage() {
         ]}
       />
 
-      <AvisoDaMinhaMesa />
+      <MapaDaMinhaMesa />
 
       {/* A escadinha e a busca ficam acima das duas colunas, como no mural: é a lista inteira que
           elas recortam, e não o painel da direita. No celular somem junto com a lista.

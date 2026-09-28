@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { baixarArquivo } from '@/lib/download'
 import {
   ativarAssinatura,
+  baixarPagamentosDoMes,
   buscarNoSuporte,
+  estornarPagamento,
   executarNaConta,
   obterContaNoSuporte,
   obterTurmaNoSuporte,
 } from '../api/suporte.api'
-import type { AcaoNaConta } from '../types/suporte.types'
+import type { AcaoNaConta, ModoDeEstorno } from '../types/suporte.types'
 import { chaves } from './chaves'
 
 /** Piso do termo: é o mesmo do backend, e evita a ida ao servidor que voltaria vazia. */
@@ -58,6 +61,31 @@ export function useAtivarAssinatura(id: string) {
     mutationFn: () => ativarAssinatura(id),
     onSuccess: (turma) => {
       queryClient.setQueryData(chaves.turma(id), turma)
+    },
+  })
+}
+
+/** Estorna um pagamento do plano. A turma devolvida entra direto no cache, como na ativação. */
+export function useEstornarPagamento(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ cobrancaId, modo }: { cobrancaId: string; modo: ModoDeEstorno }) =>
+      estornarPagamento(id, cobrancaId, modo),
+    onSuccess: (turma) => {
+      queryClient.setQueryData(chaves.turma(id), turma)
+    },
+  })
+}
+
+/** Baixa a planilha do mês para a nota fiscal manual. */
+export function useBaixarPagamentosDoMes() {
+  return useMutation({
+    mutationFn: async ({ ano, mes }: { ano: number; mes: number }) => {
+      baixarArquivo(
+        await baixarPagamentosDoMes(ano, mes),
+        `pagamentos-dos-planos-${ano}-${String(mes).padStart(2, '0')}.xlsx`,
+      )
     },
   })
 }

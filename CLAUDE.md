@@ -118,7 +118,13 @@ aparece um dia atrás.
 ### Cor só por token
 
 `bg-background`, `text-muted-foreground`. Cor literal (`text-[#1d4ed8]`) escapa da paleta
-sem ninguém perceber. Não há modo escuro: o produto é claro, laranja sobre branco.
+sem ninguém perceber — e isso vale para sombra (`shadow-[…rgba()]` vira token `--shadow-*`) e para
+`fill`/`stroke` de SVG (`className="fill-card"`, nunca `fill="#fff"`). Hex só no `index.css`; as
+exceções são o QR (`QrCode.tsx`, data URI) e o `theme-color` do HTML/manifesto, que repete o `--brand`.
+
+Registro escolhido numa lista — item aberto no mestre-detalhe ou linha marcada num lote — usa
+`COR_ESCOLHIDA`/`COR_NAO_ESCOLHIDA` e, em tabela, a `LinhaSelecionavel`: clique na linha, sem
+caixa de marcar. Não há modo escuro: o produto é claro, laranja sobre branco.
 
 A paleta Laranja vive em `styles/index.css`, repintando os tokens que o shadcn já lê — é por isso
 que `components/ui/` não precisa ser tocado. Regras da marca: sobre `--brand` (#F2994A) o texto
@@ -166,6 +172,7 @@ Alterações locais, a reaplicar se um componente for regenerado:
   ações em lote); o cabeçalho de cartão usa `sm`. Antes eram 14 `size="sm" className="h-8"` soltos.
 - `button.tsx`: variante `link` em `text-brand-text`, não `text-primary` — o primário agora é o
   laranja da marca, que não se lê como texto sobre branco.
+- `alert-dialog.tsx`: fundo do overlay em `bg-foreground/50`, não `bg-black/50` — cor só da paleta.
 - `alert-dialog.tsx`: importa de `@radix-ui/react-alert-dialog` e `@/lib/utils`. O CLI atual gera
   para o pacote unificado `radix-ui` e, no Windows, grava em `./@/components/ui` e instala um
   pacote `cn` que não tem nada a ver — confira o `git status` depois de todo `shadcn add`.
@@ -176,32 +183,33 @@ Toda tela do app é montada com as mesmas peças. Escrever à mão o que já exi
 confirmação aparece com dois desenhos e o botão de excluir fica vermelho em uma tela e cinza na
 outra. O catálogo:
 
-| Precisa de                             | Use                                                  |
-| -------------------------------------- | ---------------------------------------------------- |
-| Confirmar uma ação ("Excluir X?")      | `DialogoDeConfirmacao`                               |
-| Formulário num diálogo                 | `DialogoDeFormulario` + `AcoesDoFormulario` no pé    |
-| Rodapé de formulário (Cancelar/Salvar) | `AcoesDoFormulario`                                  |
-| Erro do formulário inteiro (`root`)    | `ErroDoFormulario`                                   |
-| Pré-carregamento de uma consulta       | `Esqueleto*` (`Esqueleto.tsx`)                       |
-| Erro de consulta                       | `ErroDaConsulta` (`EstadoDaConsulta.tsx`)            |
-| Lista paginada de gestão               | `Planilha` + `ColunaOrdenavel` + `FiltrosDaPlanilha` |
-| Tabela curta dentro de um cartão       | `Tabela`                                             |
-| Superfície branca com cabeçalho        | `Cartao`                                             |
-| Números do topo da tela                | `FaixaDeIndicadores`                                 |
-| Cartão de valor + ação numa lateral    | `CartaoDeValor`                                      |
-| Etiqueta de estado                     | `Selo` (e `ChipDeStatus` para parcela)               |
-| Filtro em pílula                       | `Chip`                                               |
-| Par rótulo/valor de um cadastro        | `ListaDeDados` + `Dado`                              |
-| Data, moeda, número, `ehDia`           | `lib/formato`                                        |
-| Página/busca/filtro na URL             | `hooks/useFiltrosDaUrl`                              |
-| Guarda de opção lida da URL            | `ehOpcao` (`lib/opcao`) — nunca `valor in MAPA`      |
-| Caixa de marcar num formulário         | `CampoDeMarcar`                                      |
-| Página pública de leitura (termos)     | `LayoutDePaginaPublica` (`components/layout`)        |
-| Tabela de resumo com faixa cinza       | `Tabela variante="faixa"`                            |
-| Toast de erro de uma mutação           | `avisarErro` (`lib/http/erros`)                      |
-| Copiar para a área de transferência    | `copiar` (`lib/copiar`)                              |
-| Abrir blob numa aba ou baixar          | `abrirNaAba`/`abrirOuBaixar` (`lib/download`)        |
-| Busca sem acento na lista já carregada | `normalizarBusca`/`contemBusca` (`lib/busca`)        |
+| Precisa de                               | Use                                                  |
+| ---------------------------------------- | ---------------------------------------------------- |
+| Confirmar uma ação ("Excluir X?")        | `DialogoDeConfirmacao`                               |
+| Formulário num diálogo                   | `DialogoDeFormulario` + `AcoesDoFormulario` no pé    |
+| Rodapé de formulário (Cancelar/Salvar)   | `AcoesDoFormulario`                                  |
+| Erro do formulário inteiro (`root`)      | `ErroDoFormulario`                                   |
+| Pré-carregamento de uma consulta         | `Esqueleto*` (`Esqueleto.tsx`)                       |
+| Erro de consulta                         | `ErroDaConsulta` (`EstadoDaConsulta.tsx`)            |
+| Lista paginada de gestão                 | `Planilha` + `ColunaOrdenavel` + `FiltrosDaPlanilha` |
+| Tabela curta dentro de um cartão         | `Tabela`                                             |
+| Superfície branca com cabeçalho          | `Cartao`                                             |
+| Números do topo da tela                  | `FaixaDeIndicadores`                                 |
+| Cartão de valor + ação numa lateral      | `CartaoDeValor`                                      |
+| Etiqueta de estado                       | `Selo` (e `ChipDeStatus` para parcela)               |
+| Filtro em pílula                         | `Chip`                                               |
+| Par rótulo/valor de um cadastro          | `ListaDeDados` + `Dado`                              |
+| Data, moeda, número, `ehDia`             | `lib/formato`                                        |
+| Página/busca/filtro na URL               | `hooks/useFiltrosDaUrl`                              |
+| Guarda de opção lida da URL              | `ehOpcao` (`lib/opcao`) — nunca `valor in MAPA`      |
+| Caixa de marcar num formulário           | `CampoDeMarcar`                                      |
+| Página pública de leitura (termos)       | `LayoutDePaginaPublica` (`components/layout`)        |
+| Tabela de resumo com faixa cinza         | `Tabela variante="faixa"`                            |
+| Toast de erro de uma mutação             | `avisarErro` (`lib/http/erros`)                      |
+| Copiar para a área de transferência      | `copiar` (`lib/copiar`)                              |
+| Abrir blob numa aba ou baixar            | `abrirNaAba`/`abrirOuBaixar` (`lib/download`)        |
+| Busca sem acento na lista já carregada   | `normalizarBusca`/`contemBusca` (`lib/busca`)        |
+| Ações de linha de tabela (ícone+tooltip) | `AcoesDaLinha` + `AcaoDaLinha`/`AcaoComConfirmacao`  |
 
 Componente novo em `components/` quando **a segunda** feature precisar dele — antes disso ele mora
 na feature. Variação de um que já existe entra como prop no que existe, não como cópia ao lado.
@@ -226,6 +234,11 @@ Fixados em 22/09/2026, depois de uma auditoria que achou cada tela num dialeto:
   com frase terminada em ponto.
 - **Ícone no título do `Cartao`:** cartão principal tem, lateral não.
 - **Botões pequenos:** barra de lista ou página é `size="xs"`; cabeçalho de cartão é `size="sm"`.
+- **Ação de linha de tabela** é só ícone na pílula (`AcoesDaLinha` + `AcaoDaLinha`, confirmação por
+  `AcaoComConfirmacao`): sem escrita, sem header na coluna (nem `sr-only`), célula alinhada à
+  direita. O tooltip diz só a ação ("Cancelar"); o `aria-label` leva o contexto quando o botão
+  tinha ("Cancelar Mensalidade"). Destrutiva (excluir, cancelar, encerrar, revogar, remover,
+  recusar, estornar) é vermelha (`tom="perigo"`).
 
 ### Comentário explica por quê
 

@@ -2,16 +2,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   atualizarMesa,
   buscarMapaDeMesas,
-  buscarMinhasMesas,
+  buscarSalaoDoFormando,
   criarMesa,
   definirDonoDaMesa,
   excluirMesa,
+  salvarSalao,
 } from '../api/mesas.api'
 
 const chavesDasMesas = {
   tudo: ['mesas'] as const,
   mapa: ['mesas', 'mapa'] as const,
-  minhas: ['mesas', 'minhas'] as const,
+  salao: ['mesas', 'salao'] as const,
 }
 
 /** O mapa de mesas da Gestão: faixa, mesas e compradores numa resposta. */
@@ -19,9 +20,9 @@ export function useMapaDeMesas() {
   return useQuery({ queryKey: chavesDasMesas.mapa, queryFn: ({ signal }) => buscarMapaDeMesas(signal) })
 }
 
-/** As mesas do próprio formando — vazio quando ele não comprou mesa. */
-export function useMinhasMesas() {
-  return useQuery({ queryKey: chavesDasMesas.minhas, queryFn: ({ signal }) => buscarMinhasMesas(signal) })
+/** O mapa do salão para o formando, com as mesas dele marcadas. */
+export function useSalaoDoFormando() {
+  return useQuery({ queryKey: chavesDasMesas.salao, queryFn: ({ signal }) => buscarSalaoDoFormando(signal) })
 }
 
 /** Toda escrita muda a faixa e a conta dos compradores: derruba o prefixo inteiro. */
@@ -40,3 +41,19 @@ export const useCriarMesa = () => useEscritaDeMesa(criarMesa)
 export const useAtualizarMesa = () => useEscritaDeMesa(atualizarMesa)
 export const useExcluirMesa = () => useEscritaDeMesa(excluirMesa)
 export const useDefinirDonoDaMesa = () => useEscritaDeMesa(definirDonoDaMesa)
+
+/**
+ * Salva o mapa e só termina quando o mapa novo chegou.
+ *
+ * Aqui a espera é de propósito (ao contrário do resto, que não devolve a invalidação): o editor
+ * descarta o rascunho no `onSuccess`, e se o mapa antigo ainda estivesse no cache as mesas voltariam
+ * ao lugar de antes por um instante. O editor não remonta, então o aviso de sucesso não se perde.
+ */
+export function useSalvarSalao() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: salvarSalao,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: chavesDasMesas.tudo }),
+  })
+}

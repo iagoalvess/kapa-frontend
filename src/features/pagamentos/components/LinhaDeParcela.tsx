@@ -1,7 +1,8 @@
 import { useId } from 'react'
+import { CreditCard } from 'lucide-react'
 import { Link } from 'react-router'
+import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { ChipDeStatus } from '@/components/ChipDeStatus'
-import { Button } from '@/components/ui/button'
 import { rotaDoPagamento } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -94,26 +95,30 @@ export function LinhaDeParcela({ parcela }: { parcela: Parcela }) {
         <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
       </td>
       <td className="py-3 text-right">
-        <div className="flex justify-end gap-2">
+        <AcoesDaLinha rotulo={`Ações da parcela ${parcela.numero}/${parcela.de}`}>
           {/* O recibo da última baixa: na paga, e também na aberta com pagamento parcial — que já é
               dinheiro que entrou e de que a pessoa pode precisar da prova. */}
           {parcela.recebimento_id ? (
             <BotaoDeRecibo
               recebimentoId={parcela.recebimento_id}
-              rotulo={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
+              descricaoAcessivel={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
             />
           ) : null}
           {podePagar ? (
-            <Button asChild size="sm" variant="outline">
+            <AcaoDaLinha
+              asChild
+              rotulo="Pagar"
+              descricaoAcessivel={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
+            >
               <Link
                 to={rotaDoPagamento(parcela.id)}
                 aria-label={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
               >
-                Pagar
+                <CreditCard aria-hidden className="size-4" />
               </Link>
-            </Button>
+            </AcaoDaLinha>
           ) : null}
-        </div>
+        </AcoesDaLinha>
       </td>
     </tr>
   )

@@ -26,6 +26,9 @@ const ativa = {
   vigente_ate: '2026-10-12T15:00:00Z',
   proxima_cobranca_em: '2026-10-12T15:00:00Z',
   criado_em: '2026-09-12T15:00:00Z',
+  meio: 'Cartao',
+  proximo_plano: null,
+  cartao_aguardando_autorizacao: false,
 }
 
 function entrarComo(papel: string) {
@@ -97,5 +100,57 @@ describe('CartaoDeAssinatura', () => {
 
     expect(await screen.findByText('Nenhum plano contratado')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
+  })
+  /** P5: sair do cartão confirma antes, e a troca vale na hora — sem página do provedor. */
+  it('o Presidente troca para o PIX depois de confirmar', async () => {
+    entrarComo(PAPEIS.presidente)
+    let pedido: unknown
+    servidor.use(
+      http.get(ASSINATURA, () => HttpResponse.json(ativa)),
+      http.post(`${ASSINATURA}/trocar-meio`, async ({ request }) => {
+        pedido = await request.json()
+        return HttpResponse.json({ url: null, assinatura: { ...ativa, meio: 'Pix' } })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<CartaoDeAssinatura />)
+    await usuario.click(await screen.findByRole('button', { name: 'Trocar para o PIX' }))
+    const dialogo = screen.getByRole('alertdialog')
+    expect(within(dialogo).getByText(/débito automático no cartão é cancelado agora/)).toBeInTheDocument()
+    expect(pedido).toBeUndefined()
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Trocar para o PIX' }))
+
+    await expect.poll(() => pedido).toEqual({ meio: 'Pix' })
+  })
+
+  /** No PIX a renovação não é automática: o Presidente paga o PIX do ciclo pela página do Mercado Pago. */
+  it('no PIX, o Presidente vai pagar a renovação', async () => {
+    entrarComo(PAPEIS.presidente)
+    servidor.use(
+      http.get(ASSINATURA, () => HttpResponse.json({ ...ativa, meio: 'Pix' })),
+      http.post(`${ASSINATURA}/pagar-ciclo`, () => HttpResponse.json({ url: '#pix-da-renovacao' })),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<CartaoDeAssinatura />)
+    expect(await screen.findByText('Próximo PIX')).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Pagar renovação' }))
+
+    await expect.poll(() => globalThis.location.hash).toBe('#pix-da-renovacao')
+    globalThis.location.hash = ''
+  })
+
+  it('mostra a descida de plano agendada', async () => {
+    entrarComo(PAPEIS.tesoureiro)
+    servidor.use(
+      http.get(ASSINATURA, () =>
+        HttpResponse.json({ ...ativa, proximo_plano: { ...ativa.plano, nome: 'Essencial' } }),
+      ),
+    )
+
+    renderizar(<CartaoDeAssinatura />)
+
+    expect(await screen.findByText(/o plano passa a ser o Essencial/)).toBeInTheDocument()
   })
 })

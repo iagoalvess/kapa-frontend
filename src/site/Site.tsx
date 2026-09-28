@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { Suspense, lazy, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router'
 import { PaginaNaoEncontrada } from '@/components/layout/PaginaNaoEncontrada'
+import { env } from '@/config/env'
 import { ROTAS, SUFIXO_DE_VERSAO } from '@/config/rotas'
 import { queryClient } from '@/lib/query/client'
 import { paginaDo } from './paginas'
@@ -12,6 +13,7 @@ const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'))
 const TermosPage = lazy(() => import('@/features/legal/pages/TermosPage'))
 const PrivacidadePage = lazy(() => import('@/features/legal/pages/PrivacidadePage'))
 const OperadoresPage = lazy(() => import('@/features/privacidade/pages/OperadoresPage'))
+const AvisoDaListaDeEsperaPage = lazy(() => import('@/features/landing/pages/AvisoDaListaDeEsperaPage'))
 
 /**
  * O site (`kapaformaturas.com.br`): a página institucional e os documentos legais (Sprint 33).
@@ -21,6 +23,9 @@ const OperadoresPage = lazy(() => import('@/features/privacidade/pages/Operadore
  * app, e o que o site sabe dele é o endereço (`urlDoApp`).
  *
  * Os documentos continuam lendo o texto da API (P3): o cadastro no app mostra a mesma versão.
+ *
+ * Com a lista de espera ligada (Sprint 36, P11), os documentos saem e entra o aviso da lista — e o
+ * site não chama a API em nada. As rotas acompanham `PAGINAS`.
  */
 export function Site() {
   return (
@@ -29,9 +34,15 @@ export function Site() {
       <Suspense>
         <Routes>
           <Route index element={<LandingPage />} />
-          <Route path={ROTAS.termosDeUso + SUFIXO_DE_VERSAO} element={<TermosPage />} />
-          <Route path={ROTAS.privacidade + SUFIXO_DE_VERSAO} element={<PrivacidadePage />} />
-          <Route path={ROTAS.operadores} element={<OperadoresPage />} />
+          {env.VITE_LISTA_DE_ESPERA ? (
+            <Route path={ROTAS.avisoDaListaDeEspera} element={<AvisoDaListaDeEsperaPage />} />
+          ) : (
+            <>
+              <Route path={ROTAS.termosDeUso + SUFIXO_DE_VERSAO} element={<TermosPage />} />
+              <Route path={ROTAS.privacidade + SUFIXO_DE_VERSAO} element={<PrivacidadePage />} />
+              <Route path={ROTAS.operadores} element={<OperadoresPage />} />
+            </>
+          )}
           <Route path="*" element={<PaginaNaoEncontrada destino={ROTAS.landing} />} />
         </Routes>
       </Suspense>

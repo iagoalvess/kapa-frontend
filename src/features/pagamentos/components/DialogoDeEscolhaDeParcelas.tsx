@@ -1,9 +1,10 @@
 import { HandCoins } from 'lucide-react'
-import { type FormEvent, type ReactNode, useId, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CABECALHO_GRUDADO, CaixaRolavel } from '@/components/CaixaRolavel'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
+import { LinhaSelecionavel, PRIMEIRA_COLUNA_SELECIONAVEL } from '@/components/LinhaSelecionavel'
 import { Button } from '@/components/ui/button'
 import { rotaDoPagamentoEmLote } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -25,7 +26,6 @@ interface Props {
  * @param parcelas As parcelas que podem entrar no pagamento.
  */
 export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
-  const grupo = useId()
   const [aberto, definirAberto] = useState(false)
   const [escolhidas, definirEscolhidas] = useState<string[]>([])
   const liberado = useEscritaLiberada()
@@ -72,80 +72,56 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
         descricao="Escolha o que este pagamento vai cobrir. Na tela seguinte sai um PIX só, com a soma."
       >
         <form onSubmit={continuar} noValidate className="grid gap-4">
-          {/* Só respiro lateral: o de cima e o de baixo vem do `py-2` das células, senão o cabeçalho
-              e o degradê não encostam nas bordas da caixa. */}
-          <CaixaRolavel className="border-border rounded-xl border px-4" altura="max-h-72">
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => definirEscolhidas(todasEscolhidas ? [] : parcelas.map((parcela) => parcela.id))}
+            >
+              {todasEscolhidas ? 'Limpar seleção' : 'Selecionar todas'}
+            </Button>
+          </div>
+
+          {/* Sem respiro na caixa: o fundo da linha escolhida vai de borda a borda, e o espaço
+              lateral é das células da `LinhaSelecionavel`. */}
+          <CaixaRolavel className="border-border rounded-xl border" altura="max-h-72">
             <table className="w-full text-sm">
               <caption className="sr-only">Parcelas em aberto, por vencimento</caption>
               {/* Cabeçalho grudado no topo, como o da grade do termo: rolando 24 linhas, a coluna
                   do meio vira "uma data qualquer" sem ele. */}
               <thead className="text-texto-muted sticky top-0 text-left text-xs">
                 <tr>
-                  <th className={`${CABECALHO_GRUDADO} w-8 font-normal`}>
-                    <input
-                      type="checkbox"
-                      aria-label="Incluir todas as parcelas no pagamento"
-                      className="accent-primary size-4 align-middle"
-                      checked={todasEscolhidas}
-                      // Alguma marcada, mas não todas: o traço do meio, que o HTML só tem por
-                      // propriedade — não há atributo para ele.
-                      ref={(campo) => {
-                        if (campo) campo.indeterminate = escolhidas.length > 0 && !todasEscolhidas
-                      }}
-                      onChange={(evento) =>
-                        definirEscolhidas(evento.target.checked ? parcelas.map((parcela) => parcela.id) : [])
-                      }
-                    />
+                  <th className={`${CABECALHO_GRUDADO} ${PRIMEIRA_COLUNA_SELECIONAVEL} pr-3 font-normal`}>
+                    Parcela
                   </th>
-                  <th className={`${CABECALHO_GRUDADO} pr-3 font-normal`}>Parcela</th>
                   <th className={`${CABECALHO_GRUDADO} pr-3 font-normal`}>Vencimento</th>
-                  <th className={`${CABECALHO_GRUDADO} text-right font-normal`}>Valor</th>
+                  <th className={`${CABECALHO_GRUDADO} pr-3 text-right font-normal`}>Valor</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
-                {parcelas.map((parcela) => {
-                  const campo = `${grupo}-${parcela.id}`
-                  const rotulo = (conteudo: ReactNode) => (
-                    <label htmlFor={campo} className="block cursor-pointer">
-                      {conteudo}
-                    </label>
-                  )
-
-                  return (
-                    <tr key={parcela.id} className="border-b last:border-0">
-                      <td className="py-2">
-                        <input
-                          id={campo}
-                          type="checkbox"
-                          // Os rótulos visíveis são os das outras colunas, e nenhum deles é "a
-                          // parcela inteira": quem ouve a linha precisa do número junto do verbo.
-                          aria-label={`Incluir a parcela ${parcela.numero}/${parcela.de} de ${rotuloDoItem(parcela)} no pagamento`}
-                          className="accent-primary size-4 align-middle"
-                          checked={escolhidas.includes(parcela.id)}
-                          onChange={(evento) =>
-                            definirEscolhidas((atuais) =>
-                              evento.target.checked
-                                ? [...atuais, parcela.id]
-                                : atuais.filter((id) => id !== parcela.id),
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="py-2 pr-3">
-                        {rotulo(
-                          <>
-                            {parcela.numero}/{parcela.de}
-                            {variosTipos ? (
-                              <span className="text-muted-foreground"> · {rotuloDoItem(parcela)}</span>
-                            ) : null}
-                          </>,
-                        )}
-                      </td>
-                      <td className="py-2 pr-3">{rotulo(formatarData(parcela.vencimento))}</td>
-                      <td className="py-2 text-right">{rotulo(formatarCentavos(valorNaLista(parcela)))}</td>
-                    </tr>
-                  )
-                })}
+                {parcelas.map((parcela) => (
+                  <LinhaSelecionavel
+                    key={parcela.id}
+                    selecionada={escolhidas.includes(parcela.id)}
+                    aoAlternar={() =>
+                      definirEscolhidas((atuais) =>
+                        atuais.includes(parcela.id)
+                          ? atuais.filter((id) => id !== parcela.id)
+                          : [...atuais, parcela.id],
+                      )
+                    }
+                  >
+                    <td className="py-2 pr-3">
+                      {parcela.numero}/{parcela.de}
+                      {variosTipos ? (
+                        <span className="text-muted-foreground"> · {rotuloDoItem(parcela)}</span>
+                      ) : null}
+                    </td>
+                    <td className="py-2 pr-3">{formatarData(parcela.vencimento)}</td>
+                    <td className="py-2 pr-3 text-right">{formatarCentavos(valorNaLista(parcela))}</td>
+                  </LinhaSelecionavel>
+                ))}
               </tbody>
             </table>
           </CaixaRolavel>

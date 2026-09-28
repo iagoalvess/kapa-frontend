@@ -1,5 +1,6 @@
 import { ChartColumn, CircleCheck, Package, ShoppingBag, ShoppingBasket, Wallet } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
+import { AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
@@ -186,9 +187,6 @@ export default function PedidosPage() {
             <th className="py-3 pr-4 text-right font-normal">Total</th>
             <ColunaOrdenavel coluna="pedido_em">Pedido em</ColunaOrdenavel>
             <th className="py-3 pr-4 font-normal">Situação</th>
-            <th className="py-3 font-normal">
-              <span className="sr-only">Ações</span>
-            </th>
           </>
         }
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
@@ -211,10 +209,10 @@ export default function PedidosPage() {
               <SituacaoDoPedido pedido={pedido} />
             </td>
             <td className="py-3 text-right">
-              <div className="flex justify-end gap-2">
+              <AcoesDaLinha rotulo={`Ações do pedido de ${pedido.nome}`}>
                 <LiberarConvites pedido={pedido} />
                 <AcoesDoPedido pedido={pedido} />
-              </div>
+              </AcoesDaLinha>
             </td>
           </tr>
         ))}

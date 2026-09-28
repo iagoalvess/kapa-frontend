@@ -1,5 +1,5 @@
 import { api } from '@/lib/http/cliente'
-import type { DadosDaMesa, MapaDeMesas, Mesa } from '../types/mesas.types'
+import type { DadosDaMesa, DesenhoDoSalao, MapaDeMesas, Mesa, SalaoDoFormando } from '../types/mesas.types'
 
 const MESAS = '/api/v1/festa/mesas'
 
@@ -8,9 +8,14 @@ export function buscarMapaDeMesas(signal?: AbortSignal) {
   return api.get<MapaDeMesas>(MESAS, { signal })
 }
 
-/** As mesas do próprio formando. */
-export function buscarMinhasMesas(signal?: AbortSignal) {
-  return api.get<Mesa[]>(`${MESAS}/minhas`, { signal })
+/** O mapa do salão para o formando: sem os donos, com as mesas dele marcadas. */
+export function buscarSalaoDoFormando(signal?: AbortSignal) {
+  return api.get<SalaoDoFormando>(`${MESAS}/salao`, { signal })
+}
+
+/** Grava o salão e o lugar das mesas que mudaram, de uma vez. */
+export function salvarSalao(desenho: DesenhoDoSalao) {
+  return api.put<void>(`${MESAS}/salao`, { body: desenho })
 }
 
 /** Cadastra uma mesa. Nome repetido devolve `festa.identificacao_em_uso`. */

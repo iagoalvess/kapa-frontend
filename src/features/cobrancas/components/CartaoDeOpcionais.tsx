@@ -1,9 +1,9 @@
-import { Plus, ShoppingBag } from 'lucide-react'
+import { OctagonX, Pencil, Plus, ShoppingBag, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { BotaoDoLinkDaLoja } from '@/components/BotaoDoLinkDaLoja'
 import { Cartao } from '@/components/Cartao'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
@@ -69,7 +69,6 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
                 <th className="py-3 pr-4 text-right font-normal">Parcelas até</th>
                 <th className="py-3 pr-4 text-right font-normal">Pedidas</th>
                 <th className="py-3 pr-4 font-normal">Venda</th>
-                {editavel ? <th className="py-3 text-right font-normal">Ações</th> : null}
               </>
             }
           >
@@ -106,50 +105,50 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
                   <SituacaoDaVenda item={item} />
                 </td>
                 {editavel ? (
-                  <td className="py-3">
+                  <td className="py-3 text-right">
                     {item.encerrado_em ? null : (
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => definirDialogo({ item })}>
-                          Editar
-                        </Button>
+                      <AcoesDaLinha rotulo={`Ações de ${rotuloDoItem(item)}`}>
+                        <AcaoDaLinha
+                          rotulo="Editar"
+                          icone={Pencil}
+                          onClick={() => definirDialogo({ item })}
+                        />
                         {item.reservados > 0 || item.em_uso ? (
-                          <DialogoDeConfirmacao
-                            gatilho={
-                              <Button variant="outline" size="sm" disabled={ocupado}>
-                                Encerrar
-                              </Button>
-                            }
-                            titulo={`Encerrar a venda de ${rotuloDoItem(item).toLowerCase()}?`}
-                            descricao="O item para de aceitar pedidos. O que já foi pedido continua valendo, e as parcelas em aberto que ainda não venceram são canceladas."
+                          <AcaoComConfirmacao
                             rotulo="Encerrar"
-                            destrutivo
-                            aoConfirmar={() =>
-                              encerrar.mutate(
-                                { itemId: item.id },
-                                { onSuccess: () => toast.info('Venda encerrada.'), onError: avisarErro },
-                              )
-                            }
+                            icone={OctagonX}
+                            desabilitada={ocupado}
+                            confirmacao={{
+                              titulo: `Encerrar a venda de ${rotuloDoItem(item).toLowerCase()}?`,
+                              descricao:
+                                'O item para de aceitar pedidos. O que já foi pedido continua valendo, e as parcelas em aberto que ainda não venceram são canceladas.',
+                              rotulo: 'Encerrar',
+                              aoConfirmar: () =>
+                                encerrar.mutate(
+                                  { itemId: item.id },
+                                  { onSuccess: () => toast.info('Venda encerrada.'), onError: avisarErro },
+                                ),
+                            }}
                           />
                         ) : (
-                          <DialogoDeConfirmacao
-                            gatilho={
-                              <Button variant="outline" size="sm" disabled={ocupado}>
-                                Excluir
-                              </Button>
-                            }
-                            titulo={`Excluir ${rotuloDoItem(item).toLowerCase()}?`}
-                            descricao="Ninguém pediu este item ainda, então nada se perde além do que está escrito aqui."
+                          <AcaoComConfirmacao
                             rotulo="Excluir"
-                            destrutivo
-                            aoConfirmar={() =>
-                              excluir.mutate(
-                                { itemId: item.id },
-                                { onSuccess: () => toast.info('Opcional excluído.'), onError: avisarErro },
-                              )
-                            }
+                            icone={X}
+                            desabilitada={ocupado}
+                            confirmacao={{
+                              titulo: `Excluir ${rotuloDoItem(item).toLowerCase()}?`,
+                              descricao:
+                                'Ninguém pediu este item ainda, então nada se perde além do que está escrito aqui.',
+                              rotulo: 'Excluir',
+                              aoConfirmar: () =>
+                                excluir.mutate(
+                                  { itemId: item.id },
+                                  { onSuccess: () => toast.info('Opcional excluído.'), onError: avisarErro },
+                                ),
+                            }}
                           />
                         )}
-                      </div>
+                      </AcoesDaLinha>
                     )}
                   </td>
                 ) : null}

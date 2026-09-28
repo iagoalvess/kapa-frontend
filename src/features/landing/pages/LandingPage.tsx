@@ -1,6 +1,8 @@
 import { CabecalhoDaLanding } from '../components/CabecalhoDaLanding'
 import { ComoFunciona } from '../components/ComoFunciona'
+import { env } from '@/config/env'
 import { Hero } from '../components/Hero'
+import { ListaDeEspera } from '../components/ListaDeEspera'
 import { PerguntasFrequentes } from '../components/PerguntasFrequentes'
 import { PlanosPublicos } from '../components/PlanosPublicos'
 import { Recursos } from '../components/Recursos'
@@ -35,7 +37,9 @@ export default function LandingPage() {
         <Recursos />
         <ComoFunciona />
         <SegurancaEDinheiro />
-        <PlanosPublicos />
+        {/* Com a lista de espera (Sprint 36), o formulário ocupa o lugar dos preços (P10): a tabela lê
+            a API, que não está no ar, e o preço ainda não foi validado com nenhuma turma. */}
+        {env.VITE_LISTA_DE_ESPERA ? <ListaDeEspera /> : <PlanosPublicos />}
         <PerguntasFrequentes />
       </main>
 

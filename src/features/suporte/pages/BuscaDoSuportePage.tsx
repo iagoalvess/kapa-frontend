@@ -10,6 +10,7 @@ import { Selo } from '@/components/Selo'
 import { rotaDaContaNoSuporte, rotaDaTurmaNoSuporte } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { formatarNumero } from '@/lib/formato'
+import { PlanilhaDaNota } from '../components/PlanilhaDaNota'
 import { SeloDaTurma } from '../components/SeloDeStatus'
 import { useBuscaNoSuporte } from '../hooks/useSuporte'
 
@@ -34,7 +35,7 @@ function Vazio({ mascote, titulo, texto }: { mascote: string; titulo: string; te
  * O termo vive na URL: o atendente cola o link da busca no chamado, e quem abrir depois chega no
  * mesmo lugar.
  *
- * Esta tela é só leitura. A única ação do painel inteiro mora na tela da turma.
+ * Esta tela é só leitura, menos a planilha do mês para a nota fiscal. As ações sobre uma turma moram na tela dela.
  */
 export default function BuscaDoSuportePage() {
   const { parametros, atualizar } = useFiltrosDaUrl()
@@ -61,6 +62,8 @@ export default function BuscaDoSuportePage() {
       </Cartao>
 
       {busca.isError ? <ErroDaConsulta erro={busca.error} /> : null}
+
+      {termo.trim().length < 3 ? <PlanilhaDaNota /> : null}
 
       {termo.trim().length < 3 ? (
         <Cartao rotulo="Como usar a busca">

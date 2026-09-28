@@ -104,8 +104,11 @@ describe('ConferenciaPage', () => {
     expect(bruno).toHaveTextContent('Valor diferente')
     expect(bruno).toHaveTextContent(reais(35_000))
 
-    await userEvent.click(within(await linhaDe('Ana Souza')).getByRole('checkbox'))
-    await userEvent.click(within(bruno).getByRole('checkbox'))
+    // Marca pelo clique na linha; o clique no campo do valor, acima, não marcou o Bruno.
+    expect(bruno).toHaveAttribute('aria-selected', 'false')
+    await userEvent.click(await screen.findByText('Ana Souza'))
+    await userEvent.click(bruno)
+    expect(bruno).toHaveAttribute('aria-selected', 'true')
 
     const confirmar = await screen.findByRole('button', { name: /^Confirmar ·/ })
     expect(confirmar).toHaveTextContent(reais(65_000))
@@ -129,25 +132,17 @@ describe('ConferenciaPage', () => {
     )
   })
 
-  it('a caixa do cabeçalho marca e desmarca a página inteira', async () => {
+  it('pelo teclado, Espaço na linha marca e desmarca', async () => {
     responder()
 
     renderizar(<ConferenciaPage />)
 
-    await screen.findByText('Ana Souza')
-    const todos = screen.getByRole('checkbox', { name: 'Marcar todos os avisos desta página' })
-
-    await userEvent.click(todos)
-    expect(screen.getByText('2 selecionados')).toBeInTheDocument()
-
-    // Desmarcar uma linha tira a página inteira do "todos", mas mantém o lote.
-    await userEvent.click(within(await linhaDe('Ana Souza')).getByRole('checkbox'))
-    expect(screen.getByText('1 selecionado')).toBeInTheDocument()
-    expect(todos).not.toBeChecked()
-
-    await userEvent.click(todos)
-    await userEvent.click(todos)
-    expect(screen.queryByRole('button', { name: /^Confirmar/ })).not.toBeInTheDocument()
+    const ana = await linhaDe('Ana Souza')
+    ana.focus()
+    await userEvent.keyboard(' ')
+    expect(ana).toHaveAttribute('aria-selected', 'true')
+    await userEvent.keyboard(' ')
+    expect(ana).toHaveAttribute('aria-selected', 'false')
   })
 
   it('sem nada marcado, o botão do lote não aparece', async () => {
@@ -192,7 +187,7 @@ describe('ConferenciaPage', () => {
     expect(linha).toHaveTextContent(reais(1_120))
     expect(linha).toHaveTextContent('Tesa Ribeiro')
     // Já foi baixada: não há o que confirmar de novo.
-    expect(within(linha).queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(linha).not.toHaveAttribute('aria-selected')
   })
 
   it('a lista do dia pede só os conferidos hoje e não deixa remarcá-los', async () => {
@@ -208,7 +203,7 @@ describe('ConferenciaPage', () => {
 
     const linha = await linhaDe('Caio Prado')
     expect(linha).toHaveTextContent(reais(35_000))
-    expect(within(linha).queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(linha).not.toHaveAttribute('aria-selected')
     expect(screen.queryByText('Ana Souza')).not.toBeInTheDocument()
 
     await waitFor(() => expect(pedidos.conferidos_hoje).toContain('true'))

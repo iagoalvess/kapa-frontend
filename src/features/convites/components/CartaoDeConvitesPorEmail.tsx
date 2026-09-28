@@ -1,12 +1,11 @@
-import { Mail } from 'lucide-react'
+import { Ban, Mail } from 'lucide-react'
 import { toast } from 'sonner'
+import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Tabela } from '@/components/Planilha'
 import { Selo, type TomDoSelo } from '@/components/Selo'
-import { Button } from '@/components/ui/button'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
@@ -94,9 +93,6 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
           <th className="py-3 pr-4 font-normal">Papel</th>
           <th className="py-3 pr-4 font-normal">Válido até</th>
           <th className="py-3 pr-4 font-normal">Situação</th>
-          <th className="py-3 font-normal">
-            <span className="sr-only">Ações</span>
-          </th>
         </>
       }
     >
@@ -122,33 +118,29 @@ function LinhaDeConvite({ convite }: { convite: ConviteResumo }) {
       </td>
       <td className="py-3 text-right">
         {convite.status === 'Pendente' ? (
-          <DialogoDeConfirmacao
-            gatilho={
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label={`Revogar convite de ${convite.email}`}
-                disabled={revogar.isPending || !escritaLiberada}
-              >
-                Revogar
-              </Button>
-            }
-            titulo="Revogar o convite?"
-            descricao={
-              <>
-                O link que <strong>{convite.email}</strong> recebeu para de funcionar. Se for engano, dá para
-                convidar de novo — mas a pessoa recebe outro e-mail, com outro link.
-              </>
-            }
-            rotulo="Revogar"
-            destrutivo
-            aoConfirmar={() =>
-              revogar.mutate(convite.id, {
-                onSuccess: () => toast.info('Convite revogado. O link parou de funcionar.'),
-                onError: avisarErro,
-              })
-            }
-          />
+          <AcoesDaLinha rotulo={`Ações do convite de ${convite.email}`}>
+            <AcaoComConfirmacao
+              rotulo="Revogar"
+              descricaoAcessivel={`Revogar convite de ${convite.email}`}
+              icone={Ban}
+              desabilitada={revogar.isPending || !escritaLiberada}
+              confirmacao={{
+                titulo: 'Revogar o convite?',
+                descricao: (
+                  <>
+                    O link que <strong>{convite.email}</strong> recebeu para de funcionar. Se for engano, dá
+                    para convidar de novo — mas a pessoa recebe outro e-mail, com outro link.
+                  </>
+                ),
+                rotulo: 'Revogar',
+                aoConfirmar: () =>
+                  revogar.mutate(convite.id, {
+                    onSuccess: () => toast.info('Convite revogado. O link parou de funcionar.'),
+                    onError: avisarErro,
+                  }),
+              }}
+            />
+          </AcoesDaLinha>
         ) : null}
       </td>
     </tr>

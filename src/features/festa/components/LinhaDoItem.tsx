@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { COR_ESCOLHIDA, COR_NAO_ESCOLHIDA } from '@/components/LinhaSelecionavel'
 import { rotaDoItemDaFesta } from '@/config/rotas'
 import { formatarCentavos } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -26,7 +27,7 @@ export function LinhaDoItem({ item, aberto }: { item: ItemDaFesta; aberto: boole
         aria-current={aberto ? 'true' : undefined}
         className={cn(
           'flex items-center gap-3 border-l-2 px-4 py-3',
-          aberto ? 'bg-brand-tint border-brand' : 'hover:bg-border/40 border-transparent',
+          aberto ? COR_ESCOLHIDA : COR_NAO_ESCOLHIDA,
         )}
       >
         <span

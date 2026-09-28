@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
+import { env } from '@/config/env'
 import { ROTAS } from '@/config/rotas'
 
 /**
@@ -12,14 +13,14 @@ const COLUNAS = [
     links: [
       { rotulo: 'Recursos', href: '#recursos' },
       { rotulo: 'Como funciona', href: '#como-funciona' },
-      { rotulo: 'Planos', href: '#planos' },
+      ...(env.VITE_LISTA_DE_ESPERA ? [] : [{ rotulo: 'Planos', href: '#planos' }]),
     ],
   },
   {
     titulo: 'Suporte',
     links: [{ rotulo: 'Perguntas frequentes', href: '#perguntas' }],
   },
-] as const
+]
 
 /**
  * O rodapé da página institucional.
@@ -29,6 +30,9 @@ const COLUNAS = [
  *
  * `operadores` entra ao lado dos dois porque responde à mesma pergunta — para onde o dado vai —,
  * e a LGPD (art. 18, VII) não deixa essa resposta depender de ter conta.
+ *
+ * Com a lista de espera (Sprint 36, P11), os três saem: descrevem o sistema, que ninguém usa ainda, e
+ * leem o texto da API, que não está no ar. No lugar fica o aviso da lista, o que a LGPD pede na coleta.
  */
 export function RodapeDaLanding() {
   return (
@@ -58,15 +62,26 @@ export function RodapeDaLanding() {
 
         <nav aria-label="Legal" className="grid content-start gap-2">
           <p className="text-foreground font-medium">Legal</p>
-          <Link to={ROTAS.termosDeUso} className="text-muted-foreground hover:text-foreground text-sm">
-            Termos de Uso
-          </Link>
-          <Link to={ROTAS.privacidade} className="text-muted-foreground hover:text-foreground text-sm">
-            Política de Privacidade
-          </Link>
-          <Link to={ROTAS.operadores} className="text-muted-foreground hover:text-foreground text-sm">
-            Com quem compartilhamos dados
-          </Link>
+          {env.VITE_LISTA_DE_ESPERA ? (
+            <Link
+              to={ROTAS.avisoDaListaDeEspera}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
+              Aviso de privacidade da lista de espera
+            </Link>
+          ) : (
+            <>
+              <Link to={ROTAS.termosDeUso} className="text-muted-foreground hover:text-foreground text-sm">
+                Termos de Uso
+              </Link>
+              <Link to={ROTAS.privacidade} className="text-muted-foreground hover:text-foreground text-sm">
+                Política de Privacidade
+              </Link>
+              <Link to={ROTAS.operadores} className="text-muted-foreground hover:text-foreground text-sm">
+                Com quem compartilhamos dados
+              </Link>
+            </>
+          )}
         </nav>
       </div>
 

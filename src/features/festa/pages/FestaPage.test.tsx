@@ -13,7 +13,8 @@ const ITENS = `${env.VITE_API_URL}/api/v1/festa/itens`
 const META = `${env.VITE_API_URL}/api/v1/festa/meta`
 const PROPOSTAS = `${env.VITE_API_URL}/api/v1/festa/propostas`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
-const MINHAS_MESAS = `${env.VITE_API_URL}/api/v1/festa/mesas/minhas`
+const SALAO = `${env.VITE_API_URL}/api/v1/festa/mesas/salao`
+const SALAO_VAZIO = { salao: { largura: 2400, altura: 1600, elementos: [] }, mesas: [] }
 
 /** Um item "a contratar": sem despesa, o custo é o que a comissão orçou. */
 const aContratar: ItemDaFesta = {
@@ -107,7 +108,7 @@ function comApi(
         : new HttpResponse(null, { status: 404 })
     }),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
-    http.get(MINHAS_MESAS, () => HttpResponse.json([])),
+    http.get(SALAO, () => HttpResponse.json(SALAO_VAZIO)),
   )
 }
 
@@ -138,29 +139,34 @@ describe('FestaPage', () => {
     expect(within(buffet).getByText(reais(60_000_00))).toBeInTheDocument()
   })
 
-  it('o formando que tem mesa vê qual é, só para ler', async () => {
+  it('o formando que tem mesa vê qual é e abre o mapa do salão, só para ler', async () => {
     entrarComo('Formando')
     comApi()
+    const mesa = { lugares: 10, reservada: false, formato: 'Redonda', girada: false }
     servidor.use(
-      http.get(MINHAS_MESAS, () =>
-        HttpResponse.json([
-          {
-            id: 'm-1',
-            identificacao: 'Mesa 12',
-            lugares: 10,
-            observacao: null,
-            reservada: false,
-            vinculo_id: 'v-1',
-            dono: 'Ana',
-          },
-        ]),
+      http.get(SALAO, () =>
+        HttpResponse.json({
+          ...SALAO_VAZIO,
+          mesas: [
+            { ...mesa, id: 'm-1', identificacao: 'Mesa 12', x: 600, y: 400, minha: true },
+            { ...mesa, id: 'm-2', identificacao: 'Mesa 13', x: 1200, y: 400, minha: false },
+          ],
+        }),
       ),
     )
+    const usuario = userEvent.setup()
 
     renderizar(<FestaPage />)
 
-    expect(await screen.findByText('Mesa 12')).toBeInTheDocument()
-    expect(screen.getByText(/Sua mesa no jantar/)).toBeInTheDocument()
+    expect(await screen.findByText(/Sua mesa no jantar/)).toHaveTextContent(
+      'Sua mesa no jantar: Mesa 12 (10 lugares).',
+    )
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver mapa do salão' }))
+
+    const mapa = await screen.findByRole('img', { name: 'Mapa do salão' })
+    expect(within(mapa).getByText('Sua mesa')).toBeInTheDocument()
+    expect(within(mapa).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('o item da rota é o que abre, e o custo contratado toma o lugar do orçado', async () => {

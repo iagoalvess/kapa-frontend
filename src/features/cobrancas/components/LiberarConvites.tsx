@@ -1,8 +1,9 @@
+import { Ticket } from 'lucide-react'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -47,9 +48,7 @@ export function LiberarConvites({ pedido }: { pedido: Pedido }) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => definirAberto(true)}>
-        Liberar convites
-      </Button>
+      <AcaoDaLinha rotulo="Liberar convites" icone={Ticket} onClick={() => definirAberto(true)} />
 
       <DialogoDeFormulario
         aberto={aberto}

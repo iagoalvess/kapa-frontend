@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
-import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { formatarCentavos } from '@/lib/formato'
@@ -77,17 +78,16 @@ export function DialogoDeDesligamento({
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={desabilitado}
+      <AcaoDaLinha
+        rotulo="Desligar"
+        icone={UserMinus}
+        tom="perigo"
+        desabilitada={desabilitado}
         onClick={() => {
           formulario.reset()
           definirAberto(true)
         }}
-      >
-        Desligar
-      </Button>
+      />
 
       <DialogoDeFormulario
         aberto={aberto}

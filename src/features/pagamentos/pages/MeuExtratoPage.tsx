@@ -192,9 +192,6 @@ export default function MeuExtratoPage() {
                     Valor
                   </ColunaOrdenavel>
                   <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
-                  <th className="py-3 font-normal">
-                    <span className="sr-only">Ações</span>
-                  </th>
                 </>
               }
             >

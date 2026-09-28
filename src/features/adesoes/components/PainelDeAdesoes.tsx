@@ -1,14 +1,14 @@
-import { Download } from 'lucide-react'
+import { Bell, Download } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
+import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
 import { Chip } from '@/components/Chip'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
-import { Button } from '@/components/ui/button'
 import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -133,9 +133,6 @@ export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
             <ColunaOrdenavel coluna="papel">Papel</ColunaOrdenavel>
             <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
             <ColunaOrdenavel coluna="aceito_em">Aceito em</ColunaOrdenavel>
-            <th className="py-3 font-normal">
-              <span className="sr-only">Ações</span>
-            </th>
           </>
         }
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
@@ -184,36 +181,31 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
         {formatarData(membro.aceito_em)}
       </td>
       <td className="py-3 text-right">
-        <div className="flex justify-end gap-2">
+        <AcoesDaLinha rotulo={`Ações de ${membro.nome}`}>
           {adesao_id ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pdf.isPending}
-              aria-label={`Baixar o termo de ${membro.nome}`}
+            <AcaoDaLinha
+              rotulo="PDF"
+              descricaoAcessivel={`Baixar o termo de ${membro.nome}`}
+              icone={Download}
+              desabilitada={pdf.isPending}
               onClick={() => pdf.mutate({ adesao_id, versao: membro.versao ?? 1 }, { onError: avisarErro })}
-            >
-              <Download aria-hidden />
-              PDF
-            </Button>
+            />
           ) : null}
           {podeLembrar ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!liberado || lembrar.isPending || lembrar.isSuccess}
-              aria-label={`Lembrar ${membro.nome}`}
+            <AcaoDaLinha
+              rotulo="Lembrar"
+              descricaoAcessivel={`Lembrar ${membro.nome}`}
+              icone={Bell}
+              desabilitada={!liberado || lembrar.isPending || lembrar.isSuccess}
               onClick={() =>
                 lembrar.mutate(membro.usuario_id, {
                   onSuccess: () => toast.success(`Lembrete enviado para ${membro.nome}.`),
                   onError: avisarErro,
                 })
               }
-            >
-              {lembrar.isSuccess ? 'Lembrado' : 'Lembrar'}
-            </Button>
+            />
           ) : null}
-        </div>
+        </AcoesDaLinha>
       </td>
     </tr>
   )

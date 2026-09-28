@@ -1,7 +1,8 @@
-import { ClipboardCheck } from 'lucide-react'
+import { ClipboardCheck, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { toast } from 'sonner'
+import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
@@ -183,11 +184,6 @@ export default function MembrosPage() {
             <ColunaOrdenavel coluna="papel">Papel</ColunaOrdenavel>
             <ColunaOrdenavel coluna="cadastro">Cadastro</ColunaOrdenavel>
             <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
-            {ehPresidente ? (
-              <th className="py-3 font-normal">
-                <span className="sr-only">Ações</span>
-              </th>
-            ) : null}
           </>
         }
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
@@ -254,32 +250,34 @@ function AcaoDeSaida({
   const remover = useRemoverMembro()
 
   if (membro.tem_adesao) {
-    return <DialogoDeDesligamento membro={membro} desabilitado={ocupado} />
+    return (
+      <AcoesDaLinha rotulo={`Ações de ${nome}`}>
+        <DialogoDeDesligamento membro={membro} desabilitado={ocupado} />
+      </AcoesDaLinha>
+    )
   }
 
   return (
-    <DialogoDeConfirmacao
-      gatilho={
-        <Button variant="outline" size="sm" disabled={ocupado}>
-          Remover
-        </Button>
-      }
-      titulo={ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`}
-      descricao={
-        ehOProprio
-          ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
-          : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.'
-      }
-      rotulo={ehOProprio ? 'Sair' : 'Remover'}
-      destrutivo
-      aoConfirmar={() =>
-        remover.mutate(membro.usuario_id, {
-          onSuccess: () =>
-            toast.info(ehOProprio ? 'Você saiu da formatura.' : `${nome} foi removido da turma.`),
-          onError: avisarErro,
-        })
-      }
-    />
+    <AcoesDaLinha rotulo={`Ações de ${nome}`}>
+      <AcaoComConfirmacao
+        rotulo="Remover"
+        icone={UserMinus}
+        desabilitada={ocupado}
+        confirmacao={{
+          titulo: ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`,
+          descricao: ehOProprio
+            ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
+            : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.',
+          rotulo: ehOProprio ? 'Sair' : 'Remover',
+          aoConfirmar: () =>
+            remover.mutate(membro.usuario_id, {
+              onSuccess: () =>
+                toast.info(ehOProprio ? 'Você saiu da formatura.' : `${nome} foi removido da turma.`),
+              onError: avisarErro,
+            }),
+        }}
+      />
+    </AcoesDaLinha>
   )
 }
 

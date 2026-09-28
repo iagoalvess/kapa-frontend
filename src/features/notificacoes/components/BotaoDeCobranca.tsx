@@ -1,7 +1,6 @@
 import { Send } from 'lucide-react'
 import { toast } from 'sonner'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { Button } from '@/components/ui/button'
+import { AcaoComConfirmacao } from '@/components/AcoesDaLinha'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { avisarErro } from '@/lib/http/erros'
 import { formatarData } from '@/lib/formato'
@@ -21,28 +20,27 @@ export function BotaoDeCobranca({ parcela }: { parcela: Parcela }) {
   const liberado = useEscritaLiberada()
 
   return (
-    <DialogoDeConfirmacao
-      gatilho={
-        <Button variant="outline" size="sm" disabled={!liberado || cobrar.isPending}>
-          <Send aria-hidden />
-          Cobrar
-        </Button>
-      }
-      titulo="Cobrar agora?"
-      descricao={
-        <>
-          {parcela.nome} recebe por e-mail o texto da régua para uma parcela em atraso, com o valor atualizado
-          e o vencimento de {formatarData(parcela.vencimento)}. Cada pessoa recebe no máximo uma cobrança por
-          dia.
-        </>
-      }
-      rotulo={cobrar.isPending ? 'Enviando…' : 'Enviar cobrança'}
-      aoConfirmar={() =>
-        cobrar.mutate(parcela.id, {
-          onSuccess: () => toast.success('Cobrança enviada.'),
-          onError: avisarErro,
-        })
-      }
+    <AcaoComConfirmacao
+      rotulo="Cobrar"
+      icone={Send}
+      tom="neutra"
+      desabilitada={!liberado || cobrar.isPending}
+      confirmacao={{
+        titulo: 'Cobrar agora?',
+        descricao: (
+          <>
+            {parcela.nome} recebe por e-mail o texto da régua para uma parcela em atraso, com o valor
+            atualizado e o vencimento de {formatarData(parcela.vencimento)}. Cada pessoa recebe no máximo uma
+            cobrança por dia.
+          </>
+        ),
+        rotulo: cobrar.isPending ? 'Enviando…' : 'Enviar cobrança',
+        aoConfirmar: () =>
+          cobrar.mutate(parcela.id, {
+            onSuccess: () => toast.success('Cobrança enviada.'),
+            onError: avisarErro,
+          }),
+      }}
     />
   )
 }

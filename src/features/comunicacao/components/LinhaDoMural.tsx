@@ -1,6 +1,7 @@
 import { Pin } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
+import { COR_ESCOLHIDA, COR_NAO_ESCOLHIDA } from '@/components/LinhaSelecionavel'
 import { Selo } from '@/components/Selo'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
 import { rotaDoAviso } from '@/config/rotas'
@@ -26,10 +27,7 @@ export function LinhaDoMural({ aviso, aberto }: { aviso: Aviso; aberto: boolean 
       <Link
         to={rotaDoAviso(aviso.id)}
         aria-current={aberto ? 'true' : undefined}
-        className={cn(
-          'grid gap-1.5 border-l-2 px-4 py-3',
-          aberto ? 'bg-brand-tint border-brand' : 'hover:bg-border/40 border-transparent',
-        )}
+        className={cn('grid gap-1.5 border-l-2 px-4 py-3', aberto ? COR_ESCOLHIDA : COR_NAO_ESCOLHIDA)}
       >
         <div className="flex items-start gap-2">
           {aviso.fixado ? <Pin className="text-brand-text mt-0.5 size-3.5 shrink-0" aria-hidden /> : null}

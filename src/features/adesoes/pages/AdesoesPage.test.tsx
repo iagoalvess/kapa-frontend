@@ -108,7 +108,8 @@ describe('AdesoesPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Lembrar Bruno Lima' }))
 
     await waitFor(() => expect(lembrados).toEqual(['u-2']))
-    expect(await screen.findByRole('button', { name: 'Lembrar Bruno Lima' })).toHaveTextContent('Lembrado')
+    // Sem escrita no botão (só ícone): o enviado se lê no desabilitado, não no "Lembrado".
+    expect(await screen.findByRole('button', { name: 'Lembrar Bruno Lima' })).toBeDisabled()
   })
 
   /**

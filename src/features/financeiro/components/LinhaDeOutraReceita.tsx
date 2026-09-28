@@ -2,12 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { Banknote, FileText, Pencil, X } from 'lucide-react'
+import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Selo } from '@/components/Selo'
-import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAbrirArquivoDoAcervo } from '@/hooks/useAcervoDaTurma'
@@ -64,18 +64,16 @@ export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEdit
         <SituacaoDaOutraReceita outraReceita={outraReceita} />
       </td>
       <td className="py-3 text-right">
-        <div className="flex justify-end gap-2">
+        <AcoesDaLinha rotulo={`Ações de ${outraReceita.descricao}`}>
           {/* O comprovante está no acervo, visível para a turma: abre para qualquer membro. */}
           {outraReceita.documento ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={documento.abrindo}
+            <AcaoDaLinha
+              rotulo="Comprovante"
+              descricaoAcessivel={`Abrir comprovante de ${outraReceita.descricao}`}
+              icone={FileText}
+              desabilitada={documento.abrindo}
               onClick={() => outraReceita.documento && documento.abrir(outraReceita.documento)}
-              aria-label={`Abrir comprovante de ${outraReceita.descricao}`}
-            >
-              Comprovante
-            </Button>
+            />
           ) : null}
 
           {tesouraria && prevista ? (
@@ -83,43 +81,36 @@ export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEdit
           ) : null}
 
           {tesouraria && outraReceita.status !== 'Cancelada' ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!editavel}
+            <AcaoDaLinha
+              rotulo="Editar"
+              descricaoAcessivel={`Editar ${outraReceita.descricao}`}
+              icone={Pencil}
+              desabilitada={!editavel}
               onClick={aoEditar}
-              aria-label={`Editar ${outraReceita.descricao}`}
-            >
-              Editar
-            </Button>
+            />
           ) : null}
 
           {tesouraria && prevista ? (
-            <DialogoDeConfirmacao
-              gatilho={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!editavel || cancelar.isPending}
-                  aria-label={`Cancelar ${outraReceita.descricao}`}
-                >
-                  Cancelar
-                </Button>
-              }
-              titulo={`Cancelar “${outraReceita.descricao}”?`}
-              descricao="A receita sai da projeção do caixa. Cancelada é situação final: se o dinheiro vier, é lançar de novo."
-              rotuloDeCancelar="Voltar"
-              rotulo="Cancelar receita"
-              destrutivo
-              aoConfirmar={() =>
-                cancelar.mutate(outraReceita.id, {
-                  onSuccess: () => toast.info('Receita cancelada.'),
-                  onError: avisarErro,
-                })
-              }
+            <AcaoComConfirmacao
+              rotulo="Cancelar"
+              descricaoAcessivel={`Cancelar ${outraReceita.descricao}`}
+              icone={X}
+              desabilitada={!editavel || cancelar.isPending}
+              confirmacao={{
+                titulo: `Cancelar “${outraReceita.descricao}”?`,
+                descricao:
+                  'A receita sai da projeção do caixa. Cancelada é situação final: se o dinheiro vier, é lançar de novo.',
+                rotuloDeCancelar: 'Voltar',
+                rotulo: 'Cancelar receita',
+                aoConfirmar: () =>
+                  cancelar.mutate(outraReceita.id, {
+                    onSuccess: () => toast.info('Receita cancelada.'),
+                    onError: avisarErro,
+                  }),
+              }}
             />
           ) : null}
-        </div>
+        </AcoesDaLinha>
       </td>
     </tr>
   )
@@ -168,9 +159,7 @@ function DialogoDeRecebimento({
 
   return (
     <>
-      <Button variant="outline" size="sm" disabled={desabilitado} onClick={abrir}>
-        Receber
-      </Button>
+      <AcaoDaLinha rotulo="Receber" icone={Banknote} desabilitada={desabilitado} onClick={abrir} />
       <DialogoDeFormulario
         aberto={aberto}
         aoFechar={() => definirAberto(false)}

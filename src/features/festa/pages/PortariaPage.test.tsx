@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -104,11 +104,21 @@ describe('PortariaPage', () => {
   it('a busca filtra a lista já carregada, sem acento e pelo código', async () => {
     renderizar(<PortariaPage />)
 
-    await userEvent.type(await screen.findByRole('textbox', { name: 'Procurar convidado' }), 'joao')
+    await screen.findByText('Maria Avó')
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Procurar convidado' }), 'joao{Enter}')
 
-    const itens = screen.getAllByRole('listitem')
-    expect(itens).toHaveLength(1)
-    expect(within(itens[0]!).getByText('João Primo')).toBeInTheDocument()
+    expect(screen.getByText('João Primo')).toBeInTheDocument()
+    expect(screen.queryByText('Maria Avó')).not.toBeInTheDocument()
+  })
+
+  it('o filtro de situação mostra só os daquela situação, com a contagem', async () => {
+    renderizar(<PortariaPage />)
+
+    await screen.findByText('Maria Avó')
+    await userEvent.click(screen.getByRole('button', { name: 'Entrou 1' }))
+
+    expect(screen.getByText('João Primo')).toBeInTheDocument()
+    expect(screen.queryByText('Maria Avó')).not.toBeInTheDocument()
   })
 
   it('o código ditado vale na hora, e a segunda leitura diz quem validou', async () => {
@@ -159,7 +169,8 @@ describe('PortariaPage', () => {
     )
     renderizar(<PortariaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Colação' }))
+    await screen.findByText('Maria Avó')
+    await userEvent.click(screen.getByRole('button', { name: 'Colação' }))
     expect(await screen.findByText('Tia Rosa')).toBeInTheDocument()
     expect(screen.queryByText('Maria Avó')).not.toBeInTheDocument()
 

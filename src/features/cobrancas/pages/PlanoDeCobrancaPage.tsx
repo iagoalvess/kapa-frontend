@@ -1,10 +1,10 @@
-import { BellRing, Coins } from 'lucide-react'
+import { BellRing, Coins, OctagonX, Pencil, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
+import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import {
   EsqueletoDeCartao,
@@ -268,7 +268,6 @@ function ListaDeItens({
           <th className="py-3 pr-4 font-normal">Vence</th>
           <th className="py-3 pr-4 font-normal">A partir de</th>
           <th className="py-3 pr-4 font-normal">Situação</th>
-          {editavel ? <th className="py-3 text-right font-normal">Ações</th> : null}
         </>
       }
     >
@@ -300,50 +299,46 @@ function ListaDeItens({
               <SituacaoDoItem item={item} />
             </td>
             {editavel ? (
-              <td className="py-3">
+              <td className="py-3 text-right">
                 {item.encerrado_em ? null : (
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => aoEditar(item)}>
-                      Editar
-                    </Button>
+                  <AcoesDaLinha rotulo={`Ações de ${rotuloDoItem(item)}`}>
+                    <AcaoDaLinha rotulo="Editar" icone={Pencil} onClick={() => aoEditar(item)} />
                     {item.em_uso ? (
-                      <DialogoDeConfirmacao
-                        gatilho={
-                          <Button variant="outline" size="sm" disabled={ocupado}>
-                            Encerrar
-                          </Button>
-                        }
-                        titulo={`Encerrar ${rotuloDoItem(item).toLowerCase()}?`}
-                        descricao="A cobrança para: as parcelas que vencem de amanhã em diante são canceladas. O que já venceu ou foi pago continua como está."
+                      <AcaoComConfirmacao
                         rotulo="Encerrar"
-                        destrutivo
-                        aoConfirmar={() =>
-                          encerrar.mutate(
-                            { planoId: plano.id, itemId: item.id },
-                            { onSuccess: () => toast.info('Cobrança encerrada.'), onError: avisarErro },
-                          )
-                        }
+                        icone={OctagonX}
+                        desabilitada={ocupado}
+                        confirmacao={{
+                          titulo: `Encerrar ${rotuloDoItem(item).toLowerCase()}?`,
+                          descricao:
+                            'A cobrança para: as parcelas que vencem de amanhã em diante são canceladas. O que já venceu ou foi pago continua como está.',
+                          rotulo: 'Encerrar',
+                          aoConfirmar: () =>
+                            encerrar.mutate(
+                              { planoId: plano.id, itemId: item.id },
+                              { onSuccess: () => toast.info('Cobrança encerrada.'), onError: avisarErro },
+                            ),
+                        }}
                       />
                     ) : (
-                      <DialogoDeConfirmacao
-                        gatilho={
-                          <Button variant="outline" size="sm" disabled={ocupado}>
-                            Excluir
-                          </Button>
-                        }
-                        titulo={`Excluir ${rotuloDoItem(item).toLowerCase()}?`}
-                        descricao="A cobrança sai do plano e não fica no histórico. Como ela ainda não gerou parcela nenhuma, ninguém deixa de dever nada — mas o que estava escrito aqui se perde."
+                      <AcaoComConfirmacao
                         rotulo="Excluir"
-                        destrutivo
-                        aoConfirmar={() =>
-                          remover.mutate(
-                            { planoId: plano.id, itemId: item.id },
-                            { onSuccess: () => toast.info('Cobrança excluída.'), onError: avisarErro },
-                          )
-                        }
+                        icone={X}
+                        desabilitada={ocupado}
+                        confirmacao={{
+                          titulo: `Excluir ${rotuloDoItem(item).toLowerCase()}?`,
+                          descricao:
+                            'A cobrança sai do plano e não fica no histórico. Como ela ainda não gerou parcela nenhuma, ninguém deixa de dever nada — mas o que estava escrito aqui se perde.',
+                          rotulo: 'Excluir',
+                          aoConfirmar: () =>
+                            remover.mutate(
+                              { planoId: plano.id, itemId: item.id },
+                              { onSuccess: () => toast.info('Cobrança excluída.'), onError: avisarErro },
+                            ),
+                        }}
                       />
                     )}
-                  </div>
+                  </AcoesDaLinha>
                 )}
               </td>
             ) : null}

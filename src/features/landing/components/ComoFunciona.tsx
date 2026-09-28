@@ -15,9 +15,8 @@ import mascoteCelular from '@/assets/mascote/celular.webp'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import qrcode from '@/assets/outros/qrcode.webp'
 import whatsapp from '@/assets/outros/whatsapp.webp'
-import { Button } from '@/components/ui/button'
-import { ROTAS, urlDoApp } from '@/config/rotas'
 import { cn } from '@/lib/utils'
+import { ChamadaPrincipal } from './ChamadaPrincipal'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
 function SetaAnotada({ className }: { className?: string }) {
@@ -229,7 +228,7 @@ export function ComoFunciona() {
             <li
               key={passo.titulo}
               className={cn(
-                'relative mx-auto grid w-full max-w-md min-w-0 content-start gap-10 overflow-hidden rounded-3xl border p-5 pb-0 shadow-[0_3px_10px_-5px_rgba(26,26,24,0.12)] lg:max-w-none',
+                'shadow-vitrine relative mx-auto grid w-full max-w-md min-w-0 content-start gap-10 overflow-hidden rounded-3xl border p-5 pb-0 lg:max-w-none',
                 passo.tom === 'destaque'
                   ? 'border-primary bg-primary'
                   : 'border-brand-tint/70 from-brand-wash to-brand-tint/35 bg-gradient-to-br',
@@ -268,12 +267,7 @@ export function ComoFunciona() {
         </ol>
       </div>
       <div className="grid justify-items-center gap-3">
-        <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
-          <a href={urlDoApp(ROTAS.criarConta)}>
-            <GraduationCap className="size-4" aria-hidden />
-            Criar minha turma
-          </a>
-        </Button>
+        <ChamadaPrincipal size="lg" className="h-11 rounded-xl text-sm shadow-lg" />
         <p className="text-texto-muted flex items-center justify-center gap-2 text-center text-xs leading-[18px]">
           Grátis até a turma começar a pagar as parcelas.
         </p>

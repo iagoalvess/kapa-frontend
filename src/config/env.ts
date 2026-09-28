@@ -17,14 +17,27 @@ const endereco = (nome: string, exemplo: string) =>
  * os documentos legais para o site. Sem padrão de propósito — um padrão de `localhost` numa build
  * de produção vira link quebrado em silêncio.
  */
-const esquema = z.object({
-  VITE_API_URL: endereco('VITE_API_URL', 'http://localhost:8080'),
-  // O sistema: `app.kapaformaturas.com.br`.
-  VITE_APP_URL: endereco('VITE_APP_URL', 'http://localhost:5173'),
-  // A página institucional e os documentos legais: `kapaformaturas.com.br`.
-  VITE_SITE_URL: endereco('VITE_SITE_URL', 'http://localhost:5180'),
-  VITE_APP_NOME: z.string().min(1).default('Frontend'),
-})
+const esquema = z
+  .object({
+    VITE_API_URL: endereco('VITE_API_URL', 'http://localhost:8080'),
+    // O sistema: `app.kapaformaturas.com.br`.
+    VITE_APP_URL: endereco('VITE_APP_URL', 'http://localhost:5173'),
+    // A página institucional e os documentos legais: `kapaformaturas.com.br`.
+    VITE_SITE_URL: endereco('VITE_SITE_URL', 'http://localhost:5180'),
+    VITE_APP_NOME: z.string().min(1).default('Frontend'),
+    // Sprint 36: o site capta a lista de espera no lugar de "Entrar" e "Criar conta". Só a build do
+    // site liga; desligar é mudar a variável e publicar de novo.
+    VITE_LISTA_DE_ESPERA: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((valor) => valor === 'true'),
+    // A chave pública do widget do Turnstile. O segredo mora só na Pages Function.
+    VITE_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
+  })
+  .refine((valores) => !valores.VITE_LISTA_DE_ESPERA || valores.VITE_TURNSTILE_SITE_KEY, {
+    message: 'VITE_LISTA_DE_ESPERA=true precisa de VITE_TURNSTILE_SITE_KEY.',
+    path: ['VITE_TURNSTILE_SITE_KEY'],
+  })
 
 const resultado = esquema.safeParse(import.meta.env)
 

@@ -1,9 +1,13 @@
 import { prerender } from 'react-dom/static'
 import { StaticRouter } from 'react-router'
+import { env } from '@/config/env'
 import { Site } from './Site'
 
 export { PAGINAS } from './paginas'
 export { redirecionamentos } from './redirecionamentos'
+
+/** O modo da build, para o script ajustar a CSP (Sprint 36). */
+export const listaDeEspera = env.VITE_LISTA_DE_ESPERA
 
 /**
  * O HTML de uma página do site, com as partes preguiçosas já resolvidas.

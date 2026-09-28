@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
 import mascoteSuporte from '@/assets/mascote/suporte.webp'
+import { env } from '@/config/env'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
 /** As seis perguntas que toda comissão faz antes de contratar. */
@@ -50,7 +51,11 @@ export function PerguntasFrequentes() {
       creme
       etiqueta="Perguntas"
       titulo="O que toda comissão pergunta"
-      descricao="Se ficar dúvida, dá para criar a turma e ver por dentro, sem cartão."
+      descricao={
+        env.VITE_LISTA_DE_ESPERA
+          ? 'Se ficar dúvida, entre na lista de espera e a gente conversa.'
+          : 'Se ficar dúvida, dá para criar a turma e ver por dentro, sem cartão.'
+      }
       className="lg:grid-cols-[0.8fr_1.2fr] lg:items-start"
       aEsquerda
     >

@@ -3,7 +3,7 @@ import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeDados } from '@/compo
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicadores'
 import { PAPEIS } from '@/config/perfis'
-import { CartaoDeAssinatura } from '@/features/assinaturas'
+import { CartaoDeAssinatura, CartaoDePagamentosDoPlano } from '@/features/assinaturas'
 import { CartaoDeConvitesPorEmail, CartaoDoLinkDaTurma } from '@/features/convites'
 import { CartaoDoMercadoPago, ComoODinheiroChega, MeiosDeRecebimento } from '@/features/recebimentos'
 import { CicloDaFormatura, DadosDaFormatura } from '@/features/formaturas'
@@ -97,6 +97,7 @@ export default function PaginaDaFormatura() {
             </div>
             <div className="grid gap-5">
               <CartaoDeAssinatura />
+              <CartaoDePagamentosDoPlano />
               <CartaoDoLinkDaTurma />
               {tesouraria ? <ComoODinheiroChega /> : null}
               <CicloDaFormatura formatura={dados} />

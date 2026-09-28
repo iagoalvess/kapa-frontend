@@ -178,7 +178,7 @@ function Situacao({ parcela }: { parcela: Parcela }) {
           parcela.recebimento_id ? (
             <BotaoDeRecibo
               recebimentoId={parcela.recebimento_id}
-              rotulo={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
+              descricaoAcessivel={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
             />
           ) : null
         }

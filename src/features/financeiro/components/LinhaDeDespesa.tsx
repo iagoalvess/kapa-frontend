@@ -1,8 +1,8 @@
+import { FileText, X } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
+import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Selo } from '@/components/Selo'
-import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { rotaDaDespesa } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
@@ -84,20 +84,18 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
       <td className="py-3 pr-4">
         <SituacaoDaDespesa despesa={despesa} />
       </td>
-      {/* Pílulas com o nome à mostra, como as ações da lista de membros. */}
+      {/* As ações da linha, só com ícone e tooltip — como nas outras planilhas. */}
       <td className="py-3 text-right">
-        <div className="flex justify-end gap-2">
+        <AcoesDaLinha rotulo={`Ações de ${rotuloDaDespesa(despesa)}`}>
           {/* O anexo é da Tesouraria: a API recusa o download para os demais. */}
           {despesa.tem_comprovante && tesouraria ? (
-            <Button
-              variant="outline"
-              size="sm"
+            <AcaoDaLinha
+              rotulo="Comprovante"
+              descricaoAcessivel="Abrir comprovante"
+              icone={FileText}
+              desabilitada={comprovante.isPending}
               onClick={abrirComprovante}
-              disabled={comprovante.isPending}
-              aria-label="Abrir comprovante"
-            >
-              Comprovante
-            </Button>
+            />
           ) : null}
 
           {/* Pagar e cancelar somem para quem não é da Tesouraria: desabilitados, prometeriam uma
@@ -107,31 +105,26 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
           ) : null}
 
           {tesouraria && despesa.status === 'Prevista' ? (
-            <DialogoDeConfirmacao
-              gatilho={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!editavel || cancelar.isPending}
-                  aria-label={`Cancelar ${rotuloDaDespesa(despesa)}`}
-                >
-                  Cancelar
-                </Button>
-              }
-              titulo={`Cancelar “${rotuloDaDespesa(despesa)}”?`}
-              descricao="A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo."
-              rotuloDeCancelar="Voltar"
-              rotulo="Cancelar despesa"
-              destrutivo
-              aoConfirmar={() =>
-                cancelar.mutate(despesa.id, {
-                  onSuccess: () => toast.info('Despesa cancelada.'),
-                  onError: avisarErro,
-                })
-              }
+            <AcaoComConfirmacao
+              rotulo="Cancelar"
+              descricaoAcessivel={`Cancelar ${rotuloDaDespesa(despesa)}`}
+              icone={X}
+              desabilitada={!editavel || cancelar.isPending}
+              confirmacao={{
+                titulo: `Cancelar “${rotuloDaDespesa(despesa)}”?`,
+                descricao:
+                  'A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo.',
+                rotuloDeCancelar: 'Voltar',
+                rotulo: 'Cancelar despesa',
+                aoConfirmar: () =>
+                  cancelar.mutate(despesa.id, {
+                    onSuccess: () => toast.info('Despesa cancelada.'),
+                    onError: avisarErro,
+                  }),
+              }}
             />
           ) : null}
-        </div>
+        </AcoesDaLinha>
       </td>
     </tr>
   )

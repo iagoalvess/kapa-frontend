@@ -147,23 +147,23 @@ describe('MeuExtratoPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
     const dialogo = await screen.findByRole('alertdialog')
     // A avisada e a paga ficam de fora: a API não as aceita no mesmo pagamento.
-    const daLinha = within(dialogo).getAllByRole('checkbox', { name: /^Incluir a parcela/ })
+    const daLinha = within(dialogo).getAllByRole('row').slice(1)
     const [daVencida, daAberta] = daLinha
     expect(daLinha).toHaveLength(2)
 
     // Uma planilha, como a grade do termo: número da parcela, vencimento e valor em colunas.
-    // A primeira coluna não tem texto: é o check que marca a grade inteira.
     const cabecalho = within(dialogo)
       .getAllByRole('columnheader')
       .map((coluna) => coluna.textContent)
-    expect(cabecalho).toEqual(['', 'Parcela', 'Vencimento', 'Valor'])
-    const linhaDaVencida = daVencida!.closest('tr')!
-    expect(within(linhaDaVencida).getByText('2/24')).toBeInTheDocument()
-    expect(within(linhaDaVencida).getByText('10/08/2026')).toBeInTheDocument()
-    expect(within(linhaDaVencida).getByText(reais(36_120))).toBeInTheDocument()
+    expect(cabecalho).toEqual(['Parcela', 'Vencimento', 'Valor'])
+    expect(within(daVencida!).getByText('2/24')).toBeInTheDocument()
+    expect(within(daVencida!).getByText('10/08/2026')).toBeInTheDocument()
+    expect(within(daVencida!).getByText(reais(36_120))).toBeInTheDocument()
 
-    await userEvent.click(daVencida!)
+    // Sem caixa de marcar: o clique em qualquer ponto da linha escolhe.
+    await userEvent.click(within(daVencida!).getByText('10/08/2026'))
     await userEvent.click(daAberta!)
+    expect(daVencida).toHaveAttribute('aria-selected', 'true')
     expect(within(dialogo).getByText(/somam/)).toHaveTextContent(reais(71_120))
 
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Continuar' }))
@@ -172,22 +172,20 @@ describe('MeuExtratoPage', () => {
     expect(pathname + search).toBe('/minhas-parcelas/pagar?parcelas=pa-venc,pa-aberta')
   })
 
-  it('o check do cabeçalho marca e desmarca a grade inteira', async () => {
+  it('"Selecionar todas" escolhe a grade inteira, e o mesmo botão limpa', async () => {
     responder()
 
     renderizar(<MeuExtratoPage />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
     const dialogo = await screen.findByRole('alertdialog')
-    const todas = within(dialogo).getByRole('checkbox', {
-      name: 'Incluir todas as parcelas no pagamento',
-    })
 
-    await userEvent.click(todas)
-    for (const campo of within(dialogo).getAllByRole('checkbox')) expect(campo).toBeChecked()
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Selecionar todas' }))
+    for (const linha of within(dialogo).getAllByRole('row').slice(1))
+      expect(linha).toHaveAttribute('aria-selected', 'true')
     expect(within(dialogo).getByText(/somam/)).toHaveTextContent(reais(71_120))
 
-    await userEvent.click(todas)
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Limpar seleção' }))
     expect(within(dialogo).queryByText(/somam/)).not.toBeInTheDocument()
   })
 

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -43,6 +43,7 @@ const PENDENTE = {
   parcelas: 0,
   parcelas_pagas: 0,
   adesoes: 0,
+  pagamentos: [],
 }
 
 const ATIVA = {
@@ -104,5 +105,43 @@ describe('TurmaNoSuportePage', () => {
 
     expect(await screen.findByText(/Peça à comissão que escolha um plano/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Ativar assinatura/ })).not.toBeInTheDocument()
+  })
+  /** P7: o estorno é escolhido no diálogo — tudo ou o que falta do ciclo —, e a turma devolvida entra na tela. */
+  it('estorna um pagamento pelo proporcional', async () => {
+    const pago = {
+      id: 'c-1',
+      plano_nome: 'Premium',
+      motivo: 'Ciclo',
+      meio: 'Cartao',
+      valor_em_centavos: 4990,
+      situacao: 'Paga',
+      url: null,
+      criada_em: '2026-09-17T12:00:00Z',
+      paga_em: '2026-09-17T12:00:00Z',
+      valor_estornado_em_centavos: null,
+      estornada_em: null,
+    }
+    let pedido: unknown
+    servidor.use(
+      http.get(TURMA, () => HttpResponse.json({ ...ATIVA, pagamentos: [pago] })),
+      http.post(`${TURMA}/pagamentos/c-1/estornar`, async ({ request }) => {
+        pedido = await request.json()
+        return HttpResponse.json({
+          ...ATIVA,
+          status: 'Suspensa',
+          pagamentos: [{ ...pago, situacao: 'Estornada', valor_estornado_em_centavos: 2495 }],
+        })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizarTurma()
+    await usuario.click(await screen.findByRole('button', { name: /Estornar o pagamento/ }))
+    const dialogo = screen.getByRole('alertdialog')
+    await usuario.click(within(dialogo).getByRole('button', { name: 'O que falta do ciclo' }))
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Estornar' }))
+
+    await expect.poll(() => pedido).toEqual({ modo: 'Proporcional' })
+    expect(await screen.findByText('Estornada')).toBeInTheDocument()
   })
 })

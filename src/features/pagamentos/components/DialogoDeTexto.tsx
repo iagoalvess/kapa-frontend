@@ -2,18 +2,22 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { type ReactNode, useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 import type { z } from 'zod'
+import { AcaoDaLinha, type TomDaAcao } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import type { LucideIcon } from 'lucide-react'
 
 type Esquema<Campo extends string> = z.ZodObject<Record<Campo, z.ZodString>>
 
 interface Props<Campo extends string> {
   /** O botão que abre — "Recusar", "Estornar". */
   gatilho: string
+  /** Na linha da planilha, o gatilho vira ícone com tooltip — com o mesmo nome do botão. */
+  gatilhoIcone?: { icone: LucideIcon; tom?: TomDaAcao }
   titulo: string
   descricao: ReactNode
   /** O campo do texto, como o esquema o chama: `motivo`, `justificativa`. */
@@ -36,6 +40,7 @@ interface Props<Campo extends string> {
  */
 export function DialogoDeTexto<Campo extends string>({
   gatilho,
+  gatilhoIcone,
   titulo,
   descricao,
   campo,
@@ -65,17 +70,30 @@ export function DialogoDeTexto<Campo extends string>({
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={desabilitado}
-        onClick={() => {
-          formulario.reset()
-          definirAberto(true)
-        }}
-      >
-        {gatilho}
-      </Button>
+      {gatilhoIcone ? (
+        <AcaoDaLinha
+          rotulo={gatilho}
+          icone={gatilhoIcone.icone}
+          tom={gatilhoIcone.tom}
+          desabilitada={desabilitado}
+          onClick={() => {
+            formulario.reset()
+            definirAberto(true)
+          }}
+        />
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={desabilitado}
+          onClick={() => {
+            formulario.reset()
+            definirAberto(true)
+          }}
+        >
+          {gatilho}
+        </Button>
+      )}
       <DialogoDeFormulario
         aberto={aberto}
         aoFechar={() => definirAberto(false)}

@@ -2,13 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { Check } from 'lucide-react'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CampoDeComprovante } from '@/components/CampoDeComprovante'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
-import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { diaDeHoje, formatarData } from '@/lib/formato'
@@ -60,17 +61,15 @@ export function DialogoDeBaixaManual({
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={desabilitado}
+      <AcaoDaLinha
+        rotulo="Baixar"
+        icone={Check}
+        desabilitada={desabilitado}
         onClick={() => {
           formulario.reset()
           definirAberto(true)
         }}
-      >
-        Baixar
-      </Button>
+      />
       <DialogoDeFormulario
         aberto={aberto}
         aoFechar={() => definirAberto(false)}

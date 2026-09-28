@@ -99,6 +99,9 @@ export const ROTAS = {
   minhaPrivacidade: '/minha-privacidade',
   // Com quem a Kapa compartilha dado pessoal. Público, lido antes do cadastro — e no site, como os legais.
   operadores: '/operadores',
+  // O aviso de privacidade da lista de espera (Sprint 36): curto e próprio, no lugar da Política
+  // enquanto o site só capta interessados.
+  avisoDaListaDeEspera: '/lista-de-espera/privacidade',
   // Quem fez o quê com o dinheiro da turma (Gestão).
   auditoria: '/auditoria',
   // O painel de suporte: perfil `Administrador` da plataforma, fora de qualquer formatura.
@@ -163,6 +166,7 @@ export const ROTAS_DO_SITE: readonly string[] = [
   ROTAS.termosDeUso,
   ROTAS.privacidade,
   ROTAS.operadores,
+  ROTAS.avisoDaListaDeEspera,
 ]
 
 /** Uma tela do app em endereço absoluto: o "Entrar" e o "Criar minha turma" do site. */

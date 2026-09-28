@@ -28,6 +28,8 @@ export function QrCode({
   const modulos = data.flatMap((linha, y) =>
     linha.flatMap((escuro, x) => (escuro ? [`M${x} ${y}h1v1h-1z`] : [])),
   )
+  // A única cor literal fora do index.css, de propósito: o SVG vira `<img>` por data URI, onde o CSS
+  // da página não chega, e o QR precisa do preto sobre branco puro para qualquer leitor ler.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><path fill="#000" d="${modulos.join('')}"/></svg>`
 
   return (

@@ -1,4 +1,5 @@
 import type { StatusDaAssinatura } from '@/types/assinatura'
+import type { MeioDePagamento } from '@/types/pagamento'
 import type { Plano } from '@/types/plano'
 
 // O plano subiu para `types/plano.ts` na Sprint 16: a tabela de preços da página institucional
@@ -17,6 +18,19 @@ export interface Assinatura {
   proxima_cobranca_em: string | null
   cancelada_em: string | null
   criado_em: string
+  /** Cartão recorrente ou um PIX avulso por ciclo (Sprint 37). */
+  meio: MeioDePagamento
+  /** O plano que vale a partir da próxima renovação — a descida agendada. */
+  proximo_plano: Plano | null
+  /** A troca para o cartão espera a autorização na página do Mercado Pago. */
+  cartao_aguardando_autorizacao: boolean
+}
+
+/** O que a troca de plano ou de meio deu. Espelha `TrocaDTO`. */
+export interface Troca {
+  /** A página para pagar a diferença ou autorizar o cartão; nula quando nada precisa ser pago agora. */
+  url: string | null
+  assinatura: Assinatura
 }
 
 /** Sessão de pagamento criada no provedor. Espelha `CheckoutDTO`. */

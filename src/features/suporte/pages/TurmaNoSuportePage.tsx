@@ -5,29 +5,38 @@ import {
   ClipboardCheck,
   GraduationCap,
   ReceiptText,
+  Undo2,
   Users,
 } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
+import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
+import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { rotaDaContaNoSuporte, ROTAS } from '@/config/rotas'
-import { formatarConclusao, formatarData, formatarNumero } from '@/lib/formato'
+import { formatarCentavos, formatarConclusao, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { APARENCIA_DA_COBRANCA, type CobrancaDoPlano, MOTIVO_DA_COBRANCA } from '@/types/assinatura'
+import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
 import { SeloDaAssinatura, SeloDaTurma } from '../components/SeloDeStatus'
-import { useAtivarAssinatura, useTurmaNoSuporte } from '../hooks/useSuporte'
+import { useAtivarAssinatura, useEstornarPagamento, useTurmaNoSuporte } from '../hooks/useSuporte'
+import type { ModoDeEstorno } from '../types/suporte.types'
 import { toast } from 'sonner'
 
 /**
  * A turma no painel de suporte: situação, licença, membros e os números que explicam a ligação.
  *
- * Tudo é leitura, menos uma coisa: **ativar a assinatura à mão**. É a razão de o painel existir —
+ * Tudo é leitura, menos duas coisas: **ativar a assinatura à mão** e **estornar um pagamento do plano** (Sprint 37).
+ * A primeira é a razão de o painel existir —
  * sem ela, a resposta a "paguei e a turma não ativou" é um `UPDATE` no banco de produção.
  *
  * O CPF dos membros chega mascarado da API, como chega para a Gestão. Não existe endpoint aqui que
@@ -172,6 +181,8 @@ export default function TurmaNoSuportePage() {
         </Cartao>
       </div>
 
+      <PagamentosDaTurma turmaId={id} pagamentos={dados.pagamentos} />
+
       <Cartao
         icone={Users}
         titulo="Membros"
@@ -204,5 +215,120 @@ export default function TurmaNoSuportePage() {
         </ul>
       </Cartao>
     </>
+  )
+}
+
+/**
+ * Os pagamentos do plano da turma, com o estorno (Sprint 37, P7).
+ *
+ * O estorno é um diálogo só para a lista inteira, aberto pela linha: nele o atendente escolhe o modo — tudo de
+ * volta, na desistência em 7 dias, ou o que falta do ciclo, nos casos dos Termos. Estornar encerra a assinatura
+ * na hora, e o diálogo diz isso antes, não depois.
+ */
+function PagamentosDaTurma({ turmaId, pagamentos }: { turmaId: string; pagamentos: CobrancaDoPlano[] }) {
+  const estornar = useEstornarPagamento(turmaId)
+  const [escolhido, definirEscolhido] = useState<CobrancaDoPlano | null>(null)
+  const [modo, definirModo] = useState<ModoDeEstorno>('Integral')
+
+  return (
+    <Cartao
+      icone={ReceiptText}
+      titulo="Pagamentos do plano"
+      descricao="O que a turma pagou ao Kapa. Estornar devolve o dinheiro pelo Mercado Pago e encerra a assinatura na hora."
+    >
+      {pagamentos.length === 0 ? (
+        <p className="text-muted-foreground text-sm">Nenhum pagamento do plano.</p>
+      ) : (
+        <Tabela
+          legenda="Pagamentos do plano"
+          cabecalho={
+            <>
+              <th className="py-3 pr-4 font-normal">Data</th>
+              <th className="py-3 pr-4 font-normal">Pagamento</th>
+              <th className="py-3 pr-4 font-normal">Situação</th>
+              <th className="py-3 pr-4 text-right font-normal">Valor</th>
+            </>
+          }
+        >
+          {pagamentos.map((pagamento) => {
+            const aparencia = APARENCIA_DA_COBRANCA[pagamento.situacao]
+
+            return (
+              <tr key={pagamento.id} className="border-b last:border-0">
+                <td className="text-muted-foreground py-3 pr-4 whitespace-nowrap">
+                  {formatarData(pagamento.paga_em ?? pagamento.criada_em)}
+                </td>
+                <td className="py-3 pr-4">
+                  {MOTIVO_DA_COBRANCA[pagamento.motivo]} · {pagamento.plano_nome} ·{' '}
+                  {MEIOS_DE_PAGAMENTO[pagamento.meio].rotulo}
+                </td>
+                <td className="py-3 pr-4">
+                  <Selo tom={aparencia.tom}>{aparencia.rotulo}</Selo>
+                </td>
+                <td className="py-3 pr-4 text-right whitespace-nowrap">
+                  {formatarCentavos(pagamento.valor_em_centavos)}
+                  {pagamento.valor_estornado_em_centavos ? (
+                    <span className="text-muted-foreground block text-xs">
+                      − {formatarCentavos(pagamento.valor_estornado_em_centavos)}
+                    </span>
+                  ) : null}
+                </td>
+                <td className="py-2 text-right">
+                  {pagamento.situacao === 'Paga' ? (
+                    <AcoesDaLinha rotulo={`Ações do pagamento de ${formatarData(pagamento.paga_em)}`}>
+                      <AcaoDaLinha
+                        rotulo="Estornar"
+                        descricaoAcessivel={`Estornar o pagamento de ${formatarData(pagamento.paga_em)}`}
+                        icone={Undo2}
+                        tom="perigo"
+                        desabilitada={estornar.isPending}
+                        onClick={() => {
+                          definirModo('Integral')
+                          definirEscolhido(pagamento)
+                        }}
+                      />
+                    </AcoesDaLinha>
+                  ) : null}
+                </td>
+              </tr>
+            )
+          })}
+        </Tabela>
+      )}
+
+      <DialogoDeConfirmacao
+        aberto={escolhido !== null}
+        aoFechar={() => definirEscolhido(null)}
+        titulo="Estornar o pagamento?"
+        descricao={`O valor volta pelo Mercado Pago, a renovação é cancelada e a turma fica só para consulta a partir de agora. Pagamento de ${formatarCentavos(escolhido?.valor_em_centavos ?? 0)} em ${formatarData(escolhido?.paga_em ?? null)}.`}
+        rotulo="Estornar"
+        destrutivo
+        aoConfirmar={() => {
+          if (!escolhido) return
+          estornar.mutate(
+            { cobrancaId: escolhido.id, modo },
+            { onSuccess: () => toast.info('Pagamento estornado.'), onError: avisarErro },
+          )
+          definirEscolhido(null)
+        }}
+      >
+        <fieldset className="grid gap-2">
+          <legend className="text-foreground mb-2 text-sm font-medium">Quanto devolver</legend>
+          <div className="flex flex-wrap gap-2">
+            <Chip ativo={modo === 'Integral'} onClick={() => definirModo('Integral')}>
+              Tudo
+            </Chip>
+            <Chip ativo={modo === 'Proporcional'} onClick={() => definirModo('Proporcional')}>
+              O que falta do ciclo
+            </Chip>
+          </div>
+          <p className="text-muted-foreground text-sm text-pretty">
+            {modo === 'Integral'
+              ? 'Desistência em até 7 dias do pagamento (Termos, seção 7). Depois disso, a API recusa.'
+              : 'O Kapa encerrou sem culpa da turma, ou ela recusou a versão nova dos Termos (seções 13 e 14).'}
+          </p>
+        </fieldset>
+      </DialogoDeConfirmacao>
+    </Cartao>
   )
 }

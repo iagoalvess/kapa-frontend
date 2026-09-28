@@ -1,5 +1,5 @@
 import { FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { abrirNaAba } from '@/lib/download'
 import { avisarErro } from '@/lib/http/erros'
 import { useAbrirRecibo } from '../hooks/useRecibo'
@@ -11,9 +11,16 @@ import { useAbrirRecibo } from '../hooks/useRecibo'
  * paga. A API decide quem vê: o próprio formando recebe o CPF inteiro; a gestão, mascarado.
  *
  * @param recebimentoId A baixa — é também o número do recibo.
- * @param rotulo O que o leitor de tela diz: "Recibo da parcela 3/24".
+ * @param descricaoAcessivel O nome completo para o leitor de tela: "Recibo da parcela 3/24". O
+ * tooltip é só "Recibo".
  */
-export function BotaoDeRecibo({ recebimentoId, rotulo }: { recebimentoId: string; rotulo: string }) {
+export function BotaoDeRecibo({
+  recebimentoId,
+  descricaoAcessivel,
+}: {
+  recebimentoId: string
+  descricaoAcessivel: string
+}) {
   const recibo = useAbrirRecibo()
 
   /** A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. */
@@ -29,9 +36,12 @@ export function BotaoDeRecibo({ recebimentoId, rotulo }: { recebimentoId: string
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={abrir} disabled={recibo.isPending} aria-label={rotulo}>
-      <FileText aria-hidden />
-      Recibo
-    </Button>
+    <AcaoDaLinha
+      rotulo="Recibo"
+      descricaoAcessivel={descricaoAcessivel}
+      icone={FileText}
+      desabilitada={recibo.isPending}
+      onClick={abrir}
+    />
   )
 }

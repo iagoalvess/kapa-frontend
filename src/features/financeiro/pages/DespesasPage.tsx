@@ -251,9 +251,6 @@ export default function DespesasPage() {
             </ColunaOrdenavel>
             {/* "Atrasada" não é coluna do banco: sai do vencimento contra hoje, e não ordena. */}
             <th className="py-3 pr-4 font-normal">Situação</th>
-            <th className="py-3 font-normal">
-              <span className="sr-only">Ações</span>
-            </th>
           </>
         }
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}

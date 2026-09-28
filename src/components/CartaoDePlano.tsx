@@ -55,9 +55,7 @@ export function CartaoDePlano({
       className={cn(
         'relative flex flex-col rounded-[26px]',
         // O destacado é uma moldura da marca com a faixa no topo; o outro, um cartão branco.
-        textoDaFaixa
-          ? 'bg-brand shadow-[0_18px_40px_-24px_rgba(166,73,100,0.55)]'
-          : 'border-border bg-card shadow-cartao border',
+        textoDaFaixa ? 'bg-brand shadow-destaque' : 'border-border bg-card shadow-cartao border',
       )}
     >
       {textoDaFaixa ? (

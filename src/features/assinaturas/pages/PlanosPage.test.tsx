@@ -61,7 +61,14 @@ function comFormatura(status: string, assinatura?: { status: string; plano: type
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status })),
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura`, () =>
       assinatura
-        ? HttpResponse.json({ id: 'a-1', criado_em: '2026-09-01T00:00:00Z', ...assinatura })
+        ? HttpResponse.json({
+            id: 'a-1',
+            criado_em: '2026-09-01T00:00:00Z',
+            meio: 'Cartao',
+            proximo_plano: null,
+            cartao_aguardando_autorizacao: false,
+            ...assinatura,
+          })
         : HttpResponse.json(
             { codigo: 'assinatura.nao_encontrada', message: 'Não encontrada.' },
             { status: 404 },
@@ -94,7 +101,29 @@ describe('PlanosPage', () => {
     await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
-    expect(pedido).toEqual({ planoCodigo: 'premium' })
+    expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao' })
+  })
+
+  /** Sprint 37: o meio escolhido vai no checkout — no PIX, a página do provedor é a do PIX do primeiro ciclo. */
+  it('contrata pelo PIX quando o Presidente escolhe o PIX', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    let pedido: unknown
+    servidor.use(
+      http.post(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/checkout`, async ({ request }) => {
+        pedido = await request.json()
+        return HttpResponse.json({ url: '#pix' })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
+    await usuario.click(await screen.findByRole('button', { name: /PIX/ }))
+    expect(screen.getByText(/Um PIX por ciclo/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Contratar Essencial' }))
+
+    await expect.poll(() => globalThis.location.hash).toBe('#pix')
+    expect(pedido).toEqual({ plano_codigo: 'essencial', meio: 'Pix' })
   })
 
   it('quem não é Presidente vê os planos com o motivo junto ao botão', async () => {
@@ -107,16 +136,41 @@ describe('PlanosPage', () => {
     expect(screen.getAllByText('Só o Presidente da comissão contrata o plano.')).not.toHaveLength(0)
   })
 
-  it('turma ativa não contrata de novo, e o plano assinado vem marcado', async () => {
+  /** P4: com a assinatura ativa, o outro plano do ciclo é troca, não contratação nova. */
+  it('turma ativa troca de plano, e o plano assinado vem marcado', async () => {
     entrarComo(PAPEIS.presidente)
     comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM })
+    let pedido: unknown
+    servidor.use(
+      http.post(
+        `${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/trocar-plano`,
+        async ({ request }) => {
+          pedido = await request.json()
+          return HttpResponse.json({ url: null, assinatura: {} })
+        },
+      ),
+    )
+    const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
 
     expect(await screen.findByRole('button', { name: 'Plano atual' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /Contratar Essencial/ })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /Contratar/ })).not.toBeInTheDocument()
     const contratado = screen.getByRole('listitem', { name: 'Premium' })
     expect(within(contratado).getByText('Plano atual', { selector: 'p' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Mudar para Essencial' }))
+
+    await expect.poll(() => pedido).toEqual({ plano_codigo: 'essencial' })
+  })
+
+  it('turma ativa não troca entre mensal e anual', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM })
+
+    renderizar(<PlanosPage />)
+
+    expect(await screen.findByRole('button', { name: /Mudar para Premium/ })).toBeDisabled()
+    expect(screen.getAllByText(/cancele a renovação e contrate o outro ciclo/)).not.toHaveLength(0)
   })
 
   /** O ciclo é filtro: vive na URL, para o link mandado ao grupo abrir na mesma aba. */

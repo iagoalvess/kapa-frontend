@@ -1,15 +1,20 @@
-import { GraduationCap, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
+import { env } from '@/config/env'
 import { ROTAS, urlDoApp } from '@/config/rotas'
+import { ChamadaPrincipal } from './ChamadaPrincipal'
 
-/** As âncoras do menu, na ordem em que as seções aparecem na página. */
+/**
+ * As âncoras do menu, na ordem em que as seções aparecem na página. Com a lista de espera ligada, a
+ * tabela de preços sai (P10 da Sprint 36), e "Planos" sai junto para não apontar para o nada.
+ */
 const SECOES = [
   { id: 'recursos', rotulo: 'Recursos' },
-  { id: 'planos', rotulo: 'Planos' },
+  ...(env.VITE_LISTA_DE_ESPERA ? [] : [{ id: 'planos', rotulo: 'Planos' }]),
   { id: 'perguntas', rotulo: 'Perguntas' },
-] as const
+]
 
 /**
  * O cabeçalho da página institucional: logo, âncoras, "Entrar" e o CTA.
@@ -22,7 +27,8 @@ const SECOES = [
  * abre em nova aba e funciona com o teclado. O deslocamento do cabeçalho grudado sai do
  * `scroll-mt` de cada seção, não de JavaScript.
  *
- * "Entrar" e "Criar minha turma" levam ao app, em outro endereço (P2 da Sprint 33). O site não sabe se
+ * "Entrar" e "Criar minha turma" levam ao app, em outro endereço (P2 da Sprint 33). Com a lista de espera
+ * ligada (Sprint 36), "Entrar" some e o CTA leva ao formulário: o app ainda não está no ar. O site não sabe se
  * há sessão, de propósito: o cookie dela é da API e não vem para cá — quem já entrou e clica em
  * "Entrar" cai no app, que o manda direto para o Início.
  */
@@ -51,15 +57,12 @@ export function CabecalhoDaLanding() {
         </nav>
 
         <div className="col-start-3 hidden items-center gap-2 justify-self-end md:flex">
-          <Button asChild variant="ghost">
-            <a href={urlDoApp(ROTAS.login)}>Entrar</a>
-          </Button>
-          <Button asChild>
-            <a href={urlDoApp(ROTAS.criarConta)}>
-              <GraduationCap className="size-4" aria-hidden />
-              Criar minha turma
-            </a>
-          </Button>
+          {env.VITE_LISTA_DE_ESPERA ? null : (
+            <Button asChild variant="ghost">
+              <a href={urlDoApp(ROTAS.login)}>Entrar</a>
+            </Button>
+          )}
+          <ChamadaPrincipal />
         </div>
 
         <Button
@@ -90,15 +93,15 @@ export function CabecalhoDaLanding() {
               {secao.rotulo}
             </a>
           ))}
-          <Button asChild variant="outline" className="mt-2">
-            <a href={urlDoApp(ROTAS.login)}>Entrar</a>
-          </Button>
-          <Button asChild>
-            <a href={urlDoApp(ROTAS.criarConta)}>
-              <GraduationCap className="size-4" aria-hidden />
-              Criar minha turma
-            </a>
-          </Button>
+          {env.VITE_LISTA_DE_ESPERA ? null : (
+            <Button asChild variant="outline" className="mt-2">
+              <a href={urlDoApp(ROTAS.login)}>Entrar</a>
+            </Button>
+          )}
+          <ChamadaPrincipal
+            className={env.VITE_LISTA_DE_ESPERA ? 'mt-2' : undefined}
+            onClick={() => definirGavetaAberta(false)}
+          />
         </div>
       ) : null}
     </header>

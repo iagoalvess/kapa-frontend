@@ -1,9 +1,10 @@
+import { X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
+import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
-import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
@@ -51,9 +52,7 @@ export function AcoesDoPedido({ pedido }: { pedido: Pedido }) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => definirAberto(true)}>
-        Cancelar
-      </Button>
+      <AcaoDaLinha rotulo="Cancelar" icone={X} tom="perigo" onClick={() => definirAberto(true)} />
 
       <DialogoDeFormulario
         aberto={aberto}

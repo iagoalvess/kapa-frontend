@@ -1,3 +1,5 @@
+import type { CobrancaDoPlano } from '@/types/assinatura'
+
 /** Uma turma na lista de resultados da busca. Espelha `TurmaEncontradaDTO`. */
 export interface TurmaEncontrada {
   id: string
@@ -67,7 +69,15 @@ export interface TurmaNoSuporte {
   parcelas: number
   parcelas_pagas: number
   adesoes: number
+  /** Os pagamentos do plano, mais recentes primeiro — de onde o suporte estorna (Sprint 37). */
+  pagamentos: CobrancaDoPlano[]
 }
+
+/**
+ * Como o suporte estorna um pagamento do plano (P7): tudo de volta nos 7 dias da desistência, ou o que falta do
+ * ciclo nos casos das seções 13 e 14 dos Termos. Espelha `ModoDeEstorno`.
+ */
+export type ModoDeEstorno = 'Integral' | 'Proporcional'
 
 /** Uma turma de que a pessoa participa. Espelha `VinculoNoSuporteDTO`. */
 export interface VinculoNoSuporte {

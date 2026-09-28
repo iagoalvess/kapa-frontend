@@ -27,3 +27,8 @@ coverage/
 # Logs
 *.log
 npm-debug.log*
+
+# Estado local do wrangler (Pages Function e Worker da lista de espera, Sprint 36)
+.wrangler/
+# Segredos da Pages Function no wrangler pages dev
+.dev.vars

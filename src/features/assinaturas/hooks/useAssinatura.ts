@@ -2,9 +2,16 @@ import { type UseQueryOptions, useMutation, useQuery, useQueryClient } from '@ta
 import { useEffect } from 'react'
 import { CHAVE_DA_FORMATURA_ATUAL } from '@/hooks/useFormaturaAtual'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
-import { cancelarAssinatura, obterAssinatura } from '../api/assinaturas.api'
-import type { Assinatura } from '../types/assinaturas.types'
+import {
+  cancelarAssinatura,
+  listarCobrancasDoPlano,
+  obterAssinatura,
+  trocarMeio,
+  trocarPlano,
+} from '../api/assinaturas.api'
+import type { Assinatura, Troca } from '../types/assinaturas.types'
 import { chaves } from './chaves'
+import { irParaOProvedor } from './useCheckout'
 
 /**
  * A assinatura mais recente da formatura selecionada.
@@ -71,4 +78,41 @@ export function useCancelarAssinatura() {
       void invalidar()
     },
   })
+}
+
+/** O histórico de pagamentos do plano da turma selecionada. */
+export function useCobrancasDoPlano() {
+  const { formaturaId } = useFormaturaAtiva()
+
+  return useQuery({
+    queryKey: chaves.cobrancas(formaturaId),
+    queryFn: ({ signal }) => listarCobrancasDoPlano(signal),
+    enabled: formaturaId !== null,
+  })
+}
+
+/**
+ * Uma troca que pode ou não passar pelo Mercado Pago: com página (a diferença a pagar, o cartão a autorizar), o
+ * navegador vai para ela; sem, a assinatura é recarregada ali mesmo.
+ */
+function useTroca<T>(trocar: (valor: T) => Promise<Troca>) {
+  const invalidar = useInvalidarAssinatura()
+
+  return useMutation({
+    mutationFn: trocar,
+    onSuccess: ({ url }) => {
+      if (url) irParaOProvedor(url)
+      else void invalidar()
+    },
+  })
+}
+
+/** Troca de plano no mesmo ciclo (P4): a subida vai pagar a diferença; a descida fica agendada. */
+export function useTrocarPlano() {
+  return useTroca(trocarPlano)
+}
+
+/** Troca de meio (P5): o cartão vai à autorização; o PIX vale na hora. */
+export function useTrocarMeio() {
+  return useTroca(trocarMeio)
 }

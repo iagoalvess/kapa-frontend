@@ -18,6 +18,11 @@ export interface OpcoesDaRequisicao extends Omit<RequestInit, 'body' | 'method' 
   query?: Record<string, ValorDeQuery>
   /** `false` em endpoint público — evita mandar um token expirado e provocar renovação à toa. */
   autenticar?: boolean
+  /**
+   * Chama a origem da própria página, e não a API: a lista de espera é uma Pages Function do site
+   * (Sprint 36), e o site com ela ligada não fala com a API em nada.
+   */
+  naMesmaOrigem?: boolean
   /** Tempo limite em milissegundos. */
   tempoLimite?: number
   /** Cancelamento do chamador. O React Query passa o dele automaticamente. */
@@ -40,6 +45,7 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
     resposta: formato = 'json',
     query,
     autenticar = true,
+    naMesmaOrigem = false,
     tempoLimite = TEMPO_LIMITE_PADRAO,
     headers,
     signal,
@@ -50,7 +56,7 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
   // cabeçalho à mão (ou serializar em JSON) quebraria o envio.
   const multipart = body instanceof FormData
 
-  const url = new URL(`${env.VITE_API_URL}${caminho}`)
+  const url = new URL(`${naMesmaOrigem ? globalThis.location.origin : env.VITE_API_URL}${caminho}`)
   for (const [chave, valor] of Object.entries(query ?? {})) {
     if (valor === undefined || valor === null) continue
     if (Array.isArray(valor)) for (const item of valor) url.searchParams.append(chave, item)

@@ -29,7 +29,7 @@ function Cartao({
   return (
     <li
       className={cn(
-        'cartao-ao-rolar group relative grid min-h-52 min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 shadow-[0_3px_10px_-5px_rgba(26,26,24,0.12)] transition-shadow hover:shadow-[0_14px_30px_-18px_rgba(26,26,24,0.3)]',
+        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-h-52 min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow',
         // A seção é o creme; o cartão é o claro do hero. Chapado, porque um degradê que terminasse
         // no creme faria o canto do cartão sumir no fundo.
         tom === 'creme' && 'border-brand-tint/70 bg-background',
@@ -255,13 +255,18 @@ function MaqueteDeDespesas() {
 function MaqueteDaRegua() {
   return (
     <div className="relative mx-auto flex h-full w-full max-w-64 items-center justify-center pr-7">
-      <div className="bg-card relative w-[164px] -rotate-6 rounded-[20px] px-3.5 py-2.5 shadow-[0_10px_25px_-15px_rgba(166,73,100,0.3)]">
+      <div className="bg-card shadow-flutuante relative w-[164px] -rotate-6 rounded-[20px] px-3.5 py-2.5">
         <div className="motion-safe:animate-flutuar-devagar relative mx-auto mb-1.5 h-8 w-10" aria-hidden>
           <svg viewBox="0 0 48 36" className="size-full overflow-visible drop-shadow-sm">
-            <rect x="3" y="5" width="40" height="27" rx="3" fill="#ffd5d8" />
-            <path d="M4 7 23 23 42 7" fill="#ff807e" />
-            <path d="m4 31 14-13m24 13L28 18" fill="none" stroke="#fff0f0" strokeWidth="2" />
-            <path d="M4 6 23 18 42 6" fill="#ffb0b1" />
+            <rect x="3" y="5" width="40" height="27" rx="3" className="fill-ilustracao-envelope" />
+            <path d="M4 7 23 23 42 7" className="fill-ilustracao-envelope-lacre" />
+            <path
+              d="m4 31 14-13m24 13L28 18"
+              fill="none"
+              className="stroke-ilustracao-envelope-dobra"
+              strokeWidth="2"
+            />
+            <path d="M4 6 23 18 42 6" className="fill-ilustracao-envelope-aba" />
           </svg>
           <span className="bg-destructive text-destructive-foreground ring-card absolute -top-0.5 -right-1 grid size-4 place-items-center rounded-full text-[9px] ring-2">
             1
@@ -290,11 +295,11 @@ function MaqueteDaRegua() {
         <path
           d="m4 43 39-12-12 37-10-12-10 6 3-15Z"
           fill="currentColor"
-          stroke="#fff"
+          className="stroke-card"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
-        <path d="m15 47 18-9-12 18" fill="#ffad9e" />
+        <path d="m15 47 18-9-12 18" className="fill-ilustracao-coral-claro" />
       </svg>
     </div>
   )

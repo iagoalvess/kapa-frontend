@@ -59,9 +59,12 @@ export function IndicadoresDoPlano({ plano, rotulo }: { plano: PlanoAceito; rotu
   )
 }
 
-/** A primeira parcela do item, como a API a calculou — nenhuma conta de vencimento aqui. */
-const primeiraDoItem = (plano: PlanoAceito, item: ItemAceito) =>
-  plano.parcelas.find((parcela) => parcela.numero === 1 && rotuloDoItem(parcela) === rotuloDoItem(item))
+/**
+ * As parcelas do item na grade do formando, como a API as calculou. É delas, e não do item, que
+ * saem "em quantas vezes" e a primeira: quem adere tarde tem menos parcelas que o item.
+ */
+const parcelasDoItem = (plano: PlanoAceito, item: ItemAceito) =>
+  plano.parcelas.filter((parcela) => rotuloDoItem(parcela) === rotuloDoItem(item))
 
 /**
  * O plano em tabela, sem letra miúda: cada item com total, parcelas, primeiro vencimento e dia; as
@@ -96,7 +99,7 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
         }
       >
         {plano.itens.map((item) => {
-          const primeira = primeiraDoItem(plano, item)
+          const parcelas = parcelasDoItem(plano, item)
 
           return (
             <tr key={`${item.tipo}-${rotuloDoItem(item)}`} className="border-b last:border-0">
@@ -104,12 +107,10 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
               <td className="px-3 py-2.5">
                 <span className="text-foreground block font-medium">{rotuloDoItem(item)}</span>
                 <span className="text-muted-foreground text-xs">
-                  1ª em {formatarData(primeira?.vencimento)} · todo dia {item.dia_de_vencimento}
+                  1ª em {formatarData(parcelas[0]?.vencimento)} · todo dia {item.dia_de_vencimento}
                 </span>
               </td>
-              <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                {formatarNumero(item.numero_de_parcelas)}×
-              </td>
+              <td className="px-3 py-2.5 text-right whitespace-nowrap">{formatarNumero(parcelas.length)}×</td>
               <td className="px-3 py-2.5 text-right whitespace-nowrap">
                 {formatarCentavos(item.valor_em_centavos)}
               </td>

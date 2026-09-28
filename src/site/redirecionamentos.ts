@@ -1,3 +1,4 @@
+import { env } from '@/config/env'
 import { ROTAS, ROTAS_DO_SITE, urlDoApp } from '@/config/rotas'
 
 /** O primeiro trecho do caminho: `/cobrancas/parcelas` → `/cobrancas`. */
@@ -17,8 +18,13 @@ const raiz = (caminho: string) => `/${caminho.split('/')[1]}`
  * Uma linha por regra, sem tabela alinhada: o Pages lê espaço como separador, e o arquivo é gerado.
  * O Pages **ignora** destino com porta: numa build local (`localhost:5173`) os 301 não valem, e só se
  * testam com `VITE_APP_URL` sem porta.
+ *
+ * Com a lista de espera (Sprint 36), nenhuma das duas: o app não está no ar — mandar para ele seria
+ * trocar o 404 do site por um erro de DNS —, e os documentos com versão saíram do site (P11).
  */
 export function redirecionamentos() {
+  if (env.VITE_LISTA_DE_ESPERA) return ''
+
   const doApp = new Set(
     Object.values(ROTAS)
       .filter((caminho) => !ROTAS_DO_SITE.includes(caminho))

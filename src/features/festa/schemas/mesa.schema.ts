@@ -13,6 +13,7 @@ export const esquemaDeMesa = z.object({
   lugares: inteiroEmTexto(1, 40, 'De 1 a 40 lugares.'),
   observacao: z.string().trim().max(200, 'No máximo 200 caracteres.'),
   reservada: z.boolean(),
+  formato: z.enum(['Redonda', 'Retangular']),
 })
 
 export type FormularioDaMesa = z.infer<typeof esquemaDeMesa>
@@ -23,6 +24,7 @@ export const mesaEmBranco = (): FormularioDaMesa => ({
   lugares: '10',
   observacao: '',
   reservada: false,
+  formato: 'Redonda',
 })
 
 /** Uma mesa gravada, de volta ao formulário. */
@@ -31,6 +33,7 @@ export const paraFormularioDaMesa = (mesa: Mesa): FormularioDaMesa => ({
   lugares: String(mesa.lugares),
   observacao: mesa.observacao ?? '',
   reservada: mesa.reservada,
+  formato: mesa.formato,
 })
 
 /** O formulário como a API o espera: observação vazia não vai como texto em branco. */
@@ -39,4 +42,5 @@ export const paraDadosDaMesa = (formulario: FormularioDaMesa): DadosDaMesa => ({
   lugares: Number(formulario.lugares),
   observacao: formulario.observacao.trim() || undefined,
   reservada: formulario.reservada,
+  formato: formulario.formato,
 })

@@ -7,6 +7,7 @@ import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/Select'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useAtualizarMesa, useCriarMesa } from '../hooks/useMesas'
 import {
@@ -22,15 +23,17 @@ interface Props {
   /** Aberto com uma mesa, edita; aberto sem, cria; fechado, é `false`. */
   aberto: false | { mesa?: Mesa }
   aoFechar: () => void
+  /** A mesa acabou de nascer — o mapa a põe no meio do salão. */
+  aoCriar?: (mesa: Mesa) => void
 }
 
 /**
- * O cadastro da mesa: nome, lugares, observação e a marca de reservada (P3).
+ * O cadastro da mesa: nome, lugares, formato, observação e a marca de reservada (P3).
  *
  * O formulário remonta a cada abertura (a chave), então editar uma mesa e depois criar outra não
  * deixa valor da vez anterior no campo.
  */
-export function DialogoDeMesa({ aberto, aoFechar }: Props) {
+export function DialogoDeMesa({ aberto, aoFechar, aoCriar }: Props) {
   const mesa = aberto ? aberto.mesa : undefined
 
   return (
@@ -40,12 +43,20 @@ export function DialogoDeMesa({ aberto, aoFechar }: Props) {
       titulo={mesa ? `Editar ${mesa.identificacao}` : 'Nova mesa'}
       descricao="Como a mesa se chama e quantos lugares tem. Quem compra a mesa leva ela inteira."
     >
-      <FormularioDaMesa key={mesa?.id ?? 'nova'} mesa={mesa} aoConcluir={aoFechar} />
+      <FormularioDaMesa key={mesa?.id ?? 'nova'} mesa={mesa} aoConcluir={aoFechar} aoCriar={aoCriar} />
     </DialogoDeFormulario>
   )
 }
 
-function FormularioDaMesa({ mesa, aoConcluir }: { mesa?: Mesa; aoConcluir: () => void }) {
+function FormularioDaMesa({
+  mesa,
+  aoConcluir,
+  aoCriar,
+}: {
+  mesa?: Mesa
+  aoConcluir: () => void
+  aoCriar?: (mesa: Mesa) => void
+}) {
   const criar = useCriarMesa()
   const atualizar = useAtualizarMesa()
 
@@ -56,8 +67,9 @@ function FormularioDaMesa({ mesa, aoConcluir }: { mesa?: Mesa; aoConcluir: () =>
 
   const enviar = formulario.handleSubmit((valores) => {
     const aoTerminar = {
-      onSuccess: () => {
+      onSuccess: (gravada: Mesa) => {
         toast.success(mesa ? 'Mesa salva.' : 'Mesa criada.')
+        if (!mesa) aoCriar?.(gravada)
         aoConcluir()
       },
       onError: (erro: unknown) => exibirErroNoFormulario(erro, formulario.setError),
@@ -70,7 +82,7 @@ function FormularioDaMesa({ mesa, aoConcluir }: { mesa?: Mesa; aoConcluir: () =>
   return (
     <Form {...formulario}>
       <form onSubmit={enviar} noValidate className="grid gap-4">
-        <div className="grid items-start gap-4 sm:grid-cols-[1fr_8rem]">
+        <div className="grid items-start gap-4 sm:grid-cols-[1fr_6rem_9rem]">
           <FormField
             control={formulario.control}
             name="identificacao"
@@ -92,6 +104,22 @@ function FormularioDaMesa({ mesa, aoConcluir }: { mesa?: Mesa; aoConcluir: () =>
                 <FormLabel>Lugares</FormLabel>
                 <FormControl>
                   <Input {...field} inputMode="numeric" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={formulario.control}
+            name="formato"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Formato</FormLabel>
+                <FormControl>
+                  <Select {...field}>
+                    <option value="Redonda">Redonda</option>
+                    <option value="Retangular">Retangular</option>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

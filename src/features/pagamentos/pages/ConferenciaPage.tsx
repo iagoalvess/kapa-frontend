@@ -1,9 +1,10 @@
-import { CircleCheck, ListChecks, Scale, Wallet } from 'lucide-react'
+import { CircleCheck, FileText, ListChecks, Scale, Wallet, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
+import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
@@ -11,6 +12,7 @@ import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { LinhaSelecionavel, PRIMEIRA_COLUNA_SELECIONAVEL } from '@/components/LinhaSelecionavel'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Cartao } from '@/components/Cartao'
@@ -157,8 +159,6 @@ export default function ConferenciaPage() {
   const selecionados = pendentes.filter((informe) => marcados.includes(informe.id))
   const totalSelecionado = selecionados.reduce((soma, informe) => soma + recebido(informe), 0)
   const somaDaPagina = pendentes.reduce((soma, informe) => soma + informe.devido_em_centavos, 0)
-  // O lote é sempre o da página à vista: `marcados` se esvazia a cada troca de filtro ou de página.
-  const paginaInteira = pendentes.length > 0 && selecionados.length === pendentes.length
 
   const consulta = { conferir: informes, confirmados, divergencias }[aba]
   const total = consulta.data?.total ?? 0
@@ -249,15 +249,17 @@ export default function ConferenciaPage() {
           </BotaoDeFiltros>
         }
         antesDaContagem={
-          <ConfirmarLote
-            informes={selecionados}
-            total={totalSelecionado}
-            recebido={recebido}
-            aoConcluir={() => {
-              definirMarcados([])
-              definirValores({})
-            }}
-          />
+          <>
+            <ConfirmarLote
+              informes={selecionados}
+              total={totalSelecionado}
+              recebido={recebido}
+              aoConcluir={() => {
+                definirMarcados([])
+                definirValores({})
+              }}
+            />
+          </>
         }
         contagem={{ mostrando, total, unidade: aba === 'divergencias' ? 'divergências' : 'avisos' }}
       />
@@ -281,32 +283,13 @@ export default function ConferenciaPage() {
               ordenacao={ordenacao}
               cabecalho={
                 <>
-                  {/* Marca a página inteira de uma vez. Meio-termo (alguns marcados) fica no traço do
-                  `indeterminate`, que só existe por JS — não há atributo HTML para ele. */}
-                  <th className="w-9 py-3 pr-2 font-normal">
-                    <input
-                      type="checkbox"
-                      aria-label="Marcar todos os avisos desta página"
-                      checked={paginaInteira}
-                      ref={(campo) => {
-                        if (campo) campo.indeterminate = selecionados.length > 0 && !paginaInteira
-                      }}
-                      onChange={() =>
-                        definirMarcados(paginaInteira ? [] : pendentes.map((informe) => informe.id))
-                      }
-                      className="accent-primary size-4 cursor-pointer"
-                    />
-                  </th>
                   {/* "Formando" e "Devido" vêm da parcela, buscada depois por id: não ordenam. */}
-                  <th className="py-3 pr-4 font-normal">Formando</th>
+                  <th className={`${PRIMEIRA_COLUNA_SELECIONAVEL} py-3 pr-4 font-normal`}>Formando</th>
                   <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
                   <th className="py-3 pr-4 text-right font-normal">Devido</th>
                   <ColunaOrdenavel coluna="recebido" numerica>
                     Recebido
                   </ColunaOrdenavel>
-                  <th className="py-3 font-normal">
-                    <span className="sr-only">Ações</span>
-                  </th>
                 </>
               }
               aoMudarPagina={(nova) =>
@@ -354,9 +337,6 @@ export default function ConferenciaPage() {
                     Baixado
                   </ColunaOrdenavel>
                   <ColunaOrdenavel coluna="conferido">Conferido</ColunaOrdenavel>
-                  <th className="py-3 font-normal">
-                    <span className="sr-only">Ações</span>
-                  </th>
                 </>
               }
               aoMudarPagina={(nova) =>
@@ -495,14 +475,12 @@ function Comprovante({ informe }: { informe: Informe }) {
   if (!informe.tem_comprovante) return null
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <AcaoDaLinha
+      rotulo="Comprovante"
+      descricaoAcessivel={`Abrir o comprovante de ${informe.parcela.nome}`}
+      icone={FileText}
       onClick={() => abrir(informe.id)}
-      aria-label={`Abrir o comprovante de ${informe.parcela.nome}`}
-    >
-      Comprovante
-    </Button>
+    />
   )
 }
 
@@ -529,17 +507,7 @@ function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoR
   const dias = Math.max(0, -(diasAte(informe.informado_em) ?? 0))
 
   return (
-    <tr className="border-b last:border-0">
-      <td className="py-3 pr-2">
-        <input
-          type="checkbox"
-          aria-label={`Marcar o pagamento de ${informe.parcela.nome}`}
-          checked={marcado}
-          onChange={aoMarcar}
-          className="accent-primary size-4 cursor-pointer"
-        />
-      </td>
-
+    <LinhaSelecionavel selecionada={marcado} aoAlternar={aoMarcar}>
       <Formando parcela={informe.parcela} />
 
       <td className="py-3 pr-4 whitespace-nowrap">
@@ -574,11 +542,12 @@ function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoR
         {difere ? <span className="sr-only">Valor diferente do devido.</span> : null}
       </td>
 
-      <td className="py-3">
-        <div className="flex flex-wrap justify-end gap-2">
+      <td className="py-3 text-right">
+        <AcoesDaLinha rotulo={`Ações do aviso de ${informe.parcela.nome}`}>
           <Comprovante informe={informe} />
           <DialogoDeTexto
             gatilho="Recusar"
+            gatilhoIcone={{ icone: X, tom: 'perigo' }}
             titulo="Recusar pagamento"
             descricao={`${informe.parcela.nome} recebe o motivo por e-mail, e a parcela continua em aberto.`}
             campo="motivo"
@@ -602,9 +571,9 @@ function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoR
               )
             }
           />
-        </div>
+        </AcoesDaLinha>
       </td>
-    </tr>
+    </LinhaSelecionavel>
   )
 }
 
@@ -620,10 +589,10 @@ function LinhaDeConfirmado({ informe }: { informe: Informe }) {
       <td className="py-3 pr-4 whitespace-nowrap">
         {informe.conferido_em ? formatarDataHora(informe.conferido_em) : '—'}
       </td>
-      <td className="py-3">
-        <div className="flex justify-end">
+      <td className="py-3 text-right">
+        <AcoesDaLinha rotulo={`Ações do confirmado de ${informe.parcela.nome}`}>
           <Comprovante informe={informe} />
-        </div>
+        </AcoesDaLinha>
       </td>
     </tr>
   )
