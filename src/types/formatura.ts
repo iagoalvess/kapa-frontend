@@ -13,7 +13,6 @@ export interface FormaturaDetalhe {
   previsao_de_colacao: string | null
   /** `yyyy-MM-dd`, sem hora nem fuso. */
   previsao_da_festa: string | null
-  quantidade_estimada_de_formandos: number
   status: StatusDaFormatura
   criado_em: string
   ativada_em: string | null

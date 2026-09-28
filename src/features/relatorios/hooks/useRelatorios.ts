@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { baixarArquivo } from '@/lib/download'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import {
   baixarSolicitacao,
   exportar,
@@ -150,7 +150,7 @@ export function useSolicitarRelatorio(filtro: FiltroDoRelatorio) {
         description: EM_ANDAMENTO,
       })
     },
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }
 
@@ -162,7 +162,7 @@ export function useBaixarRelatorio() {
         await baixarSolicitacao(solicitacao.id),
         `${solicitacao.tipo.toLowerCase()}-${solicitacao.de}-a-${solicitacao.ate}.pdf`,
       ),
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }
 
@@ -180,6 +180,6 @@ export function useExportar(filtro: FiltroDoRelatorio) {
 
       baixarArquivo(arquivo, `${tipo.toLowerCase()}-${filtro.de ?? 'inicio'}-a-${filtro.ate ?? 'hoje'}.xlsx`)
     },
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }

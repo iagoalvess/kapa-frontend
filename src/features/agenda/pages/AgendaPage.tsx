@@ -22,9 +22,12 @@ import { PAPEIS } from '@/config/perfis'
 import { useAgenda } from '@/hooks/useAgenda'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useResumoDosConvites } from '@/hooks/useResumoDosConvites'
 import { usePapel } from '@/hooks/useSessao'
 import { diasAte, formatarData, formatarMesLongo, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
+import { ehOpcao } from '@/lib/opcao'
+import { contemBusca } from '@/lib/busca'
 import { type EventoDaTurma, jaPassou, ROTULOS_DE_TIPO, type TipoDeEvento } from '@/types/agenda'
 import { IndicadorDoEvento } from '../components/IndicadorDoEvento'
 import { CartaoDoEvento } from '../components/CartaoDoEvento'
@@ -42,7 +45,7 @@ const COLUNAS = 4
 /** As pílulas de tipo, na ordem em que a turma pensa: os dois dias grandes, depois a rotina. */
 const TIPOS = ['Colacao', 'Festa', 'Reuniao', 'Prazo', 'Outro'] as const satisfies readonly TipoDeEvento[]
 
-const ehTipo = (valor: string | null): valor is TipoDeEvento => valor !== null && valor in ROTULOS_DE_TIPO
+const ehTipo = (valor: string | null): valor is TipoDeEvento => ehOpcao(valor, ROTULOS_DE_TIPO)
 
 /**
  * Filtro e busca acontecem aqui, e não na API.
@@ -56,24 +59,12 @@ const ehTipo = (valor: string | null): valor is TipoDeEvento => valor !== null &
  * @param busca O que foi digitado, comparado sem acento no título, no local e na descrição.
  */
 function filtrar(eventos: readonly EventoDaTurma[], tipo: TipoDeEvento | null, busca: string) {
-  const termo = semAcento(busca.trim())
-
   return eventos.filter(
     (evento) =>
       (tipo === null || evento.tipo === tipo) &&
-      (termo === '' ||
-        semAcento(evento.titulo).includes(termo) ||
-        semAcento(evento.local ?? '').includes(termo) ||
-        semAcento(evento.descricao ?? '').includes(termo)),
+      contemBusca(busca, evento.titulo, evento.local, evento.descricao),
   )
 }
-
-/** Busca por texto ignora acento e caixa, como a das listas que o backend atende com `unaccent`. */
-const semAcento = (texto: string) =>
-  texto
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
 
 /**
  * Os eventos agrupados por mês, na ordem em que já chegaram da API.
@@ -205,8 +196,8 @@ export default function AgendaPage() {
     definirExcluindo(false)
 
     excluir.mutate(evento.id, {
-      onSuccess: () => toast.success('Evento excluído.'),
-      onError: (erro) => toast.error(mensagemDoErro(erro)),
+      onSuccess: () => toast.info('Evento excluído.'),
+      onError: avisarErro,
     })
   }
 
@@ -243,6 +234,8 @@ export default function AgendaPage() {
           },
         ]}
       />
+
+      {ehGestao ? <AvisoDosConvites /> : null}
 
       {/* As pílulas recortam a lista inteira, passado incluído — por isso ficam acima do cartão,
           como no mural e na festa. A contagem embaixo fala do que ainda vem, que é o que a tela
@@ -317,7 +310,7 @@ export default function AgendaPage() {
         }}
         acoes={
           editavel ? (
-            <Button size="sm" className="h-8" onClick={() => definirCadastro({})}>
+            <Button size="xs" onClick={() => definirCadastro({})}>
               <Plus aria-hidden />
               Novo evento
             </Button>
@@ -327,7 +320,7 @@ export default function AgendaPage() {
           meses.length > 0 ? (
             <ul
               aria-label="Situações dos eventos"
-              className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs"
+              className="text-muted-foreground flex flex-wrap items-center gap-4 text-sm"
             >
               <li className="flex items-center gap-1.5">
                 <IndicadorDoEvento situacao="Confirmado" />
@@ -363,32 +356,34 @@ export default function AgendaPage() {
           volta, como o acervo: a coluna cinza é a moldura, e o quadro fica no fundo da página. */}
       {meses.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {janela.map(({ mes, eventos }) => (
-            <section
-              key={mes}
-              aria-label={formatarMesLongo(mes)}
-              className="bg-muted grid min-w-0 content-start gap-3 rounded-3xl p-3"
-            >
-              <h3 className="flex items-center gap-2 px-1 pt-0.5">
-                <span className="text-foreground truncate font-medium">{formatarMesLongo(mes)}</span>
-                <span className="bg-border text-muted-foreground inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium tabular-nums">
-                  {formatarNumero(eventos.length)}
-                </span>
-              </h3>
-              <ul className="grid gap-3">
-                {eventos.map((evento) => (
-                  <CartaoDoEvento
-                    key={evento.id}
-                    evento={evento}
-                    passado={jaPassou(evento)}
-                    aoAbrir={() => definirCadastro({ evento, leitura: true })}
-                    aoEditar={editavel ? () => definirCadastro({ evento }) : undefined}
-                    aoExcluir={editavel ? () => definirExcluindo(evento) : undefined}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
+          {janela.map(({ mes, eventos }) => {
+            return (
+              <section
+                key={mes}
+                aria-label={formatarMesLongo(mes)}
+                className="bg-muted grid min-w-0 content-start gap-3 rounded-3xl p-3"
+              >
+                <h3 className="flex items-center gap-2 px-1 pt-0.5">
+                  <span className="text-foreground truncate font-medium">{formatarMesLongo(mes)}</span>
+                  <span className="text-muted-foreground shrink-0 text-sm tabular-nums">
+                    {formatarNumero(eventos.length)} {eventos.length === 1 ? 'evento' : 'eventos'}
+                  </span>
+                </h3>
+                <ul className="grid min-w-0 gap-3">
+                  {eventos.map((evento) => (
+                    <CartaoDoEvento
+                      key={evento.id}
+                      evento={evento}
+                      passado={jaPassou(evento)}
+                      aoAbrir={() => definirCadastro({ evento, leitura: true })}
+                      aoEditar={editavel ? () => definirCadastro({ evento }) : undefined}
+                      aoExcluir={editavel ? () => definirExcluindo(evento) : undefined}
+                    />
+                  ))}
+                </ul>
+              </section>
+            )
+          })}
         </div>
       ) : null}
 
@@ -402,7 +397,7 @@ export default function AgendaPage() {
       <DialogoDeConfirmacao
         aberto={excluindo !== false}
         aoFechar={() => definirExcluindo(false)}
-        titulo="Excluir este evento?"
+        titulo="Excluir o evento?"
         descricao={
           excluindo
             ? `"${excluindo.titulo}" sai da agenda e não aparece para mais ninguém. Se a data só foi desmarcada, cancele em vez de excluir — assim a turma vê que ela existiu.`
@@ -435,4 +430,38 @@ function vazio(total: number, ehGestao = false) {
       ? 'Comece pelas duas que todo mundo pergunta: a colação e a festa.'
       : 'A comissão ainda não marcou nenhuma data.',
   }
+}
+
+/**
+ * O que a agenda precisa dizer à Gestão sobre o convite da festa (Sprint 21).
+ *
+ * Duas coisas: sem hora e local na festa, nenhum convite sai (P6); e, se a festa foi antecipada
+ * depois de os pedidos existirem, quantos pedidos ficaram com parcela vencendo depois do fechamento
+ * da lista (P2.1) — bloquear aqui não faz sentido, a data é fato do mundo, mas a comissão precisa
+ * saber antes de o convidado descobrir.
+ */
+function AvisoDosConvites() {
+  const resumo = useResumoDosConvites()
+  const dados = resumo.data
+
+  if (!dados?.evento) return null
+
+  const avisos = [
+    !dados.evento_completo && dados.pedidos_quitados_sem_convite + dados.emitidos > 0
+      ? 'A festa está sem hora ou sem local: os convites pagos só saem quando ela estiver completa.'
+      : null,
+    dados.pedidos_com_parcela_depois_do_fechamento > 0
+      ? `${dados.pedidos_com_parcela_depois_do_fechamento} ${dados.pedidos_com_parcela_depois_do_fechamento === 1 ? 'pedido tem' : 'pedidos têm'} parcela de convite vencendo depois do fechamento da lista, 24 h antes da festa. O convite só sai quitado — combine a antecipação com quem pediu.`
+      : null,
+  ].filter((aviso) => aviso !== null)
+
+  if (avisos.length === 0) return null
+
+  return (
+    <output className="bg-warning-bg text-warning-text grid gap-1 rounded-xl p-4 text-sm">
+      {avisos.map((aviso) => (
+        <p key={aviso}>{aviso}</p>
+      ))}
+    </output>
+  )
 }

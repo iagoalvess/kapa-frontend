@@ -10,9 +10,6 @@ export type TipoDeEvento = 'Colacao' | 'Festa' | 'Reuniao' | 'Prazo' | 'Outro'
 /** Em que pé está a data. Espelha `SituacaoDoEvento`. */
 export type SituacaoDoEvento = 'AConfirmar' | 'Confirmado' | 'Cancelado'
 
-/** Os dois tipos que a turma só tem uma vez. */
-export const TIPOS_UNICOS = ['Colacao', 'Festa'] as const satisfies readonly TipoDeEvento[]
-
 /** O nome de cada tipo na tela. */
 export const ROTULOS_DE_TIPO = {
   Colacao: 'Colação',

@@ -5,7 +5,7 @@ import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { SeletorDeFiltro } from '@/components/SeletorDeFiltro'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { diaDeHoje, formatarData } from '@/lib/formato'
+import { diaDeHoje, formatarData, somarDias } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { StatusDaParcela } from '@/types/cobranca'
 import {
@@ -38,14 +38,6 @@ const ATALHOS = [
 
 /** O primeiro dia do ano do dia informado. */
 const inicioDoAno = (hoje: string) => `${hoje.slice(0, 4)}-01-01`
-
-/** O dia, `n` dias atrás, em `aaaa-mm-dd`. */
-function diasAtras(hoje: string, dias: number) {
-  const data = new Date(`${hoje}T12:00:00`)
-  data.setDate(data.getDate() - dias)
-
-  return data.toISOString().slice(0, 10)
-}
 
 /**
  * Um dia do período, em pílula justa: dentro dela vai só a data e o calendário.
@@ -162,7 +154,7 @@ export function FiltrosDoRelatorio({
   const de = filtro.de ?? inicioDoAno(hoje)
   const ate = filtro.ate ?? hoje
 
-  const atalhoAtivo = ATALHOS.find((atalho) => ate === hoje && de === diasAtras(hoje, atalho.dias))?.chave
+  const atalhoAtivo = ATALHOS.find((atalho) => ate === hoje && de === somarDias(hoje, -atalho.dias))?.chave
   const noAno = ate === hoje && de === inicioDoAno(hoje)
   /** Nenhum atalho aceso: o intervalo nos dois campos é o que de fato recorta o relatório. */
   const periodoNaMao = !atalhoAtivo && !noAno
@@ -184,7 +176,7 @@ export function FiltrosDoRelatorio({
             <Chip
               key={atalho.chave}
               ativo={atalhoAtivo === atalho.chave}
-              onClick={() => trocar({ de: diasAtras(hoje, atalho.dias), ate: hoje })}
+              onClick={() => trocar({ de: somarDias(hoje, -atalho.dias), ate: hoje })}
             >
               {atalho.rotulo}
             </Chip>

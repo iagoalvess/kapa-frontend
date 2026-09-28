@@ -11,4 +11,5 @@ export const chaves = {
   cobrancaDeVarias: (parcelaIds: string[]) => ['pagamentos', 'cobranca', parcelaIds] as const,
   informes: (filtro: FiltroDeInformes) => ['pagamentos', 'informes', filtro] as const,
   divergencias: (filtro: FiltroDeInformes) => ['pagamentos', 'divergencias', filtro] as const,
+  recibo: (recebimentoId: string) => ['pagamentos', 'recibo', recebimentoId] as const,
 }

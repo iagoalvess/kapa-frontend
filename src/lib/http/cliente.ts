@@ -97,7 +97,14 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
     else sessao.encerrar()
   }
 
-  if (!resposta.ok) throw new ErroDaApi(resposta.status, await lerProblema(resposta))
+  if (!resposta.ok) {
+    const repetirEm = Number(resposta.headers.get('Retry-After'))
+    throw new ErroDaApi(
+      resposta.status,
+      await lerProblema(resposta),
+      Number.isFinite(repetirEm) && repetirEm > 0 ? repetirEm : null,
+    )
+  }
 
   if (resposta.status === 204 || resposta.headers.get('Content-Length') === '0') {
     return undefined as T

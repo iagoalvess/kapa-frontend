@@ -44,3 +44,21 @@ export interface PixDeTeste {
   copia_e_cola: string
   valor_em_centavos: number
 }
+
+/** A conta do Mercado Pago conectada à turma. Nunca traz o token. Espelha `ProvedorConectadoDTO`. */
+export interface ProvedorConectado {
+  /** E-mail ou apelido da conta que autorizou. */
+  conta_no_provedor: string
+  conectado_em: string
+  conectado_por: string | null
+}
+
+/** O Mercado Pago da turma. `provedor` nulo: ainda não conectou. Espelha `ProvedorDaTurmaDTO`. */
+export interface ProvedorDaTurma {
+  provedor: ProvedorConectado | null
+}
+
+/** Para onde mandar o navegador do presidente autorizar o Kapa. Espelha `AutorizacaoDoProvedorDTO`. */
+export interface AutorizacaoDoProvedor {
+  url: string
+}

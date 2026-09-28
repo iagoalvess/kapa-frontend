@@ -41,6 +41,16 @@ function responderAgenda(proximos: object[]) {
   )
 }
 
+/** Cinco meses fechados e o próximo previsto, como a API devolve. */
+const ARRECADACAO = [
+  { mes: '2099-05-01', arrecadado_em_centavos: 3_000_000, projetado: false },
+  { mes: '2099-06-01', arrecadado_em_centavos: 4_500_000, projetado: false },
+  { mes: '2099-07-01', arrecadado_em_centavos: 6_500_000, projetado: false },
+  { mes: '2099-08-01', arrecadado_em_centavos: 6_500_000, projetado: false },
+  { mes: '2099-09-01', arrecadado_em_centavos: 7_883_705, projetado: false },
+  { mes: '2099-10-01', arrecadado_em_centavos: 9_500_000, projetado: true },
+]
+
 describe('Página inicial', () => {
   beforeEach(() => {
     entrarComo(PAPEIS.formando)
@@ -50,8 +60,7 @@ describe('Página inicial', () => {
       http.get(`${base}/api/v1/festa/meta`, () =>
         HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 0 }),
       ),
-      http.get(`${base}/api/v1/comunicacao/documentos`, () => HttpResponse.json(pagina([]))),
-      http.get(`${base}/api/v1/festa/itens`, () => HttpResponse.json([])),
+      http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(ARRECADACAO)),
       http.get(`${base}/api/v1/extrato/eu`, () => HttpResponse.json({ proxima: null })),
       http.get(`${base}/api/v1/comunicacao/avisos`, () => HttpResponse.json(pagina([]))),
     )
@@ -65,14 +74,24 @@ describe('Página inicial', () => {
     // A mesma data no contador e na lista de próximas — a segunda vem da agenda.
     await screen.findByRole('list', { name: 'Próximas datas da turma' })
     expect(within(jornada).getAllByText('19/12/2099')).toHaveLength(2)
-    expect(await screen.findByText('Toda festa começa com uma ideia.')).toBeInTheDocument()
+    expect(await screen.findByText(/Toda festa começa com uma ideia/)).toBeInTheDocument()
     expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver a festa' })).toHaveAttribute('href', '/festa')
   })
 
-  it('usa a colação quando a API omite a data da festa', async () => {
-    const { previsao_da_festa: _, ...semFesta } = turma
-    responderTurma(semFesta)
+  /** O gráfico abre no mês atual — o último que não é previsão —, com o total dele à vista. */
+  it('mostra a evolução com o mês atual em destaque e a tabela para o leitor de tela', async () => {
+    renderizar(<PaginaInicial />)
+
+    const grafico = await screen.findByRole('region', { name: 'Evolução das arrecadações' })
+    expect(await within(grafico).findByText('Setembro')).toBeInTheDocument()
+    const tabela = within(grafico).getByRole('table', { name: 'Total arrecadado ao fim de cada mês' })
+    expect(within(tabela).getAllByRole('row')).toHaveLength(7)
+    expect(within(tabela).getByText(/(previsto)/)).toBeInTheDocument()
+  })
+
+  it('usa a colação quando a turma não tem data da festa', async () => {
+    responderTurma({ ...turma, previsao_da_festa: null })
     responderAgenda([
       { ...festaNaAgenda, id: 'e-2', titulo: 'Colação de grau', tipo: 'Colacao', data: '2099-12-17' },
     ])

@@ -1,23 +1,25 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleCheck, GraduationCap } from 'lucide-react'
-import { useForm, useFormState } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { GraduationCap } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
+import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import type { FormaturaDetalhe } from '@/types/formatura'
 import { useAtualizarFormatura, useDescartarFormatura, useEncerrarFormatura } from '../hooks/useFormaturas'
 import { esquemaDeFormatura, type FormularioDeFormatura, paraDados } from '../schemas/formatura.schema'
 import { PassoDaTurma } from './PassoDaTurma'
 import { CampoDeNome, ResumoDaFormatura } from './PassoDeConfirmacao'
-import { PassoDoTamanho } from './PassoDoTamanho'
 
 const paraFormulario = (formatura: FormaturaDetalhe): FormularioDeFormatura => ({
   nome: formatura.nome,
@@ -27,28 +29,44 @@ const paraFormulario = (formatura: FormaturaDetalhe): FormularioDeFormatura => (
   semestre: String(formatura.semestre),
   previsao_de_colacao: formatura.previsao_de_colacao ?? '',
   previsao_da_festa: formatura.previsao_da_festa ?? '',
-  quantidade_estimada_de_formandos: String(formatura.quantidade_estimada_de_formandos),
 })
 
 /**
- * Os dados cadastrais da formatura: todo membro lê, só o Presidente edita.
+ * Os dados cadastrais da formatura: todo membro lê, e o Presidente edita pelo "Editar" do cabeçalho,
+ * num diálogo — o padrão de cadastro do app. O cartão continua mostrando o que está gravado.
  *
- * Suspensa e encerrada viram leitura — a API recusaria a gravação de qualquer forma, e mostrar um
- * formulário que não salva é pior que mostrar um resumo.
+ * Suspensa e encerrada não mostram o botão: a API recusaria a gravação de qualquer forma.
  *
  * @param formatura A formatura da sessão, já carregada.
  */
 export function DadosDaFormatura({ formatura }: { formatura: FormaturaDetalhe }) {
   const { ehPresidente } = usePapel()
   const editavel = ehPresidente && formatura.status === 'Ativa'
-
-  // Chave pelo id: trocar de turma remonta o formulário com os valores da nova.
-  if (editavel) return <FormularioDeEdicao key={formatura.id} formatura={formatura} />
+  const [editando, definirEditando] = useState(false)
 
   return (
-    <Cartao titulo="Dados da formatura" icone={GraduationCap}>
+    <Cartao
+      titulo="Dados da formatura"
+      icone={GraduationCap}
+      acao={
+        editavel ? (
+          <Button variant="outline" size="sm" onClick={() => definirEditando(true)}>
+            Editar
+          </Button>
+        ) : null
+      }
+    >
       <p className="text-foreground font-medium">{formatura.nome}</p>
       <ResumoDaFormatura dados={paraFormulario(formatura)} />
+
+      <DialogoDeFormulario
+        aberto={editando}
+        aoFechar={() => definirEditando(false)}
+        titulo="Dados da formatura"
+        descricao="Nome, curso, instituição e conclusão. As datas da turma ficam na Agenda."
+      >
+        <FormularioDeEdicao formatura={formatura} aoConcluir={() => definirEditando(false)} />
+      </DialogoDeFormulario>
     </Cartao>
   )
 }
@@ -71,7 +89,13 @@ export function CicloDaFormatura({ formatura }: { formatura: FormaturaDetalhe })
   return null
 }
 
-function FormularioDeEdicao({ formatura }: { formatura: FormaturaDetalhe }) {
+function FormularioDeEdicao({
+  formatura,
+  aoConcluir,
+}: {
+  formatura: FormaturaDetalhe
+  aoConcluir: () => void
+}) {
   const atualizar = useAtualizarFormatura()
 
   const formulario = useForm<FormularioDeFormatura>({
@@ -79,16 +103,11 @@ function FormularioDeEdicao({ formatura }: { formatura: FormaturaDetalhe }) {
     defaultValues: paraFormulario(formatura),
   })
 
-  // `useFormState`, e não `formulario.formState.isDirty` solto no render: a leitura solta some com a
-  // memoização do React Compiler quando é a única do formState no componente, e o botão nunca sai de
-  // desabilitado.
-  const { isDirty } = useFormState({ control: formulario.control })
-
   const salvar = formulario.handleSubmit((dados) =>
     atualizar.mutate(paraDados(dados), {
-      onSuccess: (salva) => {
-        formulario.reset(paraFormulario(salva))
+      onSuccess: () => {
         toast.success('Dados da formatura salvos.')
+        aoConcluir()
       },
       onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
     }),
@@ -96,35 +115,11 @@ function FormularioDeEdicao({ formatura }: { formatura: FormaturaDetalhe }) {
 
   return (
     <Form {...formulario}>
-      {/* `@container`: a grade segue a largura do cartão, que muda com a coluna da Gestão ao lado. */}
-      <form noValidate onSubmit={salvar} className="@container">
-        <Cartao titulo="Dados da formatura" icone={GraduationCap}>
-          {/* Quatro colunas no largo: nome | curso; instituição | ano | semestre; colação | festa | tamanho. */}
-          <div className="grid gap-4 @md:grid-cols-2 @2xl:grid-cols-4">
-            <div className="@2xl:col-span-2">
-              <CampoDeNome />
-            </div>
-            <PassoDaTurma emPares />
-            {/* Sem as duas datas: elas são eventos da agenda desde a Sprint 19, e editá-las aqui
-                também seria um segundo lugar de escrita para o mesmo dia. */}
-            <PassoDoTamanho emPares comDatas={false} />
-          </div>
-
-          <p className="text-muted-foreground text-sm">
-            As datas da turma — colação, festa e o que mais for marcado — vivem na{' '}
-            <Link to={ROTAS.agenda} className="text-brand-text underline-offset-4 hover:underline">
-              Agenda
-            </Link>
-            .
-          </p>
-
-          <ErroDoFormulario />
-
-          <Button type="submit" className="justify-self-start" disabled={atualizar.isPending || !isDirty}>
-            <CircleCheck aria-hidden />
-            {atualizar.isPending ? 'Salvando…' : 'Salvar alterações'}
-          </Button>
-        </Cartao>
+      <form noValidate onSubmit={salvar} className="grid gap-5">
+        <CampoDeNome />
+        <PassoDaTurma />
+        <ErroDoFormulario />
+        <AcoesDoFormulario aoCancelar={aoConcluir} ocupado={atualizar.isPending} />
       </form>
     </Form>
   )
@@ -151,14 +146,17 @@ function DescartarFormatura() {
             Descartar formatura
           </Button>
         }
-        titulo="Descartar esta formatura?"
-        descricao="A turma deixa de aparecer para todos os membros. Não há como recuperar."
+        titulo="Descartar a formatura?"
+        descricao="A turma deixa de aparecer para todos os membros, e os dados e arquivos dela são eliminados em 30 dias. Não há como recuperar."
         rotulo="Descartar"
         destrutivo
         aoConfirmar={() =>
           descartar.mutate(undefined, {
-            onSuccess: () => navegar(ROTAS.selecionarFormatura, { replace: true }),
-            onError: (erro) => toast.error(mensagemDoErro(erro)),
+            onSuccess: () => {
+              toast.info('Formatura descartada.')
+              navegar(ROTAS.selecionarFormatura, { replace: true })
+            },
+            onError: avisarErro,
           })
         }
       />
@@ -172,8 +170,8 @@ function EncerrarFormatura() {
   return (
     <Cartao titulo="Encerrar formatura">
       <p className="text-muted-foreground text-sm">
-        Depois de encerrada, a turma fica disponível para consulta e exportação por cinco anos. Nada é
-        apagado.
+        Depois de encerrada, a turma fica disponível para consulta e exportação por cinco anos. Passado esse
+        prazo, os dados e os arquivos da turma são eliminados.
       </p>
 
       <DialogoDeConfirmacao
@@ -187,7 +185,10 @@ function EncerrarFormatura() {
         rotulo="Encerrar"
         destrutivo
         aoConfirmar={() =>
-          encerrar.mutate(undefined, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
+          encerrar.mutate(undefined, {
+            onSuccess: () => toast.info('Formatura encerrada.'),
+            onError: avisarErro,
+          })
         }
       />
     </Cartao>

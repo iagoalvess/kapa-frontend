@@ -12,6 +12,7 @@ import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { ehDia, formatarCentavos, formatarData } from '@/lib/formato'
+import { ehOpcao } from '@/lib/opcao'
 import { useParcelas, useResumoDeParcelas } from '../hooks/useParcelas'
 import {
   type Parcela,
@@ -33,8 +34,7 @@ const FILTROS = {
   Cancelada: { rotulo: 'Canceladas', soma: 'cancelada' },
 } as const satisfies Partial<Record<StatusDaParcela, { rotulo: string; soma: keyof ResumoDeParcelas }>>
 
-const ehStatus = (valor: string | null): valor is StatusDaParcela =>
-  valor !== null && valor in ROTULOS_DE_STATUS
+const ehStatus = (valor: string | null): valor is StatusDaParcela => ehOpcao(valor, ROTULOS_DE_STATUS)
 
 interface Props {
   /**
@@ -42,6 +42,8 @@ interface Props {
    * `pagamentos`. Chega por aqui porque uma feature não importa de outra: quem compõe é `app/`.
    */
   AcoesDaLinha?: ComponentType<{ parcela: Parcela }>
+  /** Destinos relacionados à lista, compostos pela camada `app/`. */
+  AcoesDaBarra?: ComponentType
 }
 
 /**
@@ -52,7 +54,7 @@ interface Props {
  * de parecer quebrada. Situação, período e busca vivem na URL — recarregar e mandar o link devolvem
  * a mesma lista. A faixa e as pílulas saem de um resumo só, no mesmo período e busca da lista.
  */
-export default function ParcelasPage({ AcoesDaLinha }: Props) {
+export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
 
   const statusNaUrl = parametros.get('status')
@@ -140,10 +142,14 @@ export default function ParcelasPage({ AcoesDaLinha }: Props) {
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
         acoes={
-          <BotaoDeFiltros id="filtros-de-parcelas" ligados={de || ate ? 1 : 0}>
-            <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
-          </BotaoDeFiltros>
+          <>
+            <BotaoDeFiltros id="filtros-de-parcelas" ligados={de || ate ? 1 : 0}>
+              <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
+            </BotaoDeFiltros>
+            {AcoesDaBarra ? <AcoesDaBarra /> : null}
+          </>
         }
+        quebrarAcoesNoCelular={Boolean(AcoesDaBarra)}
         contagem={{
           mostrando: parcelas.data?.itens.length ?? 0,
           total: parcelas.data?.total ?? 0,

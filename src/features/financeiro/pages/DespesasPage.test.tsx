@@ -15,12 +15,14 @@ const DESPESAS = `${env.VITE_API_URL}/api/v1/financeiro/despesas`
 const FORNECEDORES = `${env.VITE_API_URL}/api/v1/financeiro/fornecedores`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
-/** Como a API devolve: o que é nulo não vem (`WhenWritingNull`). */
+/** Como a API devolve: o que é nulo vem `null`. */
 const atrasada: Despesa = {
   id: 'de-1',
   lancamento_id: 'la-1',
   fornecedor_id: 'fo-1',
+  item_da_festa_id: null,
   fornecedor: 'Buffet Sabor',
+  pago_em: null,
   descricao: 'Entrada do buffet',
   categoria: 'Buffet',
   valor_em_centavos: 1_500_000,
@@ -36,6 +38,9 @@ const atrasada: Despesa = {
 const paga: Despesa = {
   id: 'de-2',
   lancamento_id: 'la-2',
+  fornecedor_id: null,
+  item_da_festa_id: null,
+  fornecedor: null,
   descricao: 'Taxa bancária',
   categoria: 'Taxas',
   valor_em_centavos: 2_500,
@@ -78,6 +83,10 @@ describe('DespesasPage', () => {
     renderizar(<DespesasPage />)
 
     expect(await screen.findByText('Entrada do buffet 1/3')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Fornecedores' })).toHaveAttribute(
+      'href',
+      '/financeiro/fornecedores',
+    )
 
     const lista = screen.getByRole('region', { name: 'Lista de despesas' })
     expect(within(lista).getByText('Buffet Sabor · Buffet')).toBeInTheDocument()
@@ -148,7 +157,9 @@ describe('DespesasPage', () => {
     renderizar(<DespesasPage />)
     await userEvent.click(await screen.findByRole('button', { name: 'Pagar' }))
 
-    const registrar = within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Salvar' })
+    const registrar = within(await screen.findByRole('alertdialog')).getByRole('button', {
+      name: 'Registrar',
+    })
     expect(registrar).toBeDisabled()
 
     await userEvent.upload(
@@ -156,7 +167,7 @@ describe('DespesasPage', () => {
       new File(['%PDF'], 'recibo.pdf', { type: 'application/pdf' }),
     )
 
-    expect(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Salvar' })).toBeEnabled()
+    expect(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Registrar' })).toBeEnabled()
   })
 
   it('turma suspensa lê a lista, mas não lança nem paga', async () => {
@@ -169,7 +180,7 @@ describe('DespesasPage', () => {
     renderizar(<DespesasPage />)
 
     expect(await screen.findByText('Entrada do buffet 1/3')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('button', { name: /Lançar despesa/ })).toBeDisabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Nova despesa/ })).toBeDisabled())
     expect(screen.getByRole('button', { name: 'Pagar' })).toBeDisabled()
   })
 
@@ -185,7 +196,8 @@ describe('DespesasPage', () => {
     const lista = screen.getByRole('region', { name: 'Lista de despesas' })
     expect(within(lista).getByText(reais(1_500_000))).toBeInTheDocument()
 
-    expect(screen.queryByRole('button', { name: /Lançar despesa/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Nova despesa/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Fornecedores' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pagar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Cancelar/ })).not.toBeInTheDocument()
     // O comprovante traz conta e titular do fornecedor: nem o botão aparece.

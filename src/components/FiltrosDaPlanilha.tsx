@@ -13,6 +13,8 @@ interface Props {
   busca?: { valor: string; rotulo: string; aoBuscar: (termo: string | null) => void }
   /** Botões à direita da busca: o painel de filtros e a ação da tela. */
   acoes?: ReactNode
+  /** Quando há vários botões, põe a busca na linha de cima no celular. */
+  quebrarAcoesNoCelular?: boolean
   /** O que fica colado à esquerda da contagem: a ação do lote, uma legenda de cores. */
   antesDaContagem?: ReactNode
   /** "Mostrando 20 de 80 membros" — o da página sobre o total do filtro. */
@@ -33,6 +35,7 @@ export function FiltrosDaPlanilha({
   legenda,
   busca,
   acoes,
+  quebrarAcoesNoCelular = false,
   antesDaContagem,
   contagem,
   nota,
@@ -42,9 +45,20 @@ export function FiltrosDaPlanilha({
       <div className="flex flex-wrap items-center gap-2">
         {principal}
 
-        <div className="ml-auto flex w-full gap-2 sm:w-auto">
+        <div
+          className={
+            quebrarAcoesNoCelular
+              ? 'ml-auto flex w-full flex-wrap gap-2 sm:w-auto'
+              : 'ml-auto flex w-full gap-2 sm:w-auto'
+          }
+        >
           {busca ? (
-            <CampoDeBusca valor={busca.valor} rotulo={busca.rotulo} aoBuscar={busca.aoBuscar} />
+            <CampoDeBusca
+              valor={busca.valor}
+              rotulo={busca.rotulo}
+              aoBuscar={busca.aoBuscar}
+              className={quebrarAcoesNoCelular ? 'basis-full sm:basis-auto' : undefined}
+            />
           ) : null}
           {acoes}
         </div>

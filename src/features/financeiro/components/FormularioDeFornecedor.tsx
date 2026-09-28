@@ -8,6 +8,7 @@ import { Select } from '@/components/Select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useAtualizarFornecedor, useCriarFornecedor } from '../hooks/useFornecedores'
 import {
   esquemaDeFornecedor,
@@ -179,27 +180,12 @@ export function FormularioDeFornecedor({ editando, editavel, aoConcluir }: Props
         </div>
 
         {editando ? (
-          <FormField
+          <CampoDeMarcar
             control={formulario.control}
             name="ativo"
-            render={({ field }) => (
-              <FormItem>
-                <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={field.value}
-                    disabled={!editavel}
-                    onChange={(evento) => field.onChange(evento.target.checked)}
-                    className="accent-primary size-4"
-                  />
-                  Ativo
-                </label>
-                <p className="text-texto-muted text-xs">
-                  Desmarque para aposentar o fornecedor sem apagar os lançamentos dele.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
+            rotulo="Ativo"
+            dica="Desmarque para aposentar o fornecedor sem apagar os lançamentos dele."
+            desabilitado={!editavel}
           />
         ) : null}
 

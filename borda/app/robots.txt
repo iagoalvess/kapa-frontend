@@ -1,0 +1,4 @@
+# O app é sessão: indexar rota dele só rende resultado de busca que leva a uma tela de login. O que é
+# para ser achado mora no site (kapaformaturas.com.br), que tem o próprio robots.txt.
+User-agent: *
+Disallow: /

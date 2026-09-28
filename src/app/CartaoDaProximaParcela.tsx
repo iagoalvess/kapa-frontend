@@ -2,13 +2,13 @@ import { WalletMinimal } from 'lucide-react'
 import { Link } from 'react-router'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import { Cartao } from '@/components/Cartao'
-import { LinkDoCartao } from '@/components/LinkDoCartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoPagamento } from '@/config/rotas'
 import { useExtrato } from '@/features/pagamentos'
-import { diasAte, formatarCentavos, formatarData } from '@/lib/formato'
+import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
+import { IconePix } from '@/components/IconePix'
 import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
 
 /**
@@ -32,8 +32,9 @@ function prazo(vencimento: string) {
  * A próxima parcela do próprio formando, com o botão que abre o PIX.
  *
  * É o único número desta tela que aponta para uma pessoa — a que está lendo. O extrato continua
- * sendo a tela do assunto; aqui fica só a primeira a pagar, que é a pergunta de quem abriu o app
- * para pagar e não quer procurar.
+ * sendo a tela do assunto (a seta no canto leva a ele); aqui fica só a primeira a pagar, que é a pergunta de
+ * quem abriu o app para pagar e não quer procurar. O fundo em tom de laranja é o que a separa da
+ * festa ao lado: esta é a ação da pessoa, aquela é o progresso da turma.
  *
  * Quem está em dia vê o mascote e uma linha dizendo isso: cartão vazio numa home é um buraco, e
  * "nada a pagar" é uma boa notícia que vale a pena dar.
@@ -45,9 +46,10 @@ export function CartaoDaProximaParcela() {
   return (
     <Cartao
       titulo="Sua próxima parcela"
-      className="[&>header]:flex-nowrap [&>header>div]:basis-auto"
       icone={WalletMinimal}
-      acao={<LinkDoCartao to={ROTAS.extrato} rotulo="Ver todas as parcelas" />}
+      para={ROTAS.extrato}
+      rotuloDoAtalho="Ver meu extrato"
+      className="from-brand-wash to-brand-tint/70 gap-3 bg-linear-to-br"
     >
       {extrato.isError ? <ErroDaConsulta erro={extrato.error} /> : null}
       {extrato.isPending ? <EsqueletoDeTexto linhas={2} /> : null}
@@ -62,21 +64,30 @@ export function CartaoDaProximaParcela() {
       ) : null}
 
       {proxima ? (
-        <div className="bg-background grid gap-5 rounded-2xl p-5">
-          <div className="grid gap-1">
-            <p className="text-foreground py-2 text-4xl leading-none font-semibold tracking-tight tabular-nums">
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p
+              className="text-2xl font-bold tracking-tight tabular-nums"
+              title={`${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}
+            >
               {formatarCentavos(valorNaLista(proxima))}
             </p>
-            <p className="text-muted-foreground text-[15px]">
-              {rotuloDoItem(proxima)} {proxima.numero}/{proxima.de} · {prazo(proxima.vencimento)}
+            <p className="text-muted-foreground text-sm">
+              {primeiraMaiuscula(prazo(proxima.vencimento))}
+              <span className="text-brand mx-1.5" aria-hidden>
+                •
+              </span>
+              <span className="tabular-nums">{formatarData(proxima.vencimento)}</span>
             </p>
-            <p className="text-texto-muted text-sm tabular-nums">{formatarData(proxima.vencimento)}</p>
           </div>
 
-          <Button asChild size="sm" className="h-11 w-full rounded-xl">
-            <Link to={rotaDoPagamento(proxima.id)}>Pagar com PIX</Link>
+          <Button asChild size="sm" className="h-10 w-full rounded-xl">
+            <Link to={rotaDoPagamento(proxima.id)}>
+              <IconePix />
+              Pagar com PIX
+            </Link>
           </Button>
-        </div>
+        </>
       ) : null}
     </Cartao>
   )

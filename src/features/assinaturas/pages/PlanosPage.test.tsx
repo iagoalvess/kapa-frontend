@@ -89,7 +89,7 @@ describe('PlanosPage', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<PlanosPage />)
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
     expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
 
@@ -97,7 +97,7 @@ describe('PlanosPage', () => {
     expect(pedido).toEqual({ planoCodigo: 'premium' })
   })
 
-  it('quem não é Presidente vê os planos com o motivo no próprio botão', async () => {
+  it('quem não é Presidente vê os planos com o motivo junto ao botão', async () => {
     entrarComo(PAPEIS.tesoureiro)
     comFormatura('Rascunho')
 
@@ -111,11 +111,11 @@ describe('PlanosPage', () => {
     entrarComo(PAPEIS.presidente)
     comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM })
 
-    renderizar(<PlanosPage />)
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
 
     expect(await screen.findByRole('button', { name: 'Plano atual' })).toBeDisabled()
     expect(screen.getByRole('button', { name: /Contratar Essencial/ })).toBeDisabled()
-    const contratado = screen.getByRole('article', { name: 'Premium' })
+    const contratado = screen.getByRole('listitem', { name: 'Premium' })
     expect(within(contratado).getByText('Plano atual', { selector: 'p' })).toBeInTheDocument()
   })
 
@@ -124,36 +124,27 @@ describe('PlanosPage', () => {
     entrarComo(PAPEIS.presidente)
     comFormatura('Rascunho')
 
-    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Anual' })
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
 
-    expect(await screen.findByText(/R\$\s?479,00/)).toBeInTheDocument()
+    expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
   })
 
-  it('o filtro Anual troca os preços', async () => {
+  /** Abre no anual, como a landing: é o ciclo que a turma contrata. */
+  it('abre no anual e o filtro Mensal troca os preços', async () => {
     entrarComo(PAPEIS.presidente)
     comFormatura('Rascunho')
     const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />)
+    // O anual é anunciado pelo equivalente mensal, com a cobrança cheia embaixo.
+    expect(await screen.findByText(/R\$\s?39,92/)).toBeInTheDocument()
+    expect(screen.getByText(/Cobrança única de R\$\s?479,00/)).toBeInTheDocument()
+    // A porcentagem sai do preço cheio do catálogo, nunca de texto fixo.
+    expect(screen.getByText('Economize 20%')).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Mensal' }))
+
     expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
-
-    await usuario.click(screen.getByRole('button', { name: /^Anual/ }))
-
-    expect(await screen.findByText(/R\$\s?479,00/)).toBeInTheDocument()
-    expect(screen.queryByText(/R\$\s?49,90/)).not.toBeInTheDocument()
-    // No filtro e no card: a porcentagem sai do preço cheio do catálogo, nunca de texto fixo.
-    expect(screen.getAllByText('Economize 20%')).toHaveLength(2)
-  })
-
-  it('a tabela mostra o que cada plano do ciclo inclui', async () => {
-    entrarComo(PAPEIS.presidente)
-    comFormatura('Rascunho')
-
-    renderizar(<PlanosPage />)
-
-    const tabela = within(await screen.findByRole('table'))
-    const linha = tabela.getByRole('row', { name: /Caixa e relatórios/ })
-    expect(within(linha).getByText('Não incluído no Essencial')).toBeInTheDocument()
-    expect(within(linha).getByText('Incluído no Premium')).toBeInTheDocument()
+    expect(screen.queryByText(/R\$\s?39,92/)).not.toBeInTheDocument()
   })
 })

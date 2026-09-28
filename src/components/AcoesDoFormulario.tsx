@@ -11,6 +11,8 @@ interface Props {
   rotulo?: string
   /** O rótulo enquanto envia. */
   rotuloOcupado?: string
+  /** O rótulo de desistir. "Cancelar", salvo quando a própria ação é cancelar algo — aí vira "Voltar". */
+  rotuloDeCancelar?: string
   /** O `id` do `<form>`, quando o rodapé fica fora dele (o rodapé fixo de um diálogo). */
   form?: string
 }
@@ -29,6 +31,7 @@ export function AcoesDoFormulario({
   desabilitado = false,
   rotulo = 'Salvar',
   rotuloOcupado = 'Salvando…',
+  rotuloDeCancelar = 'Cancelar',
   form,
 }: Props) {
   return (
@@ -36,7 +39,7 @@ export function AcoesDoFormulario({
     // maior ("Cancelar"), sem esticar pelo diálogo.
     <div className="ml-auto grid w-fit grid-cols-2 gap-2">
       <Button type="button" variant="outline" onClick={aoCancelar} disabled={ocupado}>
-        Cancelar
+        {rotuloDeCancelar}
       </Button>
       <Button type="submit" form={form} disabled={ocupado || desabilitado}>
         {ocupado ? rotuloOcupado : rotulo}

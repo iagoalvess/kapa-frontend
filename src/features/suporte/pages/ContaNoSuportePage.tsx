@@ -12,6 +12,7 @@ import {
 import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
+import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
@@ -20,12 +21,20 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { rotaDaTurmaNoSuporte, ROTAS } from '@/config/rotas'
 import { formatarData, formatarDataHora } from '@/lib/formato'
+import { avisarErro } from '@/lib/http/erros'
 import { SeloDaTurma } from '../components/SeloDeStatus'
 import { useAcaoNaConta, useContaNoSuporte } from '../hooks/useSuporte'
 import type { AcaoNaConta } from '../types/suporte.types'
 
 /** As três ações de conta, com o que dizer quando cada uma der certo. */
-const ACOES: { acao: AcaoNaConta; rotulo: string; icone: typeof Mail; sucesso: string }[] = [
+const ACOES: {
+  acao: AcaoNaConta
+  rotulo: string
+  icone: typeof Mail
+  sucesso: string
+  /** Pergunta de confirmação, para a ação que muda o acesso da conta. */
+  confirmar?: { titulo: string; descricao: string }
+}[] = [
   {
     acao: 'reenviar-confirmacao',
     rotulo: 'Reenviar confirmação',
@@ -37,12 +46,22 @@ const ACOES: { acao: AcaoNaConta; rotulo: string; icone: typeof Mail; sucesso: s
     rotulo: 'Enviar redefinição de senha',
     icone: KeyRound,
     sucesso: 'E-mail de redefinição enviado ao dono da conta.',
+    confirmar: {
+      titulo: 'Enviar a redefinição de senha?',
+      descricao:
+        'O dono da conta recebe um link para escolher uma senha nova. A senha atual continua valendo até ele usar o link.',
+    },
   },
   {
     acao: 'desbloquear',
     rotulo: 'Desbloquear',
     icone: LockOpen,
     sucesso: 'Bloqueio por tentativas levantado.',
+    confirmar: {
+      titulo: 'Desbloquear a conta?',
+      descricao:
+        'As tentativas erradas voltam a zero e a conta aceita login na hora. Faça isso só depois de confirmar que é o dono quem pede.',
+    },
   },
 ]
 
@@ -91,8 +110,7 @@ export default function ContaNoSuportePage() {
   const disparar = (item: (typeof ACOES)[number]) =>
     executar.mutate(item.acao, {
       onSuccess: () => toast.success(item.sucesso),
-      onError: (erro: unknown) =>
-        toast.error(erro instanceof Error ? erro.message : 'Não foi possível executar a ação.'),
+      onError: avisarErro,
     })
 
   return (
@@ -136,18 +154,33 @@ export default function ContaNoSuportePage() {
           descricao="Tudo por e-mail ao dono da conta. O suporte não define senha nem entra no lugar de ninguém."
         >
           <div className="grid gap-2">
-            {ACOES.map((item) => (
-              <Button
-                key={item.acao}
-                variant="outline"
-                className="justify-start"
-                disabled={executar.isPending}
-                onClick={() => disparar(item)}
-              >
-                <item.icone aria-hidden />
-                {item.rotulo}
-              </Button>
-            ))}
+            {ACOES.map((item) => {
+              const botao = (
+                <Button
+                  key={item.acao}
+                  variant="outline"
+                  className="justify-start"
+                  disabled={executar.isPending}
+                  onClick={item.confirmar ? undefined : () => disparar(item)}
+                >
+                  <item.icone aria-hidden />
+                  {item.rotulo}
+                </Button>
+              )
+
+              return item.confirmar ? (
+                <DialogoDeConfirmacao
+                  key={item.acao}
+                  titulo={item.confirmar.titulo}
+                  descricao={item.confirmar.descricao}
+                  rotulo={item.rotulo}
+                  aoConfirmar={() => disparar(item)}
+                  gatilho={botao}
+                />
+              ) : (
+                botao
+              )
+            })}
           </div>
 
           <p className="text-texto-muted text-xs text-pretty">

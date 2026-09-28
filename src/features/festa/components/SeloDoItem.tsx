@@ -1,4 +1,4 @@
-import { Selo } from '@/components/Selo'
+import { Selo, type TomDoSelo } from '@/components/Selo'
 import { type EstadoDoItem, ROTULOS_DE_ESTADO } from '@/types/festa'
 
 /**
@@ -12,7 +12,7 @@ const TONS = {
   Contratado: 'marca',
   Pago: 'sucesso',
   Cancelado: 'neutro',
-} as const satisfies Record<EstadoDoItem, 'cinza' | 'marca' | 'sucesso' | 'neutro'>
+} as const satisfies Record<EstadoDoItem, TomDoSelo>
 
 /**
  * A etiqueta de estado do item da festa.

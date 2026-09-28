@@ -52,8 +52,8 @@ export interface Aviso {
   publicado_em: string
   atualizado_em: string
   publicado_por_usuario_id: string
-  /** Ausente se a conta de quem publicou não existir mais (`WhenWritingNull`). */
-  autor?: string
+  /** Nulo se a conta de quem publicou não existir mais. */
+  autor: string | null
 }
 
 /** O que a comissão escreve num aviso. */
@@ -83,8 +83,8 @@ export interface ResumoDoMural {
   importantes: number
   /** Quantos são só da comissão; zero para quem não os vê. */
   internos: number
-  /** Ausente com o mural vazio. */
-  ultima_publicacao?: string
+  /** Nulo com o mural vazio. */
+  ultima_publicacao: string | null
 }
 
 /** Um documento do acervo. */
@@ -100,8 +100,8 @@ export interface Documento {
   /** Em bytes. */
   tamanho: number
   enviado_em: string
-  /** Ausente se a conta de quem enviou não existir mais. */
-  enviado_por?: string
+  /** Nulo se a conta de quem enviou não existir mais. */
+  enviado_por: string | null
 }
 
 /** O que a comissão preenche num documento. */
@@ -115,8 +115,8 @@ export interface DadosDoDocumento {
 export interface ResumoDoAcervo {
   quantidade: number
   bytes: number
-  /** Ausente com o acervo vazio. */
-  ultimo_envio?: string
+  /** Nulo com o acervo vazio. */
+  ultimo_envio: string | null
   /** Só as categorias que têm algum documento. */
   por_categoria: { categoria: CategoriaDeDocumento; quantidade: number }[]
 }

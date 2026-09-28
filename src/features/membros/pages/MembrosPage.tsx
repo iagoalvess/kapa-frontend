@@ -17,13 +17,13 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { usePapel, useSessao } from '@/hooks/useSessao'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
+import { ehOpcao } from '@/lib/opcao'
 import {
   contar,
   useAlterarPapel,
   useMembros,
-  useReligarMembro,
   useRemoverMembro,
   useResumoDeMembros,
 } from '../hooks/useMembros'
@@ -56,8 +56,8 @@ const CADASTROS: Record<SituacaoDoCadastro, string> = {
   Completo: 'Completos',
 }
 
-const ehSituacao = (valor: string | null): valor is Situacao => valor !== null && valor in SITUACOES
-const ehCadastro = (valor: string | null): valor is SituacaoDoCadastro => valor !== null && valor in CADASTROS
+const ehSituacao = (valor: string | null): valor is Situacao => ehOpcao(valor, SITUACOES)
+const ehCadastro = (valor: string | null): valor is SituacaoDoCadastro => ehOpcao(valor, CADASTROS)
 const ehPapel = (valor: string | null): valor is Papel =>
   valor !== null && (Object.values(PAPEIS) as string[]).includes(valor)
 
@@ -156,7 +156,7 @@ export default function MembrosPage() {
             {/* Adesões saiu do menu da esquerda e virou porta daqui: é a mesma turma vista de outro
                 ângulo — quem já assinou o termo —, e quem vai atrás disso chegou por esta lista.
                 O recorte é o mesmo da rota, então quem lê Membros lê Adesões. */}
-            <Button asChild size="sm" className="h-8">
+            <Button asChild size="xs">
               <Link to={ROTAS.adesoes}>
                 <ClipboardCheck aria-hidden />
                 Adesões
@@ -228,11 +228,6 @@ function FiltrosDeCadastro({
   )
 }
 
-/** A mensagem da API já explica o que fazer (`formatura.ultimo_presidente` e companhia). */
-function avisarErro(erro: unknown) {
-  toast.error(mensagemDoErro(erro))
-}
-
 /**
  * A porta de saída de um membro ativo — **uma só**, escolhida pela adesão dele (decisão 1 da
  * Sprint 15).
@@ -277,7 +272,13 @@ function AcaoDeSaida({
       }
       rotulo={ehOProprio ? 'Sair' : 'Remover'}
       destrutivo
-      aoConfirmar={() => remover.mutate(membro.usuario_id, { onError: avisarErro })}
+      aoConfirmar={() =>
+        remover.mutate(membro.usuario_id, {
+          onSuccess: () =>
+            toast.info(ehOProprio ? 'Você saiu da formatura.' : `${nome} foi removido da turma.`),
+          onError: avisarErro,
+        })
+      }
     />
   )
 }
@@ -285,26 +286,30 @@ function AcaoDeSaida({
 function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editavel: boolean }) {
   const { usuario } = useSessao()
   const alterar = useAlterarPapel()
-  const religar = useReligarMembro()
 
-  // Papel escolhido para si mesmo, aguardando confirmação: deixar a presidência tira o próprio acesso.
+  // Papel escolhido no select, aguardando confirmação: toda troca muda o que a pessoa pode fazer, e
+  // deixar a presidência tira o próprio acesso.
   const [papelAConfirmar, definirPapelAConfirmar] = useState<Papel | null>(null)
 
   const escritaLiberada = useEscritaLiberada()
 
   // Formatura fora de Ativa: os controles ficam, desabilitados — quem recusa de verdade é a API.
-  const ocupado = alterar.isPending || religar.isPending || !escritaLiberada
+  const ocupado = alterar.isPending || !escritaLiberada
   const podeEditar = editavel && membro.ativo
   const ehOProprio = membro.usuario_id === usuario?.id
   const nome = membro.nome_completo ?? membro.nome
 
   const trocarPapel = (papel: Papel) =>
-    alterar.mutate({ usuario_id: membro.usuario_id, papel }, { onError: avisarErro })
+    alterar.mutate(
+      { usuario_id: membro.usuario_id, papel },
+      {
+        onSuccess: () => toast.success(`${nome} agora é ${ROTULOS_DE_PAPEL[papel]}.`),
+        onError: avisarErro,
+      },
+    )
 
-  const escolherPapel = (papel: Papel) => {
-    if (ehOProprio && membro.papel === PAPEIS.presidente) definirPapelAConfirmar(papel)
-    else trocarPapel(papel)
-  }
+  const deixandoAPresidencia = ehOProprio && membro.papel === PAPEIS.presidente
+  const novoPapel = papelAConfirmar ? ROTULOS_DE_PAPEL[papelAConfirmar] : ''
 
   return (
     // Removido fica esmaecido, como os cartões fora de foco da referência: está na lista, mas
@@ -336,7 +341,7 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
             className="h-7 rounded-full text-sm md:text-sm"
             value={membro.papel}
             disabled={ocupado}
-            onChange={(evento) => escolherPapel(evento.target.value as Papel)}
+            onChange={(evento) => definirPapelAConfirmar(evento.target.value as Papel)}
           >
             {Object.values(PAPEIS).map((papel) => (
               <option key={papel} value={papel}>
@@ -353,9 +358,13 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
         <DialogoDeConfirmacao
           aberto={papelAConfirmar !== null}
           aoFechar={() => definirPapelAConfirmar(null)}
-          titulo="Deixar a presidência?"
-          descricao={`Você passará a ${papelAConfirmar ? ROTULOS_DE_PAPEL[papelAConfirmar] : ''} e perderá, na hora, o acesso à gestão de membros e aos dados da turma.`}
-          rotulo="Deixar a presidência"
+          titulo={deixandoAPresidencia ? 'Deixar a presidência?' : `Mudar o papel de ${nome}?`}
+          descricao={
+            deixandoAPresidencia
+              ? `Você passará a ${novoPapel} e perderá, na hora, o acesso à gestão de membros e aos dados da turma.`
+              : `${nome} passa de ${ROTULOS_DE_PAPEL[membro.papel]} a ${novoPapel}, e o que pode ver e fazer na turma muda na hora.`
+          }
+          rotulo={deixandoAPresidencia ? 'Deixar a presidência' : 'Mudar papel'}
           aoConfirmar={() => papelAConfirmar && trocarPapel(papelAConfirmar)}
         />
       </td>
@@ -376,18 +385,6 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
         <td className="py-3 text-right">
           {membro.ativo ? (
             <AcaoDeSaida membro={membro} ocupado={ocupado} ehOProprio={ehOProprio} nome={nome} />
-          ) : membro.desligado_em ? (
-            <DialogoDeConfirmacao
-              gatilho={
-                <Button variant="outline" size="sm" disabled={ocupado}>
-                  Religar
-                </Button>
-              }
-              titulo={`Religar ${nome}?`}
-              descricao="O acesso dele volta. As parcelas canceladas no desligamento continuam canceladas — para voltar a cobrar, lance de novo."
-              rotulo="Religar"
-              aoConfirmar={() => religar.mutate(membro.usuario_id, { onError: avisarErro })}
-            />
           ) : null}
         </td>
       ) : null}

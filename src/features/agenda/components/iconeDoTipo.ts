@@ -4,9 +4,8 @@ import type { TipoDeEvento } from '@/types/agenda'
 /**
  * O ícone de cada tipo.
  *
- * **Não** entra no cartão da agenda: lá o cartão é estreito, o tipo está escrito na última linha e
- * a cor é da situação. Serve ao bloco da Página Inicial e ao diálogo, onde há um evento por vez e
- * o ícone é o que o distingue de relance.
+ * Vai na pílula do tipo, no cartão da agenda, no bloco da Página Inicial e no diálogo: o ícone é o
+ * que distingue uma reunião de um prazo de relance. A cor fica com a situação.
  *
  * Mora fora dos componentes porque dois deles desenham o mesmo evento, e duas cópias do mapa é o
  * caminho para a colação virar birrete num lugar e relógio no outro.
@@ -21,3 +20,18 @@ export const ICONE_DO_TIPO = {
   Prazo: Timer,
   Outro: CalendarClock,
 } as const satisfies Record<TipoDeEvento, LucideIcon>
+
+/**
+ * A cor da pílula do tipo, no cartão da agenda — como no modelo, cada tipo com a sua.
+ *
+ * Reunião, prazo e outro saem dos tokens de estado; colação e festa, que não têm token claro próprio,
+ * saem da paleta dos avatares, esmaecida. Escritas por extenso: o scanner do Tailwind lê o código
+ * como texto, e classe montada em template não seria gerada.
+ */
+export const COR_DO_TIPO = {
+  Colacao: 'bg-avatar-4/20 text-foreground',
+  Festa: 'bg-avatar-3/20 text-foreground',
+  Reuniao: 'bg-success-bg text-success-text',
+  Prazo: 'bg-warning-bg text-warning-text',
+  Outro: 'bg-neutral-bg text-neutral-text',
+} as const satisfies Record<TipoDeEvento, string>

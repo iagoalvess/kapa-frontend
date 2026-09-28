@@ -1,0 +1,6 @@
+# O site é para ser achado: a institucional e os documentos legais. O sistema mora no app., que tem
+# o próprio robots.txt fechando tudo.
+User-agent: *
+Allow: /
+
+Sitemap: %VITE_SITE_URL%/sitemap.xml

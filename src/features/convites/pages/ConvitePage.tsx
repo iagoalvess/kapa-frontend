@@ -2,14 +2,16 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import mascoteErro from '@/assets/mascote/erro.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
+import { useReenviarConfirmacao } from '@/hooks/useReenviarConfirmacao'
 import { useSessao } from '@/hooks/useSessao'
 import { convitePendente } from '@/lib/convitePendente'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { CardDaTurma } from '../components/CardDaTurma'
-import { useAceitarConvite, useConvitePublico, useReenviarConfirmacao } from '../hooks/useAceitarConvite'
+import { useAceitarConvite, useConvitePublico } from '../hooks/useAceitarConvite'
 
 /** Códigos em que o convite, para esta pessoa, acabou: a resposta é pedir outro. */
 const INDISPONIVEL = new Set(['convite.invalido', 'convite.esgotado'])
@@ -115,16 +117,15 @@ export default function ConvitePage() {
   }
 
   if (convite.isError) {
-    if (ehErroDaApi(convite.error) && convite.error.status === 404) return <Indisponivel />
+    if (ehErroDaApi(convite.error) && INDISPONIVEL.has(convite.error.codigo)) return <Indisponivel />
 
     return (
       <Moldura>
-        <p role="alert" className="text-destructive text-center text-sm">
-          {mensagemDoErro(convite.error)}
-        </p>
-        <Button className="h-11 w-full" onClick={() => void convite.refetch()}>
-          Tentar de novo
-        </Button>
+        <ErroDaConsulta
+          erro={convite.error}
+          className="justify-items-center text-center"
+          aoTentarDeNovo={() => void convite.refetch()}
+        />
       </Moldura>
     )
   }

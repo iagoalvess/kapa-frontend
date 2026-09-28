@@ -40,12 +40,3 @@ export function obterConvite(token: string, signal?: AbortSignal) {
 export function aceitarConvite(token: string) {
   return api.post<ParDeTokens>(`${PUBLICO}/${encodeURIComponent(token)}/aceitar`, { body: {} })
 }
-
-/**
- * Reenvia o link de confirmação do e-mail — o convite pessoal só aceita conta confirmada.
- *
- * Mesma chamada da tela de login; repetida aqui porque uma feature não importa de outra.
- */
-export function reenviarConfirmacao(email: string) {
-  return api.post<void>('/api/v1/conta/reenviar-confirmacao', { body: { email }, autenticar: false })
-}

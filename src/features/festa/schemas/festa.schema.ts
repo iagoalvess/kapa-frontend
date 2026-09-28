@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import type { DadosDaProposta, DadosDoItemDaFesta, ItemDaFesta, Proposta } from '@/types/festa'
+import { inteiroEmTexto } from '@/lib/esquemas'
+import { CATEGORIAS_DE_DESPESA } from '@/types/financeiro'
 
 /*
   Validação de **forma**. O que depende do estado — item cancelado não aceita correção, item com
@@ -9,33 +11,15 @@ import type { DadosDaProposta, DadosDoItemDaFesta, ItemDaFesta, Proposta } from 
   Dinheiro é inteiro em centavos do campo à API: o `CampoDeMoeda` já entrega centavos.
 */
 
-const CATEGORIAS = [
-  'Buffet',
-  'Espaco',
-  'Banda',
-  'Fotografia',
-  'Decoracao',
-  'Convites',
-  'Beca',
-  'Taxas',
-  'Outros',
-] as const
-
 export const esquemaDeItemDaFesta = z.object({
   titulo: z.string().trim().min(1, 'Informe o que é o item.').max(120, 'No máximo 120 caracteres.'),
-  categoria: z.enum(CATEGORIAS),
+  categoria: z.enum(CATEGORIAS_DE_DESPESA),
   o_que_inclui: z.string().trim().max(2000, 'No máximo 2000 caracteres.'),
   documento_id: z.string(),
   rateio: z.enum(['Turma', 'PorFormando']),
   valor_previsto_em_centavos: z.number().int().min(0, 'O valor não pode ser negativo.'),
   /** Texto porque o campo é um `<input>`; o número sai do `Number()` na conversão. */
-  quantidade_estimada: z
-    .string()
-    .trim()
-    .refine(
-      (valor) => /^\d+$/.test(valor) && Number(valor) >= 1 && Number(valor) <= 2000,
-      'De 1 a 2000 formandos.',
-    ),
+  quantidade_estimada: inteiroEmTexto(1, 2000, 'De 1 a 2000 formandos.'),
 })
 
 export type FormularioDoItem = z.infer<typeof esquemaDeItemDaFesta>

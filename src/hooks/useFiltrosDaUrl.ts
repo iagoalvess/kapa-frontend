@@ -15,15 +15,20 @@ import { useSearchParams } from 'react-router'
 export function useFiltrosDaUrl() {
   const [parametros, definirParametros] = useSearchParams()
 
+  // `preventScrollReset`: filtrar é continuar na mesma tela, e a lista não pode pular para o topo a
+  // cada pílula — quem volta ao topo na troca de tela é o `ScrollRestoration` do `router`.
   const atualizar = (mudancas: Record<string, string | null>) =>
-    definirParametros((atuais) => {
-      const proximos = new URLSearchParams(atuais)
-      for (const [chave, valor] of Object.entries({ pagina: null, ...mudancas })) {
-        if (valor === null || valor === '') proximos.delete(chave)
-        else proximos.set(chave, valor)
-      }
-      return proximos
-    })
+    definirParametros(
+      (atuais) => {
+        const proximos = new URLSearchParams(atuais)
+        for (const [chave, valor] of Object.entries({ pagina: null, ...mudancas })) {
+          if (valor === null || valor === '') proximos.delete(chave)
+          else proximos.set(chave, valor)
+        }
+        return proximos
+      },
+      { preventScrollReset: true },
+    )
 
   return {
     parametros,

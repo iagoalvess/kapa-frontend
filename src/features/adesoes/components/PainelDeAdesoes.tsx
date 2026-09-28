@@ -14,7 +14,8 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { formatarData, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
+import { ehOpcao } from '@/lib/opcao'
 import { useBaixarPdf } from '../hooks/useAderir'
 import { useLembrar, useSituacoes } from '../hooks/usePainel'
 import type { ResumoDeAdesoes, SituacaoDeAdesao } from '../types/adesoes.types'
@@ -30,7 +31,7 @@ const SITUACOES = {
 
 type Situacao = keyof typeof SITUACOES
 
-const ehSituacao = (valor: string | null): valor is Situacao => valor !== null && valor in SITUACOES
+const ehSituacao = (valor: string | null): valor is Situacao => ehOpcao(valor, SITUACOES)
 
 interface Props {
   resumo?: ResumoDeAdesoes
@@ -190,12 +191,7 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
               size="sm"
               disabled={pdf.isPending}
               aria-label={`Baixar o termo de ${membro.nome}`}
-              onClick={() =>
-                pdf.mutate(
-                  { adesao_id, versao: membro.versao ?? 1 },
-                  { onError: (erro) => toast.error(mensagemDoErro(erro)) },
-                )
-              }
+              onClick={() => pdf.mutate({ adesao_id, versao: membro.versao ?? 1 }, { onError: avisarErro })}
             >
               <Download aria-hidden />
               PDF
@@ -209,8 +205,8 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
               aria-label={`Lembrar ${membro.nome}`}
               onClick={() =>
                 lembrar.mutate(membro.usuario_id, {
-                  onSuccess: () => toast.info(`Lembrete enviado para ${membro.nome}.`),
-                  onError: (erro) => toast.error(mensagemDoErro(erro)),
+                  onSuccess: () => toast.success(`Lembrete enviado para ${membro.nome}.`),
+                  onError: avisarErro,
                 })
               }
             >

@@ -1,12 +1,17 @@
 import { z } from 'zod'
 import { diaDeHoje } from '@/lib/formato'
+import { inteiroEmTexto } from '@/lib/esquemas'
+import { CATEGORIAS_DE_DESPESA, CATEGORIAS_DE_OUTRA_RECEITA } from '@/types/financeiro'
 import type { ItemDaFesta } from '@/types/festa'
 import type {
   DadosDaDespesa,
+  DadosDaOutraReceita,
   DadosDoFornecedor,
   Despesa,
   Fornecedor,
   NovaDespesa,
+  NovaOutraReceita,
+  OutraReceita,
 } from '../types/financeiro.types'
 
 /*
@@ -17,30 +22,12 @@ import type {
   Dinheiro é inteiro em centavos do campo à API: o `CampoDeMoeda` já entrega centavos.
 */
 
-const CATEGORIAS = [
-  'Buffet',
-  'Espaco',
-  'Banda',
-  'Fotografia',
-  'Decoracao',
-  'Convites',
-  'Beca',
-  'Taxas',
-  'Outros',
-] as const
-
 const DIA = /^\d{4}-\d{2}-\d{2}$/
-
-const inteiro = (minimo: number, maximo: number, mensagem: string) =>
-  z
-    .string()
-    .trim()
-    .refine((valor) => /^\d+$/.test(valor) && Number(valor) >= minimo && Number(valor) <= maximo, mensagem)
 
 export const esquemaDeFornecedor = z.object({
   nome: z.string().trim().min(1, 'Informe o nome do fornecedor.').max(200, 'No máximo 200 caracteres.'),
   documento: z.string().trim().max(20, 'Confira o documento.'),
-  categoria: z.enum(CATEGORIAS),
+  categoria: z.enum(CATEGORIAS_DE_DESPESA),
   telefone: z.string().trim().max(20, 'Confira o telefone.'),
   email: z.union([z.literal(''), z.email('Informe um e-mail válido.')]),
   observacoes: z.string().trim().max(1000, 'No máximo 1000 caracteres.'),
@@ -96,10 +83,10 @@ export const esquemaDeDespesa = z
     modoDoValor: z.enum(['parcela', 'total']),
     fornecedor_id: z.string(),
     item_da_festa_id: z.string(),
-    categoria: z.enum(CATEGORIAS),
+    categoria: z.enum(CATEGORIAS_DE_DESPESA),
     competencia: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Informe o mês, como 2026-03.'),
     vencimento: z.string().regex(DIA, 'Informe o vencimento.'),
-    numero_de_parcelas: inteiro(1, 24, 'De 1 a 24 parcelas.'),
+    numero_de_parcelas: inteiroEmTexto(1, 24, 'De 1 a 24 parcelas.'),
     jaPaga: z.boolean(),
     paga_em: z.string(),
   })
@@ -207,3 +194,75 @@ export const despesaParaContratar = (item: ItemDaFesta): FormularioDeDespesa => 
   valor_em_centavos: item.custo_previsto_em_centavos,
   item_da_festa_id: item.id,
 })
+
+/**
+ * A receita, espelho da despesa (decisão 1 da Sprint 28) sem parcela nem fornecedor: o que é, de
+ * quem, quanto, quando — e se já caiu na conta. Já recebida, a data é a do dinheiro na conta e não
+ * pode estar no futuro; prevista, é o dia combinado.
+ */
+export const esquemaDeOutraReceita = z
+  .object({
+    descricao: z.string().trim().min(1, 'Diga o que é a receita.').max(200, 'No máximo 200 caracteres.'),
+    origem: z.string().trim().max(200, 'No máximo 200 caracteres.'),
+    categoria: z.enum(CATEGORIAS_DE_OUTRA_RECEITA),
+    valor_em_centavos: z.number().int().positive('Informe um valor maior que zero.'),
+    data: z.string().regex(DIA, 'Informe a data.'),
+    recebida: z.boolean(),
+    documento_id: z.string(),
+  })
+  .refine((valores) => !valores.recebida || valores.data <= diaDeHoje(), {
+    message: 'Receita já recebida não pode ter data no futuro.',
+    path: ['data'],
+  })
+
+export type FormularioDeOutraReceita = z.infer<typeof esquemaDeOutraReceita>
+
+/** O formulário vazio: já recebida hoje — o lançamento mais comum é o do dinheiro que já entrou. */
+export const outraReceitaEmBranco = (): FormularioDeOutraReceita => ({
+  descricao: '',
+  origem: '',
+  categoria: 'Patrocinio',
+  valor_em_centavos: 0,
+  data: diaDeHoje(),
+  recebida: true,
+  documento_id: '',
+})
+
+/** Uma receita gravada, de volta ao formulário. */
+export const paraFormularioDeOutraReceita = (outraReceita: OutraReceita): FormularioDeOutraReceita => ({
+  descricao: outraReceita.descricao,
+  origem: outraReceita.origem ?? '',
+  categoria: outraReceita.categoria,
+  valor_em_centavos: outraReceita.valor_em_centavos,
+  data: outraReceita.data,
+  recebida: outraReceita.status === 'Recebida',
+  documento_id: outraReceita.documento?.id ?? '',
+})
+
+/** A correção, como a API a espera: situação não se muda editando — é em Receber e Cancelar. */
+export function paraDadosDaOutraReceita(formulario: FormularioDeOutraReceita): DadosDaOutraReceita {
+  return {
+    descricao: formulario.descricao.trim(),
+    origem: formulario.origem.trim() || undefined,
+    categoria: formulario.categoria,
+    valor_em_centavos: formulario.valor_em_centavos,
+    data: formulario.data,
+    documento_id: formulario.documento_id || undefined,
+  }
+}
+
+/** O lançamento novo: a correção mais o "já recebida". */
+export const paraNovaOutraReceita = (formulario: FormularioDeOutraReceita): NovaOutraReceita => ({
+  ...paraDadosDaOutraReceita(formulario),
+  recebida: formulario.recebida,
+})
+
+/** O recebimento de uma receita prevista: o dia em que o dinheiro caiu na conta. */
+export const esquemaDeRecebimento = z.object({
+  recebida_em: z
+    .string()
+    .regex(DIA, 'Informe a data do recebimento.')
+    .refine((dia) => dia <= diaDeHoje(), 'A data do recebimento não pode estar no futuro.'),
+})
+
+export type FormularioDeRecebimento = z.infer<typeof esquemaDeRecebimento>

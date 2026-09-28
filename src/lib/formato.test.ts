@@ -13,9 +13,14 @@ import {
   formatarDiaMes,
   formatarMesAno,
   formatarMoeda,
+  formatarMoedaCurta,
   formatarNumero,
+  formatarPercentual,
   formatarTamanho,
   formatarTelefone,
+  somarDias,
+  deCampoDeDataHora,
+  paraCampoDeDataHora,
 } from './formato'
 
 describe('formato', () => {
@@ -108,5 +113,36 @@ describe('formato', () => {
     expect(formatarTamanho(320 * 1024)).toBe('320 KB')
     expect(formatarTamanho(1.25 * 1024 * 1024)).toMatch(/^1,[23] MB$/)
     expect(formatarTamanho(undefined)).toBe('—')
+  })
+
+  /** A conta é no calendário local: perto da meia-noite, UTC já seria outro dia. */
+  it('soma e subtrai dias rolando mês e ano', () => {
+    expect(somarDias('2027-12-20', 30)).toBe('2028-01-19')
+    expect(somarDias('2028-01-10', -30)).toBe('2027-12-11')
+    expect(somarDias(new Date(2027, 6, 10, 23, 30), 0)).toBe('2027-07-10')
+  })
+
+  it('escreve o percentual de base 10.000 sem casa que não precisa', () => {
+    expect(formatarPercentual(200)).toBe('2%')
+    expect(formatarPercentual(250)).toBe('2,5%')
+    expect(formatarPercentual(1234)).toBe('12,34%')
+  })
+
+  it('encurta a moeda do gráfico em mil e milhão', () => {
+    expect(formatarMoedaCurta(1_234_567)).toBe('R$ 12 mil')
+    expect(formatarMoedaCurta(5_480_000, 1)).toBe('R$ 54,8 mil')
+    expect(formatarMoedaCurta(123_000_000)).toBe('R$ 1,2 mi')
+    expect(formatarMoedaCurta(85_000)).toBe(formatarCentavos(85_000))
+  })
+
+  /** O campo de data e hora é local; a API recebe e devolve UTC — ida e volta dão o mesmo campo. */
+  it('converte o campo de data e hora para UTC e de volta', () => {
+    const campo = '2026-10-01T20:00'
+    const utc = deCampoDeDataHora(campo)
+
+    expect(utc).toBe(new Date(2026, 9, 1, 20, 0).toISOString())
+    expect(paraCampoDeDataHora(utc)).toBe(campo)
+    expect(deCampoDeDataHora('')).toBeNull()
+    expect(paraCampoDeDataHora(null)).toBe('')
   })
 })

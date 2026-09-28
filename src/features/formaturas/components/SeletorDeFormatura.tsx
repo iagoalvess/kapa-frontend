@@ -1,7 +1,6 @@
-import { toast } from 'sonner'
 import { Select } from '@/components/Select'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
 import type { FormaturaDoUsuario } from '../types/formaturas.types'
 
@@ -49,9 +48,7 @@ export function SeletorDeFormatura({ habilitado = true }: { habilitado?: boolean
         className="h-9 w-full truncate text-sm font-medium"
         value={atual.id}
         disabled={selecionar.isPending}
-        onChange={(evento) =>
-          selecionar.mutate(evento.target.value, { onError: (erro) => toast.error(mensagemDoErro(erro)) })
-        }
+        onChange={(evento) => selecionar.mutate(evento.target.value, { onError: avisarErro })}
       >
         {formaturas.data.map((formatura) => (
           <option key={formatura.id} value={formatura.id}>

@@ -6,6 +6,7 @@ import { ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { ComoPagar } from '../components/ComoPagar'
+import { ConfirmacaoAutomatica } from '../components/ConfirmacaoAutomatica'
 import { DialogoDeInforme } from '../components/DialogoDeInforme'
 import { useCobrancaDeVarias, useMeioEscolhido } from '../hooks/useCobranca'
 import { useExtrato } from '../hooks/useExtrato'
@@ -24,11 +25,13 @@ export default function PagamentoEmLotePage() {
   const [parametros] = useSearchParams()
   const ids = (parametros.get('parcelas') ?? '').split(',').filter(Boolean)
   const cobranca = useCobrancaDeVarias(ids)
-  const extrato = useExtrato()
   const [escolhido, escolher] = useMeioEscolhido(cobranca.data)
+  const automatico = Boolean(escolhido?.mercadoPago)
+  const extrato = useExtrato(automatico)
 
   // O nome de cada parcela é do extrato, que a tela anterior já deixou no cache; a ordem é a da API.
   const escolhidas = (extrato.data?.parcelas ?? []).filter((parcela) => ids.includes(parcela.id))
+  const pagas = escolhidas.length === ids.length && escolhidas.every((parcela) => parcela.status === 'Paga')
 
   return (
     <>
@@ -66,36 +69,46 @@ export default function PagamentoEmLotePage() {
           }
         />
 
-        <Cartao
-          passo={2}
-          titulo="Já pagou?"
-          descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — as parcelas mudam quando ela confirmar."
-        >
-          {escolhidas.length > 0 ? (
-            <div className="bg-muted grid gap-3 rounded-2xl p-4">
-              <p className="text-foreground font-medium">O que este pagamento cobre</p>
-              <ul className="grid gap-2 text-sm">
-                {escolhidas.map((parcela) => (
-                  <li key={parcela.id} className="flex items-center justify-between gap-3">
-                    <span className="text-muted-foreground min-w-0 truncate">
-                      {rotuloDoItem(parcela)} · vence {formatarData(parcela.vencimento)}
-                    </span>
-                    <span className="text-foreground whitespace-nowrap tabular-nums">
-                      {formatarCentavos(valorNaLista(parcela))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+        {automatico ? (
+          <ConfirmacaoAutomatica>
+            {pagas ? (
+              <output className="text-foreground font-medium">
+                Pagamento confirmado: as {formatarNumero(ids.length)} parcelas estão pagas.
+              </output>
+            ) : null}
+          </ConfirmacaoAutomatica>
+        ) : (
+          <Cartao
+            passo={2}
+            titulo="Já pagou?"
+            descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — as parcelas mudam quando ela confirmar."
+          >
+            {escolhidas.length > 0 ? (
+              <div className="bg-muted grid gap-3 rounded-2xl p-4">
+                <p className="text-foreground font-medium">O que este pagamento cobre</p>
+                <ul className="grid gap-2 text-sm">
+                  {escolhidas.map((parcela) => (
+                    <li key={parcela.id} className="flex items-center justify-between gap-3">
+                      <span className="text-muted-foreground min-w-0 truncate">
+                        {rotuloDoItem(parcela)} · vence {formatarData(parcela.vencimento)}
+                      </span>
+                      <span className="text-foreground whitespace-nowrap tabular-nums">
+                        {formatarCentavos(valorNaLista(parcela))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
-          <DialogoDeInforme
-            parcelaIds={ids}
-            valor_em_centavos={cobranca.data?.valor_em_centavos ?? 0}
-            meio={escolhido?.meio}
-            desabilitado={!cobranca.data}
-          />
-        </Cartao>
+            <DialogoDeInforme
+              parcelaIds={ids}
+              valor_em_centavos={cobranca.data?.valor_em_centavos ?? 0}
+              meio={escolhido?.comissao?.meio}
+              desabilitado={!cobranca.data}
+            />
+          </Cartao>
+        )}
       </div>
     </>
   )

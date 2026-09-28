@@ -17,8 +17,14 @@ COPY . .
 # Uma imagem por ambiente, portanto. Se um dia precisar de imagem única, o caminho é servir um
 # /config.js gerado no entrypoint; está registrado em docs/arquitetura.md.
 ARG VITE_API_URL
+# O app e o site se apontam um para o outro (Sprint 33). Esta imagem é só do app, para o dev local:
+# em produção os dois vão para o Cloudflare Pages (docs/deploy.md), sem nginx.
+ARG VITE_APP_URL=http://localhost:3000
+ARG VITE_SITE_URL=http://localhost:5180
 ARG VITE_APP_NOME=Frontend
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_APP_URL=$VITE_APP_URL
+ENV VITE_SITE_URL=$VITE_SITE_URL
 ENV VITE_APP_NOME=$VITE_APP_NOME
 
 RUN npm run build

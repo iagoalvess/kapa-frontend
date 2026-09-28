@@ -35,5 +35,5 @@ export function CalculoDoValor({ valor }: { valor: ValorDoDia }) {
 }
 
 /** Se multa, juros ou desconto mudaram o valor — só aí vale abrir a conta. */
-export const temEncargoOuDesconto = (valor: ValorDoDia | undefined): valor is ValorDoDia =>
-  valor !== undefined && valor.total_em_centavos !== valor.original_em_centavos
+export const temEncargoOuDesconto = (valor: ValorDoDia | null): valor is ValorDoDia =>
+  valor !== null && valor.total_em_centavos !== valor.original_em_centavos

@@ -5,7 +5,7 @@ import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
 import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import type { ItemDaFesta, Proposta } from '@/types/festa'
 import { useDesvotar, useExcluirProposta, useVotar } from '../hooks/useEscritaDaFesta'
@@ -19,9 +19,6 @@ interface Props {
   /** Falso trava as escritas — formatura fora de `Ativa`. */
   editavel: boolean
 }
-
-/** Toda falha de escrita deste bloco vira o mesmo aviso: o texto certo vem da API, pelo código. */
-const aoFalhar = (erro: unknown) => toast.error(mensagemDoErro(erro))
 
 /**
  * As candidatas de um item "a contratar", e em qual delas a turma votou.
@@ -45,8 +42,8 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
 
   const alternar = (proposta: Proposta) =>
     proposta.meu_voto
-      ? desvotar.mutate(item.id, { onError: aoFalhar })
-      : votar.mutate(proposta.id, { onError: aoFalhar })
+      ? desvotar.mutate(item.id, { onSuccess: () => toast.info('Voto retirado.'), onError: avisarErro })
+      : votar.mutate(proposta.id, { onSuccess: () => toast.success('Voto registrado.'), onError: avisarErro })
 
   if (propostas.length === 0 && !(aberta && ehGestao && editavel)) return null
 
@@ -68,7 +65,7 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
       </header>
 
       {propostas.length === 0 ? (
-        <p className="text-texto-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Nenhuma ainda. Liste o que a comissão levantou para a turma escolher.
         </p>
       ) : (
@@ -125,7 +122,7 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
                       variant="ghost"
                       className="text-muted-foreground hover:text-foreground size-8 rounded-full"
                       onClick={() => definirCadastro({ proposta })}
-                      aria-label={`Corrigir ${proposta.titulo}`}
+                      aria-label={`Editar ${proposta.titulo}`}
                     >
                       <Pencil className="size-4" aria-hidden />
                     </Button>
@@ -151,7 +148,7 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
       <DialogoDeConfirmacao
         aberto={excluindo !== false}
         aoFechar={() => definirExcluindo(false)}
-        titulo={excluindo ? `Excluir a proposta "${excluindo.titulo}"?` : ''}
+        titulo={excluindo ? `Excluir a proposta “${excluindo.titulo}”?` : ''}
         descricao="Ela sai da disputa e os votos nela são apagados junto. Nada do caixa muda — proposta não é despesa."
         rotulo="Excluir"
         rotuloDeCancelar="Voltar"
@@ -161,7 +158,7 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
 
           const alvo = excluindo.id
           definirExcluindo(false)
-          excluir.mutate(alvo, { onSuccess: () => toast.info('Proposta excluída.'), onError: aoFalhar })
+          excluir.mutate(alvo, { onSuccess: () => toast.info('Proposta excluída.'), onError: avisarErro })
         }}
       />
     </section>

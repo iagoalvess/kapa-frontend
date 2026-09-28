@@ -92,7 +92,7 @@ export default function BuscaDoSuportePage() {
         <Cartao
           icone={GraduationCap}
           titulo="Turmas"
-          descricao={`${formatarNumero(turmas.length)} encontrada(s)`}
+          descricao={`${formatarNumero(turmas.length)} ${turmas.length === 1 ? 'encontrada' : 'encontradas'}`}
         >
           <ul className="motion-safe:animate-entrar grid gap-2">
             {turmas.map((turma) => (
@@ -117,7 +117,11 @@ export default function BuscaDoSuportePage() {
       ) : null}
 
       {usuarios.length > 0 ? (
-        <Cartao titulo="Contas" descricao={`${formatarNumero(usuarios.length)} encontrada(s)`}>
+        <Cartao
+          icone={UserRound}
+          titulo="Contas"
+          descricao={`${formatarNumero(usuarios.length)} ${usuarios.length === 1 ? 'encontrada' : 'encontradas'}`}
+        >
           <ul className="motion-safe:animate-entrar grid gap-2">
             {usuarios.map((usuario) => (
               <li key={usuario.id}>

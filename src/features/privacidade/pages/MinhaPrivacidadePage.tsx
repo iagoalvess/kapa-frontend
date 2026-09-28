@@ -16,7 +16,7 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
+import { ROTAS, urlDoSite } from '@/config/rotas'
 import {
   formatarCentavos,
   formatarCep,
@@ -89,6 +89,7 @@ export default function MinhaPrivacidadePage() {
           <>
             <Button
               size="sm"
+              variant="outline"
               disabled={solicitar.isPending}
               onClick={() => solicitar.mutate({ tipo: 'Exportacao' })}
             >
@@ -112,7 +113,7 @@ export default function MinhaPrivacidadePage() {
           </Link>{' '}
           — o cadastro é seu e você o edita quando quiser. Para saber{' '}
           <strong className="text-foreground font-medium">com quem compartilhamos</strong>, veja a{' '}
-          <Link to={ROTAS.operadores} className="text-brand-text underline underline-offset-4">
+          <Link to={urlDoSite(ROTAS.operadores)} className="text-brand-text underline underline-offset-4">
             lista de operadores
             <ExternalLink className="ml-0.5 inline size-3.5" aria-hidden />
           </Link>

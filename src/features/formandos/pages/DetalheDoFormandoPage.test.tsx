@@ -66,14 +66,14 @@ describe('DetalheDoFormandoPage', () => {
 
   afterEach(() => sessao.encerrar())
 
-  it('Comissão lê o cadastro com os campos travados e sem botão de salvar', async () => {
+  it('Comissão lê o cadastro sem botão de editar', async () => {
     entrarComo(PAPEIS.comissao)
 
     renderizarDetalhe()
 
-    expect(await screen.findByLabelText('Nome completo')).toHaveValue('Bruno Lima')
-    expect(screen.getByLabelText('Nome completo')).toBeDisabled()
-    expect(screen.queryByRole('button', { name: /^Salvar/ })).not.toBeInTheDocument()
+    const pessoais = await screen.findByRole('region', { name: 'Dados pessoais' })
+    expect(within(pessoais).getByText('Bruno Lima')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.getByText(/Falta o essencial: nome completo, CPF e telefone/)).toBeInTheDocument()
   })
 
@@ -112,11 +112,16 @@ describe('DetalheDoFormandoPage', () => {
     entrarComo(PAPEIS.presidente)
 
     renderizarDetalhe()
+    await userEvent.click(
+      within(await screen.findByRole('region', { name: 'Dados pessoais' })).getByRole('button', {
+        name: 'Editar',
+      }),
+    )
     const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
     expect(within(pessoais).getByLabelText('CPF')).toHaveValue('***.982.247-**')
     expect(within(pessoais).getByLabelText('CPF')).toBeDisabled()
     await userEvent.type(within(pessoais).getByLabelText('RG'), '12.345.678-9')
-    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar dados pessoais' }))
+    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(enviado).toMatchObject({ pessoais: { rg: '12.345.678-9', cpf: null } }))
   })
@@ -132,9 +137,14 @@ describe('DetalheDoFormandoPage', () => {
     entrarComo(PAPEIS.presidente)
 
     renderizarDetalhe()
+    await userEvent.click(
+      within(await screen.findByRole('region', { name: 'Dados pessoais' })).getByRole('button', {
+        name: 'Editar',
+      }),
+    )
     const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
     await userEvent.type(within(pessoais).getByLabelText('RG'), '12.345.678-9')
-    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar dados pessoais' }))
+    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(enviado).toMatchObject({ pessoais: { rg: '12.345.678-9' } }))
     expect(screen.getByText('Correções feitas aqui ficam registradas com o seu nome.')).toBeInTheDocument()

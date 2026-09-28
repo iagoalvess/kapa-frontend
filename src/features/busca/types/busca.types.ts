@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, Handshake, Megaphone, Receipt, Users, type LucideIcon } from 'lucide-react'
+import { FolderOpen, Handshake, Megaphone, Receipt, Users, type LucideIcon } from 'lucide-react'
 import { type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS, rotaDaDespesa, rotaDoAviso, rotaDoFornecedor, rotaDoMembro } from '@/config/rotas'
 
@@ -50,9 +50,6 @@ export const GRUPOS: {
     para: (r) => `${ROTAS.documentos}?busca=${encodeURIComponent(r.titulo)}`,
   },
 ]
-
-/** Ícone de quem não tem grupo — não deve acontecer, e é melhor que uma linha sem desenho. */
-export const ICONE_PADRAO = FileText
 
 /**
  * A segunda linha de um acerto, já em português.

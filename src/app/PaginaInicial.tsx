@@ -1,4 +1,4 @@
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import mascoteAcenando from '@/assets/mascote/acenando.webp'
 import mascoteCanudo from '@/assets/mascote/canudo.webp'
@@ -15,7 +15,7 @@ import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
 import { CartaoDaFesta } from './CartaoDaFesta'
 import { CartaoDaProximaParcela } from './CartaoDaProximaParcela'
 import { CartaoDoMural } from './CartaoDoMural'
-import { CartaoDosDocumentos } from './CartaoDosDocumentos'
+import { GraficoDaArrecadacao } from './GraficoDaArrecadacao'
 
 /** A página conecta a jornada coletiva às próximas ações da pessoa. */
 export function PaginaInicial() {
@@ -40,10 +40,10 @@ export function PaginaInicial() {
         aria-label="Sua jornada até a formatura"
         className="bg-card shadow-cartao overflow-hidden rounded-3xl"
       >
-        <div className="relative grid items-center gap-5 p-5 lg:grid-cols-[1.15fr_1fr]">
+        <div className="relative grid items-center gap-5 p-5 min-[1024px]:grid-cols-2 min-[1440px]:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,1fr)]">
           <div className="relative z-10 min-w-0">
             <h2 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
-              Olá, {primeiroNome} <span className="text-brand-text">:)</span>
+              Olá, {primeiroNome} <span className="text-brand">:)</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-md text-base leading-relaxed">
               Uma grande conquista se faz juntos.
@@ -72,13 +72,13 @@ export function PaginaInicial() {
           </div>
           <div className="relative flex min-w-0 items-center justify-center gap-2 py-3 sm:gap-4">
             <div aria-hidden className="bg-background absolute size-56 rounded-full" />
-            <div className="bg-card shadow-cartao relative z-10 -rotate-3 rounded-2xl border border-white px-5 py-5 text-center sm:px-7">
+            <div className="bg-card shadow-cartao border-card relative z-10 -rotate-3 rounded-2xl border px-5 py-5 text-center sm:px-7">
               <p className="text-muted-foreground text-xs font-medium">
                 {dias !== null && dias > 0 ? 'Contagem regressiva' : 'O grande dia'}
               </p>
               {dias !== null && dias > 0 ? (
                 <>
-                  <p className="text-brand-text my-2 text-5xl font-semibold tracking-tighter tabular-nums sm:text-6xl">
+                  <p className="text-brand my-2 text-5xl font-bold tracking-tighter tabular-nums sm:text-6xl">
                     {formatarNumero(dias)}
                   </p>
                   <p className="text-sm">
@@ -112,42 +112,53 @@ export function PaginaInicial() {
                 </Link>
               ) : null}
             </div>
-            <div className="relative grid w-20 shrink-0 justify-items-center min-[400px]:w-28 sm:w-44 xl:w-52">
-              <img src={mascote} alt="" className="w-full object-contain drop-shadow-lg" />
-              <p className="font-hand text-brand-text mt-2 -rotate-6 text-center text-lg leading-none sm:text-2xl">
-                Juntos até a<br />
-                formatura!
-              </p>
-              <svg
-                aria-hidden
-                viewBox="0 0 32 28"
-                fill="none"
-                className="text-brand/70 pointer-events-none mt-2 h-5 w-6 rotate-6"
-              >
-                <path
-                  d="M16 23S3 15 5 8C7 2 13 5 16 9C19 3 26 3 27 9C29 16 16 23 16 23Z"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
+              <img
+                src={mascote}
+                alt=""
+                className="w-20 object-contain drop-shadow-lg min-[400px]:w-24 sm:w-36 xl:w-40"
+              />
+              {/* À direita do mascote, e não embaixo: embaixo, a frase e o coração somavam quase um
+                  terço da altura do cartão. */}
+              <div className="hidden justify-items-center sm:grid">
+                <p className="font-hand text-brand-text -rotate-6 text-center text-lg leading-none sm:text-2xl">
+                  Juntos até a<br />
+                  formatura!
+                </p>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 32 28"
+                  fill="none"
+                  className="text-brand/70 pointer-events-none mt-2 h-5 w-6 rotate-6"
+                >
+                  <path
+                    d="M16 23S3 15 5 8C7 2 13 5 16 9C19 3 26 3 27 9C29 16 16 23 16 23Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
+          <ProximasDatas ehGestao={ehGestao} />
         </div>
-        <ProximasDatas ehGestao={ehGestao} />
       </section>
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        <div className="order-2 grid min-w-0 gap-5 xl:order-1">
+      {/* O progresso da turma e a parcela da pessoa lado a lado; embaixo, a evolução do dinheiro e os
+          recados. */}
+      <section aria-labelledby="acompanhe" className="grid gap-3">
+        <h2 id="acompanhe" className="text-lg font-medium">
+          Acompanhe sua formatura
+        </h2>
+        <div className="grid items-stretch gap-5 md:grid-cols-2">
           <CartaoDaFesta />
+          <CartaoDaProximaParcela />
+          <GraficoDaArrecadacao />
           <CartaoDoMural />
         </div>
-        <div className="order-1 grid min-w-0 gap-5 xl:order-2">
-          <CartaoDaProximaParcela />
-          <CartaoDosDocumentos />
-        </div>
-      </div>
+      </section>
     </div>
   )
 }
@@ -159,6 +170,9 @@ export function PaginaInicial() {
  * tem reunião amanhã e prova da beca semana que vem, dizer só "colação em 2027" é responder o que
  * ninguém perguntou. A colação e a festa continuam no contador ao lado, que é onde elas pesam.
  *
+ * Mora no meio do cartão de cima, entre a saudação e a contagem (22/09): no rodapé dele, a faixa
+ * das datas dobrava a altura do cartão para três linhas de texto.
+ *
  * O resumo é um endpoint próprio: a home desenha três linhas e não deve carregar a agenda inteira
  * a cada abertura do app.
  *
@@ -167,21 +181,12 @@ export function PaginaInicial() {
 function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
   const resumo = useResumoDaAgenda()
   const proximos = resumo.data?.proximos ?? []
-  const restantes = (resumo.data?.total ?? 0) - proximos.length
 
   return (
-    <div className="border-border border-t p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Próximas datas</h3>
-        <Link
-          to={ROTAS.agenda}
-          className="text-brand-text text-xs font-medium underline-offset-4 hover:underline"
-        >
-          Ver agenda
-        </Link>
-      </div>
+    <div className="border-border grid min-w-0 content-start gap-2 border-t pt-5 min-[1024px]:col-span-2 min-[1440px]:col-span-1 min-[1440px]:border-t-0 min-[1440px]:border-l min-[1440px]:pt-0 min-[1440px]:pl-5">
+      <h3 className="text-muted-foreground text-sm font-medium">Próximas datas</h3>
 
-      {resumo.isPending ? <EsqueletoDeTexto linhas={2} /> : null}
+      {resumo.isPending ? <EsqueletoDeTexto linhas={3} /> : null}
 
       {resumo.data && proximos.length === 0 ? (
         <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -193,35 +198,36 @@ function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
       ) : null}
 
       {proximos.length > 0 ? (
-        <ol aria-label="Próximas datas da turma" className="grid gap-4 sm:grid-cols-3 sm:gap-5">
+        <ol aria-label="Próximas datas da turma" className="grid">
           {proximos.map((evento) => {
             const Icone = ICONE_DO_TIPO[evento.tipo]
             const dias = diasAte(evento.data)
 
             return (
-              <li key={evento.id} className="flex min-w-0 items-center gap-3">
-                <span className="border-brand-tint bg-card text-brand-text grid size-10 shrink-0 place-items-center rounded-full border">
-                  <Icone className="size-4" aria-hidden />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{evento.titulo}</p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
-                    <time dateTime={evento.data}>{formatarData(evento.data)}</time>
-                    {dias !== null && dias >= 0
-                      ? ` · ${dias === 0 ? 'é hoje' : dias === 1 ? 'amanhã' : `em ${formatarNumero(dias)} dias`}`
-                      : null}
-                  </p>
-                </div>
+              <li key={evento.id} className="border-border border-b last:border-0">
+                {/* A linha inteira leva à agenda: a data não tem tela própria, e é lá que ela se lê inteira. */}
+                <Link
+                  to={ROTAS.agenda}
+                  className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5 outline-none focus-visible:ring-2"
+                >
+                  <span className="bg-brand-tint text-brand-text grid size-10 shrink-0 place-items-center rounded-full">
+                    <Icone className="size-4" aria-hidden />
+                  </span>
+                  <span className="grid min-w-0 flex-1">
+                    <span className="truncate text-sm font-medium">{evento.titulo}</span>
+                    <span className="text-muted-foreground mt-0.5 text-xs">
+                      <time dateTime={evento.data}>{formatarData(evento.data)}</time>
+                      {dias !== null && dias >= 0
+                        ? ` · ${dias === 0 ? 'é hoje' : dias === 1 ? 'amanhã' : `em ${formatarNumero(dias)} dias`}`
+                        : null}
+                    </span>
+                  </span>
+                  <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
+                </Link>
               </li>
             )
           })}
         </ol>
-      ) : null}
-
-      {restantes > 0 ? (
-        <p className="text-muted-foreground mt-4 text-xs">
-          e mais {formatarNumero(restantes)} {restantes === 1 ? 'data marcada' : 'datas marcadas'}.
-        </p>
       ) : null}
     </div>
   )

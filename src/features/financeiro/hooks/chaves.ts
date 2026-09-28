@@ -1,4 +1,8 @@
-import type { FiltroDeDespesas, FiltroDeFornecedores } from '../types/financeiro.types'
+import type {
+  FiltroDeDespesas,
+  FiltroDeFornecedores,
+  FiltroDeOutrasReceitas,
+} from '../types/financeiro.types'
 
 // A formatura não entra na chave: trocar de formatura limpa o cache inteiro.
 export const chaves = {
@@ -14,6 +18,12 @@ export const chaves = {
   despesa: (id: string) => ['financeiro', 'despesas', 'uma', id] as const,
   resumo: (filtro: Omit<FiltroDeDespesas, 'status' | 'pagina' | 'tamanho'>) =>
     ['financeiro', 'despesas', 'resumo', filtro] as const,
+  /** Prefixo de toda receita: lançar, receber e cancelar mudam lista, resumo e caixa. */
+  todasAsOutrasReceitas: ['financeiro', 'outras-receitas'] as const,
+  outrasReceitas: (filtro: FiltroDeOutrasReceitas) => ['financeiro', 'outras-receitas', filtro] as const,
+  resumoDeOutrasReceitas: (
+    filtro: Omit<FiltroDeOutrasReceitas, 'status' | 'atrasadas' | 'pagina' | 'tamanho'>,
+  ) => ['financeiro', 'outras-receitas', 'resumo', filtro] as const,
   /** Prefixo do caixa: toda escrita do financeiro o invalida, porque saldo é agregação. */
   caixa: ['financeiro', 'caixa'] as const,
   consolidado: ['financeiro', 'caixa', 'consolidado'] as const,

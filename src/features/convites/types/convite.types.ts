@@ -9,28 +9,23 @@ export interface ConvitePublico {
   instituicao: string
   papel: Papel
   /** Só no convite pessoal: para qual e-mail foi, mascarado (`a*****a@gmail.com`). */
-  email_mascarado?: string
+  email_mascarado: string | null
 }
 
-/**
- * Convite como a comissão o acompanha. Espelha `ConviteResumoDTO`.
- *
- * A API omite campo nulo (`WhenWritingNull`): no link da turma `email` nem chega, e comparar com
- * `null` o trataria como convite nominal.
- */
+/** Convite como a comissão o acompanha. Espelha `ConviteResumoDTO`. */
 export interface ConviteResumo {
   id: string
-  /** Ausente no link da turma. */
-  email?: string
+  /** Nulo no link da turma. */
+  email: string | null
   papel: Papel
   expira_em: string
-  /** Ausente é ilimitado até expirar. */
-  usos_maximos?: number
+  /** Nulo é ilimitado até expirar. */
+  usos_maximos: number | null
   usos_feitos: number
   status: StatusDoConvite
   criado_em: string
   /** Só no link da turma vigente: o endereço, para copiar de novo. */
-  link?: string
+  link: string | null
 }
 
 /**

@@ -5,20 +5,18 @@ import {
   CheckCheck,
   ChevronLeft,
   Copy,
-  Gift,
   GraduationCap,
   Heart,
   Landmark,
   Link2,
   MoreVertical,
 } from 'lucide-react'
-import { Link } from 'react-router'
 import mascoteCelular from '@/assets/mascote/celular.webp'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import qrcode from '@/assets/outros/qrcode.webp'
 import whatsapp from '@/assets/outros/whatsapp.webp'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
+import { ROTAS, urlDoApp } from '@/config/rotas'
 import { cn } from '@/lib/utils'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
@@ -93,7 +91,7 @@ function MaqueteDoConvite() {
         É só compartilhar!
         <SetaAnotada className="text-brand ml-auto h-9 w-7" />
       </div>
-      <div className="bg-card shadow-cartao overflow-hidden rounded-t-[22px] border-4 border-white">
+      <div className="bg-card shadow-cartao border-card overflow-hidden rounded-t-[22px] border-4">
         <div className="flex items-center gap-2 px-1 py-2.5">
           <ChevronLeft className="text-muted-foreground size-3 shrink-0" />
           <img
@@ -150,7 +148,7 @@ function MaqueteDaBaixa() {
             </span>
             <span className="text-muted-foreground text-[10px]">parcela 2/12</span>
             <span className="text-success-text mt-1 flex items-center gap-1 text-[8px] font-medium">
-              <span className="bg-success grid size-3.5 shrink-0 place-items-center rounded-full text-white">
+              <span className="bg-success text-card grid size-3.5 shrink-0 place-items-center rounded-full">
                 <Check className="size-2.5" strokeWidth={3} />
               </span>
               Pagamento conferido
@@ -197,7 +195,7 @@ const PASSOS = [
   {
     tom: 'destaque',
     titulo: 'Receba no PIX da turma',
-    texto: 'Cada parcela vira um QR da conta da comissão. Você confere o extrato e dá baixa na plataforma.',
+    texto: 'Gere QR Code para cada parcela, confira o extrato e confirme os pagamentos na plataforma.',
     maquete: <MaqueteDaBaixa />,
   },
 ] as const
@@ -271,15 +269,12 @@ export function ComoFunciona() {
       </div>
       <div className="grid justify-items-center gap-3">
         <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
-          <Link to={ROTAS.criarConta}>
+          <a href={urlDoApp(ROTAS.criarConta)}>
             <GraduationCap className="size-4" aria-hidden />
             Criar minha turma
-          </Link>
+          </a>
         </Button>
         <p className="text-texto-muted flex items-center justify-center gap-2 text-center text-xs leading-[18px]">
-          <span className="bg-brand-tint text-brand-text grid size-5 shrink-0 place-items-center rounded-full">
-            <Gift className="size-3" aria-hidden />
-          </span>
           Grátis até a turma começar a pagar as parcelas.
         </p>
       </div>

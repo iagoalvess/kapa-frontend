@@ -14,13 +14,15 @@ const FORNECEDORES = `${env.VITE_API_URL}/api/v1/financeiro/fornecedores`
 const DESPESAS = `${env.VITE_API_URL}/api/v1/financeiro/despesas`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
-/** Como a API devolve: o que é nulo não vem (`WhenWritingNull`). */
+/** Como a API devolve: o que é nulo vem `null`. */
 const buffet: Fornecedor = {
   id: 'fo-1',
   nome: 'Buffet Sabor',
   documento: '12345678000199',
   categoria: 'Buffet',
+  telefone: null,
   email: 'contato@sabor.com.br',
+  observacoes: null,
   ativo: true,
   quantidade_de_despesas: 2,
   pago_em_centavos: 1_500_000,
@@ -30,7 +32,11 @@ const buffet: Fornecedor = {
 const grafica: Fornecedor = {
   id: 'fo-2',
   nome: 'Gráfica Boa Impressão',
+  documento: null,
   categoria: 'Convites',
+  telefone: null,
+  email: null,
+  observacoes: null,
   ativo: false,
   quantidade_de_despesas: 0,
   pago_em_centavos: 0,
@@ -41,6 +47,7 @@ const despesaDoBuffet: Despesa = {
   id: 'de-1',
   lancamento_id: 'la-1',
   fornecedor_id: 'fo-1',
+  item_da_festa_id: null,
   fornecedor: 'Buffet Sabor',
   descricao: 'Entrada do buffet',
   categoria: 'Buffet',
@@ -50,6 +57,7 @@ const despesaDoBuffet: Despesa = {
   numero: 1,
   total_de_parcelas: 3,
   status: 'Paga',
+  pago_em: null,
   tem_comprovante: false,
   atrasada: false,
 }

@@ -14,7 +14,7 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import { DialogoDeFornecedor } from '../components/DialogoDeFornecedor'
 import { useContagemDeFornecedores, useExcluirFornecedor, useFornecedores } from '../hooks/useFornecedores'
@@ -117,7 +117,7 @@ export default function FornecedoresPage() {
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
         acoes={
-          <Button size="sm" className="h-8" disabled={!editavel} onClick={() => definirCadastro({})}>
+          <Button size="xs" disabled={!editavel} onClick={() => definirCadastro({})}>
             <Plus aria-hidden />
             Novo fornecedor
           </Button>
@@ -230,7 +230,7 @@ function ExcluirFornecedor({ fornecedor, desabilitado }: { fornecedor: Fornecedo
           Excluir
         </Button>
       }
-      titulo={`Excluir ${fornecedor.nome}?`}
+      titulo={`Excluir “${fornecedor.nome}”?`}
       descricao={
         fornecedor.quantidade_de_despesas > 0
           ? 'Ele tem despesa lançada, e a API não vai deixar excluir. Desative o fornecedor na tela dele: some do seletor de despesa e o histórico de gastos fica.'
@@ -241,7 +241,7 @@ function ExcluirFornecedor({ fornecedor, desabilitado }: { fornecedor: Fornecedo
       aoConfirmar={() =>
         excluir.mutate(fornecedor.id, {
           onSuccess: () => toast.info('Fornecedor excluído.'),
-          onError: (erro) => toast.error(mensagemDoErro(erro)),
+          onError: avisarErro,
         })
       }
     />

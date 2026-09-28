@@ -11,7 +11,7 @@ import { ROTAS } from '@/config/rotas'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { PassoDaTurma } from '../components/PassoDaTurma'
 import { PassoDeConfirmacao } from '../components/PassoDeConfirmacao'
-import { PassoDoTamanho } from '../components/PassoDoTamanho'
+import { PassoDasDatas } from '../components/PassoDasDatas'
 import { useCriarFormatura } from '../hooks/useCriarFormatura'
 import {
   esquemaDeFormatura,
@@ -29,10 +29,10 @@ const PASSOS = [
     Conteudo: PassoDaTurma,
   },
   {
-    titulo: 'O tamanho',
-    descricao: 'Uma estimativa basta — dá para ajustar depois.',
-    campos: ['previsao_de_colacao', 'previsao_da_festa', 'quantidade_estimada_de_formandos'],
-    Conteudo: PassoDoTamanho,
+    titulo: 'As datas',
+    descricao: 'Se já tiver uma previsão. Dá para marcar ou mudar depois, na Agenda.',
+    campos: ['previsao_de_colacao', 'previsao_da_festa'],
+    Conteudo: PassoDasDatas,
   },
   {
     titulo: 'Confirmação',
@@ -44,7 +44,7 @@ const PASSOS = [
   titulo: string
   descricao: string
   campos: readonly (keyof FormularioDeFormatura)[]
-  // Os passos da turma e do tamanho também servem à edição, onde recebem o layout em pares.
+  // O passo da turma também serve à edição, onde recebe o layout em pares.
   Conteudo: React.ComponentType
 }[]
 
@@ -72,7 +72,6 @@ export default function CriarFormaturaPage() {
       semestre: '',
       previsao_de_colacao: '',
       previsao_da_festa: '',
-      quantidade_estimada_de_formandos: '',
       nome: '',
     },
   })

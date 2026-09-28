@@ -10,7 +10,7 @@ import PaginaDaFormatura from './PaginaDaFormatura'
 
 const ATUAL = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
-/** Como a API devolve: sem data da festa, o campo não vem (`WhenWritingNull`). */
+/** Como a API devolve: sem data da festa, o campo vem nulo. */
 const formatura = {
   id: 'f-1',
   nome: 'Medicina 2027',
@@ -19,9 +19,11 @@ const formatura = {
   ano: 2027,
   semestre: 1,
   previsao_de_colacao: '2099-07-15',
-  quantidade_estimada_de_formandos: 80,
+  previsao_da_festa: null,
   status: 'Ativa',
   criado_em: '2026-09-12T15:00:00Z',
+  ativada_em: null,
+  encerrada_em: null,
 }
 
 function entrarComo(papel: string) {
@@ -49,12 +51,12 @@ describe('PaginaDaFormatura', () => {
     expect(within(faixa).getByText(/Colação · 15\/07\/2099/)).toBeInTheDocument()
     expect(within(faixa).getByText('A definir')).toBeInTheDocument()
     expect(within(faixa).getByText('em dia')).toBeInTheDocument()
-    expect(within(faixa).getByText('Formandos estimados')).toBeInTheDocument()
+    expect(within(faixa).getByText('2027.1')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Dados da formatura' })).toHaveTextContent('Medicina 2027')
     expect(screen.queryByRole('region', { name: 'Assinatura' })).not.toBeInTheDocument()
   })
 
-  it('a Gestão vê assinatura, convites e quantos já estão na turma contra a estimativa', async () => {
+  it('a Gestão vê assinatura, convites e quantos já estão na turma', async () => {
     entrarComo(PAPEIS.tesoureiro)
     servidor.use(
       http.get(ATUAL, () => HttpResponse.json(formatura)),
@@ -74,7 +76,6 @@ describe('PaginaDaFormatura', () => {
 
     const faixa = await screen.findByRole('region', { name: 'Resumo da formatura' })
     expect(await within(faixa).findByText('12')).toBeInTheDocument()
-    expect(within(faixa).getByText('de 80')).toBeInTheDocument()
     expect(await screen.findByText('Nenhum plano contratado')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Convites por e-mail' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Gerar link' })).toBeInTheDocument()

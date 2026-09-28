@@ -1,9 +1,10 @@
 import { Link, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
+import { useReenviarConfirmacao } from '@/hooks/useReenviarConfirmacao'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { Aviso, estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
-import { useConfirmarEmail, useReenviarConfirmacao } from '../hooks/useConta'
+import { useConfirmarEmail } from '../hooks/useConta'
 
 /**
  * Chega pelo link do e-mail: `/confirmar-email?email=…&token=…`, montado pelo backend.

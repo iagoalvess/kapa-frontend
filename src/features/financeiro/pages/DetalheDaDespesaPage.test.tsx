@@ -14,12 +14,14 @@ const DESPESAS = `${env.VITE_API_URL}/api/v1/financeiro/despesas`
 const FORNECEDORES = `${env.VITE_API_URL}/api/v1/financeiro/fornecedores`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
-/** Uma parcela do mesmo lançamento; o que é nulo não vem da API (`WhenWritingNull`). */
+/** Uma parcela do mesmo lançamento; o que é nulo vem `null` da API. */
 const parcela = (numero: number, dados: Partial<Despesa> = {}): Despesa => ({
   id: `de-${numero}`,
   lancamento_id: 'la-1',
   fornecedor_id: 'fo-1',
+  item_da_festa_id: null,
   fornecedor: 'Buffet Sabor',
+  pago_em: null,
   descricao: 'Entrada do buffet',
   categoria: 'Buffet',
   valor_em_centavos: 100_000,

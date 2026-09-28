@@ -109,32 +109,67 @@ export function Planilha<T>({
  * É a casca que a `Planilha` desenha, sem os estados nem a paginação — para a lista curta que já
  * vem inteira com o cartão que a hospeda (as despesas de um fornecedor, os convites por e-mail).
  *
+ * A variante `faixa` troca a linha divisória por uma faixa cinza de pontas arredondadas atrás do
+ * cabeçalho — a tabela que o formando lê na adesão (o plano, as versões do termo, a prévia da grade),
+ * mais perto de um resumo impresso que de uma lista de gestão. As células do cabeçalho ganham o
+ * espaçamento dela daqui; as do corpo continuam de quem chama.
+ *
  * @param cabecalho Os `<th>`; a `<tr>` em volta é daqui.
  * @param children Uma `<tr>` por item.
  * @param ordenacao Sem ela, `ColunaOrdenavel` desenha cabeçalho comum: a lista não ordena.
+ * @param variante `linha` (a das listas) ou `faixa`.
+ * @param legenda O `<caption>`, só para o leitor de tela.
+ * @param rodape As células do `<tfoot>` — o total; a `<tr>` em volta é daqui.
+ * @param grudado Cabeçalho preso ao topo do contêiner que rola. Sem a rolagem lateral própria: um
+ *   contêiner com `overflow` no meio seria o que o `sticky` acompanharia, e ele não rola.
  */
 export function Tabela({
   cabecalho,
   children,
   ordenacao,
+  variante = 'linha',
+  legenda,
+  rodape,
+  grudado = false,
 }: {
   cabecalho: ReactNode
   children: ReactNode
   ordenacao?: Ordenacao
+  variante?: 'linha' | 'faixa'
+  legenda?: string
+  rodape?: ReactNode
+  grudado?: boolean
 }) {
-  return (
-    <div className="motion-safe:animate-entrar overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="text-texto-muted text-left text-xs">
-          <tr className="border-b">
-            <ContextoDeOrdenacao value={ordenacao ?? null}>{cabecalho}</ContextoDeOrdenacao>
-          </tr>
-        </thead>
-        {/* `tabular-nums`: valor e data alinham coluna a coluna, e não mexe em texto. */}
-        <tbody className="tabular-nums">{children}</tbody>
-      </table>
-    </div>
+  const faixa = variante === 'faixa'
+
+  const tabela = (
+    <table className="w-full text-sm">
+      {legenda ? <caption className="sr-only">{legenda}</caption> : null}
+      <thead
+        className={cn(
+          'text-texto-muted text-left text-xs',
+          faixa &&
+            'bg-muted/60 [&_th]:px-3 [&_th]:py-2 [&_th]:font-normal [&_th:first-child]:rounded-l-lg [&_th:last-child]:rounded-r-lg',
+          grudado && 'sticky top-0',
+        )}
+      >
+        <tr className={faixa ? undefined : 'border-b'}>
+          <ContextoDeOrdenacao value={ordenacao ?? null}>{cabecalho}</ContextoDeOrdenacao>
+        </tr>
+      </thead>
+      {/* `tabular-nums`: valor e data alinham coluna a coluna, e não mexe em texto. */}
+      <tbody className="tabular-nums">{children}</tbody>
+      {rodape ? (
+        <tfoot>
+          <tr>{rodape}</tr>
+        </tfoot>
+      ) : null}
+    </table>
   )
+
+  if (grudado) return tabela
+
+  return <div className="motion-safe:animate-entrar overflow-x-auto">{tabela}</div>
 }
 
 /**

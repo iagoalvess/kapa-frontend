@@ -1,6 +1,5 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
 import {
   atualizarFormatura,
   descartarFormatura,
@@ -35,6 +34,8 @@ export function useMinhasFormaturas(habilitado = true) {
  * continua na tela precisando dela — sem isso ele some da barra lateral até a busca voltar.
  */
 export function useSelecionarFormatura() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: selecionarFormatura,
     onSuccess: (par) => {
@@ -52,17 +53,25 @@ export function useSelecionarFormatura() {
  * Invalida tudo de `formaturas`: o nome aparece no seletor (`minhas`) e no detalhe (`atual`).
  */
 export function useAtualizarFormatura() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: atualizarFormatura,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: chaves.tudo }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.tudo })
+    },
   })
 }
 
 /** Encerramento da formatura selecionada. O status novo acende a faixa em toda tela. */
 export function useEncerrarFormatura() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: encerrarFormatura,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: chaves.tudo }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.tudo })
+    },
   })
 }
 
@@ -74,6 +83,8 @@ export function useEncerrarFormatura() {
  * mandar a pessoa.
  */
 export function useDescartarFormatura() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: descartarFormatura,
     onSuccess: async () => {

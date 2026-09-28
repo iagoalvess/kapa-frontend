@@ -20,9 +20,10 @@ function entrarComo(papel: string) {
   })
 }
 
-// Sem `email`: a API omite campo nulo, e é assim que o link da turma chega.
+// `email` nulo: é assim que o link da turma chega.
 const vigente = {
   id: 'c-1',
+  email: null,
   papel: 'Formando',
   expira_em: '2026-12-10T12:00:00Z',
   usos_maximos: 80,
@@ -34,7 +35,7 @@ const vigente = {
 
 function responder(convites: unknown[], status = 'Ativa') {
   servidor.use(
-    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status, quantidade_estimada_de_formandos: 80 })),
+    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status })),
     http.get(CONVITES, () => HttpResponse.json(convites)),
   )
 }

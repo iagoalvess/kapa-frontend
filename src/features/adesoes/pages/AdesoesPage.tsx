@@ -137,7 +137,7 @@ export default function AdesoesPage() {
           acoes={
             <>
               {termo ? (
-                <Button asChild variant="outline" size="sm" className="h-8">
+                <Button asChild variant="outline" size="xs">
                   <Link to={ROTAS.adesao} title="A tela do formando, com a versão vigente do termo">
                     <Eye aria-hidden />
                     Visualizar
@@ -146,7 +146,7 @@ export default function AdesoesPage() {
               ) : null}
 
               {ehPresidente && termo ? (
-                <Button size="sm" className="h-8" disabled={!liberado} onClick={() => editor(true)}>
+                <Button size="xs" disabled={!liberado} onClick={() => editor(true)}>
                   <FilePenLine aria-hidden />
                   Publicar nova versão
                 </Button>

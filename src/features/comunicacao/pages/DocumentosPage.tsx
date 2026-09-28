@@ -6,6 +6,7 @@ import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
@@ -13,6 +14,7 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarDataRelativa, formatarTamanho } from '@/lib/formato'
+import { ehOpcao } from '@/lib/opcao'
 import { QuadroDeDocumentos } from '../components/QuadroDeDocumentos'
 import { UploadDeDocumento } from '../components/UploadDeDocumento'
 import {
@@ -48,9 +50,9 @@ const ORDENS = {
 type Ordem = keyof typeof ORDENS
 
 const ehVisibilidade = (valor: string | null): valor is keyof typeof VISIBILIDADES =>
-  valor !== null && valor in VISIBILIDADES
-const ehTipo = (valor: string | null): valor is TipoDeArquivo => valor !== null && valor in ROTULOS_DE_TIPO
-const ehOrdem = (valor: string | null): valor is Ordem => valor !== null && valor in ORDENS
+  ehOpcao(valor, VISIBILIDADES)
+const ehTipo = (valor: string | null): valor is TipoDeArquivo => ehOpcao(valor, ROTULOS_DE_TIPO)
+const ehOrdem = (valor: string | null): valor is Ordem => ehOpcao(valor, ORDENS)
 
 /**
  * O acervo da turma num quadro: uma coluna por categoria — atas, contratos, orçamentos,
@@ -61,7 +63,7 @@ const ehOrdem = (valor: string | null): valor is Ordem => valor !== null && valo
  * "Filtros" com a ordem das colunas, e "Mostrando X de Y". Tudo na URL.
  *
  * Todo membro baixa o que pode ver — a API já tirou da resposta o que é só da comissão; a Gestão
- * adiciona (pelo botão ou pelo pé da coluna), corrige, substitui e exclui.
+ * adiciona (pelo botão ou pelo pé da coluna), edita, substitui e exclui.
  */
 export default function DocumentosPage() {
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
@@ -204,10 +206,10 @@ export default function DocumentosPage() {
               </fieldset>
             </BotaoDeFiltros>
             {gestao ? (
-              <Button size="sm" className="h-8" disabled={!editavel} onClick={() => definirDialogo({})}>
+              <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
                 <Upload aria-hidden />
-                {/* No celular, só o verbo: com o complemento, a busca ao lado fica espremida. */}
-                Adicionar<span className="hidden sm:inline"> documento</span>
+                {/* No celular, só "Novo": com o complemento, a busca ao lado fica espremida. */}
+                Novo <span className="hidden sm:inline">documento</span>
               </Button>
             ) : null}
           </>
@@ -222,9 +224,7 @@ export default function DocumentosPage() {
       {documentos.isPending ? <EsqueletoDeCartoes altura="h-64" /> : null}
       {documentos.isError ? <ErroDaConsulta erro={documentos.error} /> : null}
       {filtrando && documentos.data && visiveis.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          Nenhum documento com esses filtros. Tente outra busca ou tire algum filtro.
-        </p>
+        <ListaVazia titulo="Nenhum documento encontrado" dica="Tente outra busca ou tire algum filtro." />
       ) : null}
 
       {documentos.data ? (
@@ -233,7 +233,7 @@ export default function DocumentosPage() {
           gestao={gestao}
           editavel={editavel}
           aoAdicionar={(categoria) => definirDialogo({ categoria })}
-          aoCorrigir={(documento) => definirDialogo({ documento })}
+          aoEditar={(documento) => definirDialogo({ documento })}
         />
       ) : null}
 

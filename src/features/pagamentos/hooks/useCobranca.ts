@@ -1,31 +1,67 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
+import { MEIOS } from '@/types/recebimento'
 import {
   informarPagamento,
   informarPagamentoEmLote,
   obterCobranca,
   obterCobrancaDeVarias,
 } from '../api/pagamentos.api'
-import type { CobrancaDaParcela, MeioDaCobranca, MeioDeRecebimento } from '../types/pagamentos.types'
+import type { CobrancaDaParcela, MeioDaCobranca, PeloMercadoPago } from '../types/pagamentos.types'
 import { chaves } from './chaves'
 
 /**
- * Qual meio a pessoa está vendo agora, entre os que a turma aceita.
+ * Uma opção do passo 1: um meio do Mercado Pago da turma, que baixa sozinho, ou um da conta da comissão,
+ * que o formando paga e avisa. Exatamente um dos dois vem preenchido.
+ */
+export type OpcaoDaCobranca =
+  | { chave: string; rotulo: string; mercadoPago: PeloMercadoPago; comissao: null }
+  | { chave: string; rotulo: string; mercadoPago: null; comissao: MeioDaCobranca }
+
+/**
+ * As opções da cobrança, na ordem da tela: as do Mercado Pago primeiro — baixam sozinhas —, depois as da
+ * comissão.
  *
- * Guarda só o nome do meio, e reencontra o item na lista a cada render: a cobrança é remontada a
- * cada consulta, e guardar o objeto deixaria na tela um QR de um valor que já mudou. Sem escolha —
- * e é o caso de toda turma com um meio só — vale o primeiro, então a tela nunca nasce vazia.
+ * Com os dois PIX na lista, o da comissão vira "Chave PIX": duas pílulas "PIX" lado a lado não dizem
+ * qual é qual.
+ *
+ * @param cobranca A cobrança consultada; ausente enquanto carrega.
+ */
+export function opcoesDaCobranca(cobranca?: CobrancaDaParcela): OpcaoDaCobranca[] {
+  const peloMercadoPago = cobranca?.pelo_mercado_pago ?? []
+  const doisPix = peloMercadoPago.some((item) => item.meio === 'Pix')
+
+  return [
+    ...peloMercadoPago.map((item) => ({
+      chave: `mercado-pago:${item.meio}`,
+      rotulo: MEIOS_DE_PAGAMENTO[item.meio].rotulo,
+      mercadoPago: item,
+      comissao: null,
+    })),
+    ...(cobranca?.meios ?? []).map((item) => ({
+      chave: item.meio,
+      rotulo: doisPix && item.meio === 'Pix' ? 'Chave PIX' : MEIOS[item.meio].rotulo,
+      mercadoPago: null,
+      comissao: item,
+    })),
+  ]
+}
+
+/**
+ * Qual opção a pessoa está vendo agora, entre as que a cobrança oferece.
+ *
+ * Guarda só a chave, e reencontra o item na lista a cada render: a cobrança é remontada a cada
+ * consulta, e guardar o objeto deixaria na tela um QR de um valor que já mudou. Sem escolha — e é o
+ * caso de toda turma com um meio só — vale a primeira, então a tela nunca nasce vazia.
  *
  * @param cobranca A cobrança consultada; ausente enquanto carrega.
  */
 export function useMeioEscolhido(cobranca?: CobrancaDaParcela) {
-  const [escolhido, escolher] = useState<MeioDeRecebimento>()
-  const meios = cobranca?.meios ?? []
+  const [escolhida, escolher] = useState<string>()
+  const opcoes = opcoesDaCobranca(cobranca)
 
-  return [
-    meios.find((item) => item.meio === escolhido) ?? meios[0],
-    (meio: MeioDaCobranca) => escolher(meio.meio),
-  ] as const
+  return [opcoes.find((opcao) => opcao.chave === escolhida) ?? opcoes[0], escolher] as const
 }
 
 /**

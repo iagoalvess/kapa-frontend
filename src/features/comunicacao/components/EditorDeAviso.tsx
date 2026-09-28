@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Megaphone } from 'lucide-react'
-import { type Control, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { Cartao } from '@/components/Cartao'
@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useAtualizarAviso, usePublicarAviso } from '../hooks/useAvisos'
 import {
   esquemaDoAviso,
@@ -122,16 +123,16 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
                 em meia tela de tablet, rótulo e dica de cada um ficariam em duas colunas de 150px. */}
             <fieldset className="grid gap-3 sm:pt-7 lg:grid-cols-2">
               <legend className="sr-only">Destaque no mural</legend>
-              <Caixa
-                controle={formulario.control}
-                nome="fixado"
+              <CampoDeMarcar
+                control={formulario.control}
+                name="fixado"
                 rotulo="Fixar no topo do mural"
                 dica={`No máximo ${LIMITE_DE_FIXADOS} fixados por vez.`}
                 desabilitado={!editavel}
               />
-              <Caixa
-                controle={formulario.control}
-                nome="destaque"
+              <CampoDeMarcar
+                control={formulario.control}
+                name="destaque"
                 rotulo="Marcar como importante"
                 dica="Leva o selo de importante no cartão."
                 desabilitado={!editavel}
@@ -151,42 +152,5 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
         </form>
       </Form>
     </Cartao>
-  )
-}
-
-/** Uma caixa de marcar com a dica embaixo — fixar e importante. */
-function Caixa({
-  controle,
-  nome,
-  rotulo,
-  dica,
-  desabilitado,
-}: {
-  controle: Control<FormularioDoAviso>
-  nome: 'fixado' | 'destaque'
-  rotulo: string
-  dica: string
-  desabilitado: boolean
-}) {
-  return (
-    <FormField
-      control={controle}
-      name={nome}
-      render={({ field }) => (
-        <FormItem className="gap-1">
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={field.value}
-              disabled={desabilitado}
-              onChange={(evento) => field.onChange(evento.target.checked)}
-              className="accent-primary size-4"
-            />
-            {rotulo}
-          </label>
-          <p className="text-texto-muted pl-6 text-xs">{dica}</p>
-        </FormItem>
-      )}
-    />
   )
 }

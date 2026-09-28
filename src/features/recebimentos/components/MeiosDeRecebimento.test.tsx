@@ -81,7 +81,7 @@ describe('MeiosDeRecebimento', () => {
     await userEvent.type(screen.getByLabelText('Chave PIX'), 'tesouraria@kapa.dev')
     await userEvent.type(screen.getByLabelText('Nome do titular'), 'Helena Araújo')
     await userEvent.type(screen.getByLabelText('Cidade do titular'), 'Curitiba')
-    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar meios' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() =>
       expect(gravados).toEqual([
@@ -115,7 +115,7 @@ describe('MeiosDeRecebimento', () => {
     await userEvent.type(screen.getByLabelText('Chave PIX'), '529.982.247-25')
     await userEvent.type(screen.getByLabelText('Nome do titular'), 'Helena Araújo')
     await userEvent.type(screen.getByLabelText('Cidade do titular'), 'Curitiba')
-    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar meios' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(gravados).toHaveLength(1))
     expect(gravados[0]).toMatchObject({
@@ -131,7 +131,7 @@ describe('MeiosDeRecebimento', () => {
     renderizar(<MeiosDeRecebimento />)
 
     await userEvent.click(await screen.findByRole('checkbox', { name: /PIX/ }))
-    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar meios' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     expect(
       await screen.findByText('Escolha ao menos um meio de recebimento para a turma.'),
@@ -159,10 +159,10 @@ describe('MeiosDeRecebimento', () => {
 
     renderizar(<MeiosDeRecebimento />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Alterar meios' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar' }))
     await userEvent.clear(screen.getByLabelText('Chave PIX'))
     await userEvent.type(screen.getByLabelText('Chave PIX'), 'nova@kapa.dev')
-    await userEvent.click(screen.getByRole('button', { name: 'Salvar meios' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     const dialogo = await screen.findByRole('alertdialog')
     expect(dialogo).toHaveTextContent('Todos da comissão recebem um e-mail')
@@ -186,7 +186,7 @@ describe('MeiosDeRecebimento', () => {
     await userEvent.type(screen.getByLabelText('Chave PIX'), 'tesouraria@kapa.dev')
     await userEvent.type(screen.getByLabelText('Nome do titular'), 'Helena Araújo')
     await userEvent.type(screen.getByLabelText('Cidade do titular'), 'Curitiba')
-    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar meios' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     expect(await screen.findByText('Esta chave não está registrada no PIX.')).toBeInTheDocument()
   })
@@ -210,7 +210,7 @@ describe('MeiosDeRecebimento', () => {
     renderizar(<MeiosDeRecebimento />)
 
     expect(await screen.findByText('tesouraria@kapa.dev')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Alterar meios' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Conferi/ })).not.toBeInTheDocument()
   })
 

@@ -117,6 +117,8 @@ export function DialogoDePagamento({
           ocupado={pagar.isPending}
           desabilitado={comprovante === undefined}
           form={`pagar-${despesa.id}`}
+          rotulo="Registrar"
+          rotuloOcupado="Registrando…"
         />
       </DialogoDeFormulario>
     </>

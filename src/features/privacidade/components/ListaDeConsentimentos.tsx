@@ -1,4 +1,5 @@
 import { Undo2 } from 'lucide-react'
+import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { DOCUMENTOS } from '@/config/legal'
@@ -40,7 +41,7 @@ export function ListaDeConsentimentos({
   )
 
   if (consentimentos.length === 0)
-    return <p className="text-muted-foreground text-[15px]">Nenhum registro de consentimento.</p>
+    return <p className="text-muted-foreground text-sm">Nenhum registro de consentimento.</p>
 
   return (
     <ul className="grid gap-4 text-[15px]">
@@ -63,15 +64,18 @@ export function ListaDeConsentimentos({
             </span>
           </div>
           {vigentes.has(consentimento.id) ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={revogando === consentimento.id}
-              onClick={() => aoRevogar(consentimento.id)}
-            >
-              <Undo2 aria-hidden />
-              Revogar
-            </Button>
+            <DialogoDeConfirmacao
+              titulo={`Revogar o aceite de “${DOCUMENTOS[consentimento.tipo].rotulo}”?`}
+              descricao="O aceite continua no histórico, com a revogação ao lado. Se o documento for obrigatório, vamos pedir o aceite de novo na próxima entrada."
+              rotulo="Revogar"
+              aoConfirmar={() => aoRevogar(consentimento.id)}
+              gatilho={
+                <Button size="sm" variant="outline" disabled={revogando === consentimento.id}>
+                  <Undo2 aria-hidden />
+                  Revogar
+                </Button>
+              }
+            />
           ) : null}
         </li>
       ))}

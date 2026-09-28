@@ -1,26 +1,29 @@
 import { CalendarClock, Hash, TriangleAlert, Wallet } from 'lucide-react'
 import { CABECALHO_GRUDADO, CaixaRolavel } from '@/components/CaixaRolavel'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
-import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
+import { formatarCentavos, formatarData, formatarNumero, formatarPercentual } from '@/lib/formato'
+import { Tabela } from '@/components/Planilha'
 import { rotuloDoItem } from '@/types/cobranca'
 import type { ItemAceito, PlanoAceito } from '../types/adesoes.types'
-
-/** Base 10.000 como percentual, sem casas quando não precisa: `200` é `2%`, `250` é `2,5%`. */
-export const percentual = (base: number) => `${formatarNumero(base / 100, base % 100 === 0 ? 0 : 2)}%`
 
 /** As regras de atraso numa frase — a mesma ideia do texto que vai no PDF e no e-mail. */
 export function regrasDeAtraso(plano: PlanoAceito) {
   const atraso =
     plano.percentual_de_multa === 0 && plano.percentual_de_juros_ao_mes === 0
       ? 'Sem multa nem juros em caso de atraso.'
-      : `Em caso de atraso: multa de ${percentual(plano.percentual_de_multa)} e juros de ${percentual(plano.percentual_de_juros_ao_mes)} ao mês${
+      : `Em caso de atraso: multa de ${formatarPercentual(plano.percentual_de_multa)} e juros de ${formatarPercentual(plano.percentual_de_juros_ao_mes)} ao mês${
           plano.carencia_em_dias > 0
             ? `, depois de ${formatarNumero(plano.carencia_em_dias)} dias de carência`
             : ''
         }.`
 
+  const antecedencia =
+    plano.dias_minimos_para_desconto > 0
+      ? `com pelo menos ${formatarNumero(plano.dias_minimos_para_desconto)} ${plano.dias_minimos_para_desconto === 1 ? 'dia' : 'dias'} de antecedência`
+      : 'antes do vencimento'
+
   return plano.percentual_de_desconto_por_antecipacao > 0
-    ? `${atraso} Desconto de ${percentual(plano.percentual_de_desconto_por_antecipacao)} para quem paga antes do vencimento.`
+    ? `${atraso} Desconto de ${formatarPercentual(plano.percentual_de_desconto_por_antecipacao)} para pagamento ${antecedencia}.`
     : atraso
 }
 
@@ -44,11 +47,11 @@ export function IndicadoresDoPlano({ plano, rotulo }: { plano: PlanoAceito; rotu
           icone: CalendarClock,
         },
         {
-          rotulo: 'Multa e juros ao mês',
+          rotulo: 'Multa + juros mensais',
           valor:
             plano.percentual_de_multa === 0 && plano.percentual_de_juros_ao_mes === 0
               ? 'Sem'
-              : `${percentual(plano.percentual_de_multa)} + ${percentual(plano.percentual_de_juros_ao_mes)}`,
+              : `${formatarPercentual(plano.percentual_de_multa)} + ${formatarPercentual(plano.percentual_de_juros_ao_mes)}`,
           icone: TriangleAlert,
         },
       ]}
@@ -70,52 +73,50 @@ const primeiraDoItem = (plano: PlanoAceito, item: ItemAceito) =>
 export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
   return (
     <div className="grid gap-4">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <caption className="sr-only">Itens do plano</caption>
-          <thead className="text-texto-muted bg-muted/60 text-left text-xs">
-            <tr>
-              <th className="rounded-l-lg px-3 py-2 font-normal">Item</th>
-              <th className="px-3 py-2 text-right font-normal">Parcelas</th>
-              <th className="rounded-r-lg px-3 py-2 text-right font-normal">Total</th>
-            </tr>
-          </thead>
-          <tbody className="tabular-nums">
-            {plano.itens.map((item) => {
-              const primeira = primeiraDoItem(plano, item)
+      <Tabela
+        variante="faixa"
+        legenda="Itens do plano"
+        cabecalho={
+          <>
+            <th>Item</th>
+            <th className="text-right">Parcelas</th>
+            <th className="text-right">Total</th>
+          </>
+        }
+        rodape={
+          <>
+            <td className="text-foreground px-3 pt-3 font-medium">Total</td>
+            <td className="text-muted-foreground px-3 pt-3 text-right whitespace-nowrap">
+              {formatarNumero(plano.parcelas.length)} parcelas
+            </td>
+            <td className="text-foreground px-3 pt-3 text-right font-medium whitespace-nowrap tabular-nums">
+              {formatarCentavos(plano.total_em_centavos)}
+            </td>
+          </>
+        }
+      >
+        {plano.itens.map((item) => {
+          const primeira = primeiraDoItem(plano, item)
 
-              return (
-                <tr key={`${item.tipo}-${rotuloDoItem(item)}`} className="border-b last:border-0">
-                  {/* Três colunas: a tabela mora na coluna estreita, e o vencimento cabe como detalhe do item. */}
-                  <td className="px-3 py-2.5">
-                    <span className="text-foreground block font-medium">{rotuloDoItem(item)}</span>
-                    <span className="text-muted-foreground text-xs">
-                      1ª em {formatarData(primeira?.vencimento)} · todo dia {item.dia_de_vencimento}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                    {formatarNumero(item.numero_de_parcelas)}×
-                  </td>
-                  <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                    {formatarCentavos(item.valor_em_centavos)}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td className="text-foreground px-3 pt-3 font-medium">Total</td>
-              <td className="text-muted-foreground px-3 pt-3 text-right whitespace-nowrap">
-                {formatarNumero(plano.parcelas.length)} parcelas
+          return (
+            <tr key={`${item.tipo}-${rotuloDoItem(item)}`} className="border-b last:border-0">
+              {/* Três colunas: a tabela mora na coluna estreita, e o vencimento cabe como detalhe do item. */}
+              <td className="px-3 py-2.5">
+                <span className="text-foreground block font-medium">{rotuloDoItem(item)}</span>
+                <span className="text-muted-foreground text-xs">
+                  1ª em {formatarData(primeira?.vencimento)} · todo dia {item.dia_de_vencimento}
+                </span>
               </td>
-              <td className="text-foreground px-3 pt-3 text-right font-medium whitespace-nowrap tabular-nums">
-                {formatarCentavos(plano.total_em_centavos)}
+              <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                {formatarNumero(item.numero_de_parcelas)}×
+              </td>
+              <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                {formatarCentavos(item.valor_em_centavos)}
               </td>
             </tr>
-          </tfoot>
-        </table>
-      </div>
+          )
+        })}
+      </Tabela>
 
       <p className="bg-muted/60 text-foreground rounded-xl px-4 py-3 text-sm">{regrasDeAtraso(plano)}</p>
 

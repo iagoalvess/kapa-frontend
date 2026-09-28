@@ -10,8 +10,10 @@ import { ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { BotaoDeRecibo } from '../components/BotaoDeRecibo'
 import { CalculoDoValor, temEncargoOuDesconto } from '../components/CalculoDoValor'
 import { ComoPagar } from '../components/ComoPagar'
+import { ConfirmacaoAutomatica } from '../components/ConfirmacaoAutomatica'
 import { DialogoDeInforme } from '../components/DialogoDeInforme'
 import { useCobranca, useMeioEscolhido } from '../hooks/useCobranca'
 import { useParcela } from '../hooks/useExtrato'
@@ -25,8 +27,9 @@ import type { Parcela } from '../types/pagamentos.types'
  * é o que o banco vai mostrar, e conferir o nome é o que protege o formando de uma chave trocada.
  * Com mais de um meio habilitado, o passo 1 abre com as pílulas de escolha.
  *
- * A cobrança é montada na hora, com o valor de hoje; não há poll — quem avisa a confirmação é o
- * e-mail.
+ * A cobrança é montada na hora, com o valor de hoje. Nos meios do Mercado Pago (Sprint 25) a parcela
+ * baixa sozinha: a tela relê a parcela enquanto espera e troca para "paga" quando o aviso chega. Nos
+ * demais, quem avisa a confirmação é o e-mail.
  */
 export default function PagamentoPage() {
   const { id = '' } = useParams()
@@ -102,6 +105,10 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
   const cobranca = useCobranca(parcela.id, true)
   const semConta = ehErroDaApi(cobranca.error) && cobranca.error.codigo === 'pagamento.sem_conta'
   const [escolhido, escolher] = useMeioEscolhido(cobranca.data)
+  const automatico = Boolean(escolhido?.mercadoPago)
+
+  // Relê a parcela enquanto o meio escolhido baixa sozinho; a página troca para "paga" quando ela mudar.
+  useParcela(parcela.id, true, automatico)
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -109,32 +116,40 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
         cobranca={cobranca}
         escolhido={escolhido}
         aoEscolher={escolher}
-        descricao="Pague por onde a turma aceita receber, e depois avise a tesouraria."
+        descricao={
+          automatico
+            ? 'Pague pelo Mercado Pago da turma: a confirmação chega sozinha.'
+            : 'Pague por onde a turma aceita receber, e depois avise a tesouraria.'
+        }
       />
 
-      <Cartao
-        passo={2}
-        titulo="Já pagou?"
-        descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — a parcela muda quando ela confirmar."
-      >
-        {temEncargoOuDesconto(parcela.valor_do_dia) ? (
-          <div className="bg-muted grid gap-3 rounded-2xl p-4">
-            <p className="text-foreground font-medium">Resumo da parcela</p>
-            <CalculoDoValor valor={parcela.valor_do_dia} />
-          </div>
-        ) : null}
+      {automatico ? (
+        <ConfirmacaoAutomatica />
+      ) : (
+        <Cartao
+          passo={2}
+          titulo="Já pagou?"
+          descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — a parcela muda quando ela confirmar."
+        >
+          {temEncargoOuDesconto(parcela.valor_do_dia) ? (
+            <div className="bg-muted grid gap-3 rounded-2xl p-4">
+              <p className="text-foreground font-medium">Resumo da parcela</p>
+              <CalculoDoValor valor={parcela.valor_do_dia} />
+            </div>
+          ) : null}
 
-        <DialogoDeInforme
-          parcelaIds={[parcela.id]}
-          valor_em_centavos={
-            cobranca.data?.valor_em_centavos ??
-            parcela.valor_do_dia?.total_em_centavos ??
-            parcela.valor_original_em_centavos
-          }
-          meio={escolhido?.meio}
-          desabilitado={semConta}
-        />
-      </Cartao>
+          <DialogoDeInforme
+            parcelaIds={[parcela.id]}
+            valor_em_centavos={
+              cobranca.data?.valor_em_centavos ??
+              parcela.valor_do_dia?.total_em_centavos ??
+              parcela.valor_original_em_centavos
+            }
+            meio={escolhido?.comissao?.meio}
+            desabilitado={semConta}
+          />
+        </Cartao>
+      )}
     </div>
   )
 }
@@ -156,7 +171,18 @@ function Situacao({ parcela }: { parcela: Parcela }) {
 
   if (parcela.status === 'Paga')
     return (
-      <Cartao titulo="Parcela paga" icone={CircleCheck}>
+      <Cartao
+        titulo="Parcela paga"
+        icone={CircleCheck}
+        acao={
+          parcela.recebimento_id ? (
+            <BotaoDeRecibo
+              recebimentoId={parcela.recebimento_id}
+              rotulo={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
+            />
+          ) : null
+        }
+      >
         <p className="text-muted-foreground text-sm">
           A tesouraria confirmou {formatarCentavos(parcela.valor_pago_em_centavos)}, pago em{' '}
           {formatarData(parcela.pago_em)}.

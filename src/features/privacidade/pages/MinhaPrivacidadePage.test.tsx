@@ -171,6 +171,10 @@ describe('MinhaPrivacidadePage', () => {
     renderizar(<MinhaPrivacidadePage />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Revogar' }))
+    expect(revogado).toBe(false)
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Revogar' }),
+    )
 
     await waitFor(() => expect(revogado).toBe(true))
   })

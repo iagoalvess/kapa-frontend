@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { Clock, LoaderCircle } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router'
@@ -6,14 +5,11 @@ import mascoteCanudo from '@/assets/mascote/canudo.webp'
 import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
-import { CHAVE_DA_FORMATURA_ATUAL } from '@/hooks/useFormaturaAtual'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
-import { useAssinatura } from '../hooks/useAssinatura'
+import { useAssinaturaDoRetorno } from '../hooks/useAssinatura'
 
 /** Quanto a tela espera antes de admitir que o pagamento está demorando. */
 const TETO_DA_ESPERA = 60_000
-
-const INTERVALO = 3_000
 
 /**
  * Para onde o provedor devolve o navegador depois do pagamento.
@@ -27,7 +23,6 @@ const INTERVALO = 3_000
  * o webhook, ou a conciliação, resolve sozinho.
  */
 export default function RetornoDoCheckoutPage() {
-  const cliente = useQueryClient()
   const [demorou, definirDemorou] = useState(false)
 
   useEffect(() => {
@@ -35,17 +30,9 @@ export default function RetornoDoCheckoutPage() {
     return () => clearTimeout(relogio)
   }, [])
 
-  const assinatura = useAssinatura({
-    refetchInterval: (consulta) => (consulta.state.data?.status === 'Pendente' ? INTERVALO : false),
-  })
+  const assinatura = useAssinaturaDoRetorno()
 
   const confirmada = assinatura.data?.status === 'Ativa'
-
-  // A faixa de status do layout lê a formatura, que o webhook acabou de ativar: sem isto ela
-  // continuaria dizendo "conclua a contratação" ao lado do "pagamento confirmado".
-  useEffect(() => {
-    if (confirmada) void cliente.invalidateQueries({ queryKey: CHAVE_DA_FORMATURA_ATUAL })
-  }, [confirmada, cliente])
 
   if (!assinatura.data && assinatura.isError) {
     const semContratacao =

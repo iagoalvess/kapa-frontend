@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
 import { type Control, useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
+import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useGravarConta } from '../hooks/useContaDeRecebimento'
 import {
   esquemaDosMeios,
@@ -72,7 +74,7 @@ export function FormularioDosMeios({ conta, aoConcluir }: Props) {
   const salvar = (novos: ValoresDosMeios) =>
     gravar.mutate(paraMeios(novos), {
       onSuccess: () => {
-        toast.success(conta ? 'Meios atualizados. A comissão foi avisada por e-mail.' : 'Meios cadastrados.')
+        toast.success(conta ? 'Meios salvos. A comissão foi avisada por e-mail.' : 'Meios salvos.')
         aoConcluir?.()
       },
       onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
@@ -208,16 +210,14 @@ export function FormularioDosMeios({ conta, aoConcluir }: Props) {
 
         <ErroDoFormulario />
 
-        <div className="flex flex-wrap justify-end gap-2">
-          {conta && aoConcluir ? (
-            <Button type="button" variant="outline" onClick={aoConcluir}>
-              Cancelar
-            </Button>
-          ) : null}
-          <Button type="submit" disabled={gravar.isPending}>
-            {conta ? 'Salvar meios' : 'Cadastrar meios'}
+        {/* Primeiro cadastro: não há o que cancelar, e o botão fica sozinho. */}
+        {conta && aoConcluir ? (
+          <AcoesDoFormulario aoCancelar={aoConcluir} ocupado={gravar.isPending} />
+        ) : (
+          <Button type="submit" className="justify-self-end" disabled={gravar.isPending}>
+            {gravar.isPending ? 'Salvando…' : 'Salvar'}
           </Button>
-        </div>
+        )}
       </form>
 
       <DialogoDeConfirmacao
@@ -274,24 +274,12 @@ function Meio({
 }) {
   return (
     <section className="border-border grid gap-4 rounded-2xl border p-4">
-      <FormField
+      {/* O nome do meio em peso de título: é o cabeçalho da seção que a caixa liga. */}
+      <CampoDeMarcar
         control={controle}
         name={nome}
-        render={({ field }) => (
-          <FormItem>
-            <label className="text-foreground flex w-fit cursor-pointer items-center gap-3 font-medium">
-              <input
-                type="checkbox"
-                checked={field.value}
-                onChange={(evento) => field.onChange(evento.target.checked)}
-                className="accent-primary size-4 shrink-0"
-              />
-              {MEIOS[meio].rotulo}
-            </label>
-            {/* Fora do rótulo: dentro dele, a frase inteira vira o nome da caixa para o leitor de tela. */}
-            <p className="text-muted-foreground pl-7 text-sm">{MEIOS[meio].descricao}</p>
-          </FormItem>
-        )}
+        rotulo={<span className="text-foreground text-base font-medium">{MEIOS[meio].rotulo}</span>}
+        dica={MEIOS[meio].descricao}
       />
 
       {ligado ? <div className="motion-safe:animate-entrar grid gap-3">{children}</div> : null}

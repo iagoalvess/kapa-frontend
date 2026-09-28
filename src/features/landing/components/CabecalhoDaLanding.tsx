@@ -1,10 +1,8 @@
 import { GraduationCap, Menu, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
-import { useSessao } from '@/hooks/useSessao'
+import { ROTAS, urlDoApp } from '@/config/rotas'
 
 /** As âncoras do menu, na ordem em que as seções aparecem na página. */
 const SECOES = [
@@ -23,10 +21,13 @@ const SECOES = [
  * As âncoras são `<a href="#...">` de verdade, e não `onClick` com `scrollTo`: link é copiável,
  * abre em nova aba e funciona com o teclado. O deslocamento do cabeçalho grudado sai do
  * `scroll-mt` de cada seção, não de JavaScript.
+ *
+ * "Entrar" e "Criar minha turma" levam ao app, em outro endereço (P2 da Sprint 33). O site não sabe se
+ * há sessão, de propósito: o cookie dela é da API e não vem para cá — quem já entrou e clica em
+ * "Entrar" cai no app, que o manda direto para o Início.
  */
 export function CabecalhoDaLanding() {
   const [gavetaAberta, definirGavetaAberta] = useState(false)
-  const { autenticado } = useSessao()
 
   return (
     <header className="bg-background/85 sticky top-0 z-30 border-b backdrop-blur-md">
@@ -50,18 +51,14 @@ export function CabecalhoDaLanding() {
         </nav>
 
         <div className="col-start-3 hidden items-center gap-2 justify-self-end md:flex">
-          {/* Com sessão aberta, a porta é o app — e não um formulário de login que o guarda vai
-              devolver para cá mesmo. */}
           <Button asChild variant="ghost">
-            <Link to={autenticado ? ROTAS.inicio : ROTAS.login}>
-              {autenticado ? 'Ir para o app' : 'Entrar'}
-            </Link>
+            <a href={urlDoApp(ROTAS.login)}>Entrar</a>
           </Button>
           <Button asChild>
-            <Link to={ROTAS.criarConta}>
+            <a href={urlDoApp(ROTAS.criarConta)}>
               <GraduationCap className="size-4" aria-hidden />
               Criar minha turma
-            </Link>
+            </a>
           </Button>
         </div>
 
@@ -94,15 +91,13 @@ export function CabecalhoDaLanding() {
             </a>
           ))}
           <Button asChild variant="outline" className="mt-2">
-            <Link to={autenticado ? ROTAS.inicio : ROTAS.login}>
-              {autenticado ? 'Ir para o app' : 'Entrar'}
-            </Link>
+            <a href={urlDoApp(ROTAS.login)}>Entrar</a>
           </Button>
           <Button asChild>
-            <Link to={ROTAS.criarConta} onClick={() => definirGavetaAberta(false)}>
+            <a href={urlDoApp(ROTAS.criarConta)}>
               <GraduationCap className="size-4" aria-hidden />
               Criar minha turma
-            </Link>
+            </a>
           </Button>
         </div>
       ) : null}

@@ -11,14 +11,22 @@ const TONS = {
   marca: 'bg-brand-tint text-brand-text',
 } as const
 
+/** As famílias de cor do selo — o tipo do mapa de status de cada tela. */
+export type TomDoSelo = keyof typeof TONS
+
 /**
  * Etiqueta curta de estado ("Ativo", "Presidente"): fundo suave e texto da mesma família.
  *
  * @param tom Família de cor. `neutro` para o que não pede atenção.
  */
-export function Selo({ tom = 'neutro', children }: { tom?: keyof typeof TONS; children: ReactNode }) {
+export function Selo({ tom = 'neutro', children }: { tom?: TomDoSelo; children: ReactNode }) {
   return (
-    <span className={cn('inline-flex h-6 items-center rounded-md px-2 text-xs font-medium', TONS[tom])}>
+    <span
+      className={cn(
+        'inline-flex h-6 items-center rounded-md px-2 text-xs font-medium whitespace-nowrap',
+        TONS[tom],
+      )}
+    >
       {children}
     </span>
   )

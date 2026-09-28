@@ -9,7 +9,7 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarCentavos } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import { useConferirConta, usePixDeTeste } from '../hooks/useContaDeRecebimento'
 import type { ChavePix } from '../types/recebimentos.types'
@@ -80,7 +80,7 @@ export function PixDeTeste({ chave, className }: { chave: ChavePix; className?: 
         onClick={() =>
           conferir.mutate(undefined, {
             onSuccess: () => toast.success('Chave conferida.'),
-            onError: (erro) => toast.error(mensagemDoErro(erro)),
+            onError: avisarErro,
           })
         }
       >

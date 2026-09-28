@@ -1,16 +1,16 @@
-import { CalendarCheck, Flag, type LucideIcon, PartyPopper, Users } from 'lucide-react'
+import { CalendarCheck, Flag, GraduationCap, type LucideIcon, PartyPopper, Users } from 'lucide-react'
 import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicadores'
 import { PAPEIS } from '@/config/perfis'
 import { CartaoDeAssinatura } from '@/features/assinaturas'
 import { CartaoDeConvitesPorEmail, CartaoDoLinkDaTurma } from '@/features/convites'
-import { ComoODinheiroChega, MeiosDeRecebimento } from '@/features/recebimentos'
+import { CartaoDoMercadoPago, ComoODinheiroChega, MeiosDeRecebimento } from '@/features/recebimentos'
 import { CicloDaFormatura, DadosDaFormatura } from '@/features/formaturas'
 import { contar, useResumoDeMembros } from '@/features/membros'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
-import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
+import { diasAte, formatarConclusao, formatarData } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { FormaturaDetalhe, StatusDaFormatura } from '@/types/formatura'
 
@@ -93,6 +93,7 @@ export default function PaginaDaFormatura() {
               <DadosDaFormatura formatura={dados} />
               <CartaoDeConvitesPorEmail />
               {tesouraria ? <MeiosDeRecebimento /> : null}
+              {tesouraria ? <CartaoDoMercadoPago /> : null}
             </div>
             <div className="grid gap-5">
               <CartaoDeAssinatura />
@@ -110,21 +111,23 @@ export default function PaginaDaFormatura() {
 }
 
 /**
- * Situação, colação, festa e tamanho. A Gestão vê quantos já estão na turma contra a estimativa;
- * o formando, que não lê a lista de membros, vê só a estimativa.
+ * Situação, colação, festa e um quarto número. A Gestão vê quantos já estão na turma; o formando,
+ * que não lê a lista de membros, vê a conclusão da turma no lugar.
  */
 function FaixaDaFormatura({ formatura, gestao }: { formatura: FormaturaDetalhe; gestao: boolean }) {
   const resumo = useResumoDeMembros(gestao)
-  const estimados = formatura.quantidade_estimada_de_formandos
 
-  const tamanho: Indicador = gestao
+  const quarto: Indicador = gestao
     ? {
         rotulo: 'Na turma',
         valor: resumo.data ? contar(resumo.data, { ativo: true }) : null,
-        unidade: `de ${formatarNumero(estimados)}`,
         icone: Users,
       }
-    : { rotulo: 'Formandos estimados', valor: estimados, icone: Users }
+    : {
+        rotulo: 'Conclusão',
+        valor: formatarConclusao(formatura.ano, formatura.semestre),
+        icone: GraduationCap,
+      }
 
   return (
     <FaixaDeIndicadores
@@ -133,7 +136,7 @@ function FaixaDaFormatura({ formatura, gestao }: { formatura: FormaturaDetalhe; 
         { rotulo: 'Situação', ...SITUACOES[formatura.status], icone: Flag },
         contagemAte('Colação', formatura.previsao_de_colacao, CalendarCheck),
         contagemAte('Festa', formatura.previsao_da_festa, PartyPopper),
-        tamanho,
+        quarto,
       ]}
     />
   )

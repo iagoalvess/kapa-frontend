@@ -34,7 +34,7 @@ export function atualizarFormatura(dados: DadosDaFormatura) {
   return api.put<FormaturaDetalhe>(`${BASE}/atual`, { body: dados })
 }
 
-/** Encerra a formatura selecionada. Nada é apagado. Só o Presidente. */
+/** Encerra a formatura selecionada. Nada é apagado agora; a retenção elimina a turma cinco anos depois. Só o Presidente. */
 export function encerrarFormatura() {
   return api.post<void>(`${BASE}/atual/encerrar`, { body: {} })
 }

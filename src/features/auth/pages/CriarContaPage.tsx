@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { TIPOS_DE_DOCUMENTO } from '@/config/legal'
 import { ROTAS } from '@/config/rotas'
 import { useDocumentosVigentes } from '@/hooks/useDocumentosVigentes'
-import { ehErroDaApi } from '@/lib/http/erros'
+import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useRegistrar } from '../hooks/useAutenticacao'
@@ -37,7 +37,7 @@ export default function CriarContaPage() {
         onError: (erro) => {
           // O 409 não é erro de validação e chega sem campo; o lugar dele é embaixo do e-mail.
           if (ehErroDaApi(erro) && erro.codigo === 'usuario.email_em_uso') {
-            formulario.setError('email', { message: erro.message })
+            formulario.setError('email', { message: mensagemDoErro(erro) })
             return
           }
 

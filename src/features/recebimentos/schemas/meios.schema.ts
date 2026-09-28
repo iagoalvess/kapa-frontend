@@ -1,10 +1,8 @@
 import { z } from 'zod'
-import { formatarCnpj, formatarCpf, formatarTelefone } from '@/lib/formato'
+import { formatarCnpj, formatarCpf, formatarTelefone, soDigitos } from '@/lib/formato'
 import type { ContaDeRecebimento, MeiosDaConta, TipoDeChavePix } from '../types/recebimentos.types'
 
 export { MEIOS } from '@/types/recebimento'
-
-const soDigitos = (valor: string) => valor.replace(/\D/g, '')
 
 /**
  * O que a tela precisa de cada tipo de chave: o nome, um exemplo e a conferência de forma.

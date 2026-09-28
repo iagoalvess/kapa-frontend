@@ -1,7 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
-import { aceitarConvite, obterConvite, reenviarConfirmacao } from '../api/convites.api'
+import { aceitarConvite, obterConvite } from '../api/convites.api'
 import { chaves } from './chaves'
 
 /** Turma, instituição e papel do convite — o que o convidado vê antes de entrar. */
@@ -20,6 +19,8 @@ export function useConvitePublico(token: string) {
  * tela da nova.
  */
 export function useAceitarConvite() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: aceitarConvite,
     onSuccess: (par) => {
@@ -27,9 +28,4 @@ export function useAceitarConvite() {
       queryClient.clear()
     },
   })
-}
-
-/** Reenvio do e-mail de confirmação, para quem precisa confirmar antes de aceitar o convite pessoal. */
-export function useReenviarConfirmacao() {
-  return useMutation({ mutationFn: reenviarConfirmacao })
 }

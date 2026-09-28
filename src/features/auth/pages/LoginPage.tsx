@@ -8,11 +8,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
+import { useReenviarConfirmacao } from '@/hooks/useReenviarConfirmacao'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { Aviso, AvisoDeTermos, estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useEntrar } from '../hooks/useAutenticacao'
-import { useReenviarConfirmacao } from '../hooks/useConta'
 import { esquemaDeLogin, type FormularioDeLogin } from '../schemas/auth.schema'
 
 export default function LoginPage() {

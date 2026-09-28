@@ -1,5 +1,7 @@
-import type { LucideIcon } from 'lucide-react'
+import { ArrowUpRight, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -17,6 +19,13 @@ interface Props {
   descricao?: ReactNode
   /** Botões à direita do título. */
   acao?: ReactNode
+  /**
+   * Rota da tela do assunto: vira a seta no canto do cabeçalho, como a dos planos no cartão da
+   * assinatura. O cartão em si não é clicável — a borda que acendia no mouse saiu a pedido do produto.
+   */
+  para?: string
+  /** Nome da seta para o leitor de tela e a dica do mouse. Sem ele, "Abrir" e o título. */
+  rotuloDoAtalho?: string
   className?: string
   children: ReactNode
 }
@@ -36,6 +45,8 @@ export function Cartao({
   selo,
   descricao,
   acao,
+  para,
+  rotuloDoAtalho,
   className,
   children,
 }: Props) {
@@ -67,7 +78,22 @@ export function Cartao({
             </h2>
             {descricao ? <p className="text-muted-foreground text-[15px]">{descricao}</p> : null}
           </div>
-          {acao ? <div className="flex flex-wrap items-center gap-2">{acao}</div> : null}
+          {acao || para ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {acao}
+              {para ? (
+                <Button asChild variant="ghost" size="icon" className="text-muted-foreground -my-1 size-8">
+                  <Link
+                    to={para}
+                    title={rotuloDoAtalho ?? `Abrir ${titulo}`}
+                    aria-label={rotuloDoAtalho ?? `Abrir ${titulo}`}
+                  >
+                    <ArrowUpRight aria-hidden />
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </header>
       ) : null}
       {children}

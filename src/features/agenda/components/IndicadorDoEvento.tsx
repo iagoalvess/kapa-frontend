@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { ROTULOS_DE_SITUACAO, type SituacaoDoEvento } from '@/types/agenda'
 
 const INDICADORES = {
-  Confirmado: { icone: Check, classe: 'bg-success text-white' },
+  Confirmado: { icone: Check, classe: 'bg-success text-primary-foreground' },
   AConfirmar: { icone: Clock3, classe: 'bg-warning-bg text-warning-text' },
   Cancelado: { icone: X, classe: 'bg-neutral-bg text-neutral-text' },
 } as const

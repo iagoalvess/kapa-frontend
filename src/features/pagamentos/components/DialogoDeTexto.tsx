@@ -20,8 +20,10 @@ interface Props<Campo extends string> {
   campo: Campo
   rotulo: string
   esquema: Esquema<Campo>
-  /** O botão de confirmar. */
+  /** O botão de confirmar — "Recusar", "Estornar baixa". */
   confirmar: string
+  /** O mesmo botão enquanto envia — "Recusando…". */
+  confirmarOcupado: string
   ocupado: boolean
   desabilitado?: boolean
   /** Envia o texto; chama `concluir` no sucesso e `falhar` no erro, que volta para o campo. */
@@ -40,6 +42,7 @@ export function DialogoDeTexto<Campo extends string>({
   rotulo,
   esquema,
   confirmar,
+  confirmarOcupado,
   ocupado,
   desabilitado = false,
   aoEnviar,
@@ -107,7 +110,7 @@ export function DialogoDeTexto<Campo extends string>({
           aoCancelar={() => definirAberto(false)}
           ocupado={ocupado}
           rotulo={confirmar}
-          rotuloOcupado={confirmar}
+          rotuloOcupado={confirmarOcupado}
           form={id}
         />
       </DialogoDeFormulario>

@@ -1,28 +1,23 @@
 import { api } from '@/lib/http/cliente'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
 import type {
-  DadosDaRegra,
   FiltroDeNotificacoes,
   Notificacao,
   Preferencia,
+  Regra,
   Regua,
 } from '../types/notificacoes.types'
 
 const NOTIFICACOES = '/api/v1/notificacoes'
 
-/** A régua da turma. Quem nunca configurou recebe a padrão, já gravada pela API. */
+/** A régua da turma: os degraus do Kapa, cada um ligado ou não. */
 export function obterRegua(signal?: AbortSignal) {
   return api.get<Regua>(`${NOTIFICACOES}/regras`, { signal })
 }
 
-/** Grava a régua inteira. Variável desconhecida a API recusa com 400, antes de qualquer envio. */
-export function salvarRegua(regras: DadosDaRegra[]) {
-  return api.put<Regua>(`${NOTIFICACOES}/regras`, { body: { regras } })
-}
-
-/** Manda o degrau com dados de exemplo para o e-mail de quem clicou. A turma não recebe nada. */
-export function testarRegra(id: string) {
-  return api.post<void>(`${NOTIFICACOES}/regras/${id}/testar`)
+/** Liga ou desliga um degrau. Devolve a régua inteira, já com a mudança. */
+export function definirRegra({ id, ativa }: Pick<Regra, 'id' | 'ativa'>) {
+  return api.put<Regua>(`${NOTIFICACOES}/regras/${id}`, { body: { ativa } })
 }
 
 /** Uma página do histórico: quem recebeu o quê, quando e com qual resultado. */

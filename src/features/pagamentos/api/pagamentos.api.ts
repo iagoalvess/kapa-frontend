@@ -149,6 +149,14 @@ export function estornarBaixa({ parcelaId, justificativa }: { parcelaId: string;
   return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/estornar-baixa`, { body: { justificativa } })
 }
 
+/**
+ * O recibo de uma baixa, em PDF, gerado na hora (Sprint 22). O próprio formando, ou a gestão — que
+ * recebe o CPF mascarado.
+ */
+export function baixarRecibo(recebimento_id: string, signal?: AbortSignal) {
+  return api.get<Blob>(`${BASE}/recebimentos/${recebimento_id}/recibo`, { resposta: 'blob', signal })
+}
+
 /** As baixas com recebido diferente do devido. */
 export function listarDivergencias(filtro: FiltroDeInformes, signal?: AbortSignal) {
   return api.get<Pagina<Divergencia>>(`${BASE}/recebimentos/divergencias`, {

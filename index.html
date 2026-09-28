@@ -6,6 +6,16 @@
     <meta name="color-scheme" content="light" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!--
+      App instalável (Sprint 23): só manifesto e ícones, sem service worker. O theme-color repete o
+      do manifesto porque o do manifesto só vale no app instalado — na aba, o navegador lê este —, e
+      o apple-touch-icon é o ícone que o iPhone põe na tela de início; ele ignora os do manifesto. Trocar a cor da marca pede trocar aqui, no manifesto e
+      no favicon.svg.
+    -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f2994a" />
+    <link rel="apple-touch-icon" href="/icones/apple-touch-icon.png" />
+
     <title>Kapa — a formatura da sua turma organizada</title>
     <meta
       name="description"
@@ -17,8 +27,9 @@
       que é exatamente como uma comissão descobre a Kapa. A imagem é o produto rodando, com a marca
       no canto — 1200x630, a proporção que as duas redes recortam sem cortar nada.
 
-      As URLs são absolutas de propósito: crawler não resolve caminho relativo. O domínio entra no
-      go-live (P1 da Sprint 16), junto com a razão social do rodapé.
+      Aqui é o cartão do app. (Sprint 33): o link que circula dele é o da loja e o do convite, e a
+      landing tem as tags próprias em site.html. A URL é absoluta de propósito: crawler não resolve
+      caminho relativo.
     -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Kapa" />
@@ -28,7 +39,7 @@
       property="og:description"
       content="Cobrança recorrente, QR do PIX por parcela e prestação de contas pronta. O dinheiro cai na conta da turma, não na nossa."
     />
-    <meta property="og:image" content="/og-kapa.png" />
+    <meta property="og:image" content="%VITE_APP_URL%/og-kapa.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="A tela de caixa do Kapa, com o que entrou e o que saiu da turma" />

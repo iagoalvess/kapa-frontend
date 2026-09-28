@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { servidor } from './msw/server'
+
+// O `findBy*` desiste em 1 s por padrão. Com a suíte inteira em paralelo, telas pesadas (Festa,
+// Documentos, Adesões) passavam sozinhas e falhavam no conjunto — mesmo motivo do `testTimeout`.
+configure({ asyncUtilTimeout: 5_000 })
 
 beforeAll(() => {
   // 'error' em vez de 'warn': requisição não declarada é teste mentindo sobre o que exercita.

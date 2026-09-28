@@ -51,8 +51,3 @@ export function resumirSaida(usuario_id: string, signal?: AbortSignal) {
 export function desligarMembro({ usuario_id, ...body }: DesligarMembro & { usuario_id: string }) {
   return api.post<void>(`${BASE}/${usuario_id}/desligar`, { body })
 }
-
-/** Desfaz o desligamento. Não ressuscita parcela cancelada. Só o Presidente. */
-export function religarMembro(usuario_id: string) {
-  return api.post<void>(`${BASE}/${usuario_id}/religar`)
-}

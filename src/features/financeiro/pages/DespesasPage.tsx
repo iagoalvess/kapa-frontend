@@ -1,6 +1,6 @@
-import { CalendarClock, CircleCheck, Plus, Receipt, TriangleAlert } from 'lucide-react'
+import { CalendarClock, CircleCheck, Handshake, Plus, Receipt, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
@@ -9,12 +9,14 @@ import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
+import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { usePapel } from '@/hooks/useSessao'
 import { ehDia, formatarCentavos } from '@/lib/formato'
+import { ehOpcao } from '@/lib/opcao'
 import { DialogoDeDespesa } from '../components/DialogoDeDespesa'
 import { LinhaDeDespesa } from '../components/LinhaDeDespesa'
 import { useDespesas, useResumoDeDespesas } from '../hooks/useDespesas'
@@ -37,7 +39,7 @@ const FILTROS = {
 } as const satisfies Record<string, { rotulo: string; soma: keyof ResumoDeDespesas }>
 
 const ehCategoria = (valor: string | null): valor is CategoriaDeDespesa =>
-  valor !== null && valor in ROTULOS_DE_CATEGORIA
+  ehOpcao(valor, ROTULOS_DE_CATEGORIA)
 
 /**
  * O que a turma deve e o que já pagou, por vencimento — a tela do tesoureiro.
@@ -210,12 +212,20 @@ export default function DespesasPage() {
               <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
             </BotaoDeFiltros>
 
+            {tesouraria ? (
+              <Button asChild size="xs">
+                <Link to={ROTAS.fornecedores}>
+                  <Handshake aria-hidden />
+                  Fornecedores
+                </Link>
+              </Button>
+            ) : null}
             {/* Some para quem não é da Tesouraria; desabilitado, prometeria uma ação que nunca vai
                 ser dele. Para a Tesouraria com a turma fora de Ativa, aí sim: fica cinza. */}
             {tesouraria ? (
-              <Button size="sm" className="h-8" disabled={!editavel} onClick={() => definirLancamento({})}>
+              <Button size="xs" disabled={!editavel} onClick={() => definirLancamento({})}>
                 <Plus aria-hidden />
-                Lançar despesa
+                Nova despesa
               </Button>
             ) : null}
           </>

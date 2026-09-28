@@ -2,11 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Navigate } from 'react-router'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
-import { EsqueletoDeCartao } from '@/components/Esqueleto'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { AceiteObrigatorio } from '@/components/legal/AceiteObrigatorio'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
@@ -26,7 +26,7 @@ export default function ReaceitePage() {
   const aceites = useMeusAceites()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
 
-  if (aceites.isPending) return <EsqueletoDeCartao />
+  if (aceites.isPending) return <EsqueletoDeCartoes quantidade={2} altura="h-14" className="md:grid-cols-1" />
 
   if (aceites.isError) {
     return <ErroDaConsulta erro={aceites.error} />
@@ -54,49 +54,45 @@ function FormularioDeReaceite({ pendencias }: { pendencias: AceitePendente[] }) 
   )
 
   return (
-    <Card className="mx-auto max-w-xl">
-      <CardHeader>
-        <CardTitle>Atualizamos nossos documentos</CardTitle>
-        <CardDescription>
-          Para continuar usando a Kapa, leia e aceite a versão nova. Seus dados e sua formatura continuam como
-          estão.
-        </CardDescription>
-      </CardHeader>
+    <>
+      <h1 className={estilos.titulo}>Atualizamos nossos documentos</h1>
+      <p className={estilos.subtitulo}>
+        Para continuar usando a Kapa, leia e aceite a versão nova. Seus dados e sua formatura continuam como
+        estão.
+      </p>
 
-      <CardContent>
-        <Form {...formulario}>
-          <form onSubmit={enviar} className="grid gap-4" noValidate>
-            {pendencias.map(({ tipo }) => (
-              <FormField
-                key={tipo}
-                control={formulario.control}
-                name={`aceites.${tipo}`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <AceiteObrigatorio
-                        tipos={[tipo]}
-                        checked={field.value === true}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
+      <Form {...formulario}>
+        <form onSubmit={enviar} className="grid gap-4" noValidate>
+          {pendencias.map(({ tipo }) => (
+            <FormField
+              key={tipo}
+              control={formulario.control}
+              name={`aceites.${tipo}`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <AceiteObrigatorio
+                      tipos={[tipo]}
+                      checked={field.value === true}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ))}
 
-            <ErroDoFormulario />
+          <ErroDoFormulario />
 
-            <Button type="submit" disabled={registrar.isPending}>
-              {registrar.isPending ? 'Registrando…' : 'Aceitar e continuar'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button type="submit" disabled={registrar.isPending} className={estilos.cta}>
+            {registrar.isPending ? 'Registrando…' : 'Aceitar e continuar'}
+          </Button>
+        </form>
+      </Form>
+    </>
   )
 }

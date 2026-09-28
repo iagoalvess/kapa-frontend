@@ -1,11 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { buscar } from '../api/busca.api'
 import { TAMANHO_MINIMO } from '../types/busca.types'
-
-export const chaves = {
-  tudo: ['busca'] as const,
-  termo: (termo: string) => ['busca', termo] as const,
-}
+import { chaves } from './chaves'
 
 /**
  * O que a turma tem com aquele termo.

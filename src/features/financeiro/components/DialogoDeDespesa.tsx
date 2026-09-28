@@ -31,9 +31,7 @@ export function DialogoDeDespesa({ aberto, fornecedores, itensDaFesta, contratan
     <DialogoDeFormulario
       aberto={!!aberto}
       aoFechar={aoFechar}
-      titulo={
-        despesa ? 'Corrigir despesa' : contratando ? `Contratar ${contratando.titulo}` : 'Lançar despesa'
-      }
+      titulo={despesa ? 'Editar despesa' : contratando ? `Contratar ${contratando.titulo}` : 'Nova despesa'}
       descricao={
         despesa
           ? 'A correção vale para esta linha. Despesa paga também se corrige — o que não se faz é cancelá-la.'

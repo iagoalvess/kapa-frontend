@@ -65,7 +65,15 @@ export const ROTULOS_DE_EVENTO: Record<string, string> = {
   'cobranca.plano_vigorado': 'Plano em vigor',
   'adesao.termo_publicado': 'Termo publicado',
   'financeiro.despesa_cancelada': 'Despesa cancelada',
+  'financeiro.outra_receita_cancelada': 'Outra receita cancelada',
   'privacidade.titular_anonimizado': 'Dados de titular anonimizados',
+  'cobranca.pedido_cancelado': 'Pedido cancelado',
+  'festa.convites_liberados': 'Convites liberados antes da quitação',
+  'festa.cortesia_emitida': 'Cortesia emitida',
+  'festa.cota_aberta': 'Cota de convites aberta',
+  'festa.convidado_alterado': 'Convidado alterado pela comissão',
+  'festa.convite_reemitido': 'Convite reemitido',
+  'festa.entrada_desfeita': 'Entrada desfeita na portaria',
   // A turma vê que quem ativou a licença dela foi o suporte da Kapa, e não o Presidente (Sprint 16).
   // As outras ações do painel são da conta, e não aparecem na trilha de turma nenhuma.
   'suporte.assinatura_ativada': 'Licença ativada pelo suporte',

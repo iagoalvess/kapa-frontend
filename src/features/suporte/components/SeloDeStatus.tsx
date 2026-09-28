@@ -1,4 +1,5 @@
-import { Selo } from '@/components/Selo'
+import { Selo, type TomDoSelo } from '@/components/Selo'
+import { APARENCIA_DA_ASSINATURA } from '@/types/assinatura'
 
 /**
  * O rótulo de cada status de formatura no painel.
@@ -15,21 +16,11 @@ const TURMA = {
   Descartada: { rotulo: 'Descartada', tom: 'neutro' },
 } as const
 
-/** O rótulo de cada status de assinatura. */
-const ASSINATURA = {
-  Pendente: { rotulo: 'Pendente', tom: 'alerta' },
-  Ativa: { rotulo: 'Ativa', tom: 'sucesso' },
-  Vencida: { rotulo: 'Vencida', tom: 'perigo' },
-  Cancelada: { rotulo: 'Renovação cancelada', tom: 'cinza' },
-} as const
-
-type Mapa = typeof TURMA | typeof ASSINATURA
+type Mapa = typeof TURMA | typeof APARENCIA_DA_ASSINATURA
 
 /** O status como o produto o chama, ou o valor cru se o backend mandar um que a tela não conhece. */
 function ler(mapa: Mapa, status: string) {
-  return (
-    mapa as Record<string, { rotulo: string; tom: 'sucesso' | 'alerta' | 'perigo' | 'neutro' | 'cinza' }>
-  )[status]
+  return (mapa as Record<string, { rotulo: string; tom: TomDoSelo }>)[status]
 }
 
 /** O status da formatura, no vocabulário do produto. */
@@ -39,9 +30,9 @@ export function SeloDaTurma({ status }: { status: string }) {
   return <Selo tom={item?.tom ?? 'neutro'}>{item?.rotulo ?? status}</Selo>
 }
 
-/** O status da assinatura. */
+/** O status da assinatura — o mesmo nome e a mesma cor da tela da assinatura. */
 export function SeloDaAssinatura({ status }: { status: string }) {
-  const item = ler(ASSINATURA, status)
+  const item = ler(APARENCIA_DA_ASSINATURA, status)
 
   return <Selo tom={item?.tom ?? 'neutro'}>{item?.rotulo ?? status}</Selo>
 }

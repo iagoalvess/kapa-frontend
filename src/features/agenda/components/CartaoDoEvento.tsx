@@ -1,10 +1,11 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Clock3, MapPin, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { formatarData, formatarDiaDaSemana, formatarHora } from '@/lib/formato'
+import { formatarData, formatarDiaDaSemana, formatarHora, formatarMesDoDia } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { type EventoDaTurma, ROTULOS_DE_TIPO } from '@/types/agenda'
-import { COR_DA_SITUACAO } from './SeloDoEvento'
+import { COR_DO_TIPO, ICONE_DO_TIPO } from './iconeDoTipo'
 import { IndicadorDoEvento } from './IndicadorDoEvento'
+import { COR_DA_DATA } from './SeloDoEvento'
 
 interface Props {
   evento: EventoDaTurma
@@ -17,56 +18,92 @@ interface Props {
   aoEditar?: () => void
 }
 
-/** Cartão compacto: data, título e local, com cor e ícone indicando a situação. */
+/**
+ * Um evento no quadro: o bloco da data à esquerda, na cor da situação, e à direita o tipo, o título,
+ * a hora, o local e a descrição.
+ *
+ * A data em bloco é o que se lê primeiro — é uma agenda, e "26 sáb set" responde "quando" antes de
+ * qualquer título. O tipo não se repete numa linha própria: a pílula já o diz, com o ícone.
+ *
+ * O cartão inteiro abre os detalhes; editar e excluir ficam fora do botão, no pé, porque botão
+ * dentro de botão não existe no HTML.
+ */
 export function CartaoDoEvento({ evento, passado = false, aoAbrir, aoExcluir, aoEditar }: Props) {
   const cancelado = evento.situacao === 'Cancelado'
-  const iconeDeAcao = 'text-muted-foreground hover:text-foreground hover:bg-muted size-7 rounded-full'
+  const Icone = ICONE_DO_TIPO[evento.tipo]
+  const iconeDeAcao = 'text-muted-foreground hover:text-foreground hover:bg-muted size-8 rounded-full'
+  const linha = 'text-muted-foreground flex items-center gap-2 text-xs'
 
   return (
-    <li className={cn('relative', passado && 'opacity-60')}>
+    <li className={cn('bg-card relative min-w-0 rounded-2xl', passado && 'opacity-60')}>
       <button
         type="button"
         onClick={aoAbrir}
-        className={cn(
-          'focus-visible:ring-ring grid w-full gap-1 rounded-xl border-l-2 px-3 py-2 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          COR_DA_SITUACAO[evento.situacao],
-        )}
+        className="focus-visible:ring-ring hover:bg-muted/40 grid w-full grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-2xl p-3 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
-        <span className="flex items-center justify-between gap-2">
-          {/* A data por extenso no rótulo, para o leitor de tela não ouvir só "26 sáb". */}
-          <time
-            dateTime={evento.data}
-            aria-label={formatarData(evento.data)}
-            className="text-foreground text-sm font-semibold tabular-nums"
-          >
-            {evento.data.slice(8, 10)}
-            <span className="text-muted-foreground ml-1 text-xs font-normal">
-              {formatarDiaDaSemana(evento.data)}
-            </span>
-            {evento.hora ? (
-              <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
-                {formatarHora(evento.hora)}h
-              </span>
-            ) : null}
-          </time>
-
-          <IndicadorDoEvento situacao={evento.situacao} />
-        </span>
-
-        <span
+        {/* A data por extenso no rótulo, para o leitor de tela não ouvir só "26 sáb set". */}
+        <time
+          dateTime={evento.data}
+          aria-label={formatarData(evento.data)}
           className={cn(
-            'text-foreground text-sm leading-snug font-semibold',
-            cancelado && 'text-muted-foreground line-through',
+            'flex w-14 flex-col items-center self-start rounded-xl py-2 leading-tight uppercase',
+            COR_DA_DATA[evento.situacao],
           )}
         >
-          {evento.titulo}
-        </span>
+          <span className="text-foreground text-2xl font-semibold tabular-nums">
+            {evento.data.slice(8, 10)}
+          </span>
+          <span className="text-foreground text-xs font-semibold">{formatarDiaDaSemana(evento.data)}</span>
+          <span className="text-muted-foreground text-xs">{formatarMesDoDia(evento.data)}</span>
+        </time>
 
-        <span className={cn('text-muted-foreground truncate text-xs', (aoEditar || aoExcluir) && 'pr-14')}>
-          {[ROTULOS_DE_TIPO[evento.tipo], evento.local].filter(Boolean).join(' · ')}
+        <span className="grid min-w-0 grid-cols-1 content-start gap-1.5">
+          <span className="flex items-center justify-between gap-2">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                COR_DO_TIPO[evento.tipo],
+              )}
+            >
+              <Icone className="size-3" aria-hidden />
+              {ROTULOS_DE_TIPO[evento.tipo]}
+            </span>
+            <IndicadorDoEvento situacao={evento.situacao} />
+          </span>
+
+          <span
+            className={cn(
+              'text-foreground leading-snug font-semibold',
+              cancelado && 'text-muted-foreground line-through',
+            )}
+          >
+            {evento.titulo}
+          </span>
+
+          <span className={linha}>
+            <Clock3 className="size-3.5 shrink-0" aria-hidden />
+            {evento.hora ? `${formatarHora(evento.hora)}h` : 'Dia inteiro'}
+          </span>
+
+          {evento.local ? (
+            <span className={linha}>
+              <MapPin className="size-3.5 shrink-0" aria-hidden />
+              <span className="min-w-0 truncate">{evento.local}</span>
+            </span>
+          ) : null}
+
+          {evento.descricao ? (
+            <span className="text-muted-foreground mt-1 line-clamp-3 border-t pt-2 text-sm">
+              {evento.descricao}
+            </span>
+          ) : null}
+
+          {/* O espaço do pé, para os botões de fora não cobrirem a última linha. */}
+          {aoEditar || aoExcluir ? <span className="h-6" aria-hidden /> : null}
         </span>
       </button>
-      <span className="absolute right-1 bottom-1 flex">
+
+      <span className="absolute right-2 bottom-2 flex">
         {aoEditar ? (
           <Button
             type="button"

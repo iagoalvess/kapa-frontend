@@ -1,5 +1,6 @@
-import { BadgeCheck, CalendarDays, Coins, type LucideIcon, PartyPopper, Receipt, Ticket } from 'lucide-react'
+import { BellRing, Coins } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { Cartao } from '@/components/Cartao'
@@ -15,10 +16,12 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
-import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual'
+import { ROTAS } from '@/config/rotas'
+import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarCentavos, formatarMesAno, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
+import { CartaoDeOpcionais } from '../components/CartaoDeOpcionais'
 import { CartaoDoPlano } from '../components/CartaoDoPlano'
 import { FormularioDeItemEmEdicao, FormularioDeItemNovo } from '../components/FormularioDeItem'
 import { FormularioDoPlano } from '../components/FormularioDoPlano'
@@ -28,21 +31,8 @@ import { ResumoDoPlano } from '../components/ResumoDoPlano'
 import { useEncerrarItem, usePlano, usePlanos, useRemoverItem } from '../hooks/usePlano'
 import { useSimulacao } from '../hooks/useSimulacao'
 import { dadosDe } from '../schemas/cobranca.schema'
-import {
-  type ItemDeCobranca,
-  type PlanoDeCobranca,
-  rotuloDoItem,
-  type TipoDeCobranca,
-} from '../types/cobrancas.types'
-
-/** O ícone de cada tipo na lista de itens, no bloco cinza dos cartões do modelo. */
-const ICONES_DE_TIPO: Record<TipoDeCobranca, LucideIcon> = {
-  Mensalidade: CalendarDays,
-  Adesao: BadgeCheck,
-  Rifa: Ticket,
-  ConviteExtra: PartyPopper,
-  Avulsa: Receipt,
-}
+import { type ItemDeCobranca, type PlanoDeCobranca, rotuloDoItem } from '../types/cobrancas.types'
+import { IconeDoTipo } from '../components/IconeDoTipo'
 
 /**
  * O plano financeiro da turma, no desenho do modelo de planos: números no topo, os itens à esquerda
@@ -64,21 +54,23 @@ export default function PlanoDeCobrancaPage() {
 
   if (!plano) {
     return (
-      <Cartao
-        titulo="Plano de cobrança"
-        icone={Coins}
-        descricao="A turma ainda não tem plano. Dê um nome e confira as regras de atraso; os itens vêm em seguida."
-        className="max-w-2xl"
-      >
-        <div className="flex items-center gap-4">
-          <img src={mascoteCofrinho} alt="" className="w-20 shrink-0 drop-shadow-lg" />
-          <p className="text-muted-foreground text-sm">
-            Mensalidade, adesão, rifa: os itens vêm depois, e a grade de um formando aparece ao lado deles,
-            parcela por parcela, antes de o Presidente colocar o plano em vigor.
-          </p>
-        </div>
-        <FormularioDoPlano editavel={editavel} />
-      </Cartao>
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+        <Cartao
+          titulo="Plano de cobrança"
+          icone={Coins}
+          descricao="A turma ainda não tem plano. Dê um nome e confira as regras de atraso; as cobranças vêm em seguida."
+        >
+          <div className="flex items-center gap-4">
+            <img src={mascoteCofrinho} alt="" className="w-20 shrink-0 drop-shadow-lg" />
+            <p className="text-muted-foreground text-sm">
+              Mensalidade, adesão, rifa: as cobranças vêm depois, e a grade de um formando aparece ao lado
+              delas, parcela por parcela, antes de o Presidente colocar o plano em vigor.
+            </p>
+          </div>
+          <FormularioDoPlano editavel={editavel} />
+        </Cartao>
+        <CartaoDeLembretes />
+      </div>
     )
   }
 
@@ -88,7 +80,6 @@ export default function PlanoDeCobrancaPage() {
 
 function TelaDoPlano({ planoId }: { planoId: string }) {
   const plano = usePlano(planoId)
-  const formatura = useFormaturaAtual()
   const editavel = useEscritaLiberada()
   // `false` fechado, `{}` inclui um item, `{ item }` edita aquele — o mesmo diálogo dos documentos.
   const [dialogo, definirDialogo] = useState<false | { item?: ItemDeCobranca }>(false)
@@ -100,37 +91,42 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
   if (plano.isError) return <ErroDaConsulta erro={plano.error} />
 
   const emEdicao = dialogo === false ? undefined : dialogo.item
-  const ativos = plano.data.itens.filter((item) => !item.encerrado_em)
-
+  // Do plano, e não dos opcionais: o item opcional não cobra a turma e não entra na simulação.
+  const ativos = plano.data.itens.filter((item) => !item.encerrado_em && !item.opcional)
   return (
     <>
-      <ResumoDoPlano simulacao={gravado.data} estimados={formatura.data?.quantidade_estimada_de_formandos} />
+      <ResumoDoPlano simulacao={gravado.data} />
 
       {/* O arranjo das telas de formatura e adesão: o que se faz à esquerda — o plano e os itens —,
           e à direita o que se consulta: as regras e a grade que sai delas. */}
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
-        <CartaoDoPlano
-          plano={plano.data}
-          simulacao={gravado.data}
-          editavel={editavel}
-          aoIncluirItem={() => definirDialogo({})}
-        >
-          <ListaDeItens
+        <div className="grid gap-5">
+          <CartaoDoPlano
             plano={plano.data}
+            simulacao={gravado.data}
             editavel={editavel}
-            aoEditar={(item) => definirDialogo({ item })}
-          />
-        </CartaoDoPlano>
+            aoIncluirItem={() => definirDialogo({})}
+          >
+            <ListaDeItens
+              plano={plano.data}
+              editavel={editavel}
+              aoEditar={(item) => definirDialogo({ item })}
+            />
+          </CartaoDoPlano>
+
+          {/* O que só alguns compram, embaixo do que todos pagam: é o mesmo plano. */}
+          <CartaoDeOpcionais plano={plano.data} editavel={editavel} />
+        </div>
 
         {/* Incluir e editar são o mesmo formulário, no mesmo diálogo: era a única tela do app que
             criava num formulário sempre aberto dentro do cartão. */}
         <DialogoDeFormulario
           aberto={dialogo !== false}
           aoFechar={() => definirDialogo(false)}
-          titulo={emEdicao ? `Editar ${rotuloDoItem(emEdicao).toLowerCase()}` : 'Incluir item'}
+          titulo={emEdicao ? `Editar ${rotuloDoItem(emEdicao).toLowerCase()}` : 'Nova cobrança'}
           descricao={
             emEdicao?.em_uso
-              ? 'Este item já gerou parcela: só o valor e a descrição mudam.'
+              ? 'Esta cobrança já gerou parcela: só o valor e a descrição mudam.'
               : 'Tipo, valor, parcelas, dia de vencimento e primeiro mês.'
           }
           largura="largo"
@@ -156,6 +152,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
 
         <div className="grid gap-5">
           <RegrasDoPlano plano={plano.data} editavel={editavel} />
+          <CartaoDeLembretes />
 
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao
@@ -167,6 +164,22 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
         </div>
       </div>
     </>
+  )
+}
+
+function CartaoDeLembretes() {
+  return (
+    <Cartao
+      titulo="Lembretes automáticos"
+      descricao="Acompanhe os avisos de vencimento e os alertas para a tesouraria."
+    >
+      <Button asChild>
+        <Link to={ROTAS.regua}>
+          <BellRing aria-hidden />
+          Ver lembretes
+        </Link>
+      </Button>
+    </Cartao>
   )
 }
 
@@ -191,16 +204,13 @@ function EsqueletoDoPlano() {
   )
 }
 
-/** A mensagem da API já diz o que fazer (`cobranca.item_em_uso` e companhia). */
-const avisar = (erro: unknown) => toast.error(mensagemDoErro(erro))
-
 /**
  * A situação do item, que é também o que dá para fazer com ele: o que já gerou parcela encerra, o
- * que nunca gerou se remove, e o encerrado é histórico.
+ * que nunca gerou se exclui, e o encerrado é histórico.
  *
  * "Cobrando" e "Sem parcelas" no lugar do antigo "Em uso"/nada: o rótulo antigo não dizia o que
  * decidia o par de botões ao lado, e quem lia a linha não sabia por que um item tinha "Encerrar" e
- * o outro "Remover".
+ * o outro "Excluir".
  */
 function SituacaoDoItem({ item }: { item: ItemDeCobranca }) {
   if (item.encerrado_em) return <Selo>Encerrado</Selo>
@@ -233,23 +243,26 @@ function ListaDeItens({
   const encerrar = useEncerrarItem()
   const ocupado = remover.isPending || encerrar.isPending
 
-  if (plano.itens.length === 0)
+  // Os opcionais têm cartão próprio: aqui fica o que a turma inteira deve, que é o que a simulação soma.
+  const doPlano = plano.itens.filter((item) => !item.opcional)
+
+  if (doPlano.length === 0)
     return (
       <p className="text-muted-foreground text-sm">
-        Nenhum item ainda. Comece pela mensalidade, em “Incluir item”.
+        Nenhuma cobrança ainda. Comece pela mensalidade, em “Nova cobrança”.
       </p>
     )
 
   const itens = [
-    ...plano.itens.filter((item) => !item.encerrado_em),
-    ...plano.itens.filter((item) => item.encerrado_em),
+    ...doPlano.filter((item) => !item.encerrado_em),
+    ...doPlano.filter((item) => item.encerrado_em),
   ]
 
   return (
     <Tabela
       cabecalho={
         <>
-          <th className="py-3 pr-4 font-normal">Item</th>
+          <th className="py-3 pr-4 font-normal">Cobrança</th>
           <th className="py-3 pr-4 text-right font-normal">Valor</th>
           <th className="py-3 pr-4 text-right font-normal">Parcelas</th>
           <th className="py-3 pr-4 font-normal">Vence</th>
@@ -260,15 +273,11 @@ function ListaDeItens({
       }
     >
       {itens.map((item) => {
-        const Icone = ICONES_DE_TIPO[item.tipo]
-
         return (
           <tr key={item.id} className={cn('border-b last:border-0', item.encerrado_em && 'opacity-60')}>
             <td className="text-foreground py-3 pr-4 font-medium">
               <div className="flex items-center gap-3">
-                <span className="bg-muted inline-flex size-9 shrink-0 items-center justify-center rounded-lg">
-                  <Icone className="size-4.5" strokeWidth={1.75} aria-hidden />
-                </span>
+                <IconeDoTipo tipo={item.tipo} />
                 {/* A origem só existe no rateio extraordinário, e é a resposta a "por que isto foi
                     cobrado de quem já tinha aderido?" — fica junto do nome do item. */}
                 <div className="grid">
@@ -305,26 +314,32 @@ function ListaDeItens({
                           </Button>
                         }
                         titulo={`Encerrar ${rotuloDoItem(item).toLowerCase()}?`}
-                        descricao="O item para de cobrar: as parcelas que vencem de amanhã em diante são canceladas. O que já venceu ou foi pago continua como está."
+                        descricao="A cobrança para: as parcelas que vencem de amanhã em diante são canceladas. O que já venceu ou foi pago continua como está."
                         rotulo="Encerrar"
                         destrutivo
                         aoConfirmar={() =>
-                          encerrar.mutate({ planoId: plano.id, itemId: item.id }, { onError: avisar })
+                          encerrar.mutate(
+                            { planoId: plano.id, itemId: item.id },
+                            { onSuccess: () => toast.info('Cobrança encerrada.'), onError: avisarErro },
+                          )
                         }
                       />
                     ) : (
                       <DialogoDeConfirmacao
                         gatilho={
                           <Button variant="outline" size="sm" disabled={ocupado}>
-                            Remover
+                            Excluir
                           </Button>
                         }
-                        titulo={`Remover ${rotuloDoItem(item).toLowerCase()}?`}
-                        descricao="O item sai do plano e não fica no histórico. Como ele ainda não gerou parcela nenhuma, ninguém deixa de dever nada — mas o que estava escrito aqui se perde."
-                        rotulo="Remover"
+                        titulo={`Excluir ${rotuloDoItem(item).toLowerCase()}?`}
+                        descricao="A cobrança sai do plano e não fica no histórico. Como ela ainda não gerou parcela nenhuma, ninguém deixa de dever nada — mas o que estava escrito aqui se perde."
+                        rotulo="Excluir"
                         destrutivo
                         aoConfirmar={() =>
-                          remover.mutate({ planoId: plano.id, itemId: item.id }, { onError: avisar })
+                          remover.mutate(
+                            { planoId: plano.id, itemId: item.id },
+                            { onSuccess: () => toast.info('Cobrança excluída.'), onError: avisarErro },
+                          )
                         }
                       />
                     )}

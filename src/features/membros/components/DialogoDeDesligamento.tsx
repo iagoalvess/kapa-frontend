@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { formatarCentavos } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useDesligarMembro, useResumoDaSaida } from '../hooks/useMembros'
 import { esquemaDeDesligamento, type FormularioDeDesligamento } from '../schemas/desligamento.schema'
 import { MOTIVOS_DE_SAIDA, type MembroDaFormatura, type MotivoDeSaida } from '../types/membros.types'
@@ -66,7 +67,7 @@ export function DialogoDeDesligamento({
       },
       {
         onSuccess: () => {
-          toast.success(`${nome} foi desligado da turma.`)
+          toast.info(`${nome} foi desligado da turma.`)
           definirAberto(false)
         },
         onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
@@ -138,27 +139,12 @@ export function DialogoDeDesligamento({
             ) : null}
 
             {emAtraso > 0 ? (
-              <FormField
+              <CampoDeMarcar
                 control={formulario.control}
                 name="cancelar_atraso"
-                render={({ field }) => (
-                  <FormItem className="border-border rounded-xl border p-4">
-                    <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={field.value}
-                        onChange={(evento) => field.onChange(evento.target.checked)}
-                        className="accent-primary size-4"
-                      />
-                      Cancelar também o que está em atraso (
-                      {formatarCentavos(resumo.data?.em_atraso_em_centavos)})
-                    </label>
-                    <p className="text-muted-foreground mt-2 text-sm">
-                      Sem marcar, o atraso continua devido e ele segue na lista de inadimplentes.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                className="border-border rounded-xl border p-4"
+                rotulo={`Cancelar também o que está em atraso (${formatarCentavos(resumo.data?.em_atraso_em_centavos)})`}
+                dica="Sem marcar, o atraso continua devido e ele segue na lista de inadimplentes."
               />
             ) : null}
 

@@ -4,6 +4,7 @@ import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
+import { Tabela } from '@/components/Planilha'
 import { rotuloDoItem, type SimulacaoDoPlano } from '../types/cobrancas.types'
 
 interface Props {
@@ -47,7 +48,9 @@ export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
       <div className="grid justify-items-center gap-2 py-6 text-center">
         <img src={mascoteCofrinho} alt="" className="w-24 drop-shadow-lg" />
         <p className="text-foreground font-medium">A grade aparece aqui</p>
-        <p className="text-muted-foreground text-sm">Inclua um item para ver as parcelas de cada formando.</p>
+        <p className="text-muted-foreground text-sm">
+          Inclua uma cobrança para ver as parcelas de cada formando.
+        </p>
       </div>
     )
   }
@@ -65,33 +68,19 @@ export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
         onScroll={conferirSeTemMais}
         className="max-h-[26rem] [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden"
       >
-        <table className="w-full text-sm">
-          <caption className="sr-only">Parcelas de um formando</caption>
-          <thead className="text-texto-muted bg-muted/60 sticky top-0 text-left text-xs">
-            <tr>
-              <th className="rounded-l-lg px-3 py-2 font-normal">Parcela</th>
-              <th className="px-3 py-2 font-normal">Vencimento</th>
-              <th className="rounded-r-lg px-3 py-2 text-right font-normal">Valor</th>
-            </tr>
-          </thead>
-          <tbody className="tabular-nums">
-            {simulacao.parcelas.map((parcela, indice) => (
-              <tr key={indice} className="border-b last:border-0">
-                <td className="px-3 py-2.5">
-                  {parcela.numero}/{parcela.de}
-                  {variosItens ? (
-                    <span className="text-muted-foreground"> · {rotuloDoItem(parcela)}</span>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">{formatarData(parcela.vencimento)}</td>
-                <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                  {formatarCentavos(parcela.valor_em_centavos)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
+        <Tabela
+          variante="faixa"
+          grudado
+          legenda="Parcelas de um formando"
+          cabecalho={
+            <>
+              <th>Parcela</th>
+              <th>Vencimento</th>
+              <th className="text-right">Valor</th>
+            </>
+          }
+          rodape={
+            <>
               <td className="text-foreground px-3 pt-3 font-medium">Total</td>
               <td className="text-muted-foreground px-3 pt-3 whitespace-nowrap">
                 {formatarNumero(simulacao.parcelas.length)} parcelas
@@ -99,9 +88,24 @@ export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
               <td className="text-foreground px-3 pt-3 text-right font-medium whitespace-nowrap tabular-nums">
                 {formatarCentavos(simulacao.total_por_formando)}
               </td>
+            </>
+          }
+        >
+          {simulacao.parcelas.map((parcela, indice) => (
+            <tr key={indice} className="border-b last:border-0">
+              <td className="px-3 py-2.5">
+                {parcela.numero}/{parcela.de}
+                {variosItens ? (
+                  <span className="text-muted-foreground"> · {rotuloDoItem(parcela)}</span>
+                ) : null}
+              </td>
+              <td className="px-3 py-2.5 whitespace-nowrap">{formatarData(parcela.vencimento)}</td>
+              <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                {formatarCentavos(parcela.valor_em_centavos)}
+              </td>
             </tr>
-          </tfoot>
-        </table>
+          ))}
+        </Tabela>
 
         {/* Altura zero no fluxo (`-mt-10` desfaz o `h-10`): cobre a última linha visível sem mudar a rolagem. */}
         {temMais ? (

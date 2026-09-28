@@ -11,6 +11,7 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDePeriodo, faixasDePublicacao } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
@@ -20,6 +21,7 @@ import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarDataRelativa } from '@/lib/formato'
 import { cn } from '@/lib/utils'
+import { ehOpcao } from '@/lib/opcao'
 import { DetalheDoAviso } from '../components/DetalheDoAviso'
 import { EditorDeAviso } from '../components/EditorDeAviso'
 import { LinhaDoMural } from '../components/LinhaDoMural'
@@ -53,7 +55,7 @@ const FILTROS = {
 
 type Filtro = keyof typeof FILTROS
 
-const ehFiltro = (valor: string | null): valor is Filtro => valor !== null && valor in FILTROS
+const ehFiltro = (valor: string | null): valor is Filtro => ehOpcao(valor, FILTROS)
 
 /**
  * O mural da turma: a lista dos comunicados à esquerda, o aviso aberto à direita.
@@ -116,7 +118,7 @@ export default function MuralPage() {
   const aberto = naLista ?? umAviso.data
 
   const escrevendo = gestao && parametros.get('novo') === '1'
-  const corrigindo = gestao && parametros.get('editar') === '1' ? aberto : undefined
+  const editando = gestao && parametros.get('editar') === '1' ? aberto : undefined
 
   const faixa = (
     <FaixaDeIndicadores
@@ -146,12 +148,12 @@ export default function MuralPage() {
   // O editor toma a tela no lugar da lista: markdown e prévia lado a lado não cabem em dois terços
   // dela. A faixa fica — é ela que diz quantos fixados ainda cabem, que é o que decide a caixa de
   // fixar logo abaixo, como em "Publicar nova versão" do termo.
-  if (escrevendo || corrigindo) {
+  if (escrevendo || editando) {
     return (
       <>
         {faixa}
         <EditorDeAviso
-          aviso={corrigindo}
+          aviso={editando}
           aoCancelar={() => atualizar({ novo: null, editar: null, pagina: String(pagina) })}
           aoConcluir={(aviso) => navegar(rotaDoAviso(aviso.id))}
         />
@@ -195,12 +197,7 @@ export default function MuralPage() {
                 />
               </BotaoDeFiltros>
               {gestao ? (
-                <Button
-                  size="sm"
-                  className="h-8"
-                  disabled={!editavel}
-                  onClick={() => atualizar({ novo: '1' })}
-                >
+                <Button size="xs" disabled={!editavel} onClick={() => atualizar({ novo: '1' })}>
                   <Plus aria-hidden />
                   Novo aviso
                 </Button>
@@ -251,7 +248,15 @@ export default function MuralPage() {
             Mural
           </LinkDeVolta>
 
-          {aberto ? <DetalheDoAviso aviso={aberto} gestao={gestao} /> : null}
+          {aberto ? (
+            <DetalheDoAviso
+              aviso={aberto}
+              gestao={gestao}
+              // O `atualizar` zera a página a cada filtro; editar não é filtro, e cancelar tem de devolver
+              // a lista onde estava.
+              aoEditar={() => atualizar({ editar: '1', pagina: String(pagina) })}
+            />
+          ) : null}
           {!aberto && umAviso.isPending ? <EsqueletoDeCartao /> : null}
           {/* Link direto para um aviso que não existe mais — ou que é só da comissão, e a API
               responde 404 sem confirmar que ele existe. */}
@@ -302,18 +307,18 @@ function PilulaDoFiltro({
 /** A lista sem nada: turma sem aviso nenhum, ou filtro que não achou. */
 function MuralVazio({ filtrado, gestao }: { filtrado: boolean; gestao: boolean }) {
   return (
-    <div className="grid justify-items-center gap-2 px-4 py-8 text-center">
-      <img src={mascoteLendo} alt="" className="w-24 drop-shadow-lg" />
-      <p className="text-foreground text-sm font-medium">
-        {filtrado ? 'Nenhum aviso encontrado' : 'Nenhum aviso ainda'}
-      </p>
-      <p className="text-muted-foreground text-xs">
-        {filtrado
-          ? 'Tente outra busca ou tire o filtro.'
-          : gestao
-            ? 'Publique o primeiro: reunião, prazo, contrato fechado — o que não pode se perder no grupo.'
-            : 'Quando a comissão publicar um comunicado, ele aparece aqui.'}
-      </p>
+    <div className="px-4">
+      <ListaVazia
+        mascote={mascoteLendo}
+        titulo={filtrado ? 'Nenhum aviso encontrado' : 'Nenhum aviso ainda'}
+        dica={
+          filtrado
+            ? 'Tente outra busca ou tire o filtro.'
+            : gestao
+              ? 'Publique o primeiro: reunião, prazo, contrato fechado — o que não pode se perder no grupo.'
+              : 'Quando a comissão publicar um comunicado, ele aparece aqui.'
+        }
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
+import { BotaoDeInstalar } from '@/features/auth'
 import { FotoDoFormando, type PerfilDoFormando } from '@/features/formandos'
 import { SeletorDeFormatura } from '@/features/formaturas'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
@@ -142,6 +143,9 @@ export function MenuDaConta({
               Auditoria
             </Link>
           ) : null}
+
+          {/* Some sozinho onde não há o que instalar — no computador, e no app já instalado. */}
+          <BotaoDeInstalar className={estiloDoItem} />
         </div>
       </div>
     </>

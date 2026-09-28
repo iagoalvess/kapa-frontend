@@ -60,7 +60,7 @@ export function FormularioDoPlano({ plano, editavel, aoConcluir }: Props) {
     const aoTerminar = {
       onSuccess: (salvo: PlanoDeCobranca) => {
         formulario.reset(paraFormularioDoPlano(salvo))
-        toast.success(plano ? 'Regras salvas.' : 'Plano criado. Agora inclua os itens.')
+        toast.success(plano ? 'Regras salvas.' : 'Plano criado. Agora cadastre os itens.')
         aoConcluir?.()
       },
       onError: (erro: unknown) => exibirErroNoFormulario(erro, formulario.setError),
@@ -158,7 +158,7 @@ export function FormularioDoPlano({ plano, editavel, aoConcluir }: Props) {
         ) : null}
         {editavel && !plano ? (
           <Button type="submit" className="justify-self-end" disabled={salvando}>
-            {salvando ? 'Salvando…' : 'Criar plano'}
+            {salvando ? 'Salvando…' : 'Salvar'}
           </Button>
         ) : null}
       </form>

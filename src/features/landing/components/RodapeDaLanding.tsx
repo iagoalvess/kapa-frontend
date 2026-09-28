@@ -71,12 +71,12 @@ export function RodapeDaLanding() {
       </div>
 
       {/*
-        A razão social e o CNPJ entram aqui quando existirem (P1 da Sprint 16, em aberto em
-        17/09/2026). Enquanto não houver, a linha não inventa um número — rodapé com CNPJ errado é
-        pior que rodapé sem CNPJ.
+        Quem responde pelo site: os mesmos dados do cabeçalho dos Termos e da Política. Mudou lá —
+        versão nova —, muda aqui. O endereço fica só nos documentos: é residencial.
       */}
       <p className="text-texto-muted mx-auto mt-10 w-full max-w-6xl text-sm">
-        © {new Date().getFullYear()} Kapa. Todos os direitos reservados.
+        © {new Date().getFullYear()} Kapa · KAPA FORMATURAS INOVA SIMPLES (I.S.) · CNPJ 69.334.998/0001-67 ·
+        contato@kapaformaturas.com.br
       </p>
     </footer>
   )

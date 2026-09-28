@@ -1,5 +1,6 @@
 import type { Parcela } from '@/types/cobranca'
 import type { PaginacaoRequest } from '@/types/paginacao'
+import type { MeioDePagamento } from '@/types/pagamento'
 import type { DadosBancarios, MeioDeRecebimento } from '@/types/recebimento'
 
 export type { MeioDeRecebimento } from '@/types/recebimento'
@@ -7,7 +8,7 @@ export type { MeioDeRecebimento } from '@/types/recebimento'
 export type { Parcela, StatusDaParcela, ValorDoDia } from '@/types/cobranca'
 
 /** Como o dinheiro chegou. Espelha `FormaDePagamento`. */
-export type FormaDePagamento = 'Pix' | 'Dinheiro' | 'Transferencia' | 'Outro'
+export type FormaDePagamento = 'Pix' | 'Dinheiro' | 'Transferencia' | 'Outro' | 'Cartao'
 
 /** Situação do aviso de pagamento. Espelha `StatusDoInforme`. */
 export type StatusDoInforme = 'Pendente' | 'Confirmado' | 'Recusado'
@@ -33,6 +34,13 @@ export interface PixParaPagar {
   chave: string
   /** O nome que o banco vai mostrar. */
   nome_do_titular: string
+  /** CPF mascarado ou CNPJ, quando é esse o tipo da chave; nulo nos demais. */
+  documento_do_titular: string | null
+  /**
+   * Quando a comissão conferiu no banco que a chave é desse titular. Nulo: a conferir — e volta a
+   * nulo a cada troca de chave, que é o que faz o aviso reaparecer sozinho.
+   */
+  conferida_em: string | null
 }
 
 /**
@@ -48,12 +56,32 @@ export interface MeioDaCobranca {
   instrucao: string | null
 }
 
+/**
+ * Um meio do Mercado Pago da turma, com o que a tela precisa mostrar. Espelha `PagamentoPeloMercadoPagoDTO`.
+ *
+ * Baixa sozinho quando pago: não há "já paguei" a dar.
+ */
+export interface PeloMercadoPago {
+  meio: MeioDePagamento
+  /** O PIX pronto, em `Pix`. */
+  pix: PixDoMercadoPago | null
+}
+
+/** O PIX do Mercado Pago da turma. Espelha `PixDinamicoParaPagarDTO`. */
+export interface PixDoMercadoPago {
+  copia_e_cola: string
+  /** Até quando aceita pagamento (UTC) — o fim do dia. */
+  expira_em: string
+}
+
 /** A cobrança da parcela, montada na hora. Espelha `CobrancaDaParcelaDTO`. */
 export interface CobrancaDaParcela {
   /** O valor de hoje, somado quando são várias parcelas. */
   valor_em_centavos: number
   identificador: string
-  /** Os meios habilitados, ao menos um. Com um só, a tela não desenha seletor. */
+  /** Os meios do Mercado Pago da turma, primeiro na tela; vazio sem a conta conectada. */
+  pelo_mercado_pago: PeloMercadoPago[]
+  /** Os meios da conta da comissão. Com um meio só, somando as duas listas, a tela não desenha seletor. */
   meios: MeioDaCobranca[]
 }
 

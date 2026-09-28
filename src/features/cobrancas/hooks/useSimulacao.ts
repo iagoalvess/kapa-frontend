@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { useComAtraso } from '@/hooks/useComAtraso'
 import { simularPlano } from '../api/cobrancas.api'
 import type { DadosDoItem } from '../types/cobrancas.types'
 import { chaves } from './chaves'
+import { useComAtraso } from './useComAtraso'
 
 /** O tempo parado depois da última tecla antes de simular de novo. */
 export const ATRASO_DA_SIMULACAO = 400

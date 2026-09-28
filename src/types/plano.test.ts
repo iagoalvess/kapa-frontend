@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { descontoDoPlano, type Plano } from './plano'
+import { descontoDoPlano, maiorDesconto, type Plano } from './plano'
 
 const BASE: Plano = {
   id: 'p-1',
@@ -7,6 +7,7 @@ const BASE: Plano = {
   nome: 'Premium',
   descricao: 'O dia a dia da comissão inteiro.',
   preco_em_centavos: 4990,
+  preco_cheio_em_centavos: null,
   ciclo: 'Mensal',
   limite_de_formandos: 400,
   modulos: [],
@@ -27,5 +28,15 @@ describe('descontoDoPlano', () => {
   it('devolve nulo quando o preço cheio não é maior que o cobrado', () => {
     expect(descontoDoPlano({ ...BASE, preco_cheio_em_centavos: 4990 })).toBeNull()
     expect(descontoDoPlano({ ...BASE, preco_cheio_em_centavos: 2990 })).toBeNull()
+  })
+})
+
+describe('maiorDesconto', () => {
+  it('é o maior desconto do catálogo, e zero sem nenhum', () => {
+    const anual = { ...BASE, preco_em_centavos: 47900, preco_cheio_em_centavos: 59880 }
+
+    expect(maiorDesconto([BASE, anual])).toBe(20)
+    expect(maiorDesconto([BASE])).toBe(0)
+    expect(maiorDesconto([])).toBe(0)
   })
 })

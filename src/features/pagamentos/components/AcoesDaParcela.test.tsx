@@ -31,7 +31,7 @@ function responder() {
 describe('AcoesDaParcela', () => {
   afterEach(() => sessao.encerrar())
 
-  it('a tesouraria baixa a aberta; a avisada vai para a conferência; a paga não tem ação', () => {
+  it('a tesouraria baixa a aberta; a avisada vai para a conferência; a paga só tem o recibo', () => {
     responder()
     entrarComo('Tesoureiro')
 
@@ -44,16 +44,19 @@ describe('AcoesDaParcela', () => {
     avisada.unmount()
 
     renderizar(<AcoesDaParcela parcela={pagaDeTeste()} />)
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByRole('button')).toHaveAccessibleName('Recibo de Bruno Lima, parcela 1/24')
   })
 
-  it('a comissão, que só consulta, não vê ação nenhuma', () => {
+  it('a comissão, que só consulta, não vê ação de escrita — só o recibo', () => {
     responder()
     entrarComo('Comissao')
 
-    renderizar(<AcoesDaParcela parcela={parcelaDeTeste()} />)
-
+    const aberta = renderizar(<AcoesDaParcela parcela={parcelaDeTeste()} />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    aberta.unmount()
+
+    renderizar(<AcoesDaParcela parcela={pagaDeTeste()} />)
+    expect(screen.getByRole('button', { name: /^Recibo de/ })).toBeInTheDocument()
   })
 
   it('a baixa manual vem com o valor de hoje e manda forma, dia e valor', async () => {
@@ -67,7 +70,7 @@ describe('AcoesDaParcela', () => {
     expect(dialogo).toHaveTextContent('Esta ação fica registrada em seu nome.')
     expect(within(dialogo).getByLabelText('Valor recebido')).toHaveValue(formatarCentavos(36_120))
     await userEvent.selectOptions(within(dialogo).getByLabelText('Como o dinheiro chegou'), 'Dinheiro')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Salvar' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Baixar' }))
 
     await waitFor(() => expect(pedidos.baixas).toHaveLength(1))
     expect(pedidos.baixas[0]?.get('forma')).toBe('Dinheiro')

@@ -60,7 +60,7 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
     <>
       {/* Laranja e `h-8`, como a ação principal das outras listas: é a única ação desta tela, e o
           contorno a deixava com cara de filtro. */}
-      <Button size="sm" className="h-8" onClick={abrir}>
+      <Button size="xs" onClick={abrir}>
         <HandCoins aria-hidden />
         Pagar várias parcelas
       </Button>

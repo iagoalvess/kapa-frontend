@@ -1,20 +1,33 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { ReactNode } from 'react'
 import {
-  type FieldPath,
-  type FieldValues,
-  type UseFormReturn,
-  useForm,
-  useFormState,
-  useFormContext,
-} from 'react-hook-form'
+  BookUser,
+  Cake,
+  Contact,
+  GraduationCap,
+  Hash,
+  HeartHandshake,
+  IdCard,
+  type LucideIcon,
+  MapPin,
+  NotebookPen,
+  Phone,
+  Siren,
+  UserRound,
+} from 'lucide-react'
+import { createContext, type ReactNode, useContext, useState } from 'react'
+import { type FieldPath, type FieldValues, useForm, useFormContext } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
+import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
+import { Cartao } from '@/components/Cartao'
+import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatarData } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useConsultarCep, useSalvarPerfil } from '../hooks/useMeuPerfil'
 import {
@@ -29,86 +42,220 @@ import {
 } from '../schemas/perfil.schema'
 import type { PerfilDoFormando } from '../types/formandos.types'
 
-type Secao = keyof ReturnType<typeof paraFormularios>
-
 interface Props {
   perfil: PerfilDoFormando
   /** Formando corrigido pela comissão; ausente é o próprio. */
   usuarioId?: string
-  /** Falso mostra os campos travados e sem botão — formatura fora de `Ativa`, ou quem só lê. */
+  /** Falso esconde o "Editar" — formatura fora de `Ativa`, ou quem só lê. */
   editavel: boolean
 }
 
+/** Campo sem valor, na leitura. */
+const VAZIO = 'Não informado'
+
+const ou = (valor: string | null | undefined) => (valor ? valor : VAZIO)
+
 /**
- * O cadastro em três seções — Pessoais · Endereço · Emergência —, cada uma com o próprio botão.
+ * O cadastro em três cartões — Pessoais · Endereço · Emergência —, cada um em leitura com o próprio
+ * "Editar", que abre a seção num diálogo: o padrão de cadastro do app.
  *
  * Um formulário de 18 campos com um botão no fim é formulário abandonado no campo 11. Aqui cada
  * seção grava sozinha e manda só os campos dela: salvar o endereço não reenvia (nem apaga) os
- * dados pessoais, e recarregar a página no meio perde no máximo a seção em edição.
+ * dados pessoais.
  *
- * Monte com `key` pelo usuário: os valores iniciais só são lidos na montagem.
+ * Quem não pode editar vê só a leitura — nunca campos travados.
  */
 export function FormularioDePerfil({ perfil, usuarioId, editavel }: Props) {
   const valores = paraFormularios(perfil, Boolean(usuarioId))
+  const { pessoais: p } = valores.pessoais
+  const { endereco: e } = valores.endereco
+  const { contato_de_emergencia: c } = valores.emergencia
+  // A comissão vê o CPF mascarado que a API manda; o próprio vê o dele inteiro.
+  const cpf = usuarioId ? perfil.pessoais.cpf : p.cpf
+  const logradouro = [e.logradouro, e.numero, e.complemento].filter(Boolean).join(', ')
+  const cidade = [e.cidade, e.uf].filter(Boolean).join(' / ')
 
   return (
     <div className="grid gap-4">
-      <SecaoPessoais
-        valores={valores.pessoais}
-        usuarioId={usuarioId}
+      <Secao
+        titulo="Dados pessoais"
+        icone={UserRound}
         editavel={editavel}
-        cpfMascarado={perfil.pessoais.cpf}
+        largura="largo"
+        linhas={[
+          [UserRound, 'Nome completo', ou(p.nome_completo)],
+          [GraduationCap, 'Nome no diploma', ou(p.nome_no_diploma)],
+          [IdCard, 'CPF', ou(cpf)],
+          [BookUser, 'RG', ou(p.rg)],
+          [Cake, 'Nascimento', p.data_de_nascimento ? formatarData(p.data_de_nascimento) : VAZIO],
+          [Hash, 'Matrícula', ou(p.matricula)],
+          [Phone, 'Telefone', ou(p.telefone)],
+          [NotebookPen, 'Observações', ou(p.observacoes)],
+        ]}
+        formulario={
+          <FormularioDaSecao
+            titulo="Dados pessoais"
+            esquema={esquemaDePessoais}
+            valores={valores.pessoais}
+            usuarioId={usuarioId}
+            salvo="Dados pessoais salvos."
+          >
+            <CamposPessoais daComissao={Boolean(usuarioId)} cpfMascarado={perfil.pessoais.cpf} />
+          </FormularioDaSecao>
+        }
       />
-      <SecaoEndereco valores={valores.endereco} usuarioId={usuarioId} editavel={editavel} />
-      <SecaoEmergencia valores={valores.emergencia} usuarioId={usuarioId} editavel={editavel} />
+
+      <Secao
+        titulo="Endereço"
+        icone={MapPin}
+        editavel={editavel}
+        largura="largo"
+        linhas={[
+          [Hash, 'CEP', ou(e.cep)],
+          [MapPin, 'Logradouro', ou(logradouro)],
+          [MapPin, 'Bairro', ou(e.bairro)],
+          [MapPin, 'Cidade', ou(cidade)],
+        ]}
+        formulario={
+          <FormularioDaSecao
+            titulo="Endereço"
+            esquema={esquemaDeEndereco}
+            valores={valores.endereco}
+            usuarioId={usuarioId}
+            salvo="Endereço salvo."
+          >
+            <CamposEndereco />
+          </FormularioDaSecao>
+        }
+      />
+
+      <Secao
+        titulo="Contato de emergência"
+        icone={Siren}
+        editavel={editavel}
+        linhas={[
+          [Contact, 'Nome', ou(c.nome)],
+          [Phone, 'Telefone', ou(c.telefone)],
+          [HeartHandshake, 'Parentesco', ou(c.parentesco)],
+        ]}
+        formulario={
+          <FormularioDaSecao
+            titulo="Contato de emergência"
+            esquema={esquemaDeEmergencia}
+            valores={valores.emergencia}
+            usuarioId={usuarioId}
+            salvo="Contato de emergência salvo."
+          >
+            <CamposEmergencia />
+          </FormularioDaSecao>
+        }
+      />
     </div>
   )
 }
 
+/** Fecha o diálogo da seção: o formulário chama no Cancelar e depois de salvar. */
+const FecharSecao = createContext<() => void>(() => undefined)
+
+/** Uma seção em leitura, com o "Editar" que abre o formulário dela num diálogo. */
+function Secao({
+  titulo,
+  icone,
+  editavel,
+  largura = 'medio',
+  linhas,
+  formulario,
+}: {
+  titulo: string
+  icone: LucideIcon
+  editavel: boolean
+  largura?: 'medio' | 'largo'
+  linhas: [LucideIcon, string, string][]
+  formulario: ReactNode
+}) {
+  const [editando, definirEditando] = useState(false)
+
+  return (
+    <Cartao
+      titulo={titulo}
+      icone={icone}
+      acao={
+        editavel ? (
+          <Button variant="outline" size="sm" onClick={() => definirEditando(true)}>
+            Editar
+          </Button>
+        ) : null
+      }
+    >
+      <ListaDeDados>
+        {linhas.map(([Icone, rotulo, valor]) => (
+          <Dado key={rotulo} icone={Icone} rotulo={rotulo}>
+            {valor}
+          </Dado>
+        ))}
+      </ListaDeDados>
+
+      <DialogoDeFormulario
+        aberto={editando}
+        aoFechar={() => definirEditando(false)}
+        titulo={titulo}
+        descricao="Nenhum campo é obrigatório: preencha o que tiver agora e complete depois."
+        largura={largura}
+      >
+        <FecharSecao value={() => definirEditando(false)}>{formulario}</FecharSecao>
+      </DialogoDeFormulario>
+    </Cartao>
+  )
+}
+
 /**
- * Formulário de uma seção: valida, grava só ela e repõe os valores que a API devolveu.
+ * O formulário de uma seção, dentro do diálogo: valida, grava só ela e fecha.
  *
- * Repor pela resposta, e não pelo que foi digitado, é o que faz o CPF voltar com máscara e o
- * telefone no formato de exibição — e zera o "alterado", que habilita o botão.
+ * Nasce com o diálogo, então cada abertura recomeça do que está gravado.
  */
-function useSecao<T extends FieldValues>(
-  secao: Secao,
-  esquema: z.ZodType<T, T>,
-  valores: T,
-  usuarioId?: string,
-) {
+function FormularioDaSecao<T extends FieldValues>({
+  titulo,
+  esquema,
+  valores,
+  usuarioId,
+  salvo,
+  children,
+}: {
+  titulo: string
+  esquema: z.ZodType<T, T>
+  valores: T
+  usuarioId?: string
+  salvo: string
+  children: ReactNode
+}) {
+  const aoConcluir = useContext(FecharSecao)
   const salvar = useSalvarPerfil(usuarioId)
   const formulario = useForm<T>({ resolver: zodResolver(esquema), defaultValues: valores as never })
 
   const enviar = formulario.handleSubmit((dados) =>
     salvar.mutate(paraDados(dados as never), {
-      onSuccess: (perfil) => {
-        formulario.reset(paraFormularios(perfil, Boolean(usuarioId))[secao] as never)
-        toast.success('Salvo.')
+      onSuccess: () => {
+        toast.success(salvo)
+        aoConcluir()
       },
       onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
     }),
   )
 
-  return { formulario, enviar, salvando: salvar.isPending }
+  return (
+    <Form {...formulario}>
+      <form noValidate onSubmit={enviar} aria-label={titulo} className="grid gap-5">
+        {children}
+        <ErroDoFormulario />
+        <AcoesDoFormulario aoCancelar={aoConcluir} ocupado={salvar.isPending} />
+      </form>
+    </Form>
+  )
 }
 
-function SecaoPessoais({
-  valores,
-  usuarioId,
-  editavel,
-  cpfMascarado,
-}: { valores: FormularioDePessoais; cpfMascarado?: string } & Omit<Props, 'perfil'>) {
-  const { formulario, enviar, salvando } = useSecao('pessoais', esquemaDePessoais, valores, usuarioId)
-
+function CamposPessoais({ daComissao, cpfMascarado }: { daComissao: boolean; cpfMascarado: string | null }) {
   return (
-    <Moldura
-      titulo="Dados pessoais"
-      formulario={formulario}
-      enviar={enviar}
-      salvando={salvando}
-      editavel={editavel}
-    >
+    <>
       {/* Quatro colunas: os campos longos ocupam duas, RG e nascimento — curtos — dividem a
           metade ao lado do CPF. */}
       <div className="grid items-start gap-4 sm:grid-cols-4">
@@ -127,7 +274,7 @@ function SecaoPessoais({
           />
         </div>
         <div className="sm:col-span-2">
-          {usuarioId ? (
+          {daComissao ? (
             <div className="grid gap-2">
               <Label htmlFor="cpf-do-formando">CPF</Label>
               <Input id="cpf-do-formando" value={cpfMascarado ?? ''} readOnly disabled />
@@ -166,16 +313,12 @@ function SecaoPessoais({
         rotulo="Observações"
         dica="Algo que a comissão precise saber — restrição alimentar, acessibilidade."
       />
-    </Moldura>
+    </>
   )
 }
 
-function SecaoEndereco({
-  valores,
-  usuarioId,
-  editavel,
-}: { valores: FormularioDeEndereco } & Omit<Props, 'perfil'>) {
-  const { formulario, enviar, salvando } = useSecao('endereco', esquemaDeEndereco, valores, usuarioId)
+function CamposEndereco() {
+  const { setValue } = useFormContext<FormularioDeEndereco>()
   const consulta = useConsultarCep()
 
   // Com os 8 dígitos, o ViaCEP sugere o resto. Os campos continuam editáveis: CEP de rua nova
@@ -187,149 +330,77 @@ function SecaoEndereco({
       onSuccess: (endereco) => {
         if (!endereco) return
         for (const [campo, valor] of Object.entries(endereco)) {
-          if (valor) {
-            formulario.setValue(`endereco.${campo as keyof typeof endereco}`, valor, { shouldDirty: true })
-          }
+          if (valor) setValue(`endereco.${campo as keyof typeof endereco}`, valor, { shouldDirty: true })
         }
       },
     })
   }
 
   return (
-    <Moldura
-      titulo="Endereço"
-      formulario={formulario}
-      enviar={enviar}
-      salvando={salvando}
-      editavel={editavel}
-    >
-      <div className="grid items-start gap-4 sm:grid-cols-6">
-        <div className="sm:col-span-2">
-          <Campo<FormularioDeEndereco>
-            nome="endereco.cep"
-            rotulo="CEP"
-            inputMode="numeric"
-            autoComplete="postal-code"
-            placeholder="80000-000"
-            aoMudar={buscarCep}
-            dica={
-              consulta.isPending
-                ? 'Buscando endereço…'
-                : consulta.data === null
-                  ? 'Não achamos este CEP. Preencha o endereço à mão.'
-                  : undefined
-            }
-          />
-        </div>
-        <div className="sm:col-span-4">
-          <Campo<FormularioDeEndereco>
-            nome="endereco.logradouro"
-            rotulo="Logradouro"
-            autoComplete="address-line1"
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <Campo<FormularioDeEndereco> nome="endereco.numero" rotulo="Número" />
-        </div>
-        <div className="sm:col-span-4">
-          <Campo<FormularioDeEndereco>
-            nome="endereco.complemento"
-            rotulo="Complemento"
-            autoComplete="address-line2"
-          />
-        </div>
-        <div className="sm:col-span-2">
-          <Campo<FormularioDeEndereco> nome="endereco.bairro" rotulo="Bairro" />
-        </div>
-        <div className="sm:col-span-3">
-          <Campo<FormularioDeEndereco> nome="endereco.cidade" rotulo="Cidade" autoComplete="address-level2" />
-        </div>
-        <div className="sm:col-span-1">
-          <Campo<FormularioDeEndereco>
-            nome="endereco.uf"
-            rotulo="UF"
-            autoComplete="address-level1"
-            maxLength={2}
-          />
-        </div>
-      </div>
-    </Moldura>
-  )
-}
-
-function SecaoEmergencia({
-  valores,
-  usuarioId,
-  editavel,
-}: { valores: FormularioDeEmergencia } & Omit<Props, 'perfil'>) {
-  const { formulario, enviar, salvando } = useSecao('emergencia', esquemaDeEmergencia, valores, usuarioId)
-
-  return (
-    <Moldura
-      titulo="Contato de emergência"
-      formulario={formulario}
-      enviar={enviar}
-      salvando={salvando}
-      editavel={editavel}
-    >
-      <div className="grid items-start gap-4 sm:grid-cols-3">
-        <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.nome" rotulo="Nome" />
-        <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.telefone" rotulo="Telefone" type="tel" />
-        <Campo<FormularioDeEmergencia>
-          nome="contato_de_emergencia.parentesco"
-          rotulo="Parentesco"
-          placeholder="Mãe"
+    <div className="grid items-start gap-4 sm:grid-cols-6">
+      <div className="sm:col-span-2">
+        <Campo<FormularioDeEndereco>
+          nome="endereco.cep"
+          rotulo="CEP"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          placeholder="80000-000"
+          aoMudar={buscarCep}
+          dica={
+            consulta.isPending
+              ? 'Buscando endereço…'
+              : consulta.data === null
+                ? 'Não achamos este CEP. Preencha o endereço à mão.'
+                : undefined
+          }
         />
       </div>
-    </Moldura>
+      <div className="sm:col-span-4">
+        <Campo<FormularioDeEndereco>
+          nome="endereco.logradouro"
+          rotulo="Logradouro"
+          autoComplete="address-line1"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <Campo<FormularioDeEndereco> nome="endereco.numero" rotulo="Número" />
+      </div>
+      <div className="sm:col-span-4">
+        <Campo<FormularioDeEndereco>
+          nome="endereco.complemento"
+          rotulo="Complemento"
+          autoComplete="address-line2"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <Campo<FormularioDeEndereco> nome="endereco.bairro" rotulo="Bairro" />
+      </div>
+      <div className="sm:col-span-3">
+        <Campo<FormularioDeEndereco> nome="endereco.cidade" rotulo="Cidade" autoComplete="address-level2" />
+      </div>
+      <div className="sm:col-span-1">
+        <Campo<FormularioDeEndereco>
+          nome="endereco.uf"
+          rotulo="UF"
+          autoComplete="address-level1"
+          maxLength={2}
+        />
+      </div>
+    </div>
   )
 }
 
-/** Cartão da seção: título, campos travados quando não editável, erro geral e o botão. */
-function Moldura<T extends FieldValues>({
-  titulo,
-  formulario,
-  enviar,
-  salvando,
-  editavel,
-  children,
-}: {
-  titulo: string
-  formulario: UseFormReturn<T>
-  enviar: (evento?: React.BaseSyntheticEvent) => Promise<void>
-  salvando: boolean
-  editavel: boolean
-  children: ReactNode
-}) {
-  // `useFormState`, e não `formulario.formState.isDirty` solto no render: a leitura solta some com a
-  // memoização do React Compiler quando é a única do formState no componente, e o botão nunca sai de
-  // desabilitado. A assinatura própria re-renderiza este cartão por conta.
-  const { isDirty } = useFormState({ control: formulario.control })
-
+function CamposEmergencia() {
   return (
-    <Form {...formulario}>
-      <form
-        noValidate
-        onSubmit={enviar}
-        aria-label={titulo}
-        className="bg-card shadow-cartao grid gap-4 rounded-3xl p-5"
-      >
-        <h2 className="text-foreground font-medium">{titulo}</h2>
-
-        {/* `fieldset disabled` trava todos os campos de uma vez, pelo navegador. */}
-        <fieldset disabled={!editavel} className="grid min-w-0 gap-4">
-          {children}
-        </fieldset>
-
-        <ErroDoFormulario />
-
-        {editavel ? (
-          <Button type="submit" className="justify-self-start" disabled={salvando || !isDirty}>
-            {salvando ? 'Salvando…' : `Salvar ${titulo.toLowerCase()}`}
-          </Button>
-        ) : null}
-      </form>
-    </Form>
+    <div className="grid items-start gap-4 sm:grid-cols-3">
+      <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.nome" rotulo="Nome" />
+      <Campo<FormularioDeEmergencia> nome="contato_de_emergencia.telefone" rotulo="Telefone" type="tel" />
+      <Campo<FormularioDeEmergencia>
+        nome="contato_de_emergencia.parentesco"
+        rotulo="Parentesco"
+        placeholder="Mãe"
+      />
+    </div>
   )
 }
 

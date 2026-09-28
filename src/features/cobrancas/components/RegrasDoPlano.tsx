@@ -5,13 +5,10 @@ import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
-import { formatarNumero } from '@/lib/formato'
+import { formatarNumero, formatarPercentual } from '@/lib/formato'
 import { LIMITES_DE_MERCADO } from '../schemas/cobranca.schema'
 import type { PlanoDeCobranca } from '../types/cobrancas.types'
 import { FormularioDoPlano } from './FormularioDoPlano'
-
-/** Base 10.000 como percentual: `250` vira `2,50%`. */
-const percentual = (base: number) => `${formatarNumero(base / 100, 2)}%`
 
 const carencia = (dias: number) =>
   dias === 0 ? 'Sem carência' : dias === 1 ? '1 dia' : `${formatarNumero(dias)} dias`
@@ -50,7 +47,7 @@ export function RegrasDoPlano({ plano, editavel }: { plano: PlanoDeCobranca; edi
       <ListaDeDados>
         <Dado icone={TriangleAlert} rotulo="Multa por atraso">
           <span className="flex flex-wrap items-center gap-2">
-            {percentual(plano.percentual_de_multa)}
+            {formatarPercentual(plano.percentual_de_multa)}
             {plano.percentual_de_multa > LIMITES_DE_MERCADO.multa ? (
               <Selo tom="alerta">acima de 2%</Selo>
             ) : null}
@@ -58,7 +55,7 @@ export function RegrasDoPlano({ plano, editavel }: { plano: PlanoDeCobranca; edi
         </Dado>
         <Dado icone={Percent} rotulo="Juros ao mês">
           <span className="flex flex-wrap items-center gap-2">
-            {percentual(plano.percentual_de_juros_ao_mes)}
+            {formatarPercentual(plano.percentual_de_juros_ao_mes)}
             {plano.percentual_de_juros_ao_mes > LIMITES_DE_MERCADO.jurosAoMes ? (
               <Selo tom="alerta">acima de 1%</Selo>
             ) : null}
@@ -69,7 +66,7 @@ export function RegrasDoPlano({ plano, editavel }: { plano: PlanoDeCobranca; edi
         </Dado>
         <Dado icone={PiggyBank} rotulo="Desconto por antecipação">
           {plano.percentual_de_desconto_por_antecipacao
-            ? percentual(plano.percentual_de_desconto_por_antecipacao)
+            ? formatarPercentual(plano.percentual_de_desconto_por_antecipacao)
             : 'Sem desconto'}
         </Dado>
       </ListaDeDados>

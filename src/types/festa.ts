@@ -68,6 +68,18 @@ export interface ItemDaFesta {
   estado: EstadoDoItem
   cancelado: boolean
   ordem: number
+  /**
+   * Preço unitário do item opcional ligado a este (Sprint 20, decisão 11). Nulo: a turma não
+   * abriu a venda, e o custo continua saindo da estimativa.
+   *
+   * Ligado, ele manda no cartão: é por ele que a turma cobra, e dois preços para a mesma foto é
+   * exatamente a divergência que o vínculo existe para fechar.
+   */
+  preco_de_venda_em_centavos: number | null
+  /** Unidades já pedidas pelos formandos — o "37" de "R$ 350,00 × 37 pedidos". */
+  pedidos_confirmados: number
+  /** O item opcional ligado, se houver. */
+  item_de_cobranca_id: string | null
 }
 
 /** A meta da turma. Espelha `MetaDaFestaDTO`. */
@@ -138,4 +150,102 @@ export interface DadosDaProposta {
   titulo: string
   valor_em_centavos: number
   o_que_inclui?: string
+}
+
+/**
+ * O evento que o convite da festa imprime, com os horários que as telas precisam (Sprint 21).
+ *
+ * `fechamento_da_lista` é 24 h antes (P5): até ali o formando troca nomes. A janela da portaria vai
+ * de 6 h antes a 12 h depois do horário (P7). Espelha `EventoDoConviteDTO`.
+ */
+export interface EventoDoConvite {
+  id: string
+  tipo: 'Festa' | 'Colacao'
+  titulo: string
+  data: string
+  hora: string | null
+  local: string | null
+  completo: boolean
+  fechamento_da_lista: string
+  janela_abre_em: string
+  janela_fecha_em: string
+}
+
+/**
+ * A situação dos convites da festa, para a Gestão.
+ *
+ * Mora em `types/` porque a portaria (feature `festa`) e o aviso da agenda (feature `agenda`) leem o
+ * mesmo resumo: quando a festa é antecipada, a agenda avisa quantos pedidos ficaram com parcela
+ * vencendo depois do fechamento da lista (P2.1). Espelha `ResumoDosConvitesDTO`.
+ */
+export interface ResumoDosConvites {
+  evento: EventoDoConvite | null
+  evento_completo: boolean
+  emitidos: number
+  sem_titular: number
+  pedidos_quitados_sem_convite: number
+  pedidos_com_parcela_depois_do_fechamento: number
+}
+
+/**
+ * O painel da cota de convites da colação (Sprint 30), na Gestão.
+ *
+ * Mora em `types/` porque é convite da festa lido pela agenda. `excedente` é aviso, não bloqueio
+ * (decisão 3): o número de formandos muda depois do cadastro. Espelha `PainelDaCotaDTO`.
+ */
+export interface PainelDaCota {
+  evento: EventoDoConvite
+  cota_por_formando: number | null
+  capacidade: number | null
+  /** Quando a cota foi aberta pela primeira vez; nulo se nunca. */
+  aberta_em: string | null
+  formandos_ativos: number
+  cortesias: number
+  /** Cota × formandos ativos + cortesias. */
+  lugares: number
+  /** Quanto `lugares` passa da capacidade; zero se cabe. */
+  excedente: number
+  emitidos: number
+  nomeados: number
+  sem_nome: number
+}
+
+/** A cota como a tela a envia. Espelha `CotaRequestDTO`. */
+export interface DadosDaCota {
+  cota_por_formando: number | null
+  capacidade: number | null
+}
+
+/** O documento do convidado (P5.1). Espelha `TipoDeDocumento`. */
+export type TipoDeDocumento = 'Cpf' | 'Rg'
+
+export const ROTULOS_DE_DOCUMENTO = { Cpf: 'CPF', Rg: 'RG' } as const satisfies Record<
+  TipoDeDocumento,
+  string
+>
+
+/** Um convite de quem o tem — o formando ou o comprador da loja (Sprint 26). Espelha `MeuConviteDTO`. */
+export interface MeuConvite {
+  id: string
+  sequencial: number
+  codigo: string
+  /**
+   * Nulo enquanto "a definir": o link e o QR só existem com convidado. É vaga paga, não ingresso — o
+   * link que circulasse antes valeria para quem fosse nomeado depois.
+   */
+  token: string | null
+  nome_do_convidado: string | null
+  tipo_do_documento: TipoDeDocumento | null
+  documento: string | null
+  email_do_convidado: string | null
+  emitido_em: string
+  validado_em: string | null
+}
+
+/** O titular, como o formulário o envia. Espelha `ConvidadoRequestDTO`. */
+export interface DadosDoConvidado {
+  nome: string
+  tipo_do_documento: TipoDeDocumento | null
+  numero_do_documento: string | null
+  email: string | null
 }

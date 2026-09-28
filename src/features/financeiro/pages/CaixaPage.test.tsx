@@ -22,6 +22,7 @@ const CONSOLIDADO: Caixa = {
   por_categoria: [
     { categoria: 'Buffet', quantidade: 3, pago_em_centavos: 9_620_000, previsto_em_centavos: 5_000_000 },
   ],
+  outras_receitas_por_categoria: [],
   ultimos: [
     { data: '2026-09-10', descricao: 'Ana Souza', valor_em_centavos: 35_000, entrada: true },
     { data: '2026-09-08', descricao: 'Entrada do buffet', valor_em_centavos: 9_620_000, entrada: false },
@@ -126,5 +127,26 @@ describe('CaixaPage', () => {
     renderizar(<CaixaPage />)
 
     expect(await screen.findByText(/Nenhuma despesa lançada ainda/)).toBeInTheDocument()
+  })
+
+  it('a receita recebida entra no quadro de receitas; a prevista fica à parte', async () => {
+    entrarComo('Comissao')
+    comApi({
+      ...CONSOLIDADO,
+      outras_receitas_por_categoria: [
+        {
+          categoria: 'Patrocinio',
+          quantidade: 2,
+          recebido_em_centavos: 300_000,
+          previsto_em_centavos: 200_000,
+        },
+      ],
+    })
+
+    renderizar(<CaixaPage />)
+
+    const quadro = await screen.findByRole('region', { name: 'Outras receitas por categoria' })
+    expect(await within(quadro).findByText('Patrocínio')).toBeInTheDocument()
+    expect(within(quadro).getByText(`A receber: ${reais(200_000)}`)).toBeInTheDocument()
   })
 })

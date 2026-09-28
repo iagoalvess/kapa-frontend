@@ -1,8 +1,7 @@
 import {
   BadgeCheck,
   CalendarDays,
-  BellRing,
-  Handshake,
+  HandCoins,
   LifeBuoy,
   Coins,
   FileSignature,
@@ -16,12 +15,14 @@ import {
   Megaphone,
   type LucideIcon,
   PartyPopper,
+  DoorOpen,
+  Ticket,
   PiggyBank,
   Receipt,
   ReceiptText,
-  Send,
+  ShoppingBag,
   Users,
-  WalletMinimal,
+  Store,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router'
@@ -180,25 +181,21 @@ function PlanoDaTurma({ aoNavegar }: { aoNavegar?: () => void }) {
   )
 }
 
-/**
- * O que é da pessoa dentro da turma: o termo dela e as parcelas dela.
- *
- * Os dois nomes começam com "Meu/Minhas" de propósito: para quem administra, este bloco convive no
- * mesmo menu com "Parcelas" (as da turma inteira) e com "Adesões" (as de todo mundo), e sem o
- * possessivo os dois pares ficam indistinguíveis.
- *
- * Abre o menu para todo mundo: quem preside a turma também assina o próprio termo e paga as próprias
- * parcelas. O cadastro e a privacidade **não** estão aqui — são da conta, não da turma, e vivem no
- * menu do avatar, que é onde o mercado inteiro os põe.
- */
+/** O termo e os convites da pessoa; Parcelas e Pedidos entram aqui só para quem não é da Gestão. */
 function Meu({
   aoNavegar,
   adesaoPendente,
   parcelasVencidas,
+  mostrarParcelas = true,
+  mostrarPedidos = true,
+  mostrarConvites = true,
 }: {
   aoNavegar?: () => void
   adesaoPendente: boolean
   parcelasVencidas?: number
+  mostrarParcelas?: boolean
+  mostrarPedidos?: boolean
+  mostrarConvites?: boolean
 }) {
   return (
     <Secao titulo="Minhas coisas">
@@ -213,18 +210,28 @@ function Meu({
       >
         Meu termo
       </ItemDeMenu>
-      {/* Todo membro paga: o extrato e o PIX de cada parcela. O número é o que já venceu e ele
-          ainda não avisou — a única pendência da tela que corre juros enquanto espera. */}
-      <ItemDeMenu
-        to={ROTAS.extrato}
-        icone={WalletMinimal}
-        aoNavegar={aoNavegar}
-        secao
-        sinal={parcelasVencidas}
-        rotuloDoSinal="vencidas"
-      >
-        Minhas parcelas
-      </ItemDeMenu>
+      {mostrarParcelas ? (
+        <ItemDeMenu
+          to={ROTAS.extrato}
+          icone={ReceiptText}
+          aoNavegar={aoNavegar}
+          secao
+          sinal={parcelasVencidas}
+          rotuloDoSinal="minhas vencidas"
+        >
+          Parcelas
+        </ItemDeMenu>
+      ) : null}
+      {mostrarPedidos ? (
+        <ItemDeMenu to={ROTAS.meusPedidos} icone={ShoppingBag} aoNavegar={aoNavegar}>
+          Pedidos
+        </ItemDeMenu>
+      ) : null}
+      {mostrarConvites ? (
+        <ItemDeMenu to={ROTAS.meusConvites} icone={Ticket} aoNavegar={aoNavegar}>
+          Meus convites
+        </ItemDeMenu>
+      ) : null}
     </Secao>
   )
 }
@@ -238,19 +245,16 @@ function Meu({
  * que entra e o que sai, e esta é a seção que fala do dinheiro inteiro — o Caixa já soma os dois
  * lados. Sozinho, sem seção, o item ficava boiando entre dois grupos.
  *
- * @param comFornecedores O cadastro de fornecedor é da Tesouraria.
  * @param comRelatorios Balancete e exportações são da Gestão.
  * @param despesasAtrasadas Só a Tesouraria recebe o número: para quem não paga despesa, ele não é
  *   ação nenhuma — é a conta da turma exposta como se fosse cobrança.
  */
 function DinheiroDaTurma({
   aoNavegar,
-  comFornecedores,
   comRelatorios = false,
   despesasAtrasadas,
 }: {
   aoNavegar?: () => void
-  comFornecedores: boolean
   comRelatorios?: boolean
   despesasAtrasadas?: number
 }) {
@@ -269,11 +273,9 @@ function DinheiroDaTurma({
       >
         Despesas
       </ItemDeMenu>
-      {comFornecedores ? (
-        <ItemDeMenu to={ROTAS.fornecedores} icone={Handshake} aoNavegar={aoNavegar} secao>
-          Fornecedores
-        </ItemDeMenu>
-      ) : null}
+      <ItemDeMenu to={ROTAS.outrasReceitas} icone={HandCoins} aoNavegar={aoNavegar} secao>
+        Outras receitas
+      </ItemDeMenu>
       {comRelatorios ? (
         <ItemDeMenu to={ROTAS.relatorios} icone={FileText} aoNavegar={aoNavegar}>
           Relatórios
@@ -350,21 +352,27 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
           {/* Não há item "Início": quem leva para lá é a logo, como em Linear, Notion e GitHub. Um
               item a mais para o mesmo lugar só encurta a lista de quem tem dezessete. */}
 
-          {/* "Minhas coisas" abre o menu para todo mundo, inclusive para quem administra: o termo e
-              as parcelas são de cada pessoa, e quem preside a turma também assina e paga as dela.
-              São dois itens à frente do trabalho do dia, e em troca o menu tem uma ordem só —
-              antes, o mesmo bloco ficava no topo para o formando e no rodapé para a comissão. */}
+          {/* O termo e os convites continuam pessoais. Parcelas e Pedidos têm um só item cada:
+              a Gestão abre a lista da turma e o formando abre a própria lista. */}
           {desligadoEm ? (
             /* Quem saiu fica com o que é dele e mais nada: é o mesmo recorte de
                `LEITURAS_DO_DESLIGADO` e da política `TitularDoProprioHistorico`. Mostrar o menu
                inteiro seria oferecer dez portas que respondem 403. */
-            <Meu aoNavegar={aoNavegar} adesaoPendente={false} parcelasVencidas={undefined} />
+            <Meu
+              aoNavegar={aoNavegar}
+              adesaoPendente={false}
+              parcelasVencidas={undefined}
+              mostrarPedidos={false}
+              mostrarConvites={false}
+            />
           ) : ehGestao ? (
             <>
               <Meu
                 aoNavegar={aoNavegar}
                 adesaoPendente={adesaoPendente}
                 parcelasVencidas={parcelasVencidas}
+                mostrarParcelas={false}
+                mostrarPedidos={false}
               />
 
               <Secao titulo="Cobrança">
@@ -381,34 +389,32 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                     Conferir
                   </ItemDeMenu>
                 ) : null}
-                <ItemDeMenu to={ROTAS.parcelas} icone={ReceiptText} aoNavegar={aoNavegar}>
+                <ItemDeMenu
+                  to={ROTAS.parcelas}
+                  icone={ReceiptText}
+                  aoNavegar={aoNavegar}
+                  sinal={parcelasVencidas}
+                  rotuloDoSinal="minhas vencidas"
+                >
                   Parcelas
+                </ItemDeMenu>
+                {/* Item próprio por causa de quem não é tesouraria: o Plano é tela de tesouraria, e
+                    sem esta a comissão ficaria sem lugar para responder ao formando que diz "pedi e
+                    não apareceu". Os opcionais em si ficam num cartão da tela de Plano. */}
+                <ItemDeMenu to={ROTAS.pedidos} icone={ShoppingBag} aoNavegar={aoNavegar} secao>
+                  Pedidos
+                </ItemDeMenu>
+                <ItemDeMenu to={ROTAS.comprasDaLoja} icone={Store} aoNavegar={aoNavegar}>
+                  Loja
                 </ItemDeMenu>
                 {ehTesouraria ? (
                   <ItemDeMenu to={ROTAS.cobrancas} icone={Coins} aoNavegar={aoNavegar}>
                     Plano
                   </ItemDeMenu>
                 ) : null}
-                {/* Um item por pessoa, e não dois: quem escreve a régua chega aos avisos enviados
-                    pelo botão da própria tela, e a Comissão — que lê o histórico e não edita a
-                    régua — chega direto. */}
-                {ehTesouraria ? (
-                  <ItemDeMenu to={ROTAS.regua} icone={BellRing} aoNavegar={aoNavegar}>
-                    Lembretes
-                  </ItemDeMenu>
-                ) : (
-                  <ItemDeMenu to={ROTAS.avisosEnviados} icone={Send} aoNavegar={aoNavegar}>
-                    Avisos enviados
-                  </ItemDeMenu>
-                )}
               </Secao>
 
-              <DinheiroDaTurma
-                aoNavegar={aoNavegar}
-                comFornecedores={ehTesouraria}
-                comRelatorios
-                despesasAtrasadas={despesasAtrasadas}
-              />
+              <DinheiroDaTurma aoNavegar={aoNavegar} comRelatorios despesasAtrasadas={despesasAtrasadas} />
 
               <Secao titulo="Turma">
                 <ItemDeMenu to={ROTAS.membros} icone={Users} aoNavegar={aoNavegar} secao>
@@ -419,6 +425,9 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
                   A festa
+                </ItemDeMenu>
+                <ItemDeMenu to={ROTAS.portaria} icone={DoorOpen} aoNavegar={aoNavegar}>
+                  Portaria
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
                   Mural
@@ -452,7 +461,7 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
                 </ItemDeMenu>
               </Secao>
 
-              <DinheiroDaTurma aoNavegar={aoNavegar} comFornecedores={false} />
+              <DinheiroDaTurma aoNavegar={aoNavegar} />
             </>
           )}
         </nav>

@@ -10,12 +10,12 @@ export interface FormaturaDoUsuario {
   semestre: number
   papel: Papel
   /**
-   * Quando ele foi desligado desta turma, em ISO; ausente para quem continua nela.
+   * Quando ele foi desligado desta turma, em ISO; nulo para quem continua nela.
    *
    * A turma desligada segue na lista: o extrato é a prova do que ele pagou, e escondê-la seria
    * escondê-la também dele (P5 da Sprint 15).
    */
-  desligado_em?: string
+  desligado_em: string | null
 }
 
 /**
@@ -30,5 +30,4 @@ export interface DadosDaFormatura {
   curso: string
   ano: number
   semestre: number
-  quantidade_estimada_de_formandos: number
 }

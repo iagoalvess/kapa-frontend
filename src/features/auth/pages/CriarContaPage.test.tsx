@@ -178,13 +178,13 @@ describe('CriarContaPage', () => {
     await waitFor(() => expect(versoesAceitas).toContainEqual({ tipo: 'TermosDeUso', versao: '2' }))
   })
 
-  it('o link de cada documento abre em nova aba', () => {
+  it('o link de cada documento abre o site em nova aba', () => {
     renderizar(<CriarContaPage />)
 
     expect(screen.getByRole('link', { name: 'Termos de Uso' })).toHaveAttribute('target', '_blank')
     expect(screen.getByRole('link', { name: 'Política de Privacidade' })).toHaveAttribute(
       'href',
-      '/privacidade',
+      `${env.VITE_SITE_URL}/privacidade`,
     )
   })
 

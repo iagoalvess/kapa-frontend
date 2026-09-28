@@ -5,7 +5,6 @@ import {
   alterarPapel,
   desligarMembro,
   listarMembros,
-  religarMembro,
   removerMembro,
   resumirMembros,
   resumirSaida,
@@ -84,7 +83,7 @@ export function useAlterarPapel() {
     mutationFn: alterarPapel,
     onSuccess: async (_, { usuario_id }) => {
       if (ehOProprio(usuario_id)) await sessao.renovar()
-      await queryClient.invalidateQueries({ queryKey: chaves.tudo })
+      void queryClient.invalidateQueries({ queryKey: chaves.tudo })
     },
   })
 }
@@ -103,7 +102,7 @@ export function useRemoverMembro() {
     mutationFn: removerMembro,
     onSuccess: async (_, usuario_id) => {
       if (!ehOProprio(usuario_id)) {
-        await queryClient.invalidateQueries({ queryKey: chaves.tudo })
+        void queryClient.invalidateQueries({ queryKey: chaves.tudo })
         return
       }
 
@@ -146,30 +145,7 @@ export function useDesligarMembro() {
     mutationFn: desligarMembro,
     onSuccess: async (_, { usuario_id }) => {
       if (!ehOProprio(usuario_id)) {
-        await queryClient.invalidateQueries({ queryKey: chaves.tudo })
-        return
-      }
-
-      await sessao.renovar()
-      queryClient.clear()
-    },
-  })
-}
-
-/**
- * Desfazer do desligamento.
- *
- * Não ressuscita parcela cancelada — quem religa a si mesmo volta a ver a turma, mas a cobrança
- * cancelada continua cancelada, e volta por lançamento novo.
- */
-export function useReligarMembro() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: religarMembro,
-    onSuccess: async (_, usuario_id) => {
-      if (!ehOProprio(usuario_id)) {
-        await queryClient.invalidateQueries({ queryKey: chaves.tudo })
+        void queryClient.invalidateQueries({ queryKey: chaves.tudo })
         return
       }
 

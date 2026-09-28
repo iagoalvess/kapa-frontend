@@ -1,4 +1,4 @@
-import { ROTAS } from './rotas'
+import { ROTAS, urlDoSite } from './rotas'
 
 /**
  * Documentos legais da plataforma. Espelha `TipoDeDocumento` do backend.
@@ -13,8 +13,12 @@ export const TIPOS_DE_DOCUMENTO = {
 
 export type TipoDeDocumento = (typeof TIPOS_DE_DOCUMENTO)[keyof typeof TIPOS_DE_DOCUMENTO]
 
-/** Como cada documento aparece na tela e onde ele abre. */
+/** Como cada documento aparece na tela e onde ele abre — no site, em endereço absoluto (Sprint 33). */
 export const DOCUMENTOS: Record<TipoDeDocumento, { rotulo: string; artigo: string; rota: string }> = {
-  TermosDeUso: { rotulo: 'Termos de Uso', artigo: 'os', rota: ROTAS.termosDeUso },
-  PoliticaDePrivacidade: { rotulo: 'Política de Privacidade', artigo: 'a', rota: ROTAS.privacidade },
+  TermosDeUso: { rotulo: 'Termos de Uso', artigo: 'os', rota: urlDoSite(ROTAS.termosDeUso) },
+  PoliticaDePrivacidade: {
+    rotulo: 'Política de Privacidade',
+    artigo: 'a',
+    rota: urlDoSite(ROTAS.privacidade),
+  },
 }

@@ -1,19 +1,14 @@
 import type { Papel } from '@/config/perfis'
 import type { PaginacaoRequest } from '@/types/paginacao'
 
-/**
- * Membro da formatura selecionada, com o cadastro. Espelha `MembroDaFormaturaDTO`.
- *
- * A API omite campo nulo (`WhenWritingNull`): sem nome civil informado, `nome_completo` chega
- * `undefined`.
- */
+/** Membro da formatura selecionada, com o cadastro. Espelha `MembroDaFormaturaDTO`. */
 export interface MembroDaFormatura {
   usuario_id: string
   nome: string
   email: string
   papel: Papel
   ativo: boolean
-  nome_completo?: string
+  nome_completo: string | null
   /** De 0 a 100. */
   completude: number
   /** Falta nome completo, CPF ou telefone. */
@@ -24,13 +19,13 @@ export interface MembroDaFormatura {
    */
   tem_adesao: boolean
   /**
-   * Quando saiu da turma, em UTC. Ausente em quem está nela e em quem foi **removido** — é o que
+   * Quando saiu da turma, em UTC. Nulo em quem está nela e em quem foi **removido** — é o que
    * separa as duas situações de `ativo: false`.
    */
-  desligado_em?: string
-  motivo_do_desligamento?: MotivoDeSaida
+  desligado_em: string | null
+  motivo_do_desligamento: MotivoDeSaida | null
   /** A justificativa, preenchida só quando o motivo é `Outro`. */
-  detalhe_do_desligamento?: string
+  detalhe_do_desligamento: string | null
 }
 
 /** Recorte por situação do cadastro. `Pendente` é quem ainda não tem o essencial. */

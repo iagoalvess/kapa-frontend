@@ -13,6 +13,7 @@ const ITENS = `${env.VITE_API_URL}/api/v1/festa/itens`
 const META = `${env.VITE_API_URL}/api/v1/festa/meta`
 const PROPOSTAS = `${env.VITE_API_URL}/api/v1/festa/propostas`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
+const MINHAS_MESAS = `${env.VITE_API_URL}/api/v1/festa/mesas/minhas`
 
 /** Um item "a contratar": sem despesa, o custo é o que a comissão orçou. */
 const aContratar: ItemDaFesta = {
@@ -34,6 +35,9 @@ const aContratar: ItemDaFesta = {
   estado: 'AContratar',
   cancelado: false,
   ordem: 1,
+  preco_de_venda_em_centavos: null,
+  pedidos_confirmados: 0,
+  item_de_cobranca_id: null,
 }
 
 /** Contratado por menos que o orçado, metade pago — o caso que prova a decisão 3. */
@@ -103,6 +107,7 @@ function comApi(
         : new HttpResponse(null, { status: 404 })
     }),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
+    http.get(MINHAS_MESAS, () => HttpResponse.json([])),
   )
 }
 
@@ -128,8 +133,34 @@ describe('FestaPage', () => {
 
     // Sem id na rota, o primeiro abre: a direita nunca fica vazia.
     const buffet = await detalhe('Buffet')
+    expect(screen.getByRole('link', { name: 'Gerenciar mesas' })).toHaveAttribute('href', '/festa/mesas')
     expect(within(buffet).getByText('Orçado')).toBeInTheDocument()
     expect(within(buffet).getByText(reais(60_000_00))).toBeInTheDocument()
+  })
+
+  it('o formando que tem mesa vê qual é, só para ler', async () => {
+    entrarComo('Formando')
+    comApi()
+    servidor.use(
+      http.get(MINHAS_MESAS, () =>
+        HttpResponse.json([
+          {
+            id: 'm-1',
+            identificacao: 'Mesa 12',
+            lugares: 10,
+            observacao: null,
+            reservada: false,
+            vinculo_id: 'v-1',
+            dono: 'Ana',
+          },
+        ]),
+      ),
+    )
+
+    renderizar(<FestaPage />)
+
+    expect(await screen.findByText('Mesa 12')).toBeInTheDocument()
+    expect(screen.getByText(/Sua mesa no jantar/)).toBeInTheDocument()
   })
 
   it('o item da rota é o que abre, e o custo contratado toma o lugar do orçado', async () => {
@@ -182,6 +213,7 @@ describe('FestaPage', () => {
 
     await detalhe('Buffet')
     expect(screen.queryByRole('button', { name: 'Novo item' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Gerenciar mesas' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
   })

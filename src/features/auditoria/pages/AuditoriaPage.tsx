@@ -1,11 +1,11 @@
 import { CalendarClock, Clock, ScrollText, UserRoundCheck } from 'lucide-react'
-import mascoteLupa from '@/assets/mascote/lupa.webp'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { type Indicador, FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
 import { SeletorDeFiltro } from '@/components/SeletorDeFiltro'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
@@ -152,6 +152,7 @@ export default function AuditoriaPage() {
       />
 
       <Cartao
+        icone={ScrollText}
         rotulo="Trilha de auditoria"
         descricao="Cada operação que muda dinheiro, permissão ou registro da turma deixa uma linha aqui. Nada nesta lista pode ser editado ou apagado."
         titulo="O que aconteceu na turma"
@@ -161,17 +162,14 @@ export default function AuditoriaPage() {
         {trilha.isError ? <ErroDaConsulta erro={trilha.error} /> : null}
 
         {trilha.data && itens.length === 0 ? (
-          <div className="motion-safe:animate-entrar grid justify-items-center gap-2 py-8 text-center">
-            <img src={mascoteLupa} alt="" className="w-28 drop-shadow-lg" />
-            <p className="text-foreground font-medium">
-              {semFiltro ? 'Nada registrado ainda' : 'Nenhum registro com esse filtro'}
-            </p>
-            <p className="text-muted-foreground text-sm">
-              {semFiltro
+          <ListaVazia
+            titulo={semFiltro ? 'Nada registrado ainda' : 'Nenhum registro com esse filtro'}
+            dica={
+              semFiltro
                 ? 'Baixa de parcela, troca da chave PIX, mudança de papel e exclusão de aviso aparecem aqui assim que acontecerem.'
-                : 'Tente outra busca, tire um filtro ou amplie o período.'}
-            </p>
-          </div>
+                : 'Tente outra busca, tire um filtro ou amplie o período.'
+            }
+          />
         ) : null}
 
         {itens.length > 0 ? (

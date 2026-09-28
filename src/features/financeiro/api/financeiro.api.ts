@@ -4,19 +4,25 @@ import type {
   Caixa,
   ContagemDeFornecedores,
   DadosDaDespesa,
+  DadosDaOutraReceita,
   DadosDoFornecedor,
   Despesa,
   FiltroDeDespesas,
   FiltroDeFornecedores,
+  FiltroDeOutrasReceitas,
   Fornecedor,
   NovaDespesa,
+  NovaOutraReceita,
   ProjecaoDoCaixa,
+  OutraReceita,
   ResumoDeDespesas,
+  ResumoDeOutrasReceitas,
 } from '../types/financeiro.types'
 
 const BASE = '/api/v1/financeiro'
 const FORNECEDORES = `${BASE}/fornecedores`
 const DESPESAS = `${BASE}/despesas`
+const OUTRAS_RECEITAS = `${BASE}/outras-receitas`
 const CAIXA = `${BASE}/caixa`
 
 /** Uma página do cadastro de fornecedores, por nome. */
@@ -133,4 +139,40 @@ export function obterProjecao(signal?: AbortSignal) {
  */
 export function baixarComprovante(despesaId: string) {
   return api.get<Blob>(`${DESPESAS}/${despesaId}/comprovante`, { resposta: 'blob' })
+}
+
+/** Uma página das receitas da turma, da mais recente. */
+export function listarOutrasReceitas(filtro: FiltroDeOutrasReceitas, signal?: AbortSignal) {
+  return api.get<Pagina<OutraReceita>>(OUTRAS_RECEITAS, { query: { ...filtro }, signal })
+}
+
+/** Quantas e quanto, por situação, no mesmo filtro da lista. */
+export function resumirOutrasReceitas(
+  filtro: Omit<FiltroDeOutrasReceitas, 'status' | 'atrasadas' | 'pagina' | 'tamanho'>,
+  signal?: AbortSignal,
+) {
+  return api.get<ResumoDeOutrasReceitas>(`${OUTRAS_RECEITAS}/resumo`, { query: { ...filtro }, signal })
+}
+
+/**
+ * Lança uma receita. JSON, e não multipart como a despesa: o comprovante já está no acervo, e vai
+ * só o id dele.
+ */
+export function lancarOutraReceita(dados: NovaOutraReceita) {
+  return api.post<OutraReceita>(OUTRAS_RECEITAS, { body: dados })
+}
+
+/** Corrige uma receita lançada — prevista ou recebida. */
+export function atualizarOutraReceita({ id, dados }: { id: string; dados: DadosDaOutraReceita }) {
+  return api.put<OutraReceita>(`${OUTRAS_RECEITAS}/${id}`, { body: dados })
+}
+
+/** Marca a prevista como recebida: é aqui que ela passa a contar no arrecadado e na meta. */
+export function receberOutraReceita({ id, recebida_em }: { id: string; recebida_em: string }) {
+  return api.post<OutraReceita>(`${OUTRAS_RECEITAS}/${id}/receber`, { body: { recebida_em } })
+}
+
+/** Cancela uma receita prevista — o patrocínio que não veio. */
+export function cancelarOutraReceita(id: string) {
+  return api.post<OutraReceita>(`${OUTRAS_RECEITAS}/${id}/cancelar`)
 }

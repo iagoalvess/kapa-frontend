@@ -38,9 +38,7 @@ const link = { ...aceito, id: 'c-1', email: undefined, usos_maximos: 80, status:
 
 function responder(convites: unknown[] = [], status = 'Ativa', extras: object = { ja_contratou: true }) {
   servidor.use(
-    http.get(ATUAL, () =>
-      HttpResponse.json({ id: 'f-1', status, quantidade_estimada_de_formandos: 80, ...extras }),
-    ),
+    http.get(ATUAL, () => HttpResponse.json({ id: 'f-1', status, ...extras })),
     http.get(CONVITES, () => HttpResponse.json(convites)),
   )
 }

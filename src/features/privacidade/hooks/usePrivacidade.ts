@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { baixarArquivo } from '@/lib/download'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import {
   baixarPacote,
   cancelarSolicitacao,
@@ -86,7 +86,7 @@ export function useSolicitar() {
           description: 'Você tem 15 dias para desistir. Enviamos um e-mail com os detalhes.',
         })
     },
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }
 
@@ -108,7 +108,7 @@ export function useBaixarPacote() {
         await baixarPacote(solicitacao.id),
         `meus-dados-kapa-${solicitacao.concluida_em?.slice(0, 10) ?? 'exportacao'}.zip`,
       ),
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }
 
@@ -127,11 +127,11 @@ export function useRevogarConsentimento() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: chaves.meusDados })
 
-      toast.success('Consentimento revogado.', {
+      toast.info('Consentimento revogado.', {
         description: 'Se este documento for obrigatório, vamos pedir o aceite de novo na próxima entrada.',
       })
     },
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }
 
@@ -149,8 +149,8 @@ function useMutacaoDaFila(acao: (id: string) => Promise<unknown>, mensagem: stri
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: chaves.solicitacoes })
 
-      toast.success(mensagem)
+      toast.info(mensagem)
     },
-    onError: (erro) => toast.error(mensagemDoErro(erro)),
+    onError: avisarErro,
   })
 }

@@ -32,40 +32,32 @@ export const DICAS_DE_TIPO = {
   Sistema: 'Mudanças na conta e recados da Kapa.',
 } as const satisfies Record<TipoDeNotificacao, string>
 
-/** Um degrau da régua. */
+/** Um degrau da régua. Texto e destinatários são do Kapa; a turma só liga ou desliga. */
 export interface Regra {
   id: string
   gatilho: GatilhoDaRegua
   /** Dias de distância do gatilho; negativo é antes do vencimento. */
   dias_de_deslocamento: number
   assunto: string
-  template: string
   ativa: boolean
   avisar_tesouraria: boolean
 }
 
-/** A régua da turma, com o que o editor precisa para não deixar passar erro. */
+/** A régua da turma. */
 export interface Regua {
   regras: Regra[]
-  /** As variáveis que um template aceita, sem as chaves. */
-  variaveis: string[]
-  tamanho_maximo: number
-  tamanho_maximo_do_assunto: number
 }
-
-/** Um degrau, como a gravação o envia. */
-export type DadosDaRegra = Omit<Regra, 'id'>
 
 /** Uma linha do histórico de envios. */
 export interface Notificacao {
   id: string
   destinatario: string
-  /** Ausente no resumo à tesouraria, que não tem vínculo. */
-  nome?: string
+  /** Nulo no resumo à tesouraria, que não tem vínculo. */
+  nome: string | null
   assunto: string
   status: StatusDaNotificacao
-  /** Ausente enquanto não falhou. */
-  erro?: string
+  /** Nulo enquanto não falhou. */
+  erro: string | null
   data_de_referencia: string
   enviada_em: string
   gatilho: GatilhoDaRegua

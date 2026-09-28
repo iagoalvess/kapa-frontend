@@ -36,7 +36,7 @@ interface Props {
 }
 
 /**
- * Adicionar um documento ao acervo, ou corrigir um — num diálogo, como o cadastro do fornecedor.
+ * Enviar um documento novo ao acervo, ou corrigir um — num diálogo, como o cadastro do fornecedor.
  *
  * O formulário remonta a cada abertura (a chave): entrar para corrigir e sair para adicionar não deixa
  * valor da vez anterior no campo.
@@ -49,7 +49,7 @@ export function UploadDeDocumento({ aberto, aoFechar }: Props) {
     <DialogoDeFormulario
       aberto={!!aberto}
       aoFechar={aoFechar}
-      titulo={documento ? `Corrigir ${documento.titulo}` : 'Adicionar documento'}
+      titulo={documento ? `Editar ${documento.titulo}` : 'Novo documento'}
       descricao={
         documento
           ? `Versão ${documento.versao}. Anexar um arquivo substitui o atual pela versão ${documento.versao + 1}.`
@@ -180,8 +180,8 @@ function FormularioDoDocumento({
           aoCancelar={aoConcluir}
           ocupado={salvando}
           desabilitado={!editavel}
-          rotulo={documento ? 'Salvar' : 'Adicionar'}
-          rotuloOcupado={documento ? 'Salvando…' : 'Adicionando…'}
+          rotulo={documento ? 'Salvar' : 'Enviar'}
+          rotuloOcupado={documento ? 'Salvando…' : 'Enviando…'}
         />
       </form>
     </Form>

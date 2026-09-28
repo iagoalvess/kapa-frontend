@@ -2,11 +2,6 @@ import type { Papel } from '@/config/perfis'
 import type { TipoDeCobranca } from '@/types/cobranca'
 import type { PaginacaoRequest } from '@/types/paginacao'
 
-/*
-  A API omite campo nulo (`WhenWritingNull`): o que pode faltar é opcional aqui, e se testa por
-  presença — nunca `=== null`.
-*/
-
 /** Uma versão do termo, com o texto. Espelha `VersaoDoTermoDTO`. */
 export interface VersaoDoTermo {
   id: string
@@ -28,7 +23,7 @@ export interface TermoPublicado {
 /** Um item do plano, como foi (ou será) aceito. Espelha `ItemAceitoDTO`. */
 export interface ItemAceito {
   tipo: TipoDeCobranca
-  descricao?: string
+  descricao: string | null
   /** Total por formando, em centavos. */
   valor_em_centavos: number
   numero_de_parcelas: number
@@ -40,7 +35,7 @@ export interface ItemAceito {
 /** Uma parcela da grade aceita. Espelha `ParcelaSimuladaDTO`. */
 export interface ParcelaAceita {
   tipo: TipoDeCobranca
-  descricao?: string
+  descricao: string | null
   numero: number
   /** Total de parcelas do item — o "24" de "1/24". */
   de: number
@@ -58,6 +53,7 @@ export interface PlanoAceito {
   percentual_de_juros_ao_mes: number
   carencia_em_dias: number
   percentual_de_desconto_por_antecipacao: number
+  dias_minimos_para_desconto: number
   itens: ItemAceito[]
   parcelas: ParcelaAceita[]
   total_em_centavos: number
@@ -70,9 +66,14 @@ export interface PlanoAceito {
  * dois, e é ele que volta no aceite.
  */
 export interface ConteudoParaAdesao {
-  termo?: VersaoDoTermo
-  plano?: PlanoAceito
-  hash_do_conteudo?: string
+  termo: VersaoDoTermo | null
+  plano: PlanoAceito | null
+  hash_do_conteudo: string | null
+  /**
+   * Cinco linhas geradas por IA sobre o termo vigente, ou `null` enquanto não existem. Fora do hash:
+   * não é parte do que se aceita.
+   */
+  resumo: string | null
 }
 
 /** Uma adesão, com o termo e o plano aceitos. Espelha `AdesaoDTO`. */
@@ -102,7 +103,7 @@ export type PendenciaDoCadastro = 'nome_completo' | 'cpf' | 'data_de_nascimento'
 
 /** A situação do próprio formando. Espelha `MinhaAdesaoDTO`. */
 export interface MinhaAdesao {
-  adesao?: Adesao
+  adesao: Adesao | null
   pendencias: PendenciaDoCadastro[]
   /** Menos de 18 anos pela data de nascimento: a adesão é com a comissão, fora da plataforma. */
   menor_de_idade: boolean
@@ -114,10 +115,10 @@ export interface SituacaoDeAdesao {
   nome: string
   email: string
   papel: Papel
-  /** Presente só para quem aderiu. */
-  adesao_id?: string
-  versao?: number
-  aceito_em?: string
+  /** Nulos para quem não aderiu. */
+  adesao_id: string | null
+  versao: number | null
+  aceito_em: string | null
 }
 
 /** Filtros de `GET /api/v1/adesoes`. */
@@ -131,5 +132,5 @@ export interface FiltroDeAdesoes extends PaginacaoRequest {
 export interface ResumoDeAdesoes {
   membros: number
   aderiram: number
-  versao_vigente?: number
+  versao_vigente: number | null
 }

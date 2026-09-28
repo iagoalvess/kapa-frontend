@@ -9,7 +9,6 @@ import {
   type LucideIcon,
   Mail,
   MapPin,
-  RefreshCw,
   Smartphone,
   UserRound,
   Wallet,
@@ -64,7 +63,7 @@ export function MeiosDeRecebimento() {
 
   const principal = editando ? (
     <Cartao
-      titulo={conta ? 'Como a turma recebe' : 'Cadastrar os meios de recebimento'}
+      titulo={conta ? 'Como a turma recebe' : 'Meios de recebimento'}
       icone={Wallet}
       descricao="O que a turma aceita, e o que o formando vê na hora de pagar."
     >
@@ -108,8 +107,7 @@ function CartaoDosMeios({ conta, aoTrocar }: { conta: ContaDeRecebimento; aoTroc
       acao={
         aoTrocar ? (
           <Button variant="outline" size="sm" onClick={aoTrocar}>
-            <RefreshCw aria-hidden />
-            Alterar meios
+            Editar
           </Button>
         ) : null
       }

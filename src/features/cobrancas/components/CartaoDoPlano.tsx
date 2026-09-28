@@ -7,7 +7,7 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useVigorarPlano } from '../hooks/usePlano'
 import type { PlanoDeCobranca, SimulacaoDoPlano } from '../types/cobrancas.types'
 
@@ -30,7 +30,7 @@ interface Props {
  * As regras de atraso saíram daqui para o cartão lateral: são quatro números que quase nunca mudam,
  * e ocupando a largura da tela pesavam mais que os itens, que são o trabalho do dia.
  *
- * "Incluir item" mora no cabeçalho, como a ação de todo cartão do app: o formulário ficava aberto
+ * "Nova cobrança" mora no cabeçalho, como a ação de todo cartão do app: o formulário ficava aberto
  * no pé do cartão o tempo todo, ocupando metade da tela para a coisa mais rara que se faz nela.
  */
 export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, children }: Props) {
@@ -38,7 +38,7 @@ export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, child
   const vigente = plano.status === 'Vigente'
 
   const descricao = vigente
-    ? `Em vigor desde ${formatarData(plano.vigente_desde)}. Mudar o valor de um item vale só para as parcelas que ainda não venceram.`
+    ? `Em vigor desde ${formatarData(plano.vigente_desde)}. Mudar o valor de uma cobrança vale só para as parcelas que ainda não venceram.`
     : ehPresidente
       ? 'Em montagem. Confira a grade ao lado e coloque o plano em vigor.'
       : 'Em montagem. Conferida a grade, quem coloca o plano em vigor é o Presidente.'
@@ -54,7 +54,7 @@ export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, child
           <>
             <Button variant="outline" size="sm" onClick={aoIncluirItem}>
               <Plus aria-hidden />
-              Incluir item
+              Nova cobrança
             </Button>
             {!vigente && ehPresidente ? <ColocarEmVigor plano={plano} simulacao={simulacao} /> : null}
           </>
@@ -81,7 +81,7 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
         <Button
           size="sm"
           disabled={semItens || vigorar.isPending}
-          title={semItens ? 'Inclua ao menos um item para colocar em vigor.' : undefined}
+          title={semItens ? 'Inclua ao menos uma cobrança para colocar em vigor.' : undefined}
         >
           Colocar em vigor
         </Button>
@@ -97,12 +97,12 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
       aoConfirmar={() =>
         vigorar.mutate(plano.id, {
           onSuccess: () => toast.success('Plano em vigor.'),
-          onError: (erro) => toast.error(mensagemDoErro(erro)),
+          onError: avisarErro,
         })
       }
     >
       <p className="text-muted-foreground text-sm">
-        Depois de em vigor, o valor de um item ainda pode mudar — só para as parcelas que não venceram.
+        Depois de em vigor, o valor de uma cobrança ainda pode mudar — só para as parcelas que não venceram.
       </p>
     </DialogoDeConfirmacao>
   )

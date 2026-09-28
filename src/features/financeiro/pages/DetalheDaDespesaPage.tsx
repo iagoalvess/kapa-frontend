@@ -21,8 +21,9 @@ import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { usePapel } from '@/hooks/useSessao'
+import { abrirNaAba } from '@/lib/download'
 import { formatarCentavos, formatarData, formatarMesCurto, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
 import { DialogoDeDespesa } from '../components/DialogoDeDespesa'
 import { DialogoDePagamento } from '../components/DialogoDePagamento'
@@ -93,12 +94,10 @@ export default function DetalheDaDespesaPage() {
   const abrirComprovante = () => {
     const aba = window.open('', '_blank')
     comprovante.mutate(dados.id, {
-      onSuccess: (arquivo) => {
-        if (aba) aba.location.href = URL.createObjectURL(arquivo)
-      },
+      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
       onError: (erro) => {
         aba?.close()
-        toast.error(mensagemDoErro(erro))
+        avisarErro(erro)
       },
     })
   }
@@ -136,7 +135,7 @@ export default function DetalheDaDespesaPage() {
                       Cancelar
                     </Button>
                   }
-                  titulo={`Cancelar ${rotuloDaDespesa(dados)}?`}
+                  titulo={`Cancelar “${rotuloDaDespesa(dados)}”?`}
                   descricao="A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo."
                   rotuloDeCancelar="Voltar"
                   rotulo="Cancelar despesa"
@@ -144,7 +143,7 @@ export default function DetalheDaDespesaPage() {
                   aoConfirmar={() =>
                     cancelar.mutate(dados.id, {
                       onSuccess: () => toast.info('Despesa cancelada.'),
-                      onError: (erro) => toast.error(mensagemDoErro(erro)),
+                      onError: avisarErro,
                     })
                   }
                 />

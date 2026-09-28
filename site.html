@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2994a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icones/apple-touch-icon.png" />
+
+    <!--
+      O site (kapaformaturas.com.br, Sprint 33). O título, a descrição, o canônico e as tags og: de cada
+      página entram no lugar do marcador abaixo, na pré-renderização (scripts/prerenderizar.ts) — é o
+      que o buscador e o preview do WhatsApp leem sem rodar JavaScript. Sem manifesto: o app instalável
+      é o do app., e daqui não se instala nada.
+    -->
+    <!--cabeca-->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kapa" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og-kapa.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A tela de caixa do Kapa, com o que entrou e o que saiu da turma" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="h-full">
+    <div id="root" class="h-full"><!--conteudo--></div>
+    <script type="module" src="/src/site/main.tsx"></script>
+  </body>
+</html>

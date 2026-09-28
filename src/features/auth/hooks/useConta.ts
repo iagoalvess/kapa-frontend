@@ -1,15 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
-import {
-  alterarSenha,
-  confirmarEmail,
-  reenviarConfirmacao,
-  redefinirSenha,
-  solicitarRedefinicao,
-} from '../api/conta.api'
+import { alterarSenha, confirmarEmail, redefinirSenha, solicitarRedefinicao } from '../api/conta.api'
 
 /**
  * Depois de trocar a senha, a API derruba todas as sessões da conta. O front larga a dele também
@@ -22,6 +15,7 @@ import {
  */
 function useEncerrarSessaoComAviso() {
   const navegar = useNavigate()
+  const queryClient = useQueryClient()
 
   return async (aviso: string) => {
     await navegar(ROTAS.login, { replace: true, state: { aviso }, flushSync: true })
@@ -58,9 +52,4 @@ export function useAlterarSenha() {
 /** Confirma o e-mail pelo link. */
 export function useConfirmarEmail() {
   return useMutation({ mutationFn: confirmarEmail })
-}
-
-/** Reenvia o e-mail de confirmação. */
-export function useReenviarConfirmacao() {
-  return useMutation({ mutationFn: reenviarConfirmacao })
 }

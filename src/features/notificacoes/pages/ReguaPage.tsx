@@ -1,18 +1,19 @@
 import { Bell, CalendarClock, History, Inbox, Mail } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
-import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { Interruptor } from '@/components/Interruptor'
+import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Tabela } from '@/components/Planilha'
-import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
-import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
-import { EditorDeTemplate } from '../components/EditorDeTemplate'
-import { useHistorico, useRegua } from '../hooks/useRegras'
+import { avisarErro } from '@/lib/http/erros'
+import { cn } from '@/lib/utils'
+import { useDefinirRegra, useHistorico, useRegua } from '../hooks/useRegras'
 import { destinoDoDegrau, marcoDoDegrau, type Regra, tomDoDegrau } from '../types/notificacoes.types'
 
 /** Em palavras, a distância do gatilho — a coluna que explica o `D-5` ao lado. */
@@ -28,19 +29,16 @@ function quandoDispara(regra: Regra) {
 
 /**
  * A régua de cobrança da turma: os degraus na tabela do cartão, do lembrete antes do vencimento à
- * cobrança firme, e o texto de cada um no diálogo de edição.
+ * cobrança firme, e a mesma sequência desenhada ao lado.
  *
- * Era uma linha do tempo horizontal em que cada ponto mostrava três coisas e escondia o resto atrás
- * de um clique num círculo de 14px. A ordem — que é o que a linha desenhava — a tabela ordenada já
- * diz, e em troca cabem na tela o assunto, quem recebe e se o degrau está ligado.
+ * O e-mail de cada degrau é padrão do Kapa (decisão de 24/09/2026): a comissão só liga ou desliga,
+ * na chave da linha. Não há editor, prévia nem envio de teste.
  *
- * A turma que nunca configurou nada já vê a régua padrão — a API a materializa na primeira leitura,
- * porque exigir configuração antes de funcionar significa que metade das turmas nunca teria lembrete.
- *
- * O degrau aberto vive na URL (`?degrau=`): recarregar e mandar o link voltam ao mesmo ponto.
+ * A turma que nunca abriu esta tela já tem a régua inteira ligada — a API a materializa na primeira
+ * leitura, porque exigir configuração antes de funcionar significa que metade das turmas nunca teria
+ * lembrete.
  */
 export default function ReguaPage() {
-  const { parametros, atualizar } = useFiltrosDaUrl()
   const regua = useRegua()
   // Uma linha só: o que se quer daqui é o total de envios, não a lista — ela tem tela própria.
   const historico = useHistorico({ pagina: 1, tamanho: 1 })
@@ -50,13 +48,11 @@ export default function ReguaPage() {
     .filter((regra) => regra.gatilho === 'Vencimento')
     .toSorted((a, b) => a.dias_de_deslocamento - b.dias_de_deslocamento)
   const fila = regras.filter((regra) => regra.gatilho === 'InformePendente')
-
-  const selecionado = parametros.get('degrau') ?? undefined
-  const emEdicao = regras.find((regra) => regra.id === selecionado)
   const ativos = regras.filter((regra) => regra.ativa)
 
   return (
     <>
+      <LinkDeVolta para={ROTAS.cobrancas}>Plano de cobrança</LinkDeVolta>
       <FaixaDeIndicadores
         rotulo="Resumo da régua"
         indicadores={[
@@ -93,64 +89,111 @@ export default function ReguaPage() {
       {regua.isError ? <ErroDaConsulta erro={regua.error} /> : null}
 
       {regua.data ? (
-        <Cartao
-          titulo="Régua de cobrança"
-          icone={CalendarClock}
-          descricao="Na ordem em que o formando recebe. Ninguém recebe mais de uma mensagem por dia."
-          acao={
-            <Button asChild variant="outline" size="sm">
-              <Link to={ROTAS.avisosEnviados}>
-                <History aria-hidden />
-                Avisos enviados
-              </Link>
-            </Button>
-          }
-        >
-          <TabelaDeDegraus>
-            {vencimentos.map((regra) => (
-              <LinhaDoDegrau key={regra.id} regra={regra} aoEditar={() => atualizar({ degrau: regra.id })} />
-            ))}
-          </TabelaDeDegraus>
-        </Cartao>
-      ) : null}
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+          <Cartao
+            titulo="Régua de cobrança"
+            icone={CalendarClock}
+            descricao="Na ordem em que o formando recebe. Ninguém recebe mais de uma mensagem por dia."
+            acao={
+              <Button asChild variant="outline" size="sm">
+                <Link to={ROTAS.avisosEnviados}>
+                  <History aria-hidden />
+                  Avisos enviados
+                </Link>
+              </Button>
+            }
+          >
+            <TabelaDeDegraus>
+              {vencimentos.map((regra) => (
+                <LinhaDoDegrau key={regra.id} regra={regra} />
+              ))}
+            </TabelaDeDegraus>
 
-      {/* Cartão próprio, e não uma seção da régua: quem recebe é a tesouraria, e não o formando —
-          a régua acima é a ordem em que a turma é cobrada, e a fila não entra nela. */}
-      {regua.data && fila.length > 0 ? (
-        <Cartao
-          titulo="Fila da tesouraria"
-          icone={Inbox}
-          descricao="Informe de pagamento parado trava a cobrança da parcela — este aviso lembra quem confere."
-        >
-          <TabelaDeDegraus>
-            {fila.map((regra) => (
-              <LinhaDoDegrau key={regra.id} regra={regra} aoEditar={() => atualizar({ degrau: regra.id })} />
-            ))}
-          </TabelaDeDegraus>
-        </Cartao>
-      ) : null}
+            {/* Seção à parte, e não mais linhas da tabela acima: quem recebe é a tesouraria, e a
+                fila não entra na ordem em que a turma é cobrada. */}
+            {fila.length > 0 ? (
+              <section aria-label="Fila da tesouraria" className="grid gap-3 border-t pt-5">
+                <div className="flex items-start gap-3">
+                  <span className="bg-brand-tint text-brand-text inline-flex size-8 shrink-0 items-center justify-center rounded-lg">
+                    <Inbox className="size-4" strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <div className="grid gap-0.5">
+                    <h3 className="text-foreground font-medium">Fila da tesouraria</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Informe de pagamento parado trava a cobrança da parcela — este aviso lembra quem
+                      confere.
+                    </p>
+                  </div>
+                </div>
+                <TabelaDeDegraus>
+                  {fila.map((regra) => (
+                    <LinhaDoDegrau key={regra.id} regra={regra} />
+                  ))}
+                </TabelaDeDegraus>
+              </section>
+            ) : null}
+          </Cartao>
 
-      <DialogoDeFormulario
-        aberto={!!emEdicao}
-        aoFechar={() => atualizar({ degrau: null })}
-        titulo={emEdicao ? `${marcoDoDegrau(emEdicao)} — ${tomDoDegrau(emEdicao)}` : 'Degrau'}
-        descricao={emEdicao ? `Vai para: ${destinoDoDegrau(emEdicao)}.` : ''}
-        largura="largo"
-      >
-        {regua.data && emEdicao ? (
-          <EditorDeTemplate
-            key={emEdicao.id}
-            regua={regua.data}
-            regra={emEdicao}
-            aoFechar={() => atualizar({ degrau: null })}
-          />
-        ) : null}
-      </DialogoDeFormulario>
+          {/* A segunda linha do grid é da sequência: ela ocupa a altura que o cartão da régua der. */}
+          <Cartao
+            titulo="Sequência de lembretes"
+            descricao="Visão do fluxo de comunicação"
+            className="grid-rows-[auto_1fr]"
+          >
+            <SequenciaDeLembretes degraus={vencimentos} />
+          </Cartao>
+        </div>
+      ) : null}
     </>
   )
 }
 
-/** As colunas dos degraus, iguais nos dois cartões — a régua e a fila da tesouraria. */
+/**
+ * Os degraus numa linha vertical, só para ler o fluxo — ligar e desligar fica na tabela ao lado.
+ * O degrau desligado fica apagado, e não some: a sequência mostra onde ele cairia.
+ *
+ * Cada degrau, menos o último, cresce para dividir a altura que sobra: o espaço entre eles acompanha
+ * a altura do cartão da régua ao lado, e a linha, que vai até o fim do degrau, continua ligando os pontos.
+ */
+function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
+  if (degraus.length === 0) {
+    return <p className="text-muted-foreground text-sm">Nenhum lembrete na régua.</p>
+  }
+
+  return (
+    <ol className="flex flex-col">
+      {degraus.map((regra, indice) => (
+        <li
+          key={regra.id}
+          className={cn(
+            'relative flex flex-1 items-start gap-3 pb-5 pl-6 last:flex-none last:pb-0',
+            !regra.ativa && 'opacity-50',
+          )}
+        >
+          {/* Da borda de baixo deste ponto à borda de cima do próximo, sem entrar em nenhum: o ponto do
+              degrau desligado é translúcido, e a linha apareceria através dele. */}
+          {indice < degraus.length - 1 ? (
+            <span className="bg-brand absolute top-[26px] -bottom-3.5 left-[5px] w-0.5" aria-hidden />
+          ) : null}
+          <span className="bg-brand absolute top-3.5 left-0 size-3 rounded-full" aria-hidden />
+          <span className="bg-brand-tint text-brand-text inline-flex size-10 shrink-0 items-center justify-center rounded-full">
+            <Mail className="size-4" aria-hidden />
+          </span>
+          <div className="grid min-w-0 flex-1 gap-0.5 text-sm">
+            <span className="text-foreground font-medium tabular-nums">{marcoDoDegrau(regra)}</span>
+            <span className="text-muted-foreground">{quandoDispara(regra)}</span>
+            <span className="text-muted-foreground">Para o {destinoDoDegrau(regra).toLowerCase()}</span>
+          </div>
+          <p className="bg-brand-tint text-foreground w-36 shrink-0 rounded-xl px-3 py-2 text-sm">
+            {regra.assunto}
+          </p>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+/** As colunas dos degraus, iguais nas duas seções — a régua e a fila da tesouraria. */
 function TabelaDeDegraus({ children }: { children: ReactNode }) {
   return (
     <Tabela
@@ -160,8 +203,7 @@ function TabelaDeDegraus({ children }: { children: ReactNode }) {
           <th className="py-3 pr-4 font-normal">Quando</th>
           <th className="py-3 pr-4 font-normal">Vai para</th>
           <th className="py-3 pr-4 font-normal">Assunto</th>
-          <th className="py-3 pr-4 font-normal">Situação</th>
-          <th className="py-3 text-right font-normal">Ações</th>
+          <th className="py-3 font-normal">Situação</th>
         </>
       }
     >
@@ -171,12 +213,24 @@ function TabelaDeDegraus({ children }: { children: ReactNode }) {
 }
 
 /**
- * Um degrau na tabela: o marco, quando dispara, quem recebe, o assunto e a situação.
+ * Um degrau na tabela: o marco, quando dispara, quem recebe, o assunto do e-mail e a chave que o
+ * liga e desliga.
  *
- * O assunto é o que a comissão quer conferir de relance — antes ele só aparecia depois de abrir o
- * editor. Truncado, porque a coluna é a única que cresce.
+ * A chave grava na hora, sem diálogo: desligar não apaga nada, e ligar de novo é o mesmo clique.
  */
-function LinhaDoDegrau({ regra, aoEditar }: { regra: Regra; aoEditar: () => void }) {
+function LinhaDoDegrau({ regra }: { regra: Regra }) {
+  const definir = useDefinirRegra()
+  const nome = `${marcoDoDegrau(regra)} — ${tomDoDegrau(regra)}`
+
+  const alternar = () =>
+    definir.mutate(
+      { id: regra.id, ativa: !regra.ativa },
+      {
+        onSuccess: () => (regra.ativa ? toast.info(`${nome} desligado.`) : toast.success(`${nome} ligado.`)),
+        onError: avisarErro,
+      },
+    )
+
   return (
     <tr className="border-b last:border-0">
       <td className="text-foreground py-3 pr-4 font-medium tabular-nums">{marcoDoDegrau(regra)}</td>
@@ -185,16 +239,16 @@ function LinhaDoDegrau({ regra, aoEditar }: { regra: Regra; aoEditar: () => void
       <td className="max-w-64 truncate py-3 pr-4" title={regra.assunto}>
         {regra.assunto}
       </td>
-      <td className="py-3 pr-4">{regra.ativa ? <Selo tom="sucesso">Ativo</Selo> : <Selo>Desligado</Selo>}</td>
-      <td className="py-3 text-right">
-        <Button
-          variant="outline"
-          size="sm"
-          aria-label={`Editar ${marcoDoDegrau(regra)} — ${tomDoDegrau(regra)}`}
-          onClick={aoEditar}
-        >
-          Editar
-        </Button>
+      <td className="py-3 whitespace-nowrap">
+        <span className="inline-flex items-center gap-2">
+          <Interruptor
+            ligado={regra.ativa}
+            rotulo={nome}
+            aoAlternar={alternar}
+            desabilitado={definir.isPending}
+          />
+          {regra.ativa ? 'Ativo' : 'Desligado'}
+        </span>
       </td>
     </tr>
   )

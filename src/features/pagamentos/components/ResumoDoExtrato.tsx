@@ -7,7 +7,7 @@ import type { Extrato } from '../types/pagamentos.types'
  * O topo do extrato, na faixa de números das demais telas: quanto falta, quando é a próxima, quanto
  * já foi pago e o que a tesouraria ainda não conferiu.
  *
- * O "Pagar" não mora mais aqui: a próxima parcela é a única linha da lista com o botão em destaque,
+ * O "Pagar" não mora aqui: o botão cheio da próxima parcela fica na lateral (`LateralDoExtrato`),
  * e um CTA só na tela evita o mesmo pedido em dois lugares.
  *
  * @param extrato Ausente enquanto carrega: os esqueletos da faixa guardam a altura.

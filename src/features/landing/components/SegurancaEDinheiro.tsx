@@ -56,7 +56,7 @@ export function SegurancaEDinheiro() {
             <strong className="text-foreground block font-semibold">
               Direto para a carteira da comissão
             </strong>
-            <span className="block">O dinheiro não passa pelo Kapa.</span>
+            <span className="block">O dinheiro não fica com o Kapa.</span>
           </p>
         </div>
       </div>

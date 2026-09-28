@@ -1,7 +1,6 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { criarEvento } from '@/hooks/useAgenda'
 import { sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
 import type { DadosDoEvento } from '@/types/agenda'
 import { criarFormatura } from '../api/formaturas.api'
 import type { DadosDaFormatura } from '../types/formaturas.types'
@@ -28,6 +27,8 @@ interface TurmaNova {
  *   e a comissão as informa na Agenda. Falhar aqui não desfaz a turma — ela existe e é dela.
  */
 export function useCriarFormatura() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async ({ dados, eventos }: TurmaNova) => {
       const par = await criarFormatura(dados)

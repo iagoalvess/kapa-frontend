@@ -12,7 +12,7 @@ import AdesoesPage from './AdesoesPage'
 
 const BASE = `${env.VITE_API_URL}/api/v1/adesoes`
 
-/** Como a API devolve: quem não aderiu vem sem `adesao_id`, `versao` e `aceito_em` (`WhenWritingNull`). */
+/** Como a API devolve: quem não aderiu vem com `adesao_id`, `versao` e `aceito_em` nulos. */
 const ana: SituacaoDeAdesao = {
   usuario_id: 'u-1',
   nome: 'Ana Souza',
@@ -27,6 +27,9 @@ const bruno: SituacaoDeAdesao = {
   nome: 'Bruno Lima',
   email: 'bruno@kapa.dev',
   papel: 'Formando',
+  adesao_id: null,
+  versao: null,
+  aceito_em: null,
 }
 const carla: SituacaoDeAdesao = {
   ...ana,
@@ -43,6 +46,9 @@ function responder() {
     http.get(`${BASE}/termos/vigente`, () =>
       HttpResponse.json({
         termo: { id: 't-2', versao: 2, conteudo: '# Termo', vigente_desde: '2026-09-14T12:00:00Z' },
+        plano: null,
+        hash_do_conteudo: null,
+        resumo: null,
       }),
     ),
     http.get(`${BASE}/resumo`, () => HttpResponse.json({ membros: 80, aderiram: 62, versao_vigente: 2 })),
@@ -127,6 +133,9 @@ describe('AdesoesPage', () => {
             conteudo: '# Termo',
             vigente_desde: '2026-09-14T12:00:00Z',
           },
+          plano: null,
+          hash_do_conteudo: null,
+          resumo: vigente === 2 ? 'Você paga 12 parcelas.' : null,
         }),
       ),
       http.post(`${BASE}/termos`, async ({ request }) => {
@@ -142,6 +151,8 @@ describe('AdesoesPage', () => {
     renderizar(<AdesoesPage />, '/?editar=termo')
 
     const texto = await screen.findByLabelText('Texto do termo')
+    // O resumo é da vigente e não atrapalha quem escreve a próxima.
+    expect(screen.queryByRole('region', { name: 'Resumo do termo por IA' })).not.toBeInTheDocument()
     await userEvent.clear(texto)
     await userEvent.type(texto, '# Termo novo')
     await userEvent.click(screen.getByRole('button', { name: 'Publicar versão 3' }))

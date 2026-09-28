@@ -1,6 +1,6 @@
-import { createBrowserRouter } from 'react-router'
+import { Navigate, Outlet, ScrollRestoration, createBrowserRouter } from 'react-router'
 import { PAPEIS, PERFIS } from '@/config/perfis'
-import { ROTAS, SUFIXO_DE_VERSAO } from '@/config/rotas'
+import { ROTAS } from '@/config/rotas'
 import { ExigeAceites } from './guards/ExigeAceites'
 import { ExigeAutenticacao } from './guards/ExigeAutenticacao'
 import { ExigeFormatura } from './guards/ExigeFormatura'
@@ -11,7 +11,7 @@ import { LayoutApp } from './layouts/LayoutApp'
 import { LayoutDeOnboarding } from './layouts/LayoutDeOnboarding'
 import { PaginaDeErro } from './PaginaDeErro'
 import { PaginaInicial } from './PaginaInicial'
-import { PaginaNaoEncontrada } from './PaginaNaoEncontrada'
+import { PaginaNaoEncontrada } from '@/components/layout/PaginaNaoEncontrada'
 
 /**
  * Carrega uma página sob demanda.
@@ -25,6 +25,18 @@ const pagina = (importar: () => Promise<{ default: React.ComponentType }>) => as
 
 export const router = createBrowserRouter([
   {
+    /*
+      Rolagem como num site de páginas: navegar para outra tela começa do topo, e voltar/avançar
+      devolve a posição em que a pessoa estava. Sem isto, o SPA trocava o conteúdo e a janela ficava
+      rolada lá embaixo. Filtro, busca e paginação não contam como tela nova — `useFiltrosDaUrl`
+      grava com `preventScrollReset`.
+    */
+    element: (
+      <>
+        <ScrollRestoration />
+        <Outlet />
+      </>
+    ),
     errorElement: <PaginaDeErro />,
     children: [
       // As portas de entrada: com sessão aberta elas não têm o que fazer e mandam para o Início.
@@ -60,34 +72,31 @@ export const router = createBrowserRouter([
         path: `${ROTAS.convite}/:token`,
         lazy: pagina(() => import('@/features/convites/pages/ConvitePage')),
       },
-      // Públicos: são lidos antes do cadastro, em nova aba, e cada versão tem link permanente.
+      // Público: o convite da festa, aberto no celular do convidado — que não tem conta e nunca vai
+      // ter (Sprint 21, decisão 11). Com a Gestão logada, a mesma página vira a portaria.
       {
-        path: ROTAS.termosDeUso + SUFIXO_DE_VERSAO,
-        lazy: pagina(() => import('@/features/legal/pages/TermosPage')),
+        path: `${ROTAS.ingresso}/:token`,
+        lazy: pagina(() => import('@/features/festa/pages/ConvitePublicoPage')),
+      },
+      // Públicas: a loja da turma e a compra pelo link — quem compra não tem conta (Sprint 26, decisão 10).
+      {
+        path: `${ROTAS.loja}/:formaturaId`,
+        lazy: pagina(() => import('@/features/loja/pages/LojaPage')),
       },
       {
-        path: ROTAS.privacidade + SUFIXO_DE_VERSAO,
-        lazy: pagina(() => import('@/features/legal/pages/PrivacidadePage')),
+        path: `${ROTAS.compra}/:token`,
+        lazy: pagina(() => import('@/features/loja/pages/CompraPage')),
       },
-      // Público pelo mesmo motivo dos dois acima: quem ainda está decidindo se cria conta tem
-      // direito de saber para onde o dado dele vai (LGPD, art. 18, VII).
-      {
-        path: ROTAS.operadores,
-        lazy: pagina(() => import('@/features/privacidade/pages/OperadoresPage')),
-      },
-      // A página institucional, na raiz: é o endereço que a Kapa divulga, e é por isso que o
-      // início do app desceu para `/inicio` (Sprint 16). Pública e fora do `LayoutApp` — aqui não
-      // há sessão, barra lateral nem formatura, e ela traz o próprio cabeçalho e rodapé.
-      {
-        index: true,
-        lazy: pagina(() => import('@/features/landing/pages/LandingPage')),
-      },
+      // A página institucional e os documentos legais moram no site (`src/site`, Sprint 33), não
+      // aqui. A raiz do app só leva ao Início — e a guarda de lá, ao login de quem não tem sessão.
+      { index: true, element: <Navigate to={ROTAS.inicio} replace /> },
       {
         Component: ExigeAutenticacao,
         children: [
-          // Fora de `ExigeAceites`, senão a guarda mandaria para cá quem já está aqui.
+          // Fora de `ExigeAceites`, senão a guarda mandaria para cá quem já está aqui. Na moldura do
+          // onboarding, e não no app: sem aceite não há app para mostrar, e o "Sair" vem junto.
           {
-            Component: LayoutApp,
+            Component: LayoutDeOnboarding,
             children: [
               {
                 path: ROTAS.aceitePendente,
@@ -153,8 +162,8 @@ export const router = createBrowserRouter([
                     Component: ExigeFormatura,
                     children: [
                       // `handle.titulo` é o título que o `LayoutApp` mostra no topo da tela.
-                      // Caminho explícito, e não `index`: a raiz agora é a página institucional
-                      // (Sprint 16), e o início do app mora em `/inicio`.
+                      // Caminho explícito, e não `index`: o início do app mora em `/inicio` desde a
+                      // Sprint 16, e é esse o `start_url` do app instalado e o destino dos links.
                       { path: ROTAS.inicio, handle: { titulo: 'Início' }, Component: PaginaInicial },
                       // Todo membro lê; o formulário é do Presidente, e a assinatura é da Gestão.
                       {
@@ -181,10 +190,30 @@ export const router = createBrowserRouter([
                         handle: { titulo: 'Minhas parcelas' },
                         lazy: pagina(() => import('@/features/pagamentos/pages/MeuExtratoPage')),
                       },
+                      // Todo membro pede — a comissão também compra a foto. Compõe cobranças e
+                      // pagamentos: é daqui que "Pedir e pagar" e "Pagar" caem no PIX.
+                      {
+                        path: ROTAS.meusPedidos,
+                        handle: { titulo: 'Meus pedidos' },
+                        lazy: pagina(() => import('./PaginaDosMeusPedidos')),
+                      },
+                      // Todo membro compra convite — a comissão também leva a família. Um convite por convidado.
+                      {
+                        path: ROTAS.meusConvites,
+                        handle: { titulo: 'Meus convites' },
+                        lazy: pagina(() => import('@/features/festa/pages/MeusConvitesPage')),
+                      },
                       {
                         path: `${ROTAS.extrato}/parcelas/:id/pagar`,
                         handle: { titulo: 'Pagar parcela' },
                         lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoPage')),
+                      },
+                      // O recibo de uma baixa — do próprio formando ou, pela gestão, de qualquer um. É o
+                      // destino do e-mail de pagamento confirmado (Sprint 22).
+                      {
+                        path: `${ROTAS.recibos}/:id`,
+                        handle: { titulo: 'Recibo' },
+                        lazy: pagina(() => import('@/features/pagamentos/pages/ReciboPage')),
                       },
                       // O mesmo caminho, para o PIX que cobre vários meses: um QR com a soma.
                       {
@@ -206,6 +235,11 @@ export const router = createBrowserRouter([
                         path: ROTAS.despesas,
                         handle: { titulo: 'Despesas' },
                         lazy: pagina(() => import('@/features/financeiro/pages/DespesasPage')),
+                      },
+                      {
+                        path: ROTAS.outrasReceitas,
+                        handle: { titulo: 'Outras receitas' },
+                        lazy: pagina(() => import('@/features/financeiro/pages/OutrasReceitasPage')),
                       },
                       // As datas da turma: todo membro lê, a Gestão escreve. A colação e a festa
                       // moram aqui desde a Sprint 19 — o cadastro da turma não as guarda mais.
@@ -257,6 +291,18 @@ export const router = createBrowserRouter([
                       {
                         element: <ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />,
                         children: [
+                          // A porta da festa: qualquer membro da Gestão opera (P4 da Sprint 21).
+                          {
+                            path: ROTAS.portaria,
+                            handle: { titulo: 'Portaria' },
+                            lazy: pagina(() => import('@/features/festa/pages/PortariaPage')),
+                          },
+                          // As mesas do jantar: a comissão monta o mapa (P1 da Sprint 27).
+                          {
+                            path: ROTAS.mesas,
+                            handle: { titulo: 'Mesas' },
+                            lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
+                          },
                           {
                             path: ROTAS.membros,
                             handle: { titulo: 'Membros' },
@@ -276,8 +322,8 @@ export const router = createBrowserRouter([
                           },
                           // Contratar é só do Presidente (a API decide); a assinatura em si mora na página da formatura.
                           {
+                            // Sem título no cabeçalho: a tela é a vitrine da landing, com o título dela no meio.
                             path: ROTAS.planos,
-                            handle: { titulo: 'Planos' },
                             lazy: pagina(() => import('@/features/assinaturas/pages/PlanosPage')),
                           },
                           {
@@ -296,6 +342,25 @@ export const router = createBrowserRouter([
                             handle: { titulo: 'Parcelas' },
                             // Compõe cobranças e pagamentos: a baixa manual e o estorno abrem na linha da parcela.
                             lazy: pagina(() => import('./PaginaDeParcelas')),
+                          },
+                          // Quem pediu o quê dos opcionais. Toda a Gestão vê: é ela que responde ao
+                          // formando que diz "pedi e não apareceu"; cancelar é da Tesouraria, na API.
+                          {
+                            path: ROTAS.pedidos,
+                            handle: { titulo: 'Pedidos' },
+                            lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPage')),
+                          },
+                          {
+                            path: ROTAS.pedidosPorItem,
+                            handle: { titulo: 'Pedidos por item' },
+                            lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPorItemPage')),
+                          },
+                          // As compras da loja pública (Sprint 26): a lista da devolução é da comissão
+                          // inteira, como os pedidos.
+                          {
+                            path: ROTAS.comprasDaLoja,
+                            handle: { titulo: 'Loja' },
+                            lazy: pagina(() => import('@/features/loja/pages/ComprasDaLojaPage')),
                           },
                           // O que a régua já enviou — é o que a comissão mostra quando alguém diz
                           // que nunca foi avisado. Escrever a régua é da Tesouraria, abaixo.

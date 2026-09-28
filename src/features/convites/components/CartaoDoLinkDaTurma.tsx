@@ -7,24 +7,21 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarData, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
+import { copiar } from '@/lib/copiar'
 import { useConvites, useCriarConvite } from '../hooks/useConvites'
 
-/** Copia o link; devolve se deu certo, para quem chama escolher o aviso. */
-async function copiar(link: string) {
-  try {
-    await navigator.clipboard.writeText(link)
-    return true
-  } catch {
-    return false
-  }
+/** Copia o link vigente; negado, mostra o endereço no aviso para copiar à mão. */
+async function copiarVigente(endereco: string) {
+  if (await copiar(endereco)) toast.success('Link copiado.')
+  else toast.warning('Não deu para copiar. Selecione e copie o link:', { description: endereco })
 }
 
 /**
  * O link aberto da turma, para colar no grupo: um botão de copiar, sem mostrar o endereço.
  *
- * Validade (30 dias) e limite (o número estimado de formandos) são fixos no backend; a tela só
- * informa. Sem histórico: um link por turma, e gerar outro desativa o atual — é assim que se
+ * A validade (30 dias) é fixa no backend; a tela só informa. Entradas não têm teto no link — quem
+ * barra é o limite do plano, no aceite. Sem histórico: um link por turma, e gerar outro desativa o atual — é assim que se
  * desliga um link vazado. Só com a turma ativa, que é quando formando pode entrar.
  */
 export function CartaoDoLinkDaTurma() {
@@ -51,20 +48,15 @@ export function CartaoDoLinkDaTurma() {
           if (await copiar(criado.link)) toast.success(`${antes} Já está copiado.`)
           else toast.success(`${antes} Use "Copiar link" para copiá-lo.`)
         },
-        onError: (erro) => toast.error(mensagemDoErro(erro)),
+        onError: avisarErro,
       },
     )
-
-  const copiarVigente = async (endereco: string) => {
-    if (await copiar(endereco)) toast.success('Link copiado.')
-    else toast.warning('Não deu para copiar. Selecione e copie o link:', { description: endereco })
-  }
 
   return (
     <Cartao titulo="Link da turma">
       <p className="text-muted-foreground text-sm">
-        Para colar no grupo da turma: quem entra por ele entra como Formando. Vale por 30 dias e aceita tantas
-        entradas quanto o número estimado de formandos. Gerar um novo desativa o atual.
+        Para colar no grupo da turma: quem entra por ele entra como Formando. Vale por 30 dias. Gerar um novo
+        desativa o atual.
       </p>
 
       {convites.isPending ? (

@@ -1,6 +1,6 @@
 import { DialogoDeSenha } from '@/features/auth'
 import MeuPerfilPage from '@/features/formandos/pages/MeuPerfilPage'
-import { MinhasPreferenciasPage } from '@/features/notificacoes'
+import MinhasPreferenciasPage from '@/features/notificacoes/pages/MinhasPreferenciasPage'
 
 /**
  * O próprio cadastro na turma, com a troca de senha no pé do resumo e as notificações embaixo.

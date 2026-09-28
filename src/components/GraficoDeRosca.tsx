@@ -1,4 +1,4 @@
-import { formatarCentavos } from '@/lib/formato'
+import { formatarCentavos, formatarMoedaCurta } from '@/lib/formato'
 
 /** Geometria da rosca, em unidades do `viewBox`. */
 const RAIO = 50
@@ -31,15 +31,6 @@ export interface Fatia {
   rotulo: string
   /** Quanto, em centavos. */
   valor: number
-}
-
-/** Reais inteiros, curto, para o meio da rosca: `R$ 54,8 mil`. */
-function escalaCurta(centavos: number) {
-  const reais = centavos / 100
-  if (reais >= 1_000_000) return `R$ ${(reais / 1_000_000).toFixed(1).replace('.', ',')} mi`
-  if (reais >= 1_000) return `R$ ${(reais / 1_000).toFixed(1).replace('.', ',')} mil`
-
-  return formatarCentavos(centavos)
 }
 
 /**
@@ -126,7 +117,7 @@ export function GraficoDeRosca({
           fontWeight="500"
           fill="var(--text-primary)"
         >
-          {escalaCurta(soma)}
+          {formatarMoedaCurta(soma, 1)}
         </text>
         <text x={CENTRO} y={CENTRO + 13} textAnchor="middle" fontSize="10" fill="var(--text-muted)">
           {rotuloDoTotal}

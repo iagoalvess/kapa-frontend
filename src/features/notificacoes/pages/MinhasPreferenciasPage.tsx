@@ -4,7 +4,7 @@ import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { usePreferencias, useSalvarPreferencias } from '../hooks/usePreferencias'
 import { DICAS_DE_TIPO, type Preferencia, ROTULOS_DE_TIPO } from '../types/notificacoes.types'
 
@@ -26,7 +26,7 @@ export default function MinhasPreferenciasPage() {
   const alternar = (preferencia: Preferencia) =>
     salvar.mutate([{ tipo: preferencia.tipo, ativa: !preferencia.ativa }], {
       onSuccess: () => toast.success('Preferência salva.'),
-      onError: (erro) => toast.error(mensagemDoErro(erro)),
+      onError: avisarErro,
     })
 
   return (

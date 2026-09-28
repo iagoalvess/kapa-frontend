@@ -7,12 +7,7 @@ import {
   obterTurmaNoSuporte,
 } from '../api/suporte.api'
 import type { AcaoNaConta } from '../types/suporte.types'
-
-export const chaves = {
-  busca: (termo: string) => ['suporte', 'busca', termo] as const,
-  turma: (id: string) => ['suporte', 'turma', id] as const,
-  conta: (id: string) => ['suporte', 'conta', id] as const,
-}
+import { chaves } from './chaves'
 
 /** Piso do termo: é o mesmo do backend, e evita a ida ao servidor que voltaria vazia. */
 const MINIMO_DO_TERMO = 3

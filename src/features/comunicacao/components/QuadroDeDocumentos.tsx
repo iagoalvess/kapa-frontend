@@ -10,14 +10,9 @@ import {
   formatarNumero,
   formatarTamanho,
 } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useAbrirDocumento, useExcluirDocumento } from '../hooks/useDocumentos'
-import {
-  type CategoriaDeDocumento,
-  type Documento,
-  GRUPOS_DE_CATEGORIA,
-  ROTULOS_DE_CATEGORIA,
-} from '../types/comunicacao.types'
+import { type CategoriaDeDocumento, type Documento, GRUPOS_DE_CATEGORIA } from '../types/comunicacao.types'
 
 interface Props {
   /** Os documentos já do mais recente para o mais antigo — cada coluna mantém essa ordem. */
@@ -26,13 +21,22 @@ interface Props {
   gestao: boolean
   /** Falso trava as escritas — formatura fora de `Ativa`. */
   editavel: boolean
-  /** O "+ Adicionar" do pé da coluna, com a categoria dela já escolhida. */
+  /** O "+ Novo…" do pé da coluna, com a categoria dela já escolhida. */
   aoAdicionar: (categoria: CategoriaDeDocumento) => void
   /** Abrir o documento para corrigir ou substituir o arquivo. */
-  aoCorrigir: (documento: Documento) => void
+  aoEditar: (documento: Documento) => void
 }
 
 const CATEGORIAS = Object.keys(GRUPOS_DE_CATEGORIA) as CategoriaDeDocumento[]
+
+/** O botão do pé de cada coluna, com o gênero de cada categoria: "Nova ata", "Novo contrato". */
+const NOVO_NA_CATEGORIA = {
+  Ata: 'Nova ata',
+  Contrato: 'Novo contrato',
+  Orcamento: 'Novo orçamento',
+  Regulamento: 'Novo regulamento',
+  Outros: 'Novo documento',
+} as const satisfies Record<CategoriaDeDocumento, string>
 
 /** A extensão como etiqueta curta da linha de meta ("PDF", "DOCX"). */
 const extensao = (nome: string) => nome.split('.').at(-1)?.toUpperCase() ?? ''
@@ -43,11 +47,11 @@ const extensao = (nome: string) => nome.split('.').at(-1)?.toUpperCase() ?? ''
  *
  * Coluna cinza com o nome, a contagem e a data do último adicionado (na ordem que o filtro pedir); cartões brancos, todos iguais e
  * compactos, com quem adicionou, o título, o tipo, há quanto tempo e as ações em ícone. No pé,
- * "+ Adicionar", já na categoria da coluna.
+ * "+ Novo contrato", "+ Nova ata", já na categoria da coluna.
  *
  * Abaixo de `xl` as colunas rolam de lado, dentro do quadro: a página nunca ganha rolagem horizontal.
  */
-export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, aoCorrigir }: Props) {
+export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, aoEditar }: Props) {
   return (
     <div className="rolagem-discreta flex min-w-0 snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-2 xl:grid xl:grid-cols-5 xl:overflow-visible xl:pb-0">
       {CATEGORIAS.map((categoria) => {
@@ -86,12 +90,12 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
               <CartaoDeDocumento
                 key={documento.id}
                 documento={documento}
-                acoes={gestao ? { editavel, aoCorrigir: () => aoCorrigir(documento) } : undefined}
+                acoes={gestao ? { editavel, aoEditar: () => aoEditar(documento) } : undefined}
               />
             ))}
 
             {itens.length === 0 ? (
-              <p className="text-texto-muted px-1 py-3 text-center text-sm">Nenhum documento</p>
+              <p className="text-muted-foreground px-1 py-3 text-center text-sm">Nenhum documento.</p>
             ) : null}
 
             {gestao ? (
@@ -101,8 +105,7 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
                 onClick={() => aoAdicionar(categoria)}
                 className="text-muted-foreground hover:text-foreground hover:bg-card/60 focus-visible:ring-ring h-9 rounded-2xl text-sm focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
               >
-                + Adicionar{' '}
-                {categoria === 'Outros' ? 'documento' : ROTULOS_DE_CATEGORIA[categoria].toLowerCase()}
+                + {NOVO_NA_CATEGORIA[categoria]}
               </button>
             ) : null}
           </section>
@@ -115,14 +118,14 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
 /**
  * Um documento no quadro.
  *
- * @param acoes Corrigir e excluir, para a Gestão.
+ * @param acoes Editar e excluir, para a Gestão.
  */
 export function CartaoDeDocumento({
   documento,
   acoes,
 }: {
   documento: Documento
-  acoes?: { editavel: boolean; aoCorrigir: () => void }
+  acoes?: { editavel: boolean; aoEditar: () => void }
 }) {
   const { abrir, abrindo } = useAbrirDocumento()
   const remetente = documento.enviado_por ?? 'Comissão'
@@ -181,14 +184,14 @@ export function CartaoDeDocumento({
   )
 }
 
-/** Corrigir e excluir em ícone. Excluir pede confirmação: o arquivo some junto, e não há lixeira. */
+/** Editar e excluir em ícone. Excluir pede confirmação: o arquivo some junto, e não há lixeira. */
 function AcoesDaGestao({
   documento,
   acoes,
   classe,
 }: {
   documento: Documento
-  acoes: { editavel: boolean; aoCorrigir: () => void }
+  acoes: { editavel: boolean; aoEditar: () => void }
   classe: string
 }) {
   const excluir = useExcluirDocumento()
@@ -200,9 +203,9 @@ function AcoesDaGestao({
         size="icon"
         className={classe}
         disabled={!acoes.editavel}
-        onClick={acoes.aoCorrigir}
-        aria-label={`Corrigir ${documento.titulo}`}
-        title="Corrigir ou substituir o arquivo"
+        onClick={acoes.aoEditar}
+        aria-label={`Editar ${documento.titulo}`}
+        title="Editar ou substituir o arquivo"
       >
         <Pencil className="size-4" aria-hidden />
       </Button>
@@ -219,14 +222,14 @@ function AcoesDaGestao({
             <Trash2 className="size-4" aria-hidden />
           </Button>
         }
-        titulo={`Excluir ${documento.titulo}?`}
+        titulo={`Excluir “${documento.titulo}”?`}
         descricao="O documento e o arquivo são apagados, e a exclusão fica registrada com o seu nome. Não há como recuperar."
         rotulo="Excluir"
         destrutivo
         aoConfirmar={() =>
           excluir.mutate(documento.id, {
             onSuccess: () => toast.info('Documento excluído.'),
-            onError: (erro) => toast.error(mensagemDoErro(erro)),
+            onError: avisarErro,
           })
         }
       />

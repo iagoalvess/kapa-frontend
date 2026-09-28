@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { diaDeHoje, formatarCentavos } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useAtualizarDespesa, useLancarDespesa } from '../hooks/useDespesas'
 import {
   despesaEmBranco,
@@ -297,25 +298,16 @@ export function FormularioDeDespesa({
 
         {editando ? null : (
           <div className="border-border grid gap-3 rounded-xl border p-4">
-            <FormField
+            <CampoDeMarcar
               control={formulario.control}
               name="jaPaga"
-              render={({ field }) => (
-                <FormItem>
-                  <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      disabled={!editavel}
-                      onChange={(evento) => field.onChange(evento.target.checked)}
-                      className="accent-primary size-4"
-                    />
-                    Esta despesa já foi paga
-                    {quantidade > 1 ? <span className="text-muted-foreground">(a 1ª parcela)</span> : null}
-                  </label>
-                  <FormMessage />
-                </FormItem>
-              )}
+              desabilitado={!editavel}
+              rotulo={
+                <>
+                  Esta despesa já foi paga
+                  {quantidade > 1 ? <span className="text-muted-foreground">(a 1ª parcela)</span> : null}
+                </>
+              }
             />
 
             {jaPaga ? (

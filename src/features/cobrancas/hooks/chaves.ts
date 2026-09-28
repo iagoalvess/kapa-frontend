@@ -1,4 +1,4 @@
-import type { DadosDoItem, FiltroDeParcelas } from '../types/cobrancas.types'
+import type { DadosDoItem, FiltroDeParcelas, FiltroDePedidos } from '../types/cobrancas.types'
 
 // A formatura não entra na chave: trocar de formatura limpa o cache inteiro.
 export const chaves = {
@@ -14,4 +14,11 @@ export const chaves = {
   parcelas: (filtro: FiltroDeParcelas) => ['cobrancas', 'parcelas', filtro] as const,
   resumo: (filtro: Omit<FiltroDeParcelas, 'status' | 'pagina' | 'tamanho'>) =>
     ['cobrancas', 'parcelas', 'resumo', filtro] as const,
+  /** A vitrine do formando: o que ele pode pedir hoje. */
+  opcionais: ['cobrancas', 'opcionais'] as const,
+  /** Prefixo de tudo o que é pedido: pedir, ajustar e cancelar mexem na lista, no resumo e nos meus. */
+  todosOsPedidos: ['cobrancas', 'pedidos'] as const,
+  meusPedidos: ['cobrancas', 'pedidos', 'meus'] as const,
+  pedidos: (filtro: FiltroDePedidos) => ['cobrancas', 'pedidos', 'lista', filtro] as const,
+  resumoDosPedidos: ['cobrancas', 'pedidos', 'resumo'] as const,
 }

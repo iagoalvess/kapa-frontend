@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { KeyRound } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
@@ -50,14 +49,12 @@ export function DialogoDeSenha() {
       <Button
         variant="outline"
         size="sm"
-        className="h-8"
         onClick={() => {
           // Reabrir não traz o que foi digitado da vez anterior — é senha.
           formulario.reset()
           definirAberto(true)
         }}
       >
-        <KeyRound aria-hidden />
         Alterar senha
       </Button>
 

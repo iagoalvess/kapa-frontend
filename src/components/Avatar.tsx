@@ -52,7 +52,7 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        'inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white',
+        'text-on-brand inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
         corDe(semente),
         className,
       )}

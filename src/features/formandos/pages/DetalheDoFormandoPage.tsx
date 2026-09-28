@@ -1,3 +1,4 @@
+import { Cartao } from '@/components/Cartao'
 import { useParams } from 'react-router'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
@@ -56,7 +57,7 @@ export default function DetalheDoFormandoPage() {
     <>
       {voltar}
 
-      <section aria-label="Resumo do cadastro" className="bg-card shadow-cartao grid gap-5 rounded-3xl p-5">
+      <Cartao rotulo="Resumo do cadastro">
         <div className="flex flex-wrap items-center gap-4">
           <FotoDoFormando perfil={dados} daComissao className="size-16 text-xl" />
           <div className="grid min-w-0 text-sm">
@@ -74,7 +75,7 @@ export default function DetalheDoFormandoPage() {
         {editavel ? (
           <p className="text-texto-muted text-xs">Correções feitas aqui ficam registradas com o seu nome.</p>
         ) : null}
-      </section>
+      </Cartao>
 
       <FormularioDePerfil
         key={dados.usuario_id}

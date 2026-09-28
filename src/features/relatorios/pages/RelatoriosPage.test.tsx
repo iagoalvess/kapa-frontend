@@ -20,6 +20,7 @@ const BALANCETE: Balancete = {
   emitido_por: 'Rafael Costa Lima',
   emitido_em: '2026-09-15T15:00:00Z',
   entradas: [{ rotulo: 'Mensalidade', quantidade: 42, valor_em_centavos: 8_400_000 }],
+  outras_receitas: [],
   saidas_por_categoria: [
     { rotulo: 'Buffet', quantidade: 3, valor_em_centavos: 2_600_000 },
     { rotulo: 'Espaço', quantidade: 1, valor_em_centavos: 900_000 },
@@ -52,6 +53,8 @@ const NA_FILA: Solicitacao = {
   de: '2026-01-01',
   ate: '2026-09-15',
   status: 'NaFila',
+  motivo: null,
+  expira_em: null,
   criado_em: '2026-09-15T15:00:00Z',
   disponivel: false,
 }
@@ -96,6 +99,27 @@ describe('RelatoriosPage', () => {
     expect(await screen.findByRole('region', { name: 'Saídas por categoria' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Saídas por fornecedor' })).toBeInTheDocument()
     expect(screen.getAllByText(reais(3_500_000))).toHaveLength(3)
+  })
+
+  it('mostra as receitas em quadro próprio, separado das parcelas', async () => {
+    entrarComo('Comissao')
+    comApi()
+    servidor.use(
+      http.get(`${RELATORIOS}/balancete`, () =>
+        HttpResponse.json({
+          ...BALANCETE,
+          outras_receitas: [{ rotulo: 'Patrocínio', quantidade: 1, valor_em_centavos: 600_000 }],
+        }),
+      ),
+    )
+
+    renderizar(<RelatoriosPage />)
+
+    const outrasReceitas = await screen.findByRole('region', { name: 'Outras receitas' })
+    expect(within(outrasReceitas).getByText('Patrocínio')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('region', { name: 'Entradas por tipo de cobrança' })).queryByText('Patrocínio'),
+    ).toBeNull()
   })
 
   it('o período vai para a query string, e é dele que o balancete sai', async () => {

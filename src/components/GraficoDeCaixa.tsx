@@ -1,4 +1,4 @@
-import { formatarCentavos, formatarMesAno, formatarMesCurto } from '@/lib/formato'
+import { formatarCentavos, formatarMesAno, formatarMesCurto, formatarMoedaCurta } from '@/lib/formato'
 
 /**
  * Um mês do fluxo, como a API o devolve.
@@ -34,15 +34,6 @@ const DICA = { largura: 138, altura: 54 }
 interface Ponto {
   x: number
   y: number
-}
-
-/** Reais inteiros, curto, para o eixo: `R$ 12 mil`, `R$ 1,2 mi`. */
-function escalaCurta(centavos: number) {
-  const reais = Math.abs(centavos) / 100
-  if (reais >= 1_000_000) return `R$ ${(reais / 1_000_000).toFixed(1).replace('.', ',')} mi`
-  if (reais >= 1_000) return `R$ ${Math.round(reais / 1_000)} mil`
-
-  return formatarCentavos(centavos)
 }
 
 /**
@@ -209,7 +200,7 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
             <g key={fracao}>
               <line x1={EIXO} y1={y} x2={LARGURA} y2={y} stroke="var(--line)" strokeWidth="1" />
               <text x={EIXO - 10} y={y + 3} textAnchor="end" fontSize="10" fill="var(--text-muted)">
-                {escalaCurta(teto * fracao)}
+                {formatarMoedaCurta(teto * fracao)}
               </text>
             </g>
           )

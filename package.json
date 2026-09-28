@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:site": "vite --mode site",
     "build": "tsc -b && vite build",
+    "build:site": "vite build --mode site && vite build --mode site --ssr src/site/servidor.tsx --outDir dist-site-servidor && node scripts/prerenderizar.ts",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint",

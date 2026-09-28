@@ -55,9 +55,8 @@ async function preencherATurma() {
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
 }
 
-async function preencherOTamanho() {
-  await userEvent.type(await screen.findByLabelText('Número estimado de formandos'), '80')
-  await userEvent.type(screen.getByLabelText('Previsão da festa (opcional)'), `${ANO}-12-10`)
+async function preencherAsDatas() {
+  await userEvent.type(await screen.findByLabelText('Previsão da festa (opcional)'), `${ANO}-12-10`)
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
 }
 
@@ -70,7 +69,7 @@ describe('CriarFormaturaPage', () => {
     renderizar(<CriarFormaturaPage />)
 
     await preencherATurma()
-    await preencherOTamanho()
+    await preencherAsDatas()
 
     expect(await screen.findByLabelText('Nome da formatura')).toHaveValue(`Medicina ${ANO}`)
     expect(corpos).toHaveLength(0)
@@ -85,7 +84,6 @@ describe('CriarFormaturaPage', () => {
         instituicao: 'UFPR',
         ano: Number(ANO),
         semestre: 1,
-        quantidade_estimada_de_formandos: 80,
       },
     ])
     // A data que o wizard perguntou vira evento da agenda, logo depois de a sessão entrar na turma.
@@ -105,7 +103,7 @@ describe('CriarFormaturaPage', () => {
     const { unmount } = renderizar(<CriarFormaturaPage />)
 
     await preencherATurma()
-    expect(await screen.findByLabelText('Número estimado de formandos')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Previsão da festa (opcional)')).toBeInTheDocument()
     unmount()
 
     expect(corpos).toHaveLength(0)
@@ -127,7 +125,7 @@ describe('CriarFormaturaPage', () => {
     renderizar(<CriarFormaturaPage />)
 
     await preencherATurma()
-    await preencherOTamanho()
+    await preencherAsDatas()
     const nome = await screen.findByLabelText('Nome da formatura')
     await userEvent.clear(nome)
     await userEvent.type(nome, 'Turma da Ana')
@@ -157,7 +155,7 @@ describe('CriarFormaturaPage', () => {
     renderizar(<CriarFormaturaPage />)
 
     await preencherATurma()
-    await preencherOTamanho()
+    await preencherAsDatas()
     await userEvent.click(await screen.findByRole('button', { name: 'Criar formatura' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('plano gratuito')

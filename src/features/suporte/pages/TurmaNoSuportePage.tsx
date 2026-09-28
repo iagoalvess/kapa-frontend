@@ -18,7 +18,8 @@ import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { rotaDaContaNoSuporte, ROTAS } from '@/config/rotas'
-import { formatarData, formatarNumero } from '@/lib/formato'
+import { formatarConclusao, formatarData, formatarNumero } from '@/lib/formato'
+import { avisarErro } from '@/lib/http/erros'
 import { SeloDaAssinatura, SeloDaTurma } from '../components/SeloDeStatus'
 import { useAtivarAssinatura, useTurmaNoSuporte } from '../hooks/useSuporte'
 import { toast } from 'sonner'
@@ -97,7 +98,7 @@ export default function TurmaNoSuportePage() {
         >
           <ListaDeDados>
             <Dado icone={Building2} rotulo="Conclusão">
-              {dados.ano}.{dados.semestre}
+              {formatarConclusao(dados.ano, dados.semestre)}
             </Dado>
             <Dado icone={CalendarDays} rotulo="Criada em">
               {formatarData(dados.criada_em)}
@@ -129,8 +130,7 @@ export default function TurmaNoSuportePage() {
                 aoConfirmar={() =>
                   ativar.mutate(undefined, {
                     onSuccess: () => toast.success('Licença ativada.'),
-                    onError: (erro: unknown) =>
-                      toast.error(erro instanceof Error ? erro.message : 'Não foi possível ativar.'),
+                    onError: avisarErro,
                   })
                 }
                 gatilho={

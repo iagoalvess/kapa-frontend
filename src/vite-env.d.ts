@@ -5,6 +5,8 @@ declare const __VERSAO__: string
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
+  readonly VITE_APP_URL: string
+  readonly VITE_SITE_URL: string
   readonly VITE_APP_NOME: string
 }
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { formatarCep, formatarCpf, formatarTelefone } from '@/lib/formato'
+import { formatarCep, formatarCpf, formatarTelefone, soDigitos } from '@/lib/formato'
 import type { AtualizarPerfil, PerfilDoFormando } from '../types/formandos.types'
 
 /*
@@ -8,8 +8,6 @@ import type { AtualizarPerfil, PerfilDoFormando } from '../types/formandos.types
   volta com o campo apontado (`pessoais.cpf`), que é exatamente o nome do campo aqui — por isso
   cada seção embrulha os campos no nome dela.
 */
-
-const soDigitos = (valor: string) => valor.replace(/\D/g, '')
 
 const texto = (maximo: number, rotulo: string) =>
   z.string().trim().max(maximo, `${rotulo} deve ter no máximo ${maximo} caracteres.`)

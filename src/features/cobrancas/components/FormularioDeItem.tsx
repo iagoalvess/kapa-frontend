@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
+import { CamposDaGrade } from './CamposDaGrade'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { useAdicionarItem, useAlterarItem } from '../hooks/usePlano'
 import { useSimulacao } from '../hooks/useSimulacao'
 import {
@@ -24,10 +26,9 @@ import {
   type DadosDoItem,
   type ItemDeCobranca,
   ROTULOS_DE_TIPO,
+  TIPOS_DO_PLANO,
   type TipoDeCobranca,
 } from '../types/cobrancas.types'
-
-const DIAS = Array.from({ length: 31 }, (_, indice) => String(indice + 1))
 
 /**
  * O formulário do item e o que ele vale agora — o rascunho que alimenta a prévia.
@@ -96,7 +97,7 @@ export function FormularioDeItem({
     const dados = paraDadosDoItem(valores)
     const aoTerminar = {
       onSuccess: () => {
-        toast.success(editando ? 'Item salvo.' : 'Item incluído.')
+        toast.success(editando ? 'Cobrança salva.' : 'Cobrança criada.')
         aoConcluir()
       },
       onError: (erro: unknown) => exibirErroNoFormulario(erro, formulario.setError),
@@ -118,9 +119,9 @@ export function FormularioDeItem({
                 <FormLabel>Tipo</FormLabel>
                 <FormControl>
                   <Select {...field} disabled={travaAGrade}>
-                    {Object.entries(ROTULOS_DE_TIPO).map(([valor, rotulo]) => (
+                    {TIPOS_DO_PLANO.map((valor) => (
                       <option key={valor} value={valor}>
-                        {rotulo}
+                        {ROTULOS_DE_TIPO[valor]}
                       </option>
                     ))}
                   </Select>
@@ -179,46 +180,7 @@ export function FormularioDeItem({
             )}
           />
 
-          <FormField
-            control={formulario.control}
-            name="numero_de_parcelas"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Parcelas</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={120}
-                    disabled={travaAGrade}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={formulario.control}
-            name="dia_de_vencimento"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vence todo dia</FormLabel>
-                <FormControl>
-                  <Select {...field} disabled={travaAGrade}>
-                    {DIAS.map((dia) => (
-                      <option key={dia} value={dia}>
-                        {dia}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <CamposDaGrade control={formulario.control} rotuloDasParcelas="Parcelas" travado={travaAGrade} />
 
           <FormField
             control={formulario.control}
@@ -244,7 +206,7 @@ export function FormularioDeItem({
 
         <p className="text-texto-muted text-xs">
           {editando?.em_uso
-            ? 'Este item já gerou parcelas: só o valor e a descrição mudam, e o valor novo vale só para as parcelas que ainda não venceram.'
+            ? 'Esta cobrança já gerou parcelas: só o valor e a descrição mudam, e o valor novo vale só para as parcelas que ainda não venceram.'
             : 'Dias 29, 30 e 31 caem no último dia nos meses mais curtos.'}
         </p>
 
@@ -259,27 +221,14 @@ export function FormularioDeItem({
                 ? '1 formando já aderiu'
                 : `${formatarNumero(jaAderiram)} formandos já aderiram`}
               {rateio
-                ? ' e serão cobrados por este item, mesmo sem tê-lo aceitado no termo.'
-                : ' e não serão cobrados por este item: ele vale para quem aderir daqui em diante.'}
+                ? ' e serão cobrados por esta cobrança, mesmo sem tê-la aceitado no termo.'
+                : ' e não serão cobrados por esta cobrança: ela vale para quem aderir daqui em diante.'}
             </p>
 
-            <FormField
+            <CampoDeMarcar
               control={formulario.control}
               name="aplicar_a_quem_ja_aderiu"
-              render={({ field }) => (
-                <FormItem>
-                  <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={(evento) => field.onChange(evento.target.checked)}
-                      className="accent-primary size-4"
-                    />
-                    Cobrar também quem já aderiu
-                  </label>
-                  <FormMessage />
-                </FormItem>
-              )}
+              rotulo="Cobrar também quem já aderiu"
             />
 
             {rateio ? (
@@ -298,8 +247,8 @@ export function FormularioDeItem({
                   )}
                 />
                 <p className="text-texto-muted text-xs">
-                  Fica gravado no item e é a prova da cobrança. Só use quando a decisão obrigar a turma toda e
-                  o termo de adesão previr cobranças extraordinárias.
+                  Fica gravado na cobrança e é a prova da decisão. Só use quando a decisão obrigar a turma
+                  toda e o termo de adesão previr cobranças extraordinárias.
                 </p>
               </div>
             ) : null}
@@ -308,15 +257,9 @@ export function FormularioDeItem({
 
         <ErroDoFormulario />
 
-        {/* O mesmo rodapé dos outros diálogos do app: incluir e editar são o mesmo formulário, no
-            mesmo lugar, e só o verbo do botão muda. */}
-        {editavel ? (
-          <AcoesDoFormulario
-            aoCancelar={aoConcluir}
-            ocupado={salvando}
-            rotulo={editando ? 'Salvar' : 'Incluir item'}
-          />
-        ) : null}
+        {/* O mesmo rodapé dos outros diálogos do app: criar e editar são o mesmo formulário, no
+            mesmo lugar, com o mesmo "Salvar". */}
+        {editavel ? <AcoesDoFormulario aoCancelar={aoConcluir} ocupado={salvando} /> : null}
       </form>
     </Form>
   )
@@ -362,7 +305,7 @@ export function FormularioDeItemNovo({
             className="bg-muted text-muted-foreground rounded-xl px-4 py-3 text-sm"
             aria-busy={previa.isFetching}
           >
-            Com este item, cada formando passa a dever{' '}
+            Com esta cobrança, cada formando passa a dever{' '}
             <span className="text-foreground font-medium tabular-nums">
               {formatarCentavos(previa.data.total_por_formando)}
             </span>{' '}

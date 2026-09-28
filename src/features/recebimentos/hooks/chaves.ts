@@ -3,4 +3,5 @@ export const chaves = {
   tudo: ['recebimentos'] as const,
   conta: () => ['recebimentos', 'conta'] as const,
   pixDeTeste: () => ['recebimentos', 'pix-de-teste'] as const,
+  mercadoPago: () => ['recebimentos', 'mercado-pago'] as const,
 }

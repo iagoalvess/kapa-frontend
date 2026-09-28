@@ -70,6 +70,12 @@ export function LinhaDoItem({ item, aberto }: { item: ItemDaFesta; aberto: boole
  */
 function segundaLinha(item: ItemDaFesta) {
   if (item.cancelado) return 'A turma desistiu'
+  // Com opcional aberto e nada contratado, o que interessa é quantos pediram: é esse número que a
+  // comissão leva ao fornecedor, e é ele que faz o custo da festa subir junto com o arrecadado.
+  if (!item.fornecedor && item.preco_de_venda_em_centavos !== null)
+    return `${formatarCentavos(item.preco_de_venda_em_centavos)} × ${item.pedidos_confirmados} ${
+      item.pedidos_confirmados === 1 ? 'pedido' : 'pedidos'
+    }`
   if (item.fornecedor) {
     const falta = item.contratado_em_centavos - item.pago_em_centavos
 

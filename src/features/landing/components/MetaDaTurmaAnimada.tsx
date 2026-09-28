@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import alvo from '@/assets/outros/alvo.webp'
+import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 
 const META = 48_000
 const PROGRESSO_INICIAL = 72
 const PROGRESSO_FINAL = 100
 const DURACAO = 1_800
-const moeda = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 
 const CONFETES = [
   { x: -52, y: -32, giro: -180, cor: 'var(--brand)' },
@@ -179,7 +179,7 @@ export function MetaDaTurmaAnimada({ grande = false, className }: { grande?: boo
             grande ? 'text-xs' : 'text-[9px] sm:text-[10px]',
           )}
         >
-          R$ {moeda.format(Math.round((META * progresso) / 100))} arrecadados
+          R$ {formatarNumero(Math.round((META * progresso) / 100))} arrecadados
         </span>
       </div>
     </div>

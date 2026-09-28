@@ -29,7 +29,7 @@ function Cartao({
   return (
     <li
       className={cn(
-        'cartao-ao-rolar group relative grid min-h-52 min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 shadow-[0_3px_10px_-5px_rgba(26,26,24,0.12)] transition-shadow duration-300 hover:shadow-[0_14px_30px_-18px_rgba(26,26,24,0.3)]',
+        'cartao-ao-rolar group relative grid min-h-52 min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 shadow-[0_3px_10px_-5px_rgba(26,26,24,0.12)] transition-shadow hover:shadow-[0_14px_30px_-18px_rgba(26,26,24,0.3)]',
         // A seção é o creme; o cartão é o claro do hero. Chapado, porque um degradê que terminasse
         // no creme faria o canto do cartão sumir no fundo.
         tom === 'creme' && 'border-brand-tint/70 bg-background',
@@ -154,7 +154,7 @@ function MaquetePix() {
         </div>
       </div>
       <div className="bg-success-bg text-success-text flex items-center gap-2 rounded-xl px-3 py-2">
-        <span className="bg-success grid size-5 shrink-0 place-items-center rounded-full text-white">
+        <span className="bg-success text-card grid size-5 shrink-0 place-items-center rounded-full">
           <Check className="motion-safe:animate-surgir-em-loop size-3" strokeWidth={3} aria-hidden />
         </span>
         <span className="grid gap-0.5 text-[10px]">
@@ -255,7 +255,7 @@ function MaqueteDeDespesas() {
 function MaqueteDaRegua() {
   return (
     <div className="relative mx-auto flex h-full w-full max-w-64 items-center justify-center pr-7">
-      <div className="relative w-[164px] -rotate-6 rounded-[20px] bg-white px-3.5 py-2.5 shadow-[0_10px_25px_-15px_rgba(166,73,100,0.3)]">
+      <div className="bg-card relative w-[164px] -rotate-6 rounded-[20px] px-3.5 py-2.5 shadow-[0_10px_25px_-15px_rgba(166,73,100,0.3)]">
         <div className="motion-safe:animate-flutuar-devagar relative mx-auto mb-1.5 h-8 w-10" aria-hidden>
           <svg viewBox="0 0 48 36" className="size-full overflow-visible drop-shadow-sm">
             <rect x="3" y="5" width="40" height="27" rx="3" fill="#ffd5d8" />
@@ -263,7 +263,7 @@ function MaqueteDaRegua() {
             <path d="m4 31 14-13m24 13L28 18" fill="none" stroke="#fff0f0" strokeWidth="2" />
             <path d="M4 6 23 18 42 6" fill="#ffb0b1" />
           </svg>
-          <span className="absolute -top-0.5 -right-1 grid size-4 place-items-center rounded-full bg-[#ff6856] text-[9px] text-white ring-2 ring-white">
+          <span className="bg-destructive text-destructive-foreground ring-card absolute -top-0.5 -right-1 grid size-4 place-items-center rounded-full text-[9px] ring-2">
             1
           </span>
         </div>
@@ -281,7 +281,7 @@ function MaqueteDaRegua() {
       </div>
       <svg
         viewBox="0 0 48 80"
-        className="motion-safe:animate-flutuar absolute top-0 right-0 h-16 w-10 text-[#ff735f]"
+        className="motion-safe:animate-flutuar text-ilustracao-coral absolute top-0 right-0 h-16 w-10"
         aria-hidden
       >
         <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -304,7 +304,7 @@ function MaqueteDaFesta() {
   return (
     <div className="grid h-full w-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] items-center gap-3">
       <div className="relative mx-1">
-        <figure className="bg-card -rotate-3 rounded-lg p-1.5 pb-1 shadow-md motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:rotate-0">
+        <figure className="bg-card -rotate-3 rounded-lg p-1.5 pb-1 shadow-md motion-safe:transition-transform motion-safe:group-hover:rotate-0">
           <img src={fotoDoBaile} alt="" loading="lazy" className="h-24 w-full rounded object-cover" />
           <figcaption className="font-hand text-brand-text flex items-center justify-center gap-1 py-1 text-xs leading-none lg:text-sm">
             O grande dia <Heart className="size-3" aria-hidden />
@@ -362,11 +362,14 @@ export function Recursos() {
         <Cartao
           tom="destaque"
           titulo="PIX + conferência"
-          texto="QR da chave da comissão e baixa em lote pela tesouraria."
+          texto="Receba por QR Code e confirme vários pagamentos de uma só vez."
         >
           <MaquetePix />
         </Cartao>
-        <Cartao titulo="Termo de adesão digital" texto="Aceite versionado e o controle de quem aderiu.">
+        <Cartao
+          texto="Acompanhe quem aceitou e veja o histórico de alterações do termo."
+          titulo="Termo de adesão digital"
+        >
           <MaqueteDoTermo />
         </Cartao>
         <Cartao
@@ -379,11 +382,7 @@ export function Recursos() {
         <Cartao titulo="Régua de cobrança" texto="Lembretes e notificações automáticas por e-mail.">
           <MaqueteDaRegua />
         </Cartao>
-        <Cartao
-          largo
-          titulo="A festa e a meta"
-          texto="Data, local, orçamento-alvo e o progresso da arrecadação."
-        >
+        <Cartao largo titulo="A festa e a meta" texto="Data, local, orçamento e o progresso da arrecadação.">
           <MaqueteDaFesta />
         </Cartao>
       </ul>

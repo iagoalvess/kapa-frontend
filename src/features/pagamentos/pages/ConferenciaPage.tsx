@@ -13,6 +13,7 @@ import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
+import { Cartao } from '@/components/Cartao'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
@@ -26,8 +27,11 @@ import {
   formatarData,
   formatarDataHora,
   formatarNumero,
+  somarDias,
 } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { abrirNaAba } from '@/lib/download'
+import { avisarErro } from '@/lib/http/erros'
+import { ehOpcao } from '@/lib/opcao'
 import { cn } from '@/lib/utils'
 import { rotuloDoItem } from '@/types/cobranca'
 import { rotuloDoMeio } from '@/types/recebimento'
@@ -59,7 +63,7 @@ const ABAS = {
 
 type Aba = keyof typeof ABAS
 
-const ehAba = (valor: string | null): valor is Aba => valor !== null && valor in ABAS
+const ehAba = (valor: string | null): valor is Aba => ehOpcao(valor, ABAS)
 
 /**
  * As faixas do período do pagamento informado — é o extrato do banco que a tesouraria tem aberto ao
@@ -68,14 +72,12 @@ const ehAba = (valor: string | null): valor is Aba => valor !== null && valor in
  * @param hoje Referência; o padrão é agora.
  */
 function faixasDoPagamento(hoje = new Date()): Record<string, [string, string]> {
-  const ano = hoje.getFullYear()
-  const mes = hoje.getMonth()
-  const dia = hoje.getDate()
+  const dia = diaDeHoje(hoje)
 
   return {
-    Hoje: [diaDeHoje(hoje), diaDeHoje(hoje)],
-    'Últimos 7 dias': [diaDeHoje(new Date(ano, mes, dia - 6)), diaDeHoje(hoje)],
-    'Este mês': [diaDeHoje(new Date(ano, mes, 1)), diaDeHoje(hoje)],
+    Hoje: [dia, dia],
+    'Últimos 7 dias': [somarDias(dia, -6), dia],
+    'Este mês': [`${dia.slice(0, 8)}01`, dia],
   }
 }
 
@@ -226,32 +228,25 @@ export default function ConferenciaPage() {
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
         acoes={
-          <>
-            <BotaoDeFiltros id="filtros-da-conferencia" ligados={de || ate ? 1 : 0}>
-              <fieldset className="grid gap-2">
-                <legend className="text-muted-foreground mb-2 text-sm">Pagamento informado</legend>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(faixasDoPagamento()).map(([rotulo, [inicio, fim]]) => {
-                    const ativo = de === inicio && ate === fim
-                    return (
-                      <Chip
-                        key={rotulo}
-                        ativo={ativo}
-                        onClick={() => atualizar(ativo ? { de: null, ate: null } : { de: inicio, ate: fim })}
-                      >
-                        {rotulo}
-                      </Chip>
-                    )
-                  })}
-                </div>
-              </fieldset>
-            </BotaoDeFiltros>
-
-            {/* O caminho do pagamento que ninguém avisou: a tesouraria viu no extrato e baixa por lá. */}
-            <Button asChild size="sm" className="h-8">
-              <Link to={ROTAS.parcelas}>Pagou e não avisou?</Link>
-            </Button>
-          </>
+          <BotaoDeFiltros id="filtros-da-conferencia" ligados={de || ate ? 1 : 0}>
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Pagamento informado</legend>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(faixasDoPagamento()).map(([rotulo, [inicio, fim]]) => {
+                  const ativo = de === inicio && ate === fim
+                  return (
+                    <Chip
+                      key={rotulo}
+                      ativo={ativo}
+                      onClick={() => atualizar(ativo ? { de: null, ate: null } : { de: inicio, ate: fim })}
+                    >
+                      {rotulo}
+                    </Chip>
+                  )
+                })}
+              </div>
+            </fieldset>
+          </BotaoDeFiltros>
         }
         antesDaContagem={
           <ConfirmarLote
@@ -267,145 +262,188 @@ export default function ConferenciaPage() {
         contagem={{ mostrando, total, unidade: aba === 'divergencias' ? 'divergências' : 'avisos' }}
       />
 
-      {aba === 'conferir' ? (
-        <Planilha
-          rotulo="Fila da conferência"
-          consulta={informes}
-          vazio={{
-            titulo: filtrando ? 'Nenhum aviso com esses filtros' : 'Nada a conferir',
-            dica: filtrando
-              ? 'Tente outro nome ou outro período.'
-              : 'Quando um formando avisar que pagou, o aviso aparece aqui.',
-            // Fila vazia sem filtro é trabalho em dia, não busca que falhou.
-            mascote: filtrando ? undefined : mascoteFeliz,
-          }}
-          ordenacao={ordenacao}
-          cabecalho={
-            <>
-              {/* Marca a página inteira de uma vez. Meio-termo (alguns marcados) fica no traço do
+      {/* A lateral só na tela bem larga (`2xl`, e não o `xl` de Meus pedidos): a fila tem o campo do
+          valor e duas ações por linha, e 22rem a menos a espremeria. Abaixo disso, ela desce. */}
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0">
+          {aba === 'conferir' ? (
+            <Planilha
+              rotulo="Fila da conferência"
+              consulta={informes}
+              vazio={{
+                titulo: filtrando ? 'Nenhum aviso com esses filtros' : 'Nada a conferir',
+                dica: filtrando
+                  ? 'Tente outro nome ou outro período.'
+                  : 'Quando um formando avisar que pagou, o aviso aparece aqui.',
+                // Fila vazia sem filtro é trabalho em dia, não busca que falhou.
+                mascote: filtrando ? undefined : mascoteFeliz,
+              }}
+              ordenacao={ordenacao}
+              cabecalho={
+                <>
+                  {/* Marca a página inteira de uma vez. Meio-termo (alguns marcados) fica no traço do
                   `indeterminate`, que só existe por JS — não há atributo HTML para ele. */}
-              <th className="w-9 py-3 pr-2 font-normal">
-                <input
-                  type="checkbox"
-                  aria-label="Marcar todos os avisos desta página"
-                  checked={paginaInteira}
-                  ref={(campo) => {
-                    if (campo) campo.indeterminate = selecionados.length > 0 && !paginaInteira
-                  }}
-                  onChange={() =>
-                    definirMarcados(paginaInteira ? [] : pendentes.map((informe) => informe.id))
+                  <th className="w-9 py-3 pr-2 font-normal">
+                    <input
+                      type="checkbox"
+                      aria-label="Marcar todos os avisos desta página"
+                      checked={paginaInteira}
+                      ref={(campo) => {
+                        if (campo) campo.indeterminate = selecionados.length > 0 && !paginaInteira
+                      }}
+                      onChange={() =>
+                        definirMarcados(paginaInteira ? [] : pendentes.map((informe) => informe.id))
+                      }
+                      className="accent-primary size-4 cursor-pointer"
+                    />
+                  </th>
+                  {/* "Formando" e "Devido" vêm da parcela, buscada depois por id: não ordenam. */}
+                  <th className="py-3 pr-4 font-normal">Formando</th>
+                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
+                  <th className="py-3 pr-4 text-right font-normal">Devido</th>
+                  <ColunaOrdenavel coluna="recebido" numerica>
+                    Recebido
+                  </ColunaOrdenavel>
+                  <th className="py-3 font-normal">
+                    <span className="sr-only">Ações</span>
+                  </th>
+                </>
+              }
+              aoMudarPagina={(nova) =>
+                atualizar({ aba: 'conferir', pagina: nova === 1 ? null : String(nova) })
+              }
+            >
+              {pendentes.map((informe) => (
+                <LinhaDeAviso
+                  key={informe.id}
+                  informe={informe}
+                  marcado={marcados.includes(informe.id)}
+                  recebido={recebido(informe)}
+                  aoMarcar={() =>
+                    definirMarcados((atuais) =>
+                      atuais.includes(informe.id)
+                        ? atuais.filter((id) => id !== informe.id)
+                        : [...atuais, informe.id],
+                    )
                   }
-                  className="accent-primary size-4 cursor-pointer"
+                  aoEditarValor={(centavos) =>
+                    definirValores((atuais) => ({ ...atuais, [informe.id]: centavos }))
+                  }
+                  aoRecusar={() => definirMarcados((atuais) => atuais.filter((id) => id !== informe.id))}
                 />
-              </th>
-              {/* "Formando" e "Devido" vêm da parcela, buscada depois por id: não ordenam. */}
-              <th className="py-3 pr-4 font-normal">Formando</th>
-              <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-              <th className="py-3 pr-4 text-right font-normal">Devido</th>
-              <ColunaOrdenavel coluna="recebido" numerica>
-                Recebido
-              </ColunaOrdenavel>
-              <th className="py-3 font-normal">
-                <span className="sr-only">Ações</span>
-              </th>
-            </>
-          }
-          aoMudarPagina={(nova) => atualizar({ aba: 'conferir', pagina: nova === 1 ? null : String(nova) })}
-        >
-          {pendentes.map((informe) => (
-            <LinhaDeAviso
-              key={informe.id}
-              informe={informe}
-              marcado={marcados.includes(informe.id)}
-              recebido={recebido(informe)}
-              aoMarcar={() =>
-                definirMarcados((atuais) =>
-                  atuais.includes(informe.id)
-                    ? atuais.filter((id) => id !== informe.id)
-                    : [...atuais, informe.id],
-                )
-              }
-              aoEditarValor={(centavos) =>
-                definirValores((atuais) => ({ ...atuais, [informe.id]: centavos }))
-              }
-              aoRecusar={() => definirMarcados((atuais) => atuais.filter((id) => id !== informe.id))}
-            />
-          ))}
-        </Planilha>
-      ) : null}
+              ))}
+            </Planilha>
+          ) : null}
 
-      {aba === 'confirmados' ? (
-        <Planilha
-          rotulo="Confirmados hoje"
-          consulta={confirmados}
-          vazio={{
-            titulo: 'Nada confirmado hoje ainda',
-            dica: 'As baixas que você fizer hoje aparecem aqui, com a hora de cada uma.',
-            // Nenhuma busca aconteceu aqui: o dia é que ainda não começou.
-            mascote: mascoteChecklist,
-          }}
-          ordenacao={ordenacao}
-          cabecalho={
-            <>
-              <th className="py-3 pr-4 font-normal">Formando</th>
-              <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-              <ColunaOrdenavel coluna="recebido" numerica>
-                Baixado
-              </ColunaOrdenavel>
-              <ColunaOrdenavel coluna="conferido">Conferido</ColunaOrdenavel>
-              <th className="py-3 font-normal">
-                <span className="sr-only">Ações</span>
-              </th>
-            </>
-          }
-          aoMudarPagina={(nova) =>
-            atualizar({ aba: 'confirmados', pagina: nova === 1 ? null : String(nova) })
-          }
-        >
-          {(confirmados.data?.itens ?? []).map((informe) => (
-            <LinhaDeConfirmado key={informe.id} informe={informe} />
-          ))}
-        </Planilha>
-      ) : null}
+          {aba === 'confirmados' ? (
+            <Planilha
+              rotulo="Confirmados hoje"
+              consulta={confirmados}
+              vazio={{
+                titulo: 'Nada confirmado hoje ainda',
+                dica: 'As baixas que você fizer hoje aparecem aqui, com a hora de cada uma.',
+                // Nenhuma busca aconteceu aqui: o dia é que ainda não começou.
+                mascote: mascoteChecklist,
+              }}
+              ordenacao={ordenacao}
+              cabecalho={
+                <>
+                  <th className="py-3 pr-4 font-normal">Formando</th>
+                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="recebido" numerica>
+                    Baixado
+                  </ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="conferido">Conferido</ColunaOrdenavel>
+                  <th className="py-3 font-normal">
+                    <span className="sr-only">Ações</span>
+                  </th>
+                </>
+              }
+              aoMudarPagina={(nova) =>
+                atualizar({ aba: 'confirmados', pagina: nova === 1 ? null : String(nova) })
+              }
+            >
+              {(confirmados.data?.itens ?? []).map((informe) => (
+                <LinhaDeConfirmado key={informe.id} informe={informe} />
+              ))}
+            </Planilha>
+          ) : null}
 
-      {aba === 'divergencias' ? (
-        <Planilha
-          rotulo="Divergências"
-          consulta={divergencias}
-          vazio={{
-            titulo: filtrando ? 'Nenhuma divergência com esses filtros' : 'Nenhuma divergência',
-            dica: filtrando
-              ? 'Tente outro nome.'
-              : 'Tudo bateu: nenhuma baixa saiu por valor diferente do devido.',
-            // "Tudo bateu" é a melhor notícia da tela; não se anuncia com cara de procura.
-            mascote: filtrando ? undefined : mascoteFeliz,
-          }}
-          ordenacao={ordenacao}
-          cabecalho={
-            <>
-              <th className="py-3 pr-4 font-normal">Formando</th>
-              <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-              <ColunaOrdenavel coluna="devido" numerica>
-                Devido
-              </ColunaOrdenavel>
-              <ColunaOrdenavel coluna="recebido" numerica>
-                Recebido
-              </ColunaOrdenavel>
-              {/* A diferença é a subtração das duas colunas, feita na projeção: não ordena. */}
-              <th className="py-3 pr-4 font-normal">Diferença</th>
-              <ColunaOrdenavel coluna="baixa">Baixa</ColunaOrdenavel>
-            </>
-          }
-          aoMudarPagina={(nova) =>
-            atualizar({ aba: 'divergencias', pagina: nova === 1 ? null : String(nova) })
-          }
-        >
-          {(divergencias.data?.itens ?? []).map((divergencia) => (
-            <LinhaDeDivergencia key={divergencia.recebimento_id} divergencia={divergencia} />
-          ))}
-        </Planilha>
-      ) : null}
+          {aba === 'divergencias' ? (
+            <Planilha
+              rotulo="Divergências"
+              consulta={divergencias}
+              vazio={{
+                titulo: filtrando ? 'Nenhuma divergência com esses filtros' : 'Nenhuma divergência',
+                dica: filtrando
+                  ? 'Tente outro nome.'
+                  : 'Tudo bateu: nenhuma baixa saiu por valor diferente do devido.',
+                // "Tudo bateu" é a melhor notícia da tela; não se anuncia com cara de procura.
+                mascote: filtrando ? undefined : mascoteFeliz,
+              }}
+              ordenacao={ordenacao}
+              cabecalho={
+                <>
+                  <th className="py-3 pr-4 font-normal">Formando</th>
+                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="devido" numerica>
+                    Devido
+                  </ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="recebido" numerica>
+                    Recebido
+                  </ColunaOrdenavel>
+                  {/* A diferença é a subtração das duas colunas, feita na projeção: não ordena. */}
+                  <th className="py-3 pr-4 font-normal">Diferença</th>
+                  <ColunaOrdenavel coluna="baixa">Baixa</ColunaOrdenavel>
+                </>
+              }
+              aoMudarPagina={(nova) =>
+                atualizar({ aba: 'divergencias', pagina: nova === 1 ? null : String(nova) })
+              }
+            >
+              {(divergencias.data?.itens ?? []).map((divergencia) => (
+                <LinhaDeDivergencia key={divergencia.recebimento_id} divergencia={divergencia} />
+              ))}
+            </Planilha>
+          ) : null}
+        </div>
+
+        <LateralDaConferencia />
+      </div>
     </>
+  )
+}
+
+/**
+ * A coluna da direita: o passo a passo de quem confere — a tesouraria muda a cada turma, e quem
+ * chega não sabe que o valor se corrige antes de confirmar — e o caminho do pagamento que ninguém
+ * avisou, que antes era um botão laranja na barra, disputando com o lote.
+ */
+function LateralDaConferencia() {
+  return (
+    <div className="grid min-w-0 gap-5">
+      <Cartao titulo="Como conferir">
+        <ol className="text-muted-foreground divide-y text-sm leading-relaxed">
+          <li className="pb-3">Abra o extrato do banco no período dos avisos.</li>
+          <li className="py-3">
+            Ache cada pagamento pelo dia e pelo valor. Se entrou outro valor, corrija na linha antes de
+            confirmar: depois da baixa, a diferença vira divergência.
+          </li>
+          <li className="pt-3">
+            Marque o que bateu e confirme em lote. O formando recebe o recibo por e-mail.
+          </li>
+        </ol>
+      </Cartao>
+
+      <Cartao
+        titulo="Pagou e não avisou?"
+        descricao="Viu no extrato um pagamento sem aviso? Dê a baixa direto na parcela."
+      >
+        <Button asChild variant="outline" size="sm" className="justify-self-start">
+          <Link to={ROTAS.parcelas}>Ir para Parcelas</Link>
+        </Button>
+      </Cartao>
+    </div>
   )
 }
 
@@ -438,12 +476,10 @@ function useComprovanteEmNovaAba() {
   return (informe_id: string) => {
     const aba = window.open('', '_blank')
     comprovante.mutate(informe_id, {
-      onSuccess: (arquivo) => {
-        if (aba) aba.location.href = URL.createObjectURL(arquivo)
-      },
+      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
       onError: (erro) => {
         aba?.close()
-        toast.error(mensagemDoErro(erro))
+        avisarErro(erro)
       },
     })
   }
@@ -548,7 +584,8 @@ function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoR
             campo="motivo"
             rotulo="Motivo"
             esquema={esquemaDaRecusa}
-            confirmar={recusar.isPending ? 'Recusando…' : 'Recusar'}
+            confirmar="Recusar"
+            confirmarOcupado="Recusando…"
             ocupado={recusar.isPending}
             desabilitado={!liberado}
             aoEnviar={(motivo, concluir, falhar) =>
@@ -647,11 +684,11 @@ function ConfirmarLote({ informes, total, recebido, aoConcluir }: PropsDoLote) {
 
       <DialogoDeConfirmacao
         gatilho={
-          <Button size="sm" className="h-8" disabled={!liberado || confirmar.isPending}>
+          <Button size="xs" disabled={!liberado || confirmar.isPending}>
             Confirmar · {formatarCentavos(total)}
           </Button>
         }
-        titulo={`Confirmar ${formatarNumero(quantidade)} ${quantidade === 1 ? 'pagamento' : 'pagamentos'} · ${formatarCentavos(total)}`}
+        titulo={`Confirmar ${formatarNumero(quantidade)} ${quantidade === 1 ? 'pagamento' : 'pagamentos'}, no total de ${formatarCentavos(total)}?`}
         descricao="Esta ação fica registrada em seu nome. Cada parcela marcada é baixada com o valor recebido, e o formando recebe um e-mail de confirmação."
         rotuloDeCancelar="Voltar"
         rotulo="Confirmar"
@@ -669,7 +706,7 @@ function ConfirmarLote({ informes, total, recebido, aoConcluir }: PropsDoLote) {
                 )
                 aoConcluir()
               },
-              onError: (erro) => toast.error(mensagemDoErro(erro)),
+              onError: avisarErro,
             },
           )
         }

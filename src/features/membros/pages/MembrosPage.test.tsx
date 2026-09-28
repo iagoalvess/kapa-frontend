@@ -12,7 +12,7 @@ import MembrosPage from './MembrosPage'
 const ATUAL = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 const MEMBROS = `${ATUAL}/membros`
 
-/** Como a API devolve: sem nome civil informado, `nome_completo` não vem (`WhenWritingNull`). */
+/** Como a API devolve: sem nome civil informado, `nome_completo` vem nulo. */
 const ana = {
   usuario_id: 'u-1',
   nome: 'Ana',
@@ -22,6 +22,10 @@ const ana = {
   completude: 100,
   essencial_pendente: false,
   tem_adesao: false,
+  nome_completo: null,
+  desligado_em: null,
+  motivo_do_desligamento: null,
+  detalhe_do_desligamento: null,
 }
 const bruno = {
   usuario_id: 'u-2',
@@ -32,6 +36,10 @@ const bruno = {
   completude: 0,
   essencial_pendente: true,
   tem_adesao: false,
+  nome_completo: null,
+  desligado_em: null,
+  motivo_do_desligamento: null,
+  detalhe_do_desligamento: null,
 }
 
 function pagina(itens: unknown[], numero = 1, total_paginas = 1, total = total_paginas * 20) {
@@ -242,7 +250,8 @@ describe('MembrosPage', () => {
     expect(await screen.findByRole('button', { name: 'Filtros 1' })).toBeInTheDocument()
   })
 
-  it('Presidente troca o papel de outra pessoa direto pelo seletor', async () => {
+  /** Toda troca de papel muda o que a pessoa pode fazer: o seletor pede confirmação antes de gravar. */
+  it('Presidente troca o papel de outra pessoa pelo seletor, depois de confirmar', async () => {
     let enviado: unknown
     registrarListagens()
     servidor.use(
@@ -255,6 +264,8 @@ describe('MembrosPage', () => {
 
     renderizar(<MembrosPage />)
     await userEvent.selectOptions(await screen.findByLabelText('Papel de Bruno'), 'Tesoureiro')
+    expect(enviado).toBeUndefined()
+    await userEvent.click(await screen.findByRole('button', { name: 'Mudar papel' }))
 
     await waitFor(() => expect(enviado).toEqual({ papel: 'Tesoureiro' }))
   })
@@ -395,9 +406,11 @@ describe('MembrosPage', () => {
     expect(chamou).toBe(false)
   })
 
-  /** Ele não some da lista — sumir esconderia o histórico de quem pagou parte —, e dá para desfazer. */
-  it('desligado fica na lista com selo próprio e oferece Religar', async () => {
-    let religou = false
+  /**
+   * Ele não some da lista — sumir esconderia o histórico de quem pagou parte. E não volta: desligar é
+   * definitivo desde 23/09/2026, porque religar devolvia o acesso sem cobrança nenhuma.
+   */
+  it('desligado fica na lista com selo próprio e sem ação', async () => {
     const desligado = {
       ...bruno,
       ativo: false,
@@ -406,12 +419,6 @@ describe('MembrosPage', () => {
       motivo_do_desligamento: 'Trancamento',
     }
     registrarListagens(() => pagina([desligado]))
-    servidor.use(
-      http.post(`${MEMBROS}/u-2/religar`, () => {
-        religou = true
-        return new HttpResponse(null, { status: 204 })
-      }),
-    )
     entrarComo(PAPEIS.presidente)
 
     renderizar(<MembrosPage />)
@@ -419,12 +426,7 @@ describe('MembrosPage', () => {
     const linha = (await screen.findByText('Bruno')).closest('tr')!
     expect(within(linha).getByText('Desligado')).toBeInTheDocument()
     expect(within(linha).queryByRole('button', { name: 'Desligar' })).not.toBeInTheDocument()
-
-    await userEvent.click(within(linha).getByRole('button', { name: 'Religar' }))
-    const dialogo = await screen.findByRole('alertdialog', { name: 'Religar Bruno?' })
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Religar' }))
-
-    await waitFor(() => expect(religou).toBe(true))
+    expect(within(linha).queryByRole('button')).not.toBeInTheDocument()
   })
 
   /** A pílula nova é um filtro à parte: desligado e removido compartilham `ativo=false`. */

@@ -19,7 +19,9 @@ npm run format:check     # Prettier
 npm run lint             # oxlint
 npm run typecheck        # tsc -b --noEmit
 npm run test             # Vitest
-npm run build            # tsc -b && vite build
+npm run build            # tsc -b && vite build — o app (dist/)
+npm run dev:site         # o site (landing + documentos legais) em 5180
+npm run build:site       # o site pré-renderizado (dist-site/) — ver src/site e docs/deploy.md
 
 npx shadcn@latest add <componente>    # entra em src/components/ui/
 ```
@@ -160,6 +162,8 @@ Alterações locais, a reaplicar se um componente for regenerado:
 - `button.tsx`: `size="sm"` é pílula (`rounded-full`). É a forma de toda ação secundária de linha e
   de cabeçalho de cartão no produto — antes cada uma repetia `className="rounded-full"`, e a que
   esqueceu ficou quadrada no meio das irmãs.
+- `button.tsx`: `size="xs"` (`h-8`, pílula) é o botão da barra de uma lista ou página (Novo X, filtros,
+  ações em lote); o cabeçalho de cartão usa `sm`. Antes eram 14 `size="sm" className="h-8"` soltos.
 - `button.tsx`: variante `link` em `text-brand-text`, não `text-primary` — o primário agora é o
   laranja da marca, que não se lê como texto sobre branco.
 - `alert-dialog.tsx`: importa de `@radix-ui/react-alert-dialog` e `@/lib/utils`. O CLI atual gera
@@ -184,14 +188,44 @@ outra. O catálogo:
 | Tabela curta dentro de um cartão       | `Tabela`                                             |
 | Superfície branca com cabeçalho        | `Cartao`                                             |
 | Números do topo da tela                | `FaixaDeIndicadores`                                 |
+| Cartão de valor + ação numa lateral    | `CartaoDeValor`                                      |
 | Etiqueta de estado                     | `Selo` (e `ChipDeStatus` para parcela)               |
 | Filtro em pílula                       | `Chip`                                               |
 | Par rótulo/valor de um cadastro        | `ListaDeDados` + `Dado`                              |
 | Data, moeda, número, `ehDia`           | `lib/formato`                                        |
 | Página/busca/filtro na URL             | `hooks/useFiltrosDaUrl`                              |
+| Guarda de opção lida da URL            | `ehOpcao` (`lib/opcao`) — nunca `valor in MAPA`      |
+| Caixa de marcar num formulário         | `CampoDeMarcar`                                      |
+| Página pública de leitura (termos)     | `LayoutDePaginaPublica` (`components/layout`)        |
+| Tabela de resumo com faixa cinza       | `Tabela variante="faixa"`                            |
+| Toast de erro de uma mutação           | `avisarErro` (`lib/http/erros`)                      |
+| Copiar para a área de transferência    | `copiar` (`lib/copiar`)                              |
+| Abrir blob numa aba ou baixar          | `abrirNaAba`/`abrirOuBaixar` (`lib/download`)        |
+| Busca sem acento na lista já carregada | `normalizarBusca`/`contemBusca` (`lib/busca`)        |
 
 Componente novo em `components/` quando **a segunda** feature precisar dele — antes disso ele mora
 na feature. Variação de um que já existe entra como prop no que existe, não como cópia ao lado.
+
+### Padrões de tela
+
+Fixados em 22/09/2026, depois de uma auditoria que achou cada tela num dialeto:
+
+- **Editar cadastro existente** é leitura (`ListaDeDados`/`Dado`) + "Editar" (`outline`, `sm`, sem
+  ícone) no cabeçalho do `Cartao`, abrindo `DialogoDeFormulario`. Nunca campos abertos direto na
+  tela, nem campos travados para quem só lê. Exceção: editor de markdown com prévia (aviso, termo).
+- **Rodapé** é sempre `AcoesDoFormulario`: "Salvar"/"Salvando…", sem ícone. Verbo próprio só quando a
+  ação tem nome (Publicar, Registrar, Baixar), sempre com o `rotuloOcupado` que combina. Se a ação
+  principal é cancelar algo, o desistir vira "Voltar" (`rotuloDeCancelar`).
+- **Verbos:** "Editar" (nunca Alterar/Corrigir — "Alterar senha" é a exceção), "Excluir" ("Remover"
+  só para membro), "Novo X"/"Nova X" para criar.
+- **Confirmação:** toda ação destrutiva ou irreversível passa por `DialogoDeConfirmacao`, com título
+  em pergunta e o objeto por artigo ("Excluir o aviso?") ou entre aspas curvas.
+- **Toast:** `success` para criar, salvar e enviar; `info` para excluir, cancelar, revogar e desistir.
+  Toda mutação de ação avisa no sucesso. Erro sempre por `mensagemDoErro`, nunca `erro.message`.
+- **Vazio:** lista usa `ListaVazia`; dentro de cartão, `<p className="text-muted-foreground text-sm">`
+  com frase terminada em ponto.
+- **Ícone no título do `Cartao`:** cartão principal tem, lateral não.
+- **Botões pequenos:** barra de lista ou página é `size="xs"`; cabeçalho de cartão é `size="sm"`.
 
 ### Comentário explica por quê
 

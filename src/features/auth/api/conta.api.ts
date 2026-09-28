@@ -23,11 +23,6 @@ export function confirmarEmail(dados: ConfirmacaoDeEmail) {
   return api.post<void>(`${BASE}/confirmar-email`, { body: dados, autenticar: false })
 }
 
-/** Reenvia o e-mail de confirmação. Responde 204 exista a conta ou não. */
-export function reenviarConfirmacao(email: string) {
-  return api.post<void>(`${BASE}/reenviar-confirmacao`, { body: { email }, autenticar: false })
-}
-
 /** Troca a senha de quem está logado. Encerra todas as sessões, inclusive a atual. */
 export function alterarSenha(dados: TrocaDeSenha) {
   return api.post<void>(`${BASE}/alterar-senha`, { body: dados })

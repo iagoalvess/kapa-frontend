@@ -29,6 +29,9 @@ jobs:
         # npm ci respeita o lock: build reproduzível, e falha se o lock estiver desatualizado.
         run: npm ci
 
+      - name: Dependências vulneráveis
+        run: npm audit --audit-level=high
+
       - name: Conferir formatação
         run: npm run format:check
 
@@ -42,9 +45,23 @@ jobs:
         run: npm run test
 
       - name: Build
-        run: npm run build
+        run: npm run build && npm run build:site
         env:
           VITE_API_URL: http://localhost:8080
+          VITE_APP_URL: http://localhost:5173
+          VITE_SITE_URL: http://localhost:5180
+
+  segredos:
+    # Varre o histórico inteiro com as regras padrão do gitleaks.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Varrer segredos
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest git /repo --redact
 
   imagem:
     # Só confirma que a imagem constrói. Publicar é outro workflow, com credenciais.

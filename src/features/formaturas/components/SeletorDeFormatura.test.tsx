@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
+import { QueryClient } from '@tanstack/react-query'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
 import { SeletorDeFormatura } from './SeletorDeFormatura'
@@ -59,7 +59,7 @@ describe('SeletorDeFormatura', () => {
       ),
     )
 
-    const limpar = vi.spyOn(queryClient, 'clear')
+    const limpar = vi.spyOn(QueryClient.prototype, 'clear')
 
     renderizar(<SeletorDeFormatura />)
 

@@ -5,30 +5,29 @@ import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Tabela } from '@/components/Planilha'
-import { Selo } from '@/components/Selo'
+import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useConvites, useRevogarConvite } from '../hooks/useConvites'
 import type { ConviteResumo, StatusDoConvite } from '../types/convite.types'
 import { FormularioDeConvite } from './FormularioDeConvite'
 
-const SITUACOES: Record<StatusDoConvite, { texto: string; tom: 'alerta' | 'sucesso' | 'neutro' | 'perigo' }> =
-  {
-    Pendente: { texto: 'Pendente', tom: 'alerta' },
-    Aceito: { texto: 'Aceito', tom: 'sucesso' },
-    Expirado: { texto: 'Expirado', tom: 'neutro' },
-    Revogado: { texto: 'Revogado', tom: 'perigo' },
-  }
+const SITUACOES: Record<StatusDoConvite, { texto: string; tom: TomDoSelo }> = {
+  Pendente: { texto: 'Pendente', tom: 'alerta' },
+  Aceito: { texto: 'Aceito', tom: 'sucesso' },
+  Expirado: { texto: 'Expirado', tom: 'neutro' },
+  Revogado: { texto: 'Revogado', tom: 'perigo' },
+}
 
 /**
  * O que quem está logado pode oferecer por e-mail agora.
  *
  * @param ehPresidente Só o Presidente convida para a comissão.
- * @param contratada Com a turma paga, formando também entra — no gratuito o plano tem zero vagas.
+ * @param contratada Com a turma paga, formando também entra — no gratuito só a comissão, dentro das vagas do plano.
  */
 function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
   const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao, PAPEIS.presidente]
@@ -42,8 +41,8 @@ function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
  *
  * Gestão (Comissão e Tesouraria) convida formandos; só o Presidente escolhe outro papel — a tela
  * esconde a escolha, e a API recusa com `convite.papel_restrito` de qualquer forma. No plano
- * gratuito a comissão se monta por aqui; formando só entra depois de contratar, porque o plano
- * gratuito tem zero vagas de formando (a API recusa com `convite.limite_do_plano`).
+ * gratuito a comissão se monta por aqui, dentro das poucas vagas do plano; formando só entra depois
+ * de contratar. Passar das vagas, de qualquer papel, a API recusa com `plano.limite_de_formandos`.
  */
 export function CartaoDeConvitesPorEmail() {
   const { ehPresidente } = usePapel()
@@ -146,7 +145,7 @@ function LinhaDeConvite({ convite }: { convite: ConviteResumo }) {
             aoConfirmar={() =>
               revogar.mutate(convite.id, {
                 onSuccess: () => toast.info('Convite revogado. O link parou de funcionar.'),
-                onError: (erro) => toast.error(mensagemDoErro(erro)),
+                onError: avisarErro,
               })
             }
           />

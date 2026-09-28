@@ -1,4 +1,14 @@
-import { ArrowDownRight, ArrowUpRight, Coins, Handshake, Gauge, PiggyBank, Scale, Wallet } from 'lucide-react'
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Coins,
+  HandCoins,
+  Handshake,
+  Gauge,
+  PiggyBank,
+  Scale,
+  Wallet,
+} from 'lucide-react'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeCartao, EsqueletoDeGrafico } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -235,9 +245,19 @@ export default function RelatoriosPage() {
             <QuadroDoBalancete
               titulo="Entradas por tipo de cobrança"
               icone={Coins}
-              descricao="O que entrou no período, pelo item de cobrança que originou a parcela."
+              descricao="As parcelas pagas no período, pelo item de cobrança que as originou."
               rotuloDaColuna="Item"
               linhas={dados.entradas}
+            />
+
+            {/* Seção própria, e não linhas misturadas às parcelas: quem lê o balancete pergunta
+                "quanto veio dos formandos" e "quanto veio de fora" separado (Sprint 28). */}
+            <QuadroDoBalancete
+              titulo="Outras receitas"
+              icone={HandCoins}
+              descricao="O que entrou sem ser parcela de formando: patrocínio, evento, doação, rendimento."
+              rotuloDaColuna="Categoria"
+              linhas={dados.outras_receitas}
             />
 
             {/* O quarto quadro fecha a grade com o número que faltava: entradas, saídas e resultado
@@ -250,7 +270,7 @@ export default function RelatoriosPage() {
               titulo="Adimplência hoje"
               icone={Gauge}
               descricao="Do que já venceu, quanto entrou. Não depende do período escolhido."
-              className="lg:grid-rows-[auto_1fr]"
+              className="lg:col-span-2 lg:grid-rows-[auto_1fr]"
             >
               {painel.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
               {painel.data ? <MedidorDeAdimplencia adimplencia={painel.data.adimplencia} /> : null}

@@ -20,10 +20,19 @@ import type { VersaoDoTermo } from '../types/adesoes.types'
  * Publicar é inserir a versão seguinte — não existe editar a vigente. A confirmação diz o que a
  * comissão mais pergunta: quem já aderiu continua na versão que aceitou.
  *
+ * Sem o resumo por IA aqui: ele é da vigente, e quem escreve a próxima não precisa dele no caminho
+ * (pedido do produto em 24/09). A comissão o vê em "Visualizar", como a turma vê.
+ *
  * @param vigente A versão atual, que vira o ponto de partida; sem ela, o modelo com colchetes.
  * @param aoConcluir Depois de publicar ou desistir.
  */
-export function EditorDoTermo({ vigente, aoConcluir }: { vigente?: VersaoDoTermo; aoConcluir?: () => void }) {
+export function EditorDoTermo({
+  vigente,
+  aoConcluir,
+}: {
+  vigente: VersaoDoTermo | null
+  aoConcluir?: () => void
+}) {
   const publicar = usePublicarTermo()
   const formulario = useForm<FormularioDoTermo>({
     resolver: zodResolver(esquemaDoTermo),
@@ -42,55 +51,58 @@ export function EditorDoTermo({ vigente, aoConcluir }: { vigente?: VersaoDoTermo
   )
 
   return (
-    <Cartao
-      titulo={vigente ? `Versão ${proxima} do termo` : 'Primeira versão do termo'}
-      icone={FilePenLine}
-      descricao="Escreva em markdown: # título, ## seção, - item, **negrito**. O plano de pagamento entra sozinho, antes do texto."
-    >
-      <Form {...formulario}>
-        <form onSubmit={enviar} noValidate className="grid gap-4">
-          <FormField
-            control={formulario.control}
-            name="conteudo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Texto do termo</FormLabel>
-                <FormControl>
-                  {/* Proporção de folha A4: o que se escreve tem a forma do que vai ser lido. */}
-                  <EditorDeMarkdown
-                    {...field}
-                    rotuloDaPrevia="Como o formando lê"
-                    folha="aspect-[210/297] h-auto min-h-[32rem]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <ErroDoFormulario />
-
-          <div className="flex flex-wrap justify-end gap-2">
-            {vigente && aoConcluir ? (
-              <Button type="button" variant="outline" onClick={aoConcluir}>
-                Cancelar
-              </Button>
-            ) : null}
-            <DialogoDeConfirmacao
-              gatilho={
-                <Button type="button" disabled={publicar.isPending}>
-                  Publicar versão {proxima}
-                </Button>
-              }
-              titulo={`Publicar a versão ${proxima}?`}
-              descricao="Ela passa a valer agora para quem ainda não aderiu. Quem já aderiu continua na versão que aceitou; se a comissão quiser todos na nova, lembre cada um pelo painel."
-              rotuloDeCancelar="Revisar"
-              rotulo="Publicar"
-              aoConfirmar={() => void enviar()}
+    <>
+      <Cartao
+        titulo={vigente ? `Versão ${proxima} do termo` : 'Primeira versão do termo'}
+        icone={FilePenLine}
+        descricao="Escreva em markdown: # título, ## seção, - item, **negrito**. O plano de pagamento entra sozinho, antes do texto."
+      >
+        <Form {...formulario}>
+          <form onSubmit={enviar} noValidate className="grid gap-4">
+            <FormField
+              control={formulario.control}
+              name="conteudo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Texto do termo</FormLabel>
+                  <FormControl>
+                    {/* Proporção de folha A4: o que se escreve tem a forma do que vai ser lido. */}
+                    <EditorDeMarkdown
+                      {...field}
+                      rotuloDaPrevia="Como o formando lê"
+                      folha="aspect-[210/297] h-auto min-h-[32rem]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </form>
-      </Form>
-    </Cartao>
+
+            <ErroDoFormulario />
+
+            {/* Rodapé à mão, e não `AcoesDoFormulario`: o principal abre a confirmação em vez de enviar. */}
+            <div className="flex flex-wrap justify-end gap-2">
+              {vigente && aoConcluir ? (
+                <Button type="button" variant="outline" onClick={aoConcluir}>
+                  Cancelar
+                </Button>
+              ) : null}
+              <DialogoDeConfirmacao
+                gatilho={
+                  <Button type="button" disabled={publicar.isPending}>
+                    {publicar.isPending ? 'Publicando…' : `Publicar versão ${proxima}`}
+                  </Button>
+                }
+                titulo={`Publicar a versão ${proxima}?`}
+                descricao="Ela passa a valer agora para quem ainda não aderiu. Quem já aderiu continua na versão que aceitou; se a comissão quiser todos na nova, lembre cada um pelo painel."
+                rotuloDeCancelar="Revisar"
+                rotulo="Publicar"
+                aoConfirmar={() => void enviar()}
+              />
+            </div>
+          </form>
+        </Form>
+      </Cartao>
+    </>
   )
 }

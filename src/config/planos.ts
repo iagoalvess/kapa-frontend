@@ -33,10 +33,10 @@ export const NOMES_DE_MODULO: Record<string, string | undefined> = {
   cobrancas: 'Cobranças e parcelas',
   pix: 'Recebimento PIX e conferência',
   despesas: 'Despesas e fornecedores',
-  caixa: 'Caixa e relatórios',
+  caixa: 'Caixa e dashboard',
   mural: 'Mural e acervo de documentos',
   avisos: 'Avisos e régua de cobrança',
-  contabil: 'Painel e exportação contábil',
+  relatorios: 'Relatórios e exportações',
   auditoria: 'Portal LGPD e auditoria',
 }
 

@@ -11,6 +11,7 @@ import AgendaPage from './AgendaPage'
 
 const AGENDA = `${env.VITE_API_URL}/api/v1/agenda`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
+const RESUMO_DOS_CONVITES = `${env.VITE_API_URL}/api/v1/festa/convites/resumo`
 
 /**
  * Hoje é 10/10/2026 em todos os testes.
@@ -57,6 +58,17 @@ function comApi(eventos: EventoDaTurma[] = [reuniaoPassada, reuniao, prazo, cola
   servidor.use(
     http.get(AGENDA, () => HttpResponse.json(eventos)),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
+    // A Gestão vê o aviso dos convites da festa; sem festa, ele não aparece.
+    http.get(RESUMO_DOS_CONVITES, () =>
+      HttpResponse.json({
+        evento: null,
+        evento_completo: false,
+        emitidos: 0,
+        sem_titular: 0,
+        pedidos_quitados_sem_convite: 0,
+        pedidos_com_parcela_depois_do_fechamento: 0,
+      }),
+    ),
   )
 }
 
@@ -86,6 +98,18 @@ describe('AgendaPage', () => {
 
     // Novembro de 2026 não tem data: a distância é o salto de uma coluna para a outra.
     expect(screen.queryByRole('region', { name: 'Novembro de 2026' })).not.toBeInTheDocument()
+  })
+
+  /** O cabeçalho do mês diz quantas datas ele tem, por extenso. */
+  it('mostra quantos eventos cada mês tem', async () => {
+    comHojeFixo()
+    entrarComo('Formando')
+    comApi()
+
+    renderizar(<AgendaPage />)
+
+    const outubro = await screen.findByRole('region', { name: 'Outubro de 2026' })
+    expect(within(outubro).getByText('2 eventos')).toBeInTheDocument()
   })
 
   /**
@@ -145,7 +169,7 @@ describe('AgendaPage', () => {
     await userEvent.click(within(editor).getByRole('button', { name: 'Cancelar' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'Excluir Reunião da comissão' }))
-    const confirmacao = screen.getByRole('alertdialog', { name: 'Excluir este evento?' })
+    const confirmacao = screen.getByRole('alertdialog', { name: 'Excluir o evento?' })
     expect(excluir).not.toHaveBeenCalled()
     await userEvent.click(within(confirmacao).getByRole('button', { name: 'Excluir' }))
     await waitFor(() => expect(excluir).toHaveBeenCalledTimes(1))
@@ -196,7 +220,7 @@ describe('AgendaPage', () => {
     // Abrir um evento mostra o que ele é, sem formulário nem exclusão.
     await userEvent.click(screen.getByRole('button', { name: /^(?!Excluir|Editar).*Reunião da comissão/ }))
 
-    expect(await screen.findByText('Bloco A')).toBeInTheDocument()
+    expect(within(await screen.findByRole('alertdialog')).getByText('Bloco A')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument()
   })

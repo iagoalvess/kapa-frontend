@@ -24,7 +24,6 @@ const degrau = (id: string, dias: number, extras: Partial<Regra> = {}): Regra =>
   gatilho: 'Vencimento',
   dias_de_deslocamento: dias,
   assunto: `Assunto ${id}`,
-  template: 'Oi, {nome}. São {valor}.',
   ativa: true,
   avisar_tesouraria: false,
   ...extras,
@@ -38,20 +37,13 @@ const REGUA: Regua = {
     degrau('r-4', 30, { avisar_tesouraria: true }),
     degrau('r-5', 3, { gatilho: 'InformePendente', assunto: '{quantidade} na fila' }),
   ],
-  variaveis: ['nome', 'valor', 'vencimento', 'link', 'formatura', 'quantidade'],
-  tamanho_maximo: 2000,
-  tamanho_maximo_do_assunto: 150,
 }
 
-function comApi(aoSalvar?: (corpo: { regras: unknown[] }) => void) {
+function comApi() {
   servidor.use(
     http.get(REGRAS, () => HttpResponse.json(REGUA)),
     historico(),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
-    http.put(REGRAS, async ({ request }) => {
-      aoSalvar?.((await request.json()) as { regras: unknown[] })
-      return HttpResponse.json(REGUA)
-    }),
   )
 }
 
@@ -70,6 +62,7 @@ describe('ReguaPage', () => {
 
     renderizar(<ReguaPage />)
 
+    expect(screen.getByRole('link', { name: 'Plano de cobrança' })).toHaveAttribute('href', '/cobrancas')
     // O lembrete vem antes do vencimento, mesmo tendo chegado depois da API.
     const linhas = await screen.findAllByRole('row')
     expect(linhas[1]).toHaveTextContent('D-5')
@@ -80,10 +73,10 @@ describe('ReguaPage', () => {
     expect(linhas[2]).toHaveTextContent('Ativo')
 
     // O assunto some da tela quando o editor é a única forma de lê-lo.
-    expect(screen.getByText('Assunto r-1')).toBeInTheDocument()
+    expect(within(screen.getByRole('table')).getByText('Assunto r-1')).toBeInTheDocument()
   })
 
-  it('traz a fila da tesouraria em cartão próprio, depois da régua', async () => {
+  it('traz a fila da tesouraria numa seção própria, depois da régua', async () => {
     entrarComo('Tesoureiro')
     comApi()
 
@@ -95,82 +88,29 @@ describe('ReguaPage', () => {
     expect(screen.getAllByRole('row').at(-1)).toHaveTextContent('Fila')
   })
 
-  it('abre o editor do degrau clicado, com a prévia já preenchida pelo exemplo', async () => {
+  it('liga e desliga o degrau pela chave, mandando só a situação', async () => {
     entrarComo('Tesoureiro')
-    comApi()
-
-    renderizar(<ReguaPage />)
-
-    await userEvent.click(await screen.findByRole('button', { name: /^Editar D\+3 — Em atraso/ }))
-
-    expect(await screen.findByRole('heading', { name: /D\+3 — Em atraso/ })).toBeInTheDocument()
-    const previa = screen.getByRole('region', { name: 'Prévia da mensagem' })
-    expect(previa).toHaveTextContent('Oi, Ana Souza. São R$ 350,00.')
-  })
-
-  it('manda a régua inteira com só o degrau editado trocado', async () => {
-    entrarComo('Tesoureiro')
-    let enviado: { regras: unknown[] } | undefined
-    comApi((corpo) => {
-      enviado = corpo
-    })
-
-    renderizar(<ReguaPage />)
-
-    await userEvent.click(await screen.findByRole('button', { name: /^Editar D\+3 — Em atraso/ }))
-
-    const mensagem = await screen.findByLabelText('Mensagem')
-    await userEvent.clear(mensagem)
-    await userEvent.type(mensagem, 'Oi, {{nome}. Regularize.')
-    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
-
-    await waitFor(() => expect(enviado).toBeDefined())
-    expect(enviado!.regras).toHaveLength(REGUA.regras.length)
-    expect(enviado!.regras).toContainEqual(
-      expect.objectContaining({
-        dias_de_deslocamento: 3,
-        gatilho: 'Vencimento',
-        template: 'Oi, {nome}. Regularize.',
+    let enviado: unknown
+    servidor.use(
+      http.get(REGRAS, () => HttpResponse.json(REGUA)),
+      historico(),
+      http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
+      http.put(`${REGRAS}/r-3`, async ({ request }) => {
+        enviado = await request.json()
+        return HttpResponse.json({
+          regras: REGUA.regras.map((r) => (r.id === 'r-3' ? { ...r, ativa: false } : r)),
+        })
       }),
     )
-    // O irmão vai como estava: a gravação é da régua toda, e não se pode perder o que não foi tocado.
-    expect(enviado!.regras).toContainEqual(
-      expect.objectContaining({ dias_de_deslocamento: 0, template: 'Oi, {nome}. São {valor}.' }),
-    )
-  })
-
-  it('recusa a variável errada sem chamar a API', async () => {
-    entrarComo('Tesoureiro')
-    let chamou = false
-    comApi(() => {
-      chamou = true
-    })
 
     renderizar(<ReguaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: /^Editar D\+3 — Em atraso/ }))
+    const chave = await screen.findByRole('switch', { name: 'D+3 — Em atraso' })
+    expect(chave).toBeChecked()
 
-    const mensagem = await screen.findByLabelText('Mensagem')
-    await userEvent.clear(mensagem)
-    await userEvent.type(mensagem, 'Vence em {{vencimeto}.')
-    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    await userEvent.click(chave)
 
-    expect(await screen.findByText(/Variável desconhecida: \{vencimeto\}/)).toBeInTheDocument()
-    expect(chamou).toBe(false)
-  })
-
-  it('insere a variável clicada na mensagem', async () => {
-    entrarComo('Tesoureiro')
-    comApi()
-
-    renderizar(<ReguaPage />)
-
-    await userEvent.click(await screen.findByRole('button', { name: /^Editar D\+3 — Em atraso/ }))
-
-    const mensagem = (await screen.findByLabelText('Mensagem')) as HTMLTextAreaElement
-    await userEvent.clear(mensagem)
-    await userEvent.click(screen.getByRole('button', { name: '{vencimento}' }))
-
-    expect(mensagem.value).toBe('{vencimento}')
+    await waitFor(() => expect(chave).not.toBeChecked())
+    expect(enviado).toEqual({ ativa: false })
   })
 })

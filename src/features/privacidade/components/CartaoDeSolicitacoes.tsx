@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { Selo } from '@/components/Selo'
+import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { formatarData, formatarDataHora } from '@/lib/formato'
 import {
@@ -10,7 +10,7 @@ import {
   type StatusDaSolicitacao,
 } from '../types/privacidade.types'
 
-const TONS: Record<StatusDaSolicitacao, 'marca' | 'sucesso' | 'cinza' | 'perigo'> = {
+const TONS: Record<StatusDaSolicitacao, TomDoSelo> = {
   Pendente: 'marca',
   Concluida: 'sucesso',
   Cancelada: 'cinza',
@@ -101,9 +101,18 @@ function Pedido({
           />
         ) : null}
         {pendente ? (
-          <Button size="sm" variant="outline" disabled={ocupado} onClick={() => aoCancelar(solicitacao.id)}>
-            Desistir do pedido
-          </Button>
+          <DialogoDeConfirmacao
+            titulo="Desistir do pedido?"
+            descricao="O pedido fica no histórico como cancelado. Para voltar atrás, é preciso abrir outro."
+            rotulo="Desistir do pedido"
+            rotuloDeCancelar="Voltar"
+            aoConfirmar={() => aoCancelar(solicitacao.id)}
+            gatilho={
+              <Button size="sm" variant="outline" disabled={ocupado}>
+                Desistir do pedido
+              </Button>
+            }
+          />
         ) : null}
       </div>
     </li>

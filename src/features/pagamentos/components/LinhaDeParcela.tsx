@@ -5,39 +5,28 @@ import { Button } from '@/components/ui/button'
 import { rotaDoPagamento } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { cn } from '@/lib/utils'
-import { emAberto, pagaEmParte, rotuloDoItem, type TipoDeCobranca, valorNaLista } from '@/types/cobranca'
+import { aPagar, CORES_DE_TIPO, emAberto, pagaEmParte, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import type { Parcela } from '../types/pagamentos.types'
+import { BotaoDeRecibo } from './BotaoDeRecibo'
 import { CalculoDoValor, temEncargoOuDesconto } from './CalculoDoValor'
-
-/**
- * A cor do círculo por tipo de cobrança — a mensalidade do mês e a rifa se distinguem de relance.
- *
- * Sai da paleta dos avatares (`Avatar`), a mesma que nomeia as pessoas em Membros; o laranja
- * (`avatar-5`) fica de fora, que é a cor da marca e só o botão a usa.
- */
-const CORES_DE_TIPO: Record<TipoDeCobranca, string> = {
-  Mensalidade: 'bg-avatar-2',
-  Adesao: 'bg-avatar-1',
-  Rifa: 'bg-avatar-4',
-  ConviteExtra: 'bg-avatar-3',
-  Avulsa: 'bg-avatar-6',
-}
 
 /**
  * Uma parcela na grade do formando: o número no círculo do tipo, vencimento, valor, situação e o
  * "Pagar" — as mesmas colunas da lista da gestão, sem o formando (aqui é sempre ele).
  *
+ * Com baixa, a linha leva o recibo (Sprint 22), no lugar em que o comprovante mora na despesa.
+ *
  * A vencida mostra o valor de hoje, com multa e juros, e a conta abre ao tocar (`<details>`,
  * nativo: teclado e leitor de tela vêm prontos).
  *
- * @param proxima A primeira a pagar: só ela leva o botão cheio, como o "Conferir" vazado das listas
- *   da gestão nas demais — vinte botões laranja seguidos não destacam nenhum.
+ * O "Pagar" é vazado em todas as linhas: o botão cheio da próxima mora na lateral da tela
+ * (`LateralDoExtrato`) — vinte botões laranja seguidos não destacam nenhum.
  */
-export function LinhaDeParcela({ parcela, proxima = false }: { parcela: Parcela; proxima?: boolean }) {
+export function LinhaDeParcela({ parcela }: { parcela: Parcela }) {
   // Um balão por linha: id e âncora próprios, senão todos os gatilhos abrem o primeiro.
   const balao = `calculo-${useId().replaceAll(':', '')}`
   const ancora = `--${balao}`
-  const podePagar = emAberto(parcela) && !parcela.em_conferencia
+  const podePagar = aPagar(parcela)
   const calculo =
     emAberto(parcela) && temEncargoOuDesconto(parcela.valor_do_dia) ? parcela.valor_do_dia : undefined
   const valor = valorNaLista(parcela)
@@ -51,7 +40,7 @@ export function LinhaDeParcela({ parcela, proxima = false }: { parcela: Parcela;
               pessoa. Miúdo de propósito: "12/24" tem de caber no círculo do tamanho do avatar. */}
           <span
             className={cn(
-              'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[10px] leading-none font-medium text-white tabular-nums',
+              'text-on-brand inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[10px] leading-none font-medium tabular-nums',
               CORES_DE_TIPO[parcela.tipo],
             )}
           >
@@ -105,16 +94,26 @@ export function LinhaDeParcela({ parcela, proxima = false }: { parcela: Parcela;
         <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
       </td>
       <td className="py-3 text-right">
-        {podePagar ? (
-          <Button asChild size="sm" variant={proxima ? 'default' : 'outline'}>
-            <Link
-              to={rotaDoPagamento(parcela.id)}
-              aria-label={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
-            >
-              Pagar
-            </Link>
-          </Button>
-        ) : null}
+        <div className="flex justify-end gap-2">
+          {/* O recibo da última baixa: na paga, e também na aberta com pagamento parcial — que já é
+              dinheiro que entrou e de que a pessoa pode precisar da prova. */}
+          {parcela.recebimento_id ? (
+            <BotaoDeRecibo
+              recebimentoId={parcela.recebimento_id}
+              rotulo={`Recibo da parcela ${parcela.numero}/${parcela.de}`}
+            />
+          ) : null}
+          {podePagar ? (
+            <Button asChild size="sm" variant="outline">
+              <Link
+                to={rotaDoPagamento(parcela.id)}
+                aria-label={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
+              >
+                Pagar
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </td>
     </tr>
   )

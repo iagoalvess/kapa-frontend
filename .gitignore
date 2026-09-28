@@ -2,6 +2,8 @@
 node_modules/
 dist/
 dist-ssr/
+dist-site/
+dist-site-servidor/
 *.tsbuildinfo
 
 # Ambiente: nunca versionado. Use .env.example como referência.

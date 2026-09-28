@@ -27,29 +27,45 @@ export function baixarArquivo(arquivo: Blob, nome: string) {
   setTimeout(() => URL.revokeObjectURL(endereco), 60_000)
 }
 
+/** Tipos que o navegador abre sozinho: vão para uma aba. O resto (Word, Excel) baixa com o nome original. */
+const ABRE_NO_NAVEGADOR = /^(application\/pdf|image\/)/
+
+/**
+ * Diz se o navegador mostra o arquivo sozinho (PDF, imagem) — e aí ele vai para uma aba, em vez de
+ * baixar.
+ *
+ * @param contentType O tipo do arquivo, como a API o gravou.
+ */
+export function abreNoNavegador(contentType: string) {
+  return ABRE_NO_NAVEGADOR.test(contentType)
+}
+
+/**
+ * Mostra o arquivo numa aba já aberta. Sem aba (o navegador bloqueou), não faz nada.
+ *
+ * A aba precisa nascer **antes** da ida ao servidor (`window.open('', '_blank')`): aberta depois,
+ * o navegador a trata como pop-up e bloqueia. O endereço é revogado depois de a aba ter tido tempo
+ * de ler o blob — sem isso, cada comprovante aberto ficava na memória da página até ela fechar.
+ *
+ * @param arquivo Os bytes, como vieram da API.
+ * @param aba Aba aberta antes da requisição.
+ */
+export function abrirNaAba(arquivo: Blob, aba: Window | null) {
+  if (!aba) return
+
+  const endereco = URL.createObjectURL(arquivo)
+  aba.location.href = endereco
+  setTimeout(() => URL.revokeObjectURL(endereco), 60_000)
+}
+
 /**
  * Abre o arquivo numa aba já aberta, ou o baixa com o nome original.
  *
- * A aba precisa nascer **antes** da ida ao servidor (`window.open('', '_blank')`): aberta depois,
- * o navegador a trata como pop-up e bloqueia.
- *
  * @param arquivo Os bytes.
  * @param nome Nome sugerido quando não há aba.
- * @param aba Aba aberta antes da requisição; nula para sempre baixar.
+ * @param aba Aba aberta antes da requisição (ver {@link abrirNaAba}); nula para sempre baixar.
  */
 export function abrirOuBaixar(arquivo: Blob, nome: string, aba: Window | null) {
-  const endereco = URL.createObjectURL(arquivo)
-
-  if (aba) {
-    aba.location.href = endereco
-
-    return
-  }
-
-  const link = document.createElement('a')
-  link.href = endereco
-  link.download = nome
-  link.click()
-  // O clique já entregou o arquivo ao navegador; o endereço só ocupa memória daqui em diante.
-  setTimeout(() => URL.revokeObjectURL(endereco), 60_000)
+  if (aba) abrirNaAba(arquivo, aba)
+  else baixarArquivo(arquivo, nome)
 }

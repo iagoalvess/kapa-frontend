@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { formatarData } from '@/lib/formato'
 import type { Parcela } from '@/types/cobranca'
 import { useCobrarParcela } from '../hooks/useRegras'
@@ -40,7 +40,7 @@ export function BotaoDeCobranca({ parcela }: { parcela: Parcela }) {
       aoConfirmar={() =>
         cobrar.mutate(parcela.id, {
           onSuccess: () => toast.success('Cobrança enviada.'),
-          onError: (erro) => toast.error(mensagemDoErro(erro)),
+          onError: avisarErro,
         })
       }
     />

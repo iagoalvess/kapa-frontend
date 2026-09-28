@@ -1,6 +1,6 @@
-import { CalendarClock, Eye, type LucideIcon, Pencil, Pin, UserRound } from 'lucide-react'
+import { CalendarClock, Eye, type LucideIcon, Megaphone, Pencil, Pin, UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
@@ -10,22 +10,29 @@ import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarDataHora, formatarDataRelativa } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useExcluirAviso } from '../hooks/useAvisos'
 import { type Aviso, ROTULOS_DE_VISIBILIDADE } from '../types/comunicacao.types'
 
 /**
  * O aviso aberto, no cartão grande do mural: os selos, o texto inteiro, quem publicou e quando, e —
- * para a Gestão — corrigir e excluir.
+ * para a Gestão — editar e excluir.
  *
- * Editar só marca `?editar=1`: quem troca a leitura pelo editor é o mural, que dá a largura
- * inteira ao markdown com a prévia ao lado. Excluir pede confirmação e volta para a lista; quem
- * excluiu fica na auditoria da API.
+ * Editar é do mural (`aoEditar`): é ele que troca a leitura pelo editor, com a largura inteira para
+ * o markdown e a prévia ao lado, e que sabe quais filtros da URL preservar. Excluir pede confirmação
+ * e volta para a lista; quem excluiu fica na auditoria da API.
  */
-export function DetalheDoAviso({ aviso, gestao }: { aviso: Aviso; gestao: boolean }) {
-  const [, definirParametros] = useSearchParams()
+export function DetalheDoAviso({
+  aviso,
+  gestao,
+  aoEditar,
+}: {
+  aviso: Aviso
+  gestao: boolean
+  aoEditar: () => void
+}) {
   const editavel = useEscritaLiberada()
-  const corrigido = aviso.atualizado_em !== aviso.publicado_em
+  const editado = aviso.atualizado_em !== aviso.publicado_em
 
   return (
     <Cartao
@@ -33,6 +40,7 @@ export function DetalheDoAviso({ aviso, gestao }: { aviso: Aviso; gestao: boolea
       // lista comprida, e o longo cresce à vontade a partir dela.
       className="min-h-[40rem] min-w-0"
       titulo={aviso.titulo}
+      icone={Megaphone}
       selo={
         <>
           {aviso.fixado ? <Selo tom="marca">Fixado</Selo> : null}
@@ -43,12 +51,7 @@ export function DetalheDoAviso({ aviso, gestao }: { aviso: Aviso; gestao: boolea
       acao={
         gestao ? (
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!editavel}
-              onClick={() => definirParametros({ editar: '1' })}
-            >
+            <Button variant="outline" size="sm" disabled={!editavel} onClick={aoEditar}>
               Editar
             </Button>
             <ExcluirAviso aviso={aviso} desabilitado={!editavel} />
@@ -67,8 +70,8 @@ export function DetalheDoAviso({ aviso, gestao }: { aviso: Aviso; gestao: boolea
             {formatarDataRelativa(aviso.publicado_em)}
           </time>
         </Dado>
-        {corrigido ? (
-          <Dado icone={Pencil} rotulo="Corrigido em">
+        {editado ? (
+          <Dado icone={Pencil} rotulo="Editado em">
             <time dateTime={aviso.atualizado_em}>{formatarDataHora(aviso.atualizado_em)}</time>
           </Dado>
         ) : null}
@@ -127,7 +130,7 @@ function ExcluirAviso({ aviso, desabilitado }: { aviso: Aviso; desabilitado: boo
             toast.info('Aviso excluído.')
             navegar(ROTAS.mural)
           },
-          onError: (erro) => toast.error(mensagemDoErro(erro)),
+          onError: avisarErro,
         })
       }
     />

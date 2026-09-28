@@ -14,7 +14,6 @@ import { type ComponentType, type ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
-import mascoteCanudo from '@/assets/mascote/canudo.webp'
 import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import {
   AlertDialog,
@@ -35,7 +34,7 @@ import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCpf, formatarData, formatarDataCompacta, formatarDataHora } from '@/lib/formato'
-import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { useAderir, useBaixarPdf, useMinhaAdesao, useSolicitarCodigo } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
 import { esquemaDeAceite, type FormularioDeAceite } from '../schemas/adesao.schema'
@@ -49,17 +48,20 @@ import type {
 import { CampoDeCodigo } from './CampoDeCodigo'
 import { CartaoDeVersoes } from './CartaoDeVersoes'
 import { LeitorDeTermo } from './LeitorDeTermo'
+import { ResumoDoTermo } from './ResumoDoTermo'
 import { IndicadoresDoPlano, ResumoFinanceiroDaAdesao } from './ResumoFinanceiroDaAdesao'
 
 /**
- * As duas colunas das telas do termo: à esquerda o texto largo (com o aceite no fim, antes de
- * assinar), à direita o dinheiro (e o registro do aceite, depois).
+ * As duas colunas das telas do termo: à esquerda o resumo do Kapinha e, logo abaixo, o texto largo
+ * (com o aceite no fim, antes de assinar); à direita o dinheiro (e o registro do aceite, depois).
  *
- * O termo, sem rolagem própria, é longo e ocupa as três linhas; a terceira, `1fr`, fica com a sobra
- * da altura dele — sem ela, a sobra se dividia entre as duas de cima e abria um vão entre os cartões.
+ * Cada coluna empilha sozinha: cartão que às vezes não aparece (o resumo, as versões) não deixa
+ * buraco, como deixava na grade de linhas contadas. O termo fica na primeira linha da coluna 1 — no
+ * celular, depois da lateral.
  */
-const COLUNAS =
-  'grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:grid-rows-[auto_auto_1fr]'
+const COLUNAS = 'grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]'
+const LATERAL = 'grid gap-5 lg:col-start-2'
+const TERMO = 'grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1'
 
 const ROTULOS_DE_PENDENCIA: Record<PendenciaDoCadastro, string> = {
   nome_completo: 'nome completo',
@@ -107,13 +109,15 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
 
   if (conteudo.isError) return <ErroDaConsulta erro={conteudo.error} />
 
-  const { termo, plano, hash_do_conteudo } = conteudo.data
+  const { termo, plano, hash_do_conteudo, resumo } = conteudo.data
   const novaVersao = adesao && termo && termo.versao > adesao.versao ? termo.versao : undefined
 
   if (adesao && !(novaVersao && parametros.get('ler') === 'nova'))
     return (
       <TermoAssinado
         adesao={adesao}
+        resumo={resumo}
+        versaoDoResumo={termo?.versao}
         novaVersao={novaVersao}
         aoLerNova={() => definirParametros({ ler: 'nova' })}
       />
@@ -129,6 +133,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       key={hash_do_conteudo}
       termo={termo}
       plano={plano}
+      resumo={resumo}
       hash={hash_do_conteudo}
       anterior={adesao}
       pendencias={pendencias}
@@ -140,7 +145,8 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
 }
 
 /**
- * Os três blocos da sprint, na ordem: o que se paga (faixa e tabela), o termo inteiro e o aceite.
+ * Os três blocos da sprint, na ordem: o que se paga (faixa e tabela), o termo inteiro e o aceite — e,
+ * acima do termo, o resumo do Kapinha quando já existe (Sprint 24).
  * No celular as colunas empilham nessa mesma ordem; na tela larga o termo fica à esquerda.
  *
  * O código só é pedido depois da leitura, e o campo só aparece depois de pedido: ele vale poucos
@@ -149,6 +155,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
 function LeituraEAceite({
   termo,
   plano,
+  resumo,
   hash,
   anterior,
   pendencias,
@@ -158,8 +165,9 @@ function LeituraEAceite({
 }: {
   termo: VersaoDoTermo
   plano: PlanoAceito
+  resumo: string | null
   hash: string
-  anterior?: Adesao
+  anterior: Adesao | null
   pendencias: PendenciaDoCadastro[]
   formularioDoTitular: ReactNode
   aoRecarregar: () => void
@@ -178,7 +186,7 @@ function LeituraEAceite({
         formulario.setValue('codigo', '')
         aoEnviar()
       },
-      onError: (erro) => toast.error(mensagemDoErro(erro)),
+      onError: avisarErro,
     })
 
   // Aceitar confere a caixa marcada, pede o código e abre o diálogo para digitá-lo.
@@ -195,7 +203,7 @@ function LeituraEAceite({
           aoAderir()
         },
         onError: (erro) => {
-          toast.error(mensagemDoErro(erro))
+          avisarErro(erro)
           // O texto ou o plano mudou enquanto a pessoa lia: a tela relê, e a chave remonta a leitura.
           if (ehErroDaApi(erro) && erro.codigo === 'adesao.termo_desatualizado') aoRecarregar()
         },
@@ -215,170 +223,178 @@ function LeituraEAceite({
       <IndicadoresDoPlano plano={plano} rotulo="Resumo do plano" />
 
       <div className={COLUNAS}>
-        <Cartao titulo="O que você vai pagar" className="lg:col-start-2 lg:row-start-1">
-          <ResumoFinanceiroDaAdesao plano={plano} />
-        </Cartao>
+        <div className={LATERAL}>
+          <Cartao titulo="O que você vai pagar">
+            <ResumoFinanceiroDaAdesao plano={plano} />
+          </Cartao>
 
-        <CartaoDeVersoes className="lg:col-start-2 lg:row-start-2" />
+          <CartaoDeVersoes />
+        </div>
 
-        <Cartao
-          titulo="Termo de adesão"
-          icone={PenLine}
-          acao={
-            // Versão e data de publicação num identificador só, como um número de build: `v2.20260914`.
-            <span
-              title={`Versão ${termo.versao}, publicada em ${formatarData(termo.vigente_desde)}`}
-              className="text-muted-foreground font-mono text-xs"
-            >
-              <span className="sr-only">
-                Versão {termo.versao}, publicada em {formatarData(termo.vigente_desde)}
+        <div className={TERMO}>
+          <ResumoDoTermo texto={resumo} versao={termo.versao} className="motion-safe:animate-entrar" />
+
+          <Cartao
+            titulo="Termo de adesão"
+            icone={PenLine}
+            acao={
+              // Versão e data de publicação num identificador só, como um número de build: `v2.20260914`.
+              <span
+                title={`Versão ${termo.versao}, publicada em ${formatarData(termo.vigente_desde)}`}
+                className="text-muted-foreground font-mono text-xs"
+              >
+                <span className="sr-only">
+                  Versão {termo.versao}, publicada em {formatarData(termo.vigente_desde)}
+                </span>
+                <span aria-hidden>
+                  v{termo.versao}.{formatarDataCompacta(termo.vigente_desde)}
+                </span>
               </span>
-              <span aria-hidden>
-                v{termo.versao}.{formatarDataCompacta(termo.vigente_desde)}
-              </span>
-            </span>
-          }
-          className="lg:col-start-1 lg:row-span-3 lg:row-start-1"
-        >
-          <LeitorDeTermo conteudo={termo.conteudo} aoChegarAoFim={() => definirLeuAteOFim(true)} />
+            }
+          >
+            <LeitorDeTermo conteudo={termo.conteudo} aoChegarAoFim={() => definirLeuAteOFim(true)} />
 
-          {/* O aceite logo depois do texto: chegar nele é ter passado pelo termo inteiro. */}
-          <section aria-label="Aceite" className="grid gap-4">
-            {pendencias.length > 0 ? (
-              <div className="grid gap-4">
-                <p className="text-muted-foreground text-sm">
-                  O termo identifica quem assina. Antes do aceite, informe seu{' '}
-                  {pendencias.map((pendencia) => ROTULOS_DE_PENDENCIA[pendencia]).join(', ')} — ficam no seu
-                  cadastro e no termo.
-                </p>
-                {formularioDoTitular}
-              </div>
-            ) : (
-              <Form {...formulario}>
-                {/* Sem `<form>` aqui: o do diálogo, mesmo num portal, subiria o submit até ele pela árvore do React. */}
-                <div className="flex flex-wrap items-center gap-4">
-                  <FormField
-                    control={formulario.control}
-                    name="aceito"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <label className="text-muted-foreground flex items-start gap-2.5 text-sm leading-snug">
-                            <input
-                              type="checkbox"
-                              checked={field.value === true}
-                              onChange={(evento) => field.onChange(evento.target.checked)}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              ref={field.ref}
-                              disabled={!leuAteOFim}
-                              className="accent-brand mt-0.5 size-4 shrink-0"
-                            />
-                            Li o termo e aceito aderir à formatura nessas condições.
-                          </label>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="button"
-                    onClick={aceitar}
-                    disabled={!leuAteOFim || !liberado || codigo.isPending}
-                    className="ml-auto"
-                  >
-                    <CircleCheck aria-hidden />
-                    {codigo.isPending ? 'Enviando o código…' : 'Aceitar'}
-                  </Button>
+            {/* O aceite logo depois do texto: chegar nele é ter passado pelo termo inteiro. */}
+            <section aria-label="Aceite" className="grid gap-4">
+              {pendencias.length > 0 ? (
+                <div className="grid gap-4">
+                  <p className="text-muted-foreground text-sm">
+                    O termo identifica quem assina. Antes do aceite, informe seu{' '}
+                    {pendencias.map((pendencia) => ROTULOS_DE_PENDENCIA[pendencia]).join(', ')} — ficam no seu
+                    cadastro e no termo.
+                  </p>
+                  {formularioDoTitular}
                 </div>
+              ) : (
+                <Form {...formulario}>
+                  {/* Sem `<form>` aqui: o do diálogo, mesmo num portal, subiria o submit até ele pela árvore do React. */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <FormField
+                      control={formulario.control}
+                      name="aceito"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <label className="text-muted-foreground flex items-start gap-2.5 text-sm leading-snug">
+                              <input
+                                type="checkbox"
+                                checked={field.value === true}
+                                onChange={(evento) => field.onChange(evento.target.checked)}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
+                                disabled={!leuAteOFim}
+                                className="accent-brand mt-0.5 size-4 shrink-0"
+                              />
+                              Li o termo e aceito aderir à formatura nessas condições.
+                            </label>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <AlertDialog open={digitandoCodigo} onOpenChange={definirDigitandoCodigo}>
-                  {/* O Radix foca o Cancelar; quem abriu o diálogo quer digitar o código. */}
-                  <AlertDialogContent
-                    onOpenAutoFocus={(evento) => {
-                      evento.preventDefault()
-                      formulario.setFocus('codigo')
-                    }}
-                    className="bg-card rounded-3xl p-8 sm:max-w-md"
-                  >
-                    <form onSubmit={enviar} noValidate className="grid gap-6">
-                      <div className="grid justify-items-center gap-1.5 text-center">
-                        <span className="bg-brand-tint text-brand-text mb-2 inline-flex size-12 items-center justify-center rounded-2xl">
-                          <MailCheck className="size-6" strokeWidth={1.75} aria-hidden />
-                        </span>
-                        <AlertDialogTitle>Confirme sua adesão</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Digite o código de 6 dígitos que enviamos para {codigo.data?.email}.
-                        </AlertDialogDescription>
-                      </div>
+                    <Button
+                      type="button"
+                      onClick={aceitar}
+                      disabled={!leuAteOFim || !liberado || codigo.isPending}
+                      className="ml-auto"
+                    >
+                      <CircleCheck aria-hidden />
+                      {codigo.isPending ? 'Enviando o código…' : 'Aceitar'}
+                    </Button>
+                  </div>
 
-                      <FormField
-                        control={formulario.control}
-                        name="codigo"
-                        render={({ field }) => (
-                          <FormItem className="justify-items-center gap-3">
-                            <FormLabel className="sr-only">
-                              Código enviado para {codigo.data?.email}
-                            </FormLabel>
-                            <FormControl>
-                              <CampoDeCodigo {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            <p className="text-texto-muted text-center text-xs">
-                              Vale por cerca de {codigo.data?.valido_por_minutos} minutos. Não chegou?{' '}
-                              <button
-                                type="button"
-                                onClick={() => pedirCodigo(() => toast.info('Enviamos um código novo.'))}
-                                disabled={codigo.isPending}
-                                className="text-foreground cursor-pointer font-medium underline"
-                              >
-                                Enviar de novo
-                              </button>
-                            </p>
-                          </FormItem>
-                        )}
-                      />
+                  <AlertDialog open={digitandoCodigo} onOpenChange={definirDigitandoCodigo}>
+                    {/* O Radix foca o Cancelar; quem abriu o diálogo quer digitar o código. */}
+                    <AlertDialogContent
+                      onOpenAutoFocus={(evento) => {
+                        evento.preventDefault()
+                        formulario.setFocus('codigo')
+                      }}
+                      className="bg-card rounded-3xl p-8 sm:max-w-md"
+                    >
+                      <form onSubmit={enviar} noValidate className="grid gap-6">
+                        <div className="grid justify-items-center gap-1.5 text-center">
+                          <span className="bg-brand-tint text-brand-text mb-2 inline-flex size-12 items-center justify-center rounded-2xl">
+                            <MailCheck className="size-6" strokeWidth={1.75} aria-hidden />
+                          </span>
+                          <AlertDialogTitle>Confirme sua adesão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Digite o código de 6 dígitos que enviamos para {codigo.data?.email}.
+                          </AlertDialogDescription>
+                        </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <AlertDialogCancel type="button">Cancelar</AlertDialogCancel>
-                        <Button type="submit" disabled={aderir.isPending}>
-                          {aderir.isPending ? 'Registrando…' : 'Confirmar adesão'}
-                        </Button>
-                      </div>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </Form>
-            )}
-          </section>
-        </Cartao>
+                        <FormField
+                          control={formulario.control}
+                          name="codigo"
+                          render={({ field }) => (
+                            <FormItem className="justify-items-center gap-3">
+                              <FormLabel className="sr-only">
+                                Código enviado para {codigo.data?.email}
+                              </FormLabel>
+                              <FormControl>
+                                <CampoDeCodigo {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              <p className="text-texto-muted text-center text-xs">
+                                Vale por cerca de {codigo.data?.valido_por_minutos} minutos. Não chegou?{' '}
+                                <button
+                                  type="button"
+                                  onClick={() => pedirCodigo(() => toast.info('Enviamos um código novo.'))}
+                                  disabled={codigo.isPending}
+                                  className="text-foreground cursor-pointer font-medium underline"
+                                >
+                                  Enviar de novo
+                                </button>
+                              </p>
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <AlertDialogCancel type="button">Cancelar</AlertDialogCancel>
+                          <Button type="submit" disabled={aderir.isPending}>
+                            {aderir.isPending ? 'Registrando…' : 'Confirmar adesão'}
+                          </Button>
+                        </div>
+                      </form>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </Form>
+              )}
+            </section>
+          </Cartao>
+        </div>
       </div>
     </>
   )
 }
 
 /**
- * O termo que a pessoa assinou, como no perfil do modelo: o texto à esquerda; à direita, o plano do
- * dia do aceite e o registro que faz do clique uma prova.
+ * O termo que a pessoa assinou, como no perfil do modelo: o resumo do Kapinha e o texto à esquerda;
+ * à direita, o plano do dia do aceite e o registro que faz do clique uma prova.
+ *
+ * O resumo é sempre o da vigente — só ela tem resumo. Quando a pessoa assinou uma anterior, o pé do
+ * cartão diz de qual versão ele é, e a faixa de versão nova já está no topo.
  */
 function TermoAssinado({
   adesao,
+  resumo = null,
+  versaoDoResumo,
   novaVersao,
   aoLerNova,
 }: {
   adesao: Adesao
+  resumo?: string | null
+  versaoDoResumo?: number
   novaVersao?: number
   /** Só existe com `novaVersao`: é o botão que leva à leitura da versão nova. */
   aoLerNova?: () => void
 }) {
   const pdf = useBaixarPdf()
 
-  const baixar = () =>
-    pdf.mutate(
-      { adesao_id: adesao.id, versao: adesao.versao },
-      { onError: (erro) => toast.error(mensagemDoErro(erro)) },
-    )
+  const baixar = () => pdf.mutate({ adesao_id: adesao.id, versao: adesao.versao }, { onError: avisarErro })
 
   return (
     <>
@@ -399,71 +415,70 @@ function TermoAssinado({
 
       <IndicadoresDoPlano plano={adesao.plano} rotulo="Resumo do plano aceito" />
 
-      {/* A única conquista que o formando tem no produto, e até aqui ela passava em branco: a tela
-          abria direto no comprovante. Sem repetir a data nem a versão — isso é do cartão abaixo. */}
-      <section
-        aria-label="Adesão concluída"
-        className="bg-brand-tint motion-safe:animate-entrar flex items-center gap-4 rounded-2xl px-5 py-3"
-      >
-        <img src={mascoteCanudo} alt="" className="w-16 shrink-0 drop-shadow-lg" />
-        <div className="min-w-0">
-          <p className="text-brand-text font-medium">Você está dentro.</p>
-          <p className="text-muted-foreground text-sm">
-            Daqui em diante é acompanhar as parcelas no seu extrato.
-          </p>
-        </div>
-      </section>
-
       <div className={COLUNAS}>
-        <Cartao
-          titulo="Termo assinado"
-          icone={FileCheck2}
-          selo={<Selo tom="sucesso">Aderido</Selo>}
-          descricao={`Versão ${adesao.versao}, aceita em ${formatarDataHora(adesao.aceito_em)}.`}
-          acao={
-            <Button variant="outline" size="sm" onClick={baixar} disabled={pdf.isPending}>
-              <Download aria-hidden />
-              {pdf.isPending ? 'Gerando…' : 'Baixar PDF'}
-            </Button>
-          }
-          className="lg:col-start-1 lg:row-span-3 lg:row-start-1"
-        >
-          <LeitorDeTermo conteudo={adesao.conteudo_do_termo} />
-        </Cartao>
+        <div className={TERMO}>
+          <ResumoDoTermo
+            texto={resumo}
+            versao={versaoDoResumo}
+            versaoAceita={adesao.versao}
+            className="motion-safe:animate-entrar"
+          />
 
-        <Cartao
-          titulo="O que você aceitou pagar"
-          descricao="O plano do dia do aceite. Mudanças posteriores no plano não mudam o que está aqui."
-          className="lg:col-start-2"
-        >
-          <ResumoFinanceiroDaAdesao plano={adesao.plano} />
-        </Cartao>
+          <Cartao
+            titulo="Termo assinado"
+            icone={FileCheck2}
+            selo={<Selo tom="sucesso">Aderido</Selo>}
+            descricao={`Versão ${adesao.versao}, aceita em ${formatarDataHora(adesao.aceito_em)}.`}
+            acao={
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link to={ROTAS.extrato}>Ver minhas parcelas</Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={baixar} disabled={pdf.isPending}>
+                  <Download aria-hidden />
+                  {pdf.isPending ? 'Gerando…' : 'Baixar PDF'}
+                </Button>
+              </>
+            }
+          >
+            <LeitorDeTermo conteudo={adesao.conteudo_do_termo} />
+          </Cartao>
+        </div>
 
-        <Cartao titulo="Registro do aceite" className="lg:col-start-2">
-          <ListaDeDados>
-            <Dado icone={UserRound} rotulo="Nome completo">
-              {adesao.nome_completo}
-            </Dado>
-            <Dado icone={IdCard} rotulo="CPF">
-              {formatarCpf(adesao.cpf)}
-            </Dado>
-            <Dado icone={CalendarClock} rotulo="Aceito em">
-              {formatarDataHora(adesao.aceito_em)}
-            </Dado>
-            {adesao.email_do_aceite ? (
-              <Dado icone={MailCheck} rotulo="Código confirmado em">
-                {adesao.email_do_aceite}
+        <div className={LATERAL}>
+          <Cartao
+            titulo="O que você aceitou pagar"
+            descricao="O plano do dia do aceite. Mudanças posteriores no plano não mudam o que está aqui."
+          >
+            <ResumoFinanceiroDaAdesao plano={adesao.plano} />
+          </Cartao>
+
+          <Cartao titulo="Registro do aceite">
+            <ListaDeDados>
+              <Dado icone={UserRound} rotulo="Nome completo">
+                {adesao.nome_completo}
               </Dado>
-            ) : null}
-            <Dado icone={Fingerprint} rotulo="Código de verificação">
-              <span title={adesao.hash_do_conteudo} className="font-mono text-xs break-all">
-                {adesao.hash_do_conteudo}
-              </span>
-            </Dado>
-          </ListaDeDados>
-        </Cartao>
+              <Dado icone={IdCard} rotulo="CPF">
+                {formatarCpf(adesao.cpf)}
+              </Dado>
+              <Dado icone={CalendarClock} rotulo="Aceito em">
+                {formatarDataHora(adesao.aceito_em)}
+              </Dado>
+              {adesao.email_do_aceite ? (
+                <Dado icone={MailCheck} rotulo="Código confirmado em">
+                  {adesao.email_do_aceite}
+                </Dado>
+              ) : null}
+              <Dado icone={Fingerprint} rotulo="Código de verificação">
+                <span title={adesao.hash_do_conteudo} className="font-mono text-xs break-all">
+                  {adesao.hash_do_conteudo}
+                </span>
+              </Dado>
+            </ListaDeDados>
+          </Cartao>
 
-        <CartaoDeVersoes className="lg:col-start-2" />
+          <CartaoDeVersoes />
+        </div>
       </div>
     </>
   )

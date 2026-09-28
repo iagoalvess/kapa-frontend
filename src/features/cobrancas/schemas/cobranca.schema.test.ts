@@ -140,8 +140,14 @@ describe('regras do plano', () => {
       dias_minimos_para_desconto: 0,
     })
     expect(
-      paraFormularioDoPlano({ ...dados, id: 'p', status: 'Rascunho', itens: [], formandos_com_parcela: 0 })
-        .jurosAoMes,
+      paraFormularioDoPlano({
+        ...dados,
+        id: 'p',
+        status: 'Rascunho',
+        vigente_desde: null,
+        itens: [],
+        formandos_com_parcela: 0,
+      }).jurosAoMes,
     ).toBe('1,50')
   })
 

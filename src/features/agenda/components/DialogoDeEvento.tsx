@@ -6,6 +6,7 @@ import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarData, formatarHora } from '@/lib/formato'
 import { type EventoDaTurma, ROTULOS_DE_TIPO } from '@/types/agenda'
 import { FormularioDoEvento } from './FormularioDoEvento'
+import { PainelDaCota } from './PainelDaCota'
 import { SeloDoEvento } from './SeloDoEvento'
 
 interface Props {
@@ -78,6 +79,8 @@ export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFe
               </Dado>
             ) : null}
           </ListaDeDados>
+
+          {ehGestao && evento?.tipo === 'Colacao' ? <PainelDaCota editavel={editavel} /> : null}
 
           <div className="ml-auto">
             <Button type="button" variant="outline" onClick={aoFechar}>

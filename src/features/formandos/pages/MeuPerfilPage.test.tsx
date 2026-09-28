@@ -11,15 +11,33 @@ import MeuPerfilPage from './MeuPerfilPage'
 
 const EU = `${env.VITE_API_URL}/api/v1/formandos/eu`
 
-/** Como a API devolve: campo vazio não vem (`WhenWritingNull`). */
+/** Como a API devolve: campo vazio vem `null`. */
 const perfil = {
   usuario_id: 'u-1',
   nome: 'Ana',
   email: 'ana@exemplo.com',
   papel: 'Formando',
-  pessoais: { nome_completo: 'Ana Souza', cpf: '52998224725', telefone: '+5541998765432' },
-  endereco: {},
-  contato_de_emergencia: {},
+  pessoais: {
+    nome_completo: 'Ana Souza',
+    nome_no_diploma: null,
+    cpf: '52998224725',
+    rg: null,
+    matricula: null,
+    telefone: '+5541998765432',
+    data_de_nascimento: null,
+    observacoes: null,
+  },
+  endereco: {
+    cep: null,
+    logradouro: null,
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+  },
+  contato_de_emergencia: { nome: null, telefone: null, parentesco: null },
+  foto_arquivo_id: null,
   completude: 30,
   faltando: [
     'nome_no_diploma',
@@ -47,7 +65,12 @@ function entrar() {
   })
 }
 
-const secao = (nome: string) => screen.getByRole('form', { name: nome })
+/** Abre a seção pelo "Editar" do cartão e devolve o formulário do diálogo. */
+async function editar(nome: string) {
+  const cartao = await screen.findByRole('region', { name: nome })
+  await userEvent.click(within(cartao).getByRole('button', { name: 'Editar' }))
+  return screen.findByRole('form', { name: nome })
+}
 
 describe('MeuPerfilPage', () => {
   beforeEach(() => {
@@ -65,8 +88,9 @@ describe('MeuPerfilPage', () => {
   it('mostra os documentos com máscara e o que ainda falta', async () => {
     renderizar(<MeuPerfilPage />)
 
-    expect(await screen.findByLabelText('CPF')).toHaveValue('529.982.247-25')
-    expect(within(secao('Dados pessoais')).getByLabelText('Telefone')).toHaveValue('(41) 99876-5432')
+    const pessoais = await screen.findByRole('region', { name: 'Dados pessoais' })
+    expect(within(pessoais).getByText('529.982.247-25')).toBeInTheDocument()
+    expect(within(pessoais).getByText('(41) 99876-5432')).toBeInTheDocument()
     expect(screen.getByText('30% preenchido')).toBeInTheDocument()
     expect(screen.getByText(/Falta: Nome no diploma, RG/)).toBeInTheDocument()
   })
@@ -82,13 +106,14 @@ describe('MeuPerfilPage', () => {
     )
 
     renderizar(<MeuPerfilPage />)
-    const endereco = await screen.findByRole('form', { name: 'Endereço' })
+    const endereco = await editar('Endereço')
     await userEvent.type(within(endereco).getByLabelText('Número'), '10')
-    await userEvent.click(within(endereco).getByRole('button', { name: 'Salvar endereço' }))
+    await userEvent.click(within(endereco).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(enviado).toBeDefined())
     expect(Object.keys(enviado!)).toEqual(['endereco'])
     expect(enviado!.endereco).toMatchObject({ numero: '10', cep: null, logradouro: null })
+    await waitFor(() => expect(screen.queryByRole('form', { name: 'Endereço' })).not.toBeInTheDocument())
   })
 
   /** O dígito verificador é do backend; o erro volta com o campo apontado e acende embaixo dele. */
@@ -107,14 +132,13 @@ describe('MeuPerfilPage', () => {
     )
 
     renderizar(<MeuPerfilPage />)
-    const cpf = await screen.findByLabelText('CPF')
+    const pessoais = await editar('Dados pessoais')
+    const cpf = within(pessoais).getByLabelText('CPF')
     await userEvent.clear(cpf)
     await userEvent.type(cpf, '529.982.247-24')
-    await userEvent.click(screen.getByRole('button', { name: 'Salvar dados pessoais' }))
+    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
-    expect(
-      await within(secao('Dados pessoais')).findByText('CPF inválido. Confira os 11 dígitos.'),
-    ).toBeInTheDocument()
+    expect(await within(pessoais).findByText('CPF inválido. Confira os 11 dígitos.')).toBeInTheDocument()
   })
 
   it('preenche o endereço pelo CEP e deixa os campos editáveis', async () => {
@@ -130,7 +154,7 @@ describe('MeuPerfilPage', () => {
     )
 
     renderizar(<MeuPerfilPage />)
-    const endereco = await screen.findByRole('form', { name: 'Endereço' })
+    const endereco = await editar('Endereço')
     await userEvent.type(within(endereco).getByLabelText('CEP'), '80010-000')
 
     await waitFor(() =>
@@ -146,7 +170,7 @@ describe('MeuPerfilPage', () => {
     )
 
     renderizar(<MeuPerfilPage />)
-    const endereco = await screen.findByRole('form', { name: 'Endereço' })
+    const endereco = await editar('Endereço')
     await userEvent.type(within(endereco).getByLabelText('CEP'), '99999-999')
 
     expect(await within(endereco).findByText(/Preencha o endereço à mão/)).toBeInTheDocument()
@@ -171,8 +195,8 @@ describe('MeuPerfilPage', () => {
     expect(screen.queryByText(/Falta o essencial/)).not.toBeInTheDocument()
   })
 
-  /** Encerrada é arquivo: a API recusaria, então a tela nem oferece o botão. */
-  it('com a formatura encerrada, mostra o cadastro sem deixar salvar', async () => {
+  /** Encerrada é arquivo: a API recusaria, então a tela mostra a leitura, sem "Editar". */
+  it('com a formatura encerrada, mostra o cadastro sem deixar editar', async () => {
     servidor.use(
       http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
         HttpResponse.json({ id: 'f-1', status: 'Encerrada' }),
@@ -181,8 +205,8 @@ describe('MeuPerfilPage', () => {
 
     renderizar(<MeuPerfilPage />)
 
-    expect(await screen.findByLabelText('CPF')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByLabelText('CPF')).toBeDisabled())
-    expect(screen.queryByRole('button', { name: /^Salvar/ })).not.toBeInTheDocument()
+    const pessoais = await screen.findByRole('region', { name: 'Dados pessoais' })
+    expect(within(pessoais).getByText('529.982.247-25')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument())
   })
 })

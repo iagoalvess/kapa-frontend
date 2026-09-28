@@ -1,13 +1,11 @@
 import { CalendarRange, Landmark, Users, Wallet } from 'lucide-react'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
-import { formatarCentavos, formatarNumero } from '@/lib/formato'
+import { formatarCentavos } from '@/lib/formato'
 import type { SimulacaoDoPlano } from '../types/cobrancas.types'
 
 interface Props {
   /** Simulação do plano **gravado** — não a do formulário em edição. */
   simulacao?: SimulacaoDoPlano
-  /** Quantos formandos a comissão espera, para comparar com quem já está na turma. */
-  estimados?: number
 }
 
 /**
@@ -17,7 +15,7 @@ interface Props {
  * Sai da simulação do plano salvo, e não da prévia do formulário, que ainda pode ser descartada. A
  * situação do plano não entra aqui: ela está no cabeçalho, junto das ações que a mudam.
  */
-export function ResumoDoPlano({ simulacao, estimados }: Props) {
+export function ResumoDoPlano({ simulacao }: Props) {
   return (
     <FaixaDeIndicadores
       rotulo="Resumo do plano"
@@ -35,7 +33,6 @@ export function ResumoDoPlano({ simulacao, estimados }: Props) {
         {
           rotulo: 'Na turma hoje',
           valor: simulacao?.formandos ?? null,
-          unidade: estimados ? `de ${formatarNumero(estimados)}` : undefined,
           icone: Users,
         },
         {

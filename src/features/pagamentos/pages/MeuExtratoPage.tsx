@@ -1,21 +1,24 @@
 import { Link } from 'react-router'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
-import mascoteLupa from '@/assets/mascote/lupa.webp'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { ROTULOS_DE_STATUS } from '@/components/ChipDeStatus'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { ListaVazia } from '@/components/ListaVazia'
 import { ColunaOrdenavel, Tabela } from '@/components/Planilha'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import { emAberto, type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { aPagar, emAberto, type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { DialogoDeEscolhaDeParcelas } from '../components/DialogoDeEscolhaDeParcelas'
+import { LateralDoExtrato } from '../components/LateralDoExtrato'
 import { LinhaDeParcela } from '../components/LinhaDeParcela'
 import { ResumoDoExtrato } from '../components/ResumoDoExtrato'
 import { useExtrato } from '../hooks/useExtrato'
+import { ehOpcao } from '@/lib/opcao'
+import { contemBusca } from '@/lib/busca'
 
 /**
  * As pílulas de situação, como as de Parcelas e Membros. "Em conferência" é uma leitura, e não um
@@ -30,7 +33,7 @@ const FILTROS = {
 
 type Situacao = keyof typeof FILTROS
 
-const ehSituacao = (valor: string | null): valor is Situacao => valor !== null && valor in FILTROS
+const ehSituacao = (valor: string | null): valor is Situacao => ehOpcao(valor, FILTROS)
 
 /** O que cada coluna ordenável compara. Sem coluna escolhida vale a ordem da API: por vencimento. */
 const CHAVES: Record<string, (p: Parcela) => number | string> = {
@@ -50,19 +53,8 @@ const CHAVES: Record<string, (p: Parcela) => number | string> = {
  * @param termo O que a pessoa digitou; vazio deixa tudo passar.
  */
 function combina(parcela: Parcela, termo: string) {
-  const procurado = semAcento(termo)
-  if (!procurado) return true
-
-  return semAcento(`${rotuloDoItem(parcela)} ${parcela.numero}/${parcela.de}`).includes(procurado)
+  return contemBusca(termo, `${rotuloDoItem(parcela)} ${parcela.numero}/${parcela.de}`)
 }
-
-/** Minúsculas e sem acento, para os dois lados da comparação. */
-const semAcento = (texto: string) =>
-  texto
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLocaleLowerCase('pt-BR')
-    .trim()
 
 /** `toSorted` porque a lista é do cache do React Query: ordenar no lugar mexeria no cache. */
 function ordenar(parcelas: Parcela[], por: string | undefined, descendente: boolean) {
@@ -120,9 +112,7 @@ export default function MeuExtratoPage() {
 
       {todas.length > 0 ? (
         <FiltrosDaPlanilha
-          acoes={
-            <DialogoDeEscolhaDeParcelas parcelas={todas.filter((p) => emAberto(p) && !p.em_conferencia)} />
-          }
+          acoes={<DialogoDeEscolhaDeParcelas parcelas={todas.filter(aPagar)} />}
           busca={{
             valor: busca,
             rotulo: 'Buscar parcela',
@@ -155,68 +145,68 @@ export default function MeuExtratoPage() {
 
       {/* Sem título nem descrição, como as listas da gestão: o `h1` da tela já diz "Minhas
           parcelas", e o passo a passo do PIX está na tela de pagamento. */}
-      <Cartao rotulo="Minhas parcelas" className="px-5 py-2">
-        {extrato.isPending ? <EsqueletoDeTabela linhas={5} colunas={5} /> : null}
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <Cartao rotulo="Minhas parcelas" className="min-w-0 px-5 py-2">
+          {extrato.isPending ? <EsqueletoDeTabela linhas={5} colunas={5} /> : null}
 
-        {extrato.isError ? <ErroDaConsulta erro={extrato.error} /> : null}
+          {extrato.isError ? <ErroDaConsulta erro={extrato.error} /> : null}
 
-        {extrato.data && parcelas.length === 0 ? (
-          <div className="motion-safe:animate-entrar grid justify-items-center gap-2 py-6 text-center">
-            <img src={recortando ? mascoteLupa : mascoteCofrinho} alt="" className="w-28 drop-shadow-lg" />
-            <p className="text-foreground font-medium">
-              {/* Três vazios diferentes: quem nunca teve parcela, quem filtrou e quem procurou. Dizer
-                  "aparecem quando você aderir" a quem só digitou um termo é responder outra coisa. */}
-              {busca
-                ? `Nada encontrado para “${busca}”`
-                : recortando
-                  ? 'Nenhuma parcela nesta situação'
-                  : 'Nenhuma parcela ainda'}
-            </p>
-            <p className="text-muted-foreground text-sm">
-              {busca ? (
-                'Procure pelo nome da cobrança — "mensalidade", "rifa" — ou limpe a busca.'
-              ) : recortando ? (
-                'Toque em "Todas" para ver a grade inteira.'
-              ) : (
+          {extrato.data && parcelas.length === 0 ? (
+            // Três vazios diferentes: quem nunca teve parcela, quem filtrou e quem procurou. Dizer
+            // "aparecem quando você aderir" a quem só digitou um termo é responder outra coisa.
+            <ListaVazia
+              mascote={recortando ? undefined : mascoteCofrinho}
+              titulo={
+                busca
+                  ? `Nada encontrado para “${busca}”`
+                  : recortando
+                    ? 'Nenhuma parcela nesta situação'
+                    : 'Nenhuma parcela ainda'
+              }
+              dica={
+                busca ? (
+                  'Procure pelo nome da cobrança — "mensalidade", "rifa" — ou limpe a busca.'
+                ) : recortando ? (
+                  'Toque em "Todas" para ver a grade inteira.'
+                ) : (
+                  <>
+                    Suas parcelas aparecem aqui quando você aderir ao{' '}
+                    <Link to={ROTAS.adesao} className="text-brand-text underline-offset-4 hover:underline">
+                      termo da turma
+                    </Link>
+                    .
+                  </>
+                )
+              }
+            />
+          ) : null}
+
+          {parcelas.length > 0 ? (
+            <Tabela
+              ordenacao={ordenacao}
+              cabecalho={
                 <>
-                  Suas parcelas aparecem aqui quando você aderir ao{' '}
-                  <Link to={ROTAS.adesao} className="text-brand-text underline-offset-4 hover:underline">
-                    termo da turma
-                  </Link>
-                  .
+                  <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="valor" numerica>
+                    Valor
+                  </ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
+                  <th className="py-3 font-normal">
+                    <span className="sr-only">Ações</span>
+                  </th>
                 </>
-              )}
-            </p>
-          </div>
-        ) : null}
+              }
+            >
+              {parcelas.map((parcela) => (
+                <LinhaDeParcela key={parcela.id} parcela={parcela} />
+              ))}
+            </Tabela>
+          ) : null}
+        </Cartao>
 
-        {parcelas.length > 0 ? (
-          <Tabela
-            ordenacao={ordenacao}
-            cabecalho={
-              <>
-                <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
-                <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
-                <ColunaOrdenavel coluna="valor" numerica>
-                  Valor
-                </ColunaOrdenavel>
-                <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
-                <th className="py-3 font-normal">
-                  <span className="sr-only">Ações</span>
-                </th>
-              </>
-            }
-          >
-            {parcelas.map((parcela) => (
-              <LinhaDeParcela
-                key={parcela.id}
-                parcela={parcela}
-                proxima={parcela.id === extrato.data?.proxima?.id}
-              />
-            ))}
-          </Tabela>
-        ) : null}
-      </Cartao>
+        {extrato.data ? <LateralDoExtrato extrato={extrato.data} /> : null}
+      </div>
     </>
   )
 }

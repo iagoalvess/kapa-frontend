@@ -12,12 +12,17 @@ import ParcelasPage from './ParcelasPage'
 
 const PARCELAS = `${env.VITE_API_URL}/api/v1/cobrancas/parcelas`
 
-/** Como a API devolve: sem descrição nem pagamento, os campos não vêm (`WhenWritingNull`). */
+/** Como a API devolve: sem descrição nem pagamento, os campos vêm nulos. */
 const vencida: Parcela = {
   id: 'pa-1',
   usuario_id: 'u-2',
   nome: 'Bruno Lima',
+  item_de_cobranca_id: 'i-1',
   tipo: 'Mensalidade',
+  descricao: null,
+  valor_pago_em_centavos: null,
+  pago_em: null,
+  recebimento_id: null,
   numero: 3,
   de: 24,
   vencimento: '2026-08-10',

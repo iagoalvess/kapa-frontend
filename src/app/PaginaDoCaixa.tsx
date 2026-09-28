@@ -1,4 +1,4 @@
-import { CaixaPage } from '@/features/financeiro'
+import { CaixaPage } from '@/features/financeiro/pages/CaixaPage'
 import { AdimplenciaEFornecedores } from '@/features/relatorios'
 
 /**

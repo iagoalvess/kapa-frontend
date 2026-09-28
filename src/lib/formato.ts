@@ -2,14 +2,17 @@ const LOCALIDADE = 'pt-BR'
 
 const DATA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short' })
 const DATA_HORA = new Intl.DateTimeFormat(LOCALIDADE, { dateStyle: 'short', timeStyle: 'short' })
+const HORARIO = new Intl.DateTimeFormat(LOCALIDADE, { hour: '2-digit', minute: '2-digit' })
 const MES_ANO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: 'numeric' })
 const MES_CURTO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short', year: '2-digit' })
 const MES_LONGO = new Intl.DateTimeFormat(LOCALIDADE, { month: 'long', year: 'numeric' })
 const DIA_SEMANA = new Intl.DateTimeFormat(LOCALIDADE, { weekday: 'short' })
+const MES_DO_DIA = new Intl.DateTimeFormat(LOCALIDADE, { month: 'short' })
 const DIA_MES = new Intl.DateTimeFormat(LOCALIDADE, { day: '2-digit', month: '2-digit' })
 // en-CA sai como 2026-09-14: é só tirar os hífens.
 const DATA_COMPACTA = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' })
 const MOEDA = new Intl.NumberFormat(LOCALIDADE, { style: 'currency', currency: 'BRL' })
+const PERCENTUAL = new Intl.NumberFormat(LOCALIDADE, { maximumFractionDigits: 2 })
 // `auto`: "ontem" e "amanhã" em vez de "há 1 dia" e "em 1 dia".
 const RELATIVO = new Intl.RelativeTimeFormat(LOCALIDADE, { numeric: 'auto' })
 
@@ -68,9 +71,21 @@ export function formatarMesAno(valor: string | Date | null | undefined) {
  * escreve "Outubro De 2026". Só a primeira letra é nossa; o resto é o que o idioma manda.
  */
 export function formatarMesLongo(valor: string | Date | null | undefined) {
-  const mes = formatar(valor, MES_LONGO)
+  return primeiraMaiuscula(formatar(valor, MES_LONGO))
+}
 
-  return mes.charAt(0).toUpperCase() + mes.slice(1)
+/**
+ * O texto com a primeira letra maiúscula e o resto como veio — "Vence amanhã", "Setembro".
+ *
+ * Não é o `capitalize` do CSS: aquele sobe a inicial de **toda** palavra.
+ */
+export function primeiraMaiuscula(texto: string) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+/** Só os dígitos do texto — CPF, telefone e CEP como foram digitados, sem ponto, traço nem espaço. */
+export function soDigitos(texto: string) {
+  return texto.replace(/\D/g, '')
 }
 
 /**
@@ -80,6 +95,15 @@ export function formatarMesLongo(valor: string | Date | null | undefined) {
  */
 export function formatarDiaDaSemana(valor: string | Date | null | undefined) {
   return formatar(valor, DIA_SEMANA).replace('.', '')
+}
+
+/**
+ * O mês abreviado, sem ponto e sem ano: `set` — o que vai embaixo do dia, no bloco de data do cartão.
+ *
+ * @param valor Data, tipicamente `yyyy-MM-dd`.
+ */
+export function formatarMesDoDia(valor: string | Date | null | undefined) {
+  return formatar(valor, MES_DO_DIA).replace('.', '')
 }
 
 /**
@@ -103,6 +127,14 @@ export function formatarDiaMes(valor: string | Date | null | undefined) {
 /** Data e hora no formato `31/12/2026 14:05`, no fuso de quem está olhando. */
 export function formatarDataHora(valor: string | Date | null | undefined) {
   return formatar(valor, DATA_HORA)
+}
+
+/**
+ * A hora de um instante, como `22:14`, no fuso de quem está olhando — o "já validado às 22h14" da
+ * portaria. Para a hora de um evento da agenda, que não é instante, use {@link formatarHora}.
+ */
+export function formatarHorario(valor: string | Date | null | undefined) {
+  return formatar(valor, HORARIO)
 }
 
 /**
@@ -188,6 +220,70 @@ export function diaDeHoje(agora = new Date()) {
   return `${agora.getFullYear()}-${doisDigitos(agora.getMonth() + 1)}-${doisDigitos(agora.getDate())}`
 }
 
+/**
+ * O dia, `n` dias depois (ou antes, com `n` negativo), como `aaaa-mm-dd` — a ponta de uma faixa de
+ * período.
+ *
+ * A conta é no calendário local: `new Date(ano, mes, dia + n)` rola mês e ano sozinho, e a volta é
+ * por {@link diaDeHoje}, e não por `toISOString`, que é UTC e trocaria o dia perto da meia-noite.
+ *
+ * @param dia Ponto de partida, como `aaaa-mm-dd` ou `Date`.
+ * @param dias Quantos dias somar; negativo volta.
+ */
+export function somarDias(dia: string | Date, dias: number) {
+  const data = paraData(dia)
+
+  return diaDeHoje(new Date(data.getFullYear(), data.getMonth(), data.getDate() + dias))
+}
+
+/**
+ * O instante da API em milissegundos — para comparar com `Date.now()` e contar o tempo que falta, sem
+ * o `new Date(iso)` solto que lê como hora local a string sem fuso.
+ *
+ * @param valor Instante em UTC, como a API o devolve.
+ */
+export function instanteDe(valor: string) {
+  return paraData(valor).getTime()
+}
+
+/**
+ * Se o instante já chegou — a abertura da venda, o fim da reserva.
+ *
+ * @param valor Instante em UTC, como a API o devolve.
+ * @param agora Referência, em milissegundos; o padrão é agora.
+ */
+export function jaChegou(valor: string, agora = Date.now()) {
+  return instanteDe(valor) <= agora
+}
+
+/**
+ * Um instante da API no valor de um `<input type="datetime-local">` — `aaaa-mm-ddThh:mm`, no relógio
+ * de quem está olhando. Vazio quando não há instante.
+ *
+ * @param valor Instante em UTC, como a API o devolve.
+ */
+export function paraCampoDeDataHora(valor: string | null | undefined) {
+  if (!valor) return ''
+
+  const data = paraData(valor)
+  if (Number.isNaN(data.getTime())) return ''
+
+  return `${diaDeHoje(data)}T${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`
+}
+
+/**
+ * O valor de um `<input type="datetime-local">` como instante em UTC para a API — "20h" digitado em
+ * Brasília vai como 23h UTC. Nulo quando o campo está vazio.
+ *
+ * @param valor `aaaa-mm-ddThh:mm`, no relógio de quem digitou.
+ */
+export function deCampoDeDataHora(valor: string) {
+  if (!valor) return null
+
+  const data = new Date(valor)
+  return Number.isNaN(data.getTime()) ? null : data.toISOString()
+}
+
 const doisDigitos = (numero: number) => String(numero).padStart(2, '0')
 
 const meiaNoite = (data: Date) => new Date(data.getFullYear(), data.getMonth(), data.getDate()).getTime()
@@ -205,6 +301,35 @@ export function formatarMoeda(valor: number | null | undefined) {
  */
 export function formatarCentavos(centavos: number | null | undefined) {
   return centavos === null || centavos === undefined ? VAZIO : MOEDA.format(centavos / 100)
+}
+
+/**
+ * Centavos em reais, curto, para o eixo e o meio dos gráficos: `R$ 12 mil`, `R$ 1,2 mi`. Abaixo de
+ * mil, o valor inteiro (`R$ 850,00`).
+ *
+ * @param centavos O valor, em centavos.
+ * @param casasNoMil Casas decimais na faixa do milhar: o eixo usa zero (`R$ 12 mil`), o total da
+ *   rosca usa uma (`R$ 54,8 mil`). Milhão sempre leva uma.
+ */
+export function formatarMoedaCurta(centavos: number, casasNoMil = 0) {
+  const reais = centavos / 100
+  const tamanho = Math.abs(reais)
+
+  if (tamanho >= 1_000_000) return `R$ ${formatarNumero(reais / 1_000_000, 1)} mi`
+  if (tamanho >= 1_000) return `R$ ${formatarNumero(reais / 1_000, casasNoMil)} mil`
+
+  return formatarCentavos(centavos)
+}
+
+/**
+ * Percentual guardado em base 10.000, como o contrato da API manda: `200` é `2%`, `250` é `2,5%`,
+ * `1234` é `12,34%`. Sem casa decimal quando não precisa — é assim que o resto do produto escreve
+ * porcentagem.
+ *
+ * @param base Percentual em base 10.000.
+ */
+export function formatarPercentual(base: number) {
+  return `${PERCENTUAL.format(base / 100)}%`
 }
 
 /** CPF como `529.982.247-25`. O que não tiver 11 dígitos sai como veio. */
@@ -256,6 +381,16 @@ export function formatarNumero(valor: number | null | undefined, casas = 0) {
     minimumFractionDigits: casas,
     maximumFractionDigits: casas,
   })
+}
+
+/**
+ * A conclusão da turma como a comissão fala: "2027.1".
+ *
+ * @param ano Ano de conclusão.
+ * @param semestre 1 ou 2.
+ */
+export function formatarConclusao(ano: number | string, semestre: number | string) {
+  return `${ano}.${semestre}`
 }
 
 /**

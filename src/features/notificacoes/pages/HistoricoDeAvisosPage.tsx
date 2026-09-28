@@ -4,9 +4,11 @@ import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
-import { Selo } from '@/components/Selo'
+import { Selo, type TomDoSelo } from '@/components/Selo'
+import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
+import { usePapel } from '@/hooks/useSessao'
 import { formatarData, formatarDataHora } from '@/lib/formato'
 import { useHistorico } from '../hooks/useRegras'
 import {
@@ -18,7 +20,7 @@ import {
 
 const TAMANHO_DA_PAGINA = 20
 
-const TONS: Record<StatusDaNotificacao, 'sucesso' | 'cinza' | 'perigo'> = {
+const TONS: Record<StatusDaNotificacao, TomDoSelo> = {
   Entregue: 'sucesso',
   Enfileirada: 'cinza',
   Falhou: 'perigo',
@@ -35,6 +37,7 @@ const SITUACOES: StatusDaNotificacao[] = ['Enfileirada', 'Entregue', 'Falhou']
  */
 export default function HistoricoDeAvisosPage() {
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const tesouraria = usePapel().tem(PAPEIS.tesoureiro)
   const status = (parametros.get('status') as StatusDaNotificacao | null) ?? undefined
 
   const historico = useHistorico({
@@ -51,7 +54,9 @@ export default function HistoricoDeAvisosPage() {
 
   return (
     <>
-      <LinkDeVolta para={ROTAS.regua}>Lembretes automáticos</LinkDeVolta>
+      <LinkDeVolta para={tesouraria ? ROTAS.regua : ROTAS.parcelas}>
+        {tesouraria ? 'Lembretes automáticos' : 'Parcelas'}
+      </LinkDeVolta>
 
       <FaixaDeIndicadores
         rotulo="Resumo dos avisos"

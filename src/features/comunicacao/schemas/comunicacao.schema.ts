@@ -37,7 +37,7 @@ export const esquemaDoAviso = z.object({
 
 export type FormularioDoAviso = z.infer<typeof esquemaDoAviso>
 
-/** O aviso em branco — ou o que está sendo corrigido. Visibilidade vazia até alguém escolher. */
+/** O aviso em branco — ou o que está sendo editado. Visibilidade vazia até alguém escolher. */
 export const paraFormularioDoAviso = (aviso?: Aviso): FormularioDoAviso => ({
   titulo: aviso?.titulo ?? '',
   conteudo: aviso?.conteudo ?? '',
@@ -61,9 +61,9 @@ export const esquemaDoDocumento = z.object({
 export type FormularioDoDocumento = z.infer<typeof esquemaDoDocumento>
 
 /**
- * O documento em branco — ou o que está sendo corrigido.
+ * O documento em branco — ou o que está sendo editado.
  *
- * @param categoria A da coluna do quadro onde se clicou "+ Adicionar"; sem ela, "Escolha".
+ * @param categoria A da coluna do quadro onde se clicou "+ Novo…"; sem ela, "Escolha".
  */
 export const paraFormularioDoDocumento = (
   documento?: Documento,

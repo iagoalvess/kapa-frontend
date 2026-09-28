@@ -1,5 +1,4 @@
-import { Check, Gift, GraduationCap, Play } from 'lucide-react'
-import { Link } from 'react-router'
+import { Check, GraduationCap, Play } from 'lucide-react'
 import fotoBaile from '@/assets/fotos/baile.webp'
 import fotoBeca from '@/assets/fotos/beca.webp'
 import fotoConvite from '@/assets/fotos/convite.webp'
@@ -9,7 +8,7 @@ import fotoViagem from '@/assets/fotos/viagem.webp'
 import pin from '@/assets/fotos/pin.webp'
 import mascoteEncostado from '@/assets/mascote/encostado.webp'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
+import { ROTAS, urlDoApp } from '@/config/rotas'
 import { cn } from '@/lib/utils'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
 
@@ -75,17 +74,14 @@ export function Hero() {
               </a>
             </Button>
             <Button asChild size="lg" className="h-11 rounded-xl text-sm shadow-lg">
-              <Link to={ROTAS.criarConta}>
+              <a href={urlDoApp(ROTAS.criarConta)}>
                 <GraduationCap className="size-4" aria-hidden />
                 Criar minha turma
-              </Link>
+              </a>
             </Button>
           </div>
 
           <p className="text-texto-muted mt-3 flex items-center gap-2 text-xs leading-[18px] lg:[@media(max-height:700px)]:mt-2.5">
-            <span className="bg-brand-tint text-brand-text grid size-5 shrink-0 place-items-center rounded-full">
-              <Gift className="size-3" aria-hidden />
-            </span>
             Grátis até a turma começar a pagar as parcelas.
           </p>
         </div>
@@ -199,7 +195,7 @@ function CardDaTurma() {
             entrando nele (`-mb`), não uma faixa encaixada em cima. */}
         <MetaDaTurmaAnimada grande className="z-10 -mb-6 lg:ml-5 lg:max-w-[47%]" />
 
-        <div className="relative mt-4 grid rounded-2xl bg-white/45 px-2 pt-8 pb-4 sm:px-4">
+        <div className="bg-card/45 relative mt-4 grid rounded-2xl px-2 pt-8 pb-4 sm:px-4">
           <img
             src={mascoteEncostado}
             alt=""
@@ -350,7 +346,7 @@ function Polaroid({
 
       <figure
         className={cn(
-          'rounded-[4px] bg-white p-2.5 pt-6 pb-1 shadow-[0_16px_30px_-16px_rgba(26,26,24,0.45)]',
+          'bg-card rounded-[4px] p-2.5 pt-6 pb-1 shadow-[0_16px_30px_-16px_rgba(26,26,24,0.45)]',
           rotacao,
         )}
       >

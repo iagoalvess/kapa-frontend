@@ -94,6 +94,21 @@ describe('MeuExtratoPage', () => {
     expect(within(balao).getByText(reais(420))).toBeInTheDocument()
   })
 
+  it('a lateral leva ao PIX da próxima e lista o que está em conferência', async () => {
+    responder()
+
+    renderizar(<MeuExtratoPage />)
+
+    const proxima = await screen.findByRole('region', { name: 'Próxima parcela' })
+    expect(within(proxima).getByRole('link', { name: 'Pagar com PIX' })).toHaveAttribute(
+      'href',
+      `/minhas-parcelas/parcelas/${vencida.id}/pagar`,
+    )
+    const conferencia = screen.getByRole('list', { name: 'Parcelas em conferência' })
+    expect(within(conferencia).getAllByRole('listitem')).toHaveLength(1)
+    expect(conferencia).toHaveTextContent('4/')
+  })
+
   it('só a parcela que dá para pagar tem o botão; a avisada lê "Em conferência"', async () => {
     responder()
 
@@ -106,6 +121,12 @@ describe('MeuExtratoPage', () => {
     ])
     expect(screen.getByText('Em conferência', { selector: 'span' })).toBeInTheDocument()
     expect(screen.getByText('Paga em 09/07/2026')).toBeInTheDocument()
+    // Sprint 22: só a linha com baixa leva o recibo.
+    expect(
+      screen
+        .getAllByRole('button', { name: /^Recibo da parcela/ })
+        .map((botao) => botao.getAttribute('aria-label')),
+    ).toEqual(['Recibo da parcela 1/24'])
   })
 
   it('sem adesão, diz de onde as parcelas vêm', async () => {

@@ -1,5 +1,1 @@
 export { BotaoDeCobranca } from './components/BotaoDeCobranca'
-export { useCobrarParcela } from './hooks/useRegras'
-export { default as HistoricoDeAvisosPage } from './pages/HistoricoDeAvisosPage'
-export { default as MinhasPreferenciasPage } from './pages/MinhasPreferenciasPage'
-export { default as ReguaPage } from './pages/ReguaPage'

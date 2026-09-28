@@ -1,5 +1,5 @@
 import { Chip } from '@/components/Chip'
-import { diaDeHoje } from '@/lib/formato'
+import { diaDeHoje, somarDias } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 
 /**
@@ -13,19 +13,15 @@ import { cn } from '@/lib/utils'
 export function faixasDeVencimento(hoje = new Date()) {
   const ano = hoje.getFullYear()
   const mes = hoje.getMonth()
-  const dia = hoje.getDate()
   // `getDay()` conta do domingo; deslocando em 6 a segunda vira 0 e a semana fecha no domingo.
   const desdeSegunda = (hoje.getDay() + 6) % 7
 
   return {
-    'Esta semana': [
-      diaDeHoje(new Date(ano, mes, dia - desdeSegunda)),
-      diaDeHoje(new Date(ano, mes, dia - desdeSegunda + 6)),
-    ],
+    'Esta semana': [somarDias(hoje, -desdeSegunda), somarDias(hoje, 6 - desdeSegunda)],
     // Dia 0 do mês seguinte é o último dia deste; dezembro rola o ano sozinho.
     'Este mês': [diaDeHoje(new Date(ano, mes, 1)), diaDeHoje(new Date(ano, mes + 1, 0))],
-    'Próximos 30 dias': [diaDeHoje(hoje), diaDeHoje(new Date(ano, mes, dia + 30))],
-    'Este ano': [diaDeHoje(new Date(ano, 0, 1)), diaDeHoje(new Date(ano, 11, 31))],
+    'Próximos 30 dias': [diaDeHoje(hoje), somarDias(hoje, 30)],
+    'Este ano': [`${ano}-01-01`, `${ano}-12-31`],
   } satisfies Record<string, [string, string]>
 }
 
@@ -41,10 +37,7 @@ export function faixasDePublicacao(hoje = new Date()) {
   return {
     'Esta semana': semana,
     'Este mês': mes,
-    'Últimos 30 dias': [
-      diaDeHoje(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30)),
-      diaDeHoje(hoje),
-    ],
+    'Últimos 30 dias': [somarDias(hoje, -30), diaDeHoje(hoje)],
     'Este ano': ano,
   } satisfies Record<string, [string, string]>
 }

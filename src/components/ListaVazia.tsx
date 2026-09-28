@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import mascoteLupa from '@/assets/mascote/lupa.webp'
 
 /**
@@ -12,10 +13,10 @@ import mascoteLupa from '@/assets/mascote/lupa.webp'
  * troca o mascote — o da lupa ali diria "não achei", quando não há o que achar.
  *
  * @param titulo O que aconteceu, numa linha.
- * @param dica O caminho de saída: outra busca, tirar um filtro, criar o primeiro.
+ * @param dica O caminho de saída: outra busca, tirar um filtro, criar o primeiro — pode levar um link.
  * @param mascote Imagem no lugar da lupa.
  */
-export function ListaVazia({ titulo, dica, mascote }: { titulo: string; dica: string; mascote?: string }) {
+export function ListaVazia({ titulo, dica, mascote }: { titulo: string; dica: ReactNode; mascote?: string }) {
   return (
     <div className="motion-safe:animate-entrar grid justify-items-center gap-2 py-8 text-center">
       <img src={mascote ?? mascoteLupa} alt="" className="w-28 drop-shadow-lg" />

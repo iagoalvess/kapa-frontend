@@ -1,4 +1,12 @@
-import { ArrowDownRight, ArrowUpRight, CalendarClock, PiggyBank, TrendingUp, Wallet } from 'lucide-react'
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarClock,
+  HandCoins,
+  PiggyBank,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react'
 import type { ComponentType } from 'react'
 import { Link } from 'react-router'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
@@ -13,7 +21,7 @@ import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData } from '@/lib/formato'
-import { fatiaDaCategoria } from '@/types/financeiro'
+import { fatiaDaCategoria, fatiaDaOutraReceita } from '@/types/financeiro'
 import { useCaixa, useProjecao } from '../hooks/useCaixa'
 
 /**
@@ -26,6 +34,10 @@ import { useCaixa, useProjecao } from '../hooks/useCaixa'
  * A projeção é desenhada hachurada e rotulada como projeção, no gráfico e na legenda. Parcela
  * vencida não entra em mês nenhum — aparece à parte, em "em atraso", porque dinheiro atrasado não é
  * dinheiro previsto.
+ *
+ * A receita que não vem de formando (Sprint 28) entra no arrecadado e no extrato como qualquer
+ * entrada, e tem quadro próprio por categoria — a prevista aparece nele à parte, sem somar no
+ * arrecadado.
  *
  * @param Complemento Cartões de outra feature, na mesma grade — `app/PaginaDoCaixa` passa a
  * adimplência e o gasto por fornecedor. Sem ele a tela fica inteira, só com o que o caixa sabe.
@@ -142,13 +154,52 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
           </div>
         ) : null}
 
-        {/* O extrato ocupa a largura toda: com o quadro por categoria cheio, ele embaixo fecha a tela
-            melhor do que espremido na coluna da direita. */}
+        {/* O extrato fica com dois terços e as receitas com o terço ao lado: a rosca precisa de
+            largura para a legenda, não para o desenho, e o extrato é o que tem nome comprido. O
+            cartão estica até a altura do extrato; sem `grid-rows` a rosca fica no topo, junto do título. */}
+        <Cartao
+          titulo="Outras receitas por categoria"
+          icone={HandCoins}
+          descricao="O que entrou sem ser parcela de formando. O previsto não conta no arrecadado."
+          acao={
+            <Button asChild variant="outline" size="sm">
+              <Link to={ROTAS.outrasReceitas}>Ver outras receitas</Link>
+            </Button>
+          }
+        >
+          {caixa.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
+
+          {dados && !dados.outras_receitas_por_categoria.some((linha) => linha.recebido_em_centavos > 0) ? (
+            <p className="text-muted-foreground text-sm">
+              Nenhuma outra receita recebida ainda. Patrocínio, evento, doação e rendimento aparecem aqui.
+            </p>
+          ) : null}
+
+          {dados?.outras_receitas_por_categoria.some((linha) => linha.recebido_em_centavos > 0) ? (
+            <GraficoDeRosca
+              fatias={dados.outras_receitas_por_categoria.map(fatiaDaOutraReceita)}
+              rotuloDoTotal="entrou"
+            />
+          ) : null}
+
+          {dados && dados.outras_receitas_por_categoria.some((linha) => linha.previsto_em_centavos > 0) ? (
+            <p className="text-muted-foreground text-sm">
+              A receber:{' '}
+              {formatarCentavos(
+                dados.outras_receitas_por_categoria.reduce(
+                  (soma, linha) => soma + linha.previsto_em_centavos,
+                  0,
+                ),
+              )}
+            </p>
+          ) : null}
+        </Cartao>
+
         <Cartao
           titulo="Últimos lançamentos"
           icone={Wallet}
           descricao="Entradas e saídas, do mais recente."
-          className="lg:col-span-3"
+          className="min-w-0 lg:col-span-2"
           acao={
             <>
               {/* Parcelas nomeia quem deve: é da Gestão, e para o formando o link cairia na guarda.
@@ -166,8 +217,8 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
         >
           {dados?.ultimos.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              Nada entrou nem saiu ainda. As entradas aparecem quando a tesouraria confere um pagamento; as
-              saídas, quando uma despesa é paga.
+              Nada entrou nem saiu ainda. As entradas aparecem quando a tesouraria confere um pagamento ou
+              recebe uma outra receita; as saídas, quando uma despesa é paga.
             </p>
           ) : null}
 

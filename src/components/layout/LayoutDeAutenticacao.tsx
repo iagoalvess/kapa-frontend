@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
-import { ROTAS } from '@/config/rotas'
+import { ROTAS, urlDoSite } from '@/config/rotas'
 import { cn } from '@/lib/utils'
 import { CarrosselDaMarca } from './CarrosselDaMarca'
 import { CarrosselDoOnboarding } from './CarrosselDoOnboarding'
@@ -92,11 +92,11 @@ export function AvisoDeTermos() {
   return (
     <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
       Ao continuar, você concorda com os{' '}
-      <Link to={ROTAS.termosDeUso} className={link}>
+      <Link to={urlDoSite(ROTAS.termosDeUso)} className={link}>
         Termos de Uso
       </Link>{' '}
       e a{' '}
-      <Link to={ROTAS.privacidade} className={link}>
+      <Link to={urlDoSite(ROTAS.privacidade)} className={link}>
         Política de Privacidade
       </Link>
       .

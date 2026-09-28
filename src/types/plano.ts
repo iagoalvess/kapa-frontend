@@ -1,5 +1,8 @@
+/** Os ciclos na ordem do alternador da vitrine — o do app e o da página institucional. */
+export const CICLOS = ['Mensal', 'Anual'] as const
+
 /** Periodicidade da cobrança de um plano. Espelha `CicloDeCobranca`. */
-export type CicloDeCobranca = 'Mensal' | 'Anual'
+export type CicloDeCobranca = (typeof CICLOS)[number]
 
 /**
  * Um plano do catálogo da plataforma. Espelha `PlanoDTO`.
@@ -16,8 +19,8 @@ export interface Plano {
   descricao: string
   /** Inteiro, em centavos: `34990` é R$ 349,90. Converta só na exibição (`formatarCentavos`). */
   preco_em_centavos: number
-  /** Preço sem desconto, o valor riscado. Ausente quando não há desconto. */
-  preco_cheio_em_centavos?: number
+  /** Preço sem desconto, o valor riscado. Nulo quando não há desconto. */
+  preco_cheio_em_centavos: number | null
   ciclo: CicloDeCobranca
   limite_de_formandos: number
   /** Módulos incluídos, na ordem de exibição. */
@@ -39,4 +42,14 @@ export function descontoDoPlano(plano: Plano) {
   if (typeof cheio !== 'number' || cheio <= plano.preco_em_centavos) return null
 
   return Math.round((1 - plano.preco_em_centavos / cheio) * 100)
+}
+
+/**
+ * O maior desconto do catálogo, em porcentagem inteira — o "Economize X%" da pílula do ciclo. Zero
+ * quando nenhum plano tem desconto.
+ *
+ * @param planos Os planos que a pílula representa.
+ */
+export function maiorDesconto(planos: readonly Plano[]) {
+  return Math.max(0, ...planos.map((plano) => descontoDoPlano(plano) ?? 0))
 }

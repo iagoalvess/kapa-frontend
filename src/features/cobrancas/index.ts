@@ -1,1 +1,1 @@
-export { default as ParcelasPage } from './pages/ParcelasPage'
+export type { Pedido } from './types/cobrancas.types'

@@ -15,12 +15,6 @@ const texto = (rotulo: string) =>
     .min(1, `${rotulo} é obrigatório.`)
     .max(120, `${rotulo} deve ter no máximo 120 caracteres.`)
 
-const inteiro = (mensagem: string, minimo: number, maximo: number) =>
-  z.string().refine((valor) => {
-    const numero = Number(valor)
-    return valor.trim() !== '' && Number.isInteger(numero) && numero >= minimo && numero <= maximo
-  }, mensagem)
-
 /** Dados cadastrais da formatura, os mesmos na criação e na edição. */
 export const esquemaDeFormatura = z.object({
   curso: texto('O curso'),
@@ -29,7 +23,6 @@ export const esquemaDeFormatura = z.object({
   semestre: z.string().refine((valor) => ['1', '2'].includes(valor), 'Escolha o semestre.'),
   previsao_de_colacao: z.string(),
   previsao_da_festa: z.string(),
-  quantidade_estimada_de_formandos: inteiro('Informe o número de formandos.', 1, 2000),
   nome: z
     .string()
     .trim()
@@ -68,7 +61,6 @@ export function paraDados(formulario: FormularioDeFormatura): DadosDaFormatura {
     instituicao: formulario.instituicao.trim(),
     ano: Number(formulario.ano),
     semestre: Number(formulario.semestre),
-    quantidade_estimada_de_formandos: Number(formulario.quantidade_estimada_de_formandos),
   }
 }
 

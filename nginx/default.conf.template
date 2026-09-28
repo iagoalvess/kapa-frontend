@@ -65,6 +65,32 @@ server {
         expires 1h;
     }
 
+    # O manifesto do app instalável (Sprint 23). O tipo é declarado aqui porque o Chrome ignora, em
+    # silêncio, um manifesto servido com outro — e não depender do mime.types da imagem é o que
+    # garante isso em produção. Cache curto: é por ele que o celular percebe nome ou ícone novo.
+    location = /manifest.webmanifest {
+        add_header Content-Security-Policy $csp always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header X-Frame-Options DENY always;
+
+        types { }
+        default_type application/manifest+json;
+        add_header Cache-Control "no-cache";
+    }
+
+    # Os ícones do app ficam em public/, fora do hash do Vite: o nome é a versão. Trocar a arte é
+    # trocar o nome do arquivo no manifesto e no index.html — os dois são revalidados sempre.
+    location /icones/ {
+        add_header Content-Security-Policy $csp always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header X-Frame-Options DENY always;
+
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
     # SPA: qualquer caminho desconhecido devolve o index e o roteador decide.
     location / {
         try_files $uri $uri/ /index.html;

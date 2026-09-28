@@ -41,6 +41,7 @@ export interface MesDoBalancete {
 
 /** Os totais do período anterior, de igual tamanho — a base da variação. Espelha `TotaisDoPeriodoDTO`. */
 export interface TotaisDoPeriodo {
+  /** Parcelas mais receitas: tudo o que entrou no período. */
   entradas_em_centavos: number
   saidas_em_centavos: number
   /** Entradas menos saídas. Pode ser negativo. */
@@ -55,7 +56,10 @@ export interface Balancete {
   ate: string
   emitido_por: string
   emitido_em: string
+  /** Parcelas pagas no período, por tipo de cobrança. */
   entradas: LinhaDeBalancete[]
+  /** O que entrou sem ser parcela — patrocínio, evento, doação —, por categoria (Sprint 28). */
+  outras_receitas: LinhaDeBalancete[]
   saidas_por_categoria: LinhaDeBalancete[]
   saidas_por_fornecedor: LinhaDeBalancete[]
   entradas_em_centavos: number
@@ -228,9 +232,9 @@ export interface Solicitacao {
   ate: string
   status: StatusDaSolicitacao
   /** Por que falhou, quando falhou. */
-  motivo?: string
-  /** Quando o arquivo deixa de estar disponível. Ausente enquanto não ficou pronto. */
-  expira_em?: string
+  motivo: string | null
+  /** Quando o arquivo deixa de estar disponível. Nulo enquanto não ficou pronto. */
+  expira_em: string | null
   criado_em: string
   /** Se o download responde agora — é o que habilita o botão. */
   disponivel: boolean

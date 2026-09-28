@@ -73,6 +73,10 @@
   --evento-prazo: #dda13c;
   --evento-outro: #79b394;
 
+  /* Ilustração da landing: o avião de papel da maquete da régua de cobrança, no coral do envelope
+     ao lado dele — é desenho, não estado, e não tem par entre as cores de interface. */
+  --ilustracao-coral: #ff735f;
+
   /* Neutros */
   --page: #f7f6f3;
   --surface: #ffffff;
@@ -102,6 +106,10 @@
   --avatar-4: #bb9be3;
   --avatar-5: #e8915a;
   --avatar-6: #8dc6a0;
+  /* Só dos tipos de cobrança (`CORES_DE_TIPO`): com seis tons, os opcionais caíam quase todos nos
+     dois verdes. As pessoas continuam nos seis de cima (`Avatar`). */
+  --avatar-7: #e2ae45;
+  --avatar-8: #62b3dd;
 
   /* Ponte para o shadcn: os nomes dele, os nossos valores */
   --background: var(--page);
@@ -177,11 +185,14 @@
   --color-avatar-4: var(--avatar-4);
   --color-avatar-5: var(--avatar-5);
   --color-avatar-6: var(--avatar-6);
+  --color-avatar-7: var(--avatar-7);
+  --color-avatar-8: var(--avatar-8);
   --color-evento-colacao: var(--evento-colacao);
   --color-evento-festa: var(--evento-festa);
   --color-evento-reuniao: var(--evento-reuniao);
   --color-evento-prazo: var(--evento-prazo);
   --color-evento-outro: var(--evento-outro);
+  --color-ilustracao-coral: var(--ilustracao-coral);
   --color-sinal-positivo-bg: var(--sinal-positivo-bg);
   --color-sinal-positivo-text: var(--sinal-positivo-text);
   --color-sinal-negativo-bg: var(--sinal-negativo-bg);

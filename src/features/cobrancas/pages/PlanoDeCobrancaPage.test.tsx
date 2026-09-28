@@ -30,14 +30,25 @@ const mensalidade = {
   numero_de_parcelas: 24,
   dia_de_vencimento: 10,
   primeiro_mes: '2027-03-01',
+  encerrado_em: null,
   em_uso: false,
+  opcional: false,
+  limite_por_formando: null,
+  pedidos_ate_dia: null,
+  estoque: null,
+  reservados: 0,
+  abertura_de_vendas: null,
+  item_da_festa_id: null,
+  modo_de_venda: 'AoFormando',
+  preco_publico_em_centavos: null,
 } as const
 
-/** Como a API devolve: sem vigência ainda, `vigente_desde` não vem (`WhenWritingNull`). */
+/** Como a API devolve: sem vigência ainda, `vigente_desde` vem nulo. */
 const plano = (itens: PlanoDeCobranca['itens'] = [mensalidade]): PlanoDeCobranca => ({
   id: 'p-1',
   nome: 'Plano 2027',
   status: 'Rascunho',
+  vigente_desde: null,
   percentual_de_multa: 200,
   percentual_de_juros_ao_mes: 100,
   carencia_em_dias: 0,
@@ -51,6 +62,7 @@ const simulacao = (itens: DadosDoItem[]): SimulacaoDoPlano => ({
   parcelas: itens.flatMap((item) =>
     Array.from({ length: item.numero_de_parcelas }, (_, indice) => ({
       tipo: item.tipo,
+      descricao: item.descricao ?? null,
       numero: indice + 1,
       de: item.numero_de_parcelas,
       vencimento: `2027-${String((indice % 12) + 1).padStart(2, '0')}-10`,
@@ -69,9 +81,7 @@ const simulacao = (itens: DadosDoItem[]): SimulacaoDoPlano => ({
 function servir(atual: PlanoDeCobranca) {
   const simulacoes: { itens?: DadosDoItem[] }[] = []
   servidor.use(
-    http.get(`${API}/api/v1/formaturas/atual`, () =>
-      HttpResponse.json({ id: 'f-1', status: 'Ativa', quantidade_estimada_de_formandos: 90 }),
-    ),
+    http.get(`${API}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status: 'Ativa' })),
     http.get(PLANOS, () => HttpResponse.json([{ id: atual.id, nome: atual.nome, status: atual.status }])),
     http.get(`${PLANOS}/${atual.id}`, () => HttpResponse.json(atual)),
     http.post(`${PLANOS}/${atual.id}/simular`, async ({ request }) => {
@@ -98,7 +108,11 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Criar plano' }))
+    expect(await screen.findByRole('link', { name: 'Ver lembretes' })).toHaveAttribute(
+      'href',
+      '/notificacoes/lembretes',
+    )
+    await userEvent.click(await screen.findByRole('button', { name: 'Salvar' }))
 
     await waitFor(() =>
       expect(criado).toEqual({
@@ -118,7 +132,7 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Incluir item' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Nova cobrança' }))
 
     const dialogo = await screen.findByRole('alertdialog')
     await userEvent.type(within(dialogo).getByLabelText('Valor de cada parcela'), '35000')
@@ -168,6 +182,11 @@ describe('PlanoDeCobrancaPage', () => {
     renderizar(<PlanoDeCobrancaPage />)
 
     expect(await screen.findByText(/quem coloca o plano em vigor é o Presidente/)).toBeInTheDocument()
+    const lembretes = screen.getByRole('region', { name: 'Lembretes automáticos' })
+    expect(within(lembretes).getByRole('link', { name: 'Ver lembretes' })).toHaveAttribute(
+      'href',
+      '/notificacoes/lembretes',
+    )
     expect(screen.queryByRole('button', { name: 'Colocar em vigor' })).not.toBeInTheDocument()
   })
 
@@ -180,7 +199,7 @@ describe('PlanoDeCobrancaPage', () => {
     // Os itens vivem no cartão do plano; as regras foram para o cartão lateral.
     const itens = await screen.findByRole('region', { name: 'Plano 2027' })
     expect(await within(itens).findByRole('button', { name: 'Encerrar' })).toBeInTheDocument()
-    expect(within(itens).queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument()
+    expect(within(itens).queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
   })
 
   it('avisa, sem travar, quando a multa passa de 2%', async () => {
@@ -243,7 +262,7 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Incluir item' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Nova cobrança' }))
     const dialogo = await screen.findByRole('alertdialog')
     expect(within(dialogo).getByText(/62 formandos já aderiram e não serão cobrados/)).toBeInTheDocument()
 
@@ -255,12 +274,12 @@ describe('PlanoDeCobrancaPage', () => {
     expect(within(dialogo).getByText(/62 formandos já aderiram e serão cobrados/)).toBeInTheDocument()
 
     // Sem a origem, a API recusaria: o esquema barra antes.
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Incluir item' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Salvar' }))
     expect(await within(dialogo).findByText(/Informe onde a turma decidiu/)).toBeInTheDocument()
     expect(incluido).toBeUndefined()
 
     await userEvent.type(within(dialogo).getByLabelText('Onde a turma decidiu'), 'assembleia de 12/10')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Incluir item' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() =>
       expect(incluido).toMatchObject({
@@ -289,7 +308,9 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    const linha = await screen.findByRole('row', { name: /Rateio do buffet/ })
+    // Na lista de itens: a simulação ao lado também tem a linha, com a mesma descrição.
+    const itens = await screen.findByRole('region', { name: 'Plano 2027' })
+    const linha = await within(itens).findByRole('row', { name: /Rateio do buffet/ })
     expect(within(linha).getByText('Rateio — assembleia de 12/10')).toBeInTheDocument()
   })
 })

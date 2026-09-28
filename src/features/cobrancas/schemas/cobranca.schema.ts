@@ -1,6 +1,13 @@
 import { z } from 'zod'
 import { formatarNumero } from '@/lib/formato'
-import type { DadosDoItem, DadosDoPlano, ItemDeCobranca, PlanoDeCobranca } from '../types/cobrancas.types'
+import { inteiroEmTexto } from '@/lib/esquemas'
+import {
+  type DadosDoItem,
+  type DadosDoPlano,
+  type ItemDeCobranca,
+  type PlanoDeCobranca,
+  TIPOS_DO_PLANO,
+} from '../types/cobrancas.types'
 
 /*
   Validação de **forma**. O que depende do plano — adesão única, item em uso — volta da API com o
@@ -14,13 +21,7 @@ import type { DadosDoItem, DadosDoPlano, ItemDeCobranca, PlanoDeCobranca } from 
 /** Acima destes, a tela avisa — sem travar (decisão de 14/09/2026). Base 10.000. */
 export const LIMITES_DE_MERCADO = { multa: 200, jurosAoMes: 100 } as const
 
-const TIPOS = ['Mensalidade', 'Adesao', 'Rifa', 'ConviteExtra', 'Avulsa'] as const
-
-const inteiro = (minimo: number, maximo: number, mensagem: string) =>
-  z
-    .string()
-    .trim()
-    .refine((valor) => /^\d+$/.test(valor) && Number(valor) >= minimo && Number(valor) <= maximo, mensagem)
+const TIPOS = TIPOS_DO_PLANO
 
 /** O mês de hoje no formato do `<input type="month">` — o piso do rateio. */
 export const mesCorrente = (hoje = new Date()) =>
@@ -33,8 +34,8 @@ export const esquemaDeItem = z
     /** `parcela`: o valor digitado é o de cada parcela; `total`: o de todas juntas. */
     modoDoValor: z.enum(['parcela', 'total']),
     valor_em_centavos: z.number().int().positive('Informe um valor maior que zero.'),
-    numero_de_parcelas: inteiro(1, 120, 'De 1 a 120 parcelas.'),
-    dia_de_vencimento: inteiro(1, 31, 'Escolha um dia de 1 a 31.'),
+    numero_de_parcelas: inteiroEmTexto(1, 120, 'De 1 a 120 parcelas.'),
+    dia_de_vencimento: inteiroEmTexto(1, 31, 'Escolha um dia de 1 a 31.'),
     primeiro_mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Informe o mês, como 2026-03.'),
     /** Rateio extraordinário: o item cobra também quem já aderiu. */
     aplicar_a_quem_ja_aderiu: z.boolean(),
@@ -116,7 +117,8 @@ export function paraFormularioDeItem(item: DadosDoItem): FormularioDeItem {
   const exato = item.valor_em_centavos % item.numero_de_parcelas === 0
 
   return {
-    tipo: item.tipo,
+    // Item do plano só nasce com tipo do plano: a API recusa os dos opcionais (`cobranca.tipo_invalido`).
+    tipo: item.tipo as FormularioDeItem['tipo'],
     descricao: item.descricao ?? '',
     modoDoValor: exato ? 'parcela' : 'total',
     valor_em_centavos: exato ? item.valor_em_centavos / item.numero_de_parcelas : item.valor_em_centavos,
@@ -171,9 +173,9 @@ export const esquemaDoPlano = z
       .max(120, 'O nome deve ter no máximo 120 caracteres.'),
     multa: percentual('A multa'),
     jurosAoMes: percentual('Os juros'),
-    carencia_em_dias: inteiro(0, 60, 'De 0 a 60 dias.'),
+    carencia_em_dias: inteiroEmTexto(0, 60, 'De 0 a 60 dias.'),
     descontoPorAntecipacao: percentual('O desconto'),
-    dias_minimos_para_desconto: inteiro(0, 365, 'De 0 a 365 dias.'),
+    dias_minimos_para_desconto: inteiroEmTexto(0, 365, 'De 0 a 365 dias.'),
   })
   // Sem antecedência mínima, "5% para quem quitar à vista" vira 5% para quem paga um dia antes — a
   // turma inteira ganhando o desconto todo mês. A API recusa com `cobranca.antecedencia_obrigatoria`.

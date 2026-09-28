@@ -3,8 +3,17 @@ import { obterExtrato, obterParcela, obterPendenciasDoExtrato } from '../api/pag
 import { chaves } from './chaves'
 
 /** O extrato do próprio formando: em aberto, a próxima a pagar e todas as parcelas. */
-export function useExtrato() {
-  return useQuery({ queryKey: chaves.extrato(), queryFn: ({ signal }) => obterExtrato(signal) })
+/**
+ * O extrato do próprio formando.
+ *
+ * @param acompanhar Pagando várias parcelas por um meio que baixa sozinho: relê até elas mudarem.
+ */
+export function useExtrato(acompanhar = false) {
+  return useQuery({
+    queryKey: chaves.extrato(),
+    queryFn: ({ signal }) => obterExtrato(signal),
+    refetchInterval: acompanhar ? INTERVALO_DE_ACOMPANHAMENTO : false,
+  })
 }
 
 /**
@@ -28,11 +37,17 @@ export function useParcelasVencidas() {
  * Uma parcela, com o valor de hoje.
  *
  * @param habilitado O diálogo da baixa só lê quando abre.
+ * @param acompanhar Pagando por um meio que baixa sozinho (Sprint 25): relê a cada poucos segundos, e a
+ *   tela vira "paga" sem o formando recarregar.
  */
-export function useParcela(parcelaId: string, habilitado = true) {
+export function useParcela(parcelaId: string, habilitado = true, acompanhar = false) {
   return useQuery({
     queryKey: chaves.parcela(parcelaId),
     queryFn: ({ signal }) => obterParcela(parcelaId, signal),
     enabled: habilitado,
+    refetchInterval: acompanhar ? INTERVALO_DE_ACOMPANHAMENTO : false,
   })
 }
+
+/** De quanto em quanto tempo a tela do PIX automático relê a parcela. */
+export const INTERVALO_DE_ACOMPANHAMENTO = 5000

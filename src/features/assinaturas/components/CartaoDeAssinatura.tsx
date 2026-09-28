@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
-import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { useAssinatura, useCancelarAssinatura } from '../hooks/useAssinatura'
 import type { Assinatura } from '../types/assinaturas.types'
 import { SeloDeStatus } from './SeloDeStatus'
@@ -131,7 +131,7 @@ function Situacao({ assinatura, presidente }: { assinatura: Assinatura; presiden
  * leitura, nada apagado); só a segunda cancela. Cancelar sem essa informação é o caminho mais curto
  * para um pedido de estorno.
  */
-function CancelarRenovacao({ vigenteAte }: { vigenteAte?: string }) {
+function CancelarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
   const cancelar = useCancelarAssinatura()
   const [confirmando, definirConfirmando] = useState(false)
   const ate = formatarData(vigenteAte)
@@ -165,7 +165,7 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte?: string }) {
                   onClick={() =>
                     cancelar.mutate(undefined, {
                       onSuccess: () => toast.info('Renovação cancelada.'),
-                      onError: (erro) => toast.error(mensagemDoErro(erro)),
+                      onError: avisarErro,
                     })
                   }
                 >
@@ -180,7 +180,8 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte?: string }) {
                 <AlertDialogDescription>
                   Tudo continua funcionando até {ate}. Depois disso, a turma fica só para consulta: todos os
                   membros continuam vendo tudo, mas ninguém registra nada novo. Nada é apagado, e para voltar
-                  a registrar basta contratar de novo.
+                  a registrar basta contratar de novo. Sem nova contratação em 12 meses, a turma é encerrada e
+                  fica disponível para consulta por mais cinco anos.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

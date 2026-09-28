@@ -1,10 +1,9 @@
-import { useMutation } from '@tanstack/react-query'
+import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { convitePendente } from '@/lib/convitePendente'
 import { type ParDeTokens, sessao } from '@/lib/http/sessao'
-import { queryClient } from '@/lib/query/client'
 import { aceitarConvite, entrar, registrar, sair } from '../api/auth.api'
 
 /**
@@ -15,7 +14,7 @@ import { aceitarConvite, entrar, registrar, sair } from '../api/auth.api'
  * Se o aceite falha, o convite continua guardado: a guarda leva à página do convite, que tenta de
  * novo e explica o erro (e-mail a confirmar, convite esgotado, já participa).
  */
-async function iniciarSessao(par: ParDeTokens) {
+async function iniciarSessao(par: ParDeTokens, queryClient: QueryClient) {
   sessao.autenticar(par)
 
   const convite = convitePendente.ler()
@@ -37,11 +36,12 @@ async function iniciarSessao(par: ParDeTokens) {
 export function useEntrar() {
   const navegar = useNavigate()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: entrar,
     onSuccess: async (par) => {
-      await iniciarSessao(par)
+      await iniciarSessao(par, queryClient)
       navegar(destino, { replace: true })
     },
   })
@@ -50,11 +50,12 @@ export function useEntrar() {
 /** Criação de conta. A API já devolve a sessão, então quem se cadastra entra direto. */
 export function useRegistrar() {
   const navegar = useNavigate()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: registrar,
     onSuccess: async (par) => {
-      await iniciarSessao(par)
+      await iniciarSessao(par, queryClient)
       navegar(ROTAS.inicio, { replace: true })
     },
   })
@@ -68,6 +69,7 @@ export function useRegistrar() {
  */
 export function useSair() {
   const navegar = useNavigate()
+  const queryClient = useQueryClient()
 
   return useMutation({
     // A falha é engolida de propósito: o cookie pode já ter expirado, e nesse caso não há o que

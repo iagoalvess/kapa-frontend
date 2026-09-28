@@ -1,8 +1,10 @@
-import { CircleCheck, Coins, Users } from 'lucide-react'
+import { CircleCheck, Coins, ShoppingBag, Users } from 'lucide-react'
+import { Link } from 'react-router'
 import { Cartao } from '@/components/Cartao'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
 import { Button } from '@/components/ui/button'
+import { ROTAS } from '@/config/rotas'
 import { useAbrirArquivoDoAcervo } from '@/hooks/useAcervoDaTurma'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { type ItemDaFesta, percentualDaMeta, type Proposta } from '@/types/festa'
@@ -120,7 +122,7 @@ export function DetalheDoItem({
       {item.o_que_inclui ? (
         <TextoEmMarkdown conteudo={item.o_que_inclui} />
       ) : (
-        <p className="text-texto-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           {ehGestao
             ? 'Sem descrição. Diga o que vai ter para a turma saber pelo que está pagando.'
             : 'A comissão ainda não descreveu o que vai ter.'}
@@ -138,16 +140,31 @@ export function DetalheDoItem({
 
         {porFormando ? (
           <Dado icone={Users} rotulo="Por formando">
-            {formatarCentavos(item.valor_previsto_em_centavos)}
+            {/* Com opcional aberto, o preço é o de lá: é por ele que a turma cobra, e dois preços
+                para a mesma foto é o defeito que a decisão 11 da Sprint 20 existe para fechar. */}
+            {formatarCentavos(item.preco_de_venda_em_centavos ?? item.valor_previsto_em_centavos)}
             {/* A expectativa some quando existe despesa: dali em diante o custo é a soma delas, e
                 deixar "× 40 estimados" ao lado do contratado é mostrar dois números para a mesma
-                coisa, um deles morto. */}
+                coisa, um deles morto. Com opcional, "estimados" some também — e some a palavra,
+                que é o ponto: são pedidos de verdade. */}
             {item.quantidade_de_despesas === 0 ? (
               <span className="text-muted-foreground">
                 {' '}
-                × {formatarNumero(item.quantidade_estimada)} estimados
+                {item.preco_de_venda_em_centavos === null
+                  ? `× ${formatarNumero(item.quantidade_estimada)} estimados`
+                  : `× ${formatarNumero(item.pedidos_confirmados)} ${item.pedidos_confirmados === 1 ? 'pedido' : 'pedidos'}`}
               </span>
             ) : null}
+          </Dado>
+        ) : null}
+
+        {/* O cartão não vira vitrine: ele mostra a contagem e um link para onde a compra já mora.
+            Dois lugares para clicar "Pedir" é um lugar a mais para manter. */}
+        {porFormando && item.preco_de_venda_em_centavos !== null && !ehGestao ? (
+          <Dado icone={ShoppingBag} rotulo="Quer o seu?">
+            <Link to={ROTAS.extrato} className="text-brand-text underline-offset-4 hover:underline">
+              Pedir em Minhas parcelas
+            </Link>
           </Dado>
         ) : null}
 

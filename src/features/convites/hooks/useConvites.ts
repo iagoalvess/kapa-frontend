@@ -13,7 +13,9 @@ export function useCriarConvite() {
 
   return useMutation({
     mutationFn: criarConvite,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: chaves.lista() }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.lista() })
+    },
   })
 }
 
@@ -23,6 +25,8 @@ export function useRevogarConvite() {
 
   return useMutation({
     mutationFn: revogarConvite,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: chaves.lista() }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.lista() })
+    },
   })
 }

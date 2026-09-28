@@ -9,6 +9,9 @@
  * destino a conferir, e o único que quebrava a sequência "pague (1), avise (2)" da tela — quem
  * escolhia combinar ainda não tinha pago.
  *
+ * O PIX do Mercado Pago da turma não mora aqui: é `MeioDePagamento` (`types/pagamento`), que baixa
+ * sozinho e não tem aviso a dar (Sprint 35).
+ *
  * Mora em `types/` porque a comissão o habilita na feature `recebimentos` e o formando o escolhe na
  * feature `pagamentos` — e uma feature não importa de outra.
  */

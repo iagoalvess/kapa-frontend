@@ -1,42 +1,37 @@
 import type { Papel } from '@/config/perfis'
 
-/*
-  A API omite campo nulo (`WhenWritingNull`): campo vazio do cadastro chega `undefined`, não
-  `null`. Por isso tudo aqui é opcional.
-*/
-
 /** Seção de dados pessoais. Espelha `DadosPessoaisDTO`. */
 export interface DadosPessoais {
-  nome_completo?: string
-  nome_no_diploma?: string
+  nome_completo: string | null
+  nome_no_diploma: string | null
   /** Só os 11 dígitos. */
-  cpf?: string
-  rg?: string
-  matricula?: string
+  cpf: string | null
+  rg: string | null
+  matricula: string | null
   /** Em E.164: `+5541998765432`. */
-  telefone?: string
+  telefone: string | null
   /** `aaaa-mm-dd`. */
-  data_de_nascimento?: string
-  observacoes?: string
+  data_de_nascimento: string | null
+  observacoes: string | null
 }
 
 /** Seção de endereço. Espelha `DadosDeEnderecoDTO`. */
 export interface DadosDeEndereco {
   /** Só os 8 dígitos. */
-  cep?: string
-  logradouro?: string
-  numero?: string
-  complemento?: string
-  bairro?: string
-  cidade?: string
-  uf?: string
+  cep: string | null
+  logradouro: string | null
+  numero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
 }
 
 /** Seção de contato de emergência. Espelha `DadosDeEmergenciaDTO`. */
 export interface DadosDeEmergencia {
-  nome?: string
-  telefone?: string
-  parentesco?: string
+  nome: string | null
+  telefone: string | null
+  parentesco: string | null
 }
 
 /** Itens que a completude conta, como a API os nomeia em `faltando`. */
@@ -63,7 +58,7 @@ export interface PerfilDoFormando {
   endereco: DadosDeEndereco
   contato_de_emergencia: DadosDeEmergencia
   /** Baixado por `/arquivos/{id}/conteudo` — só o dono consegue. */
-  foto_arquivo_id?: string
+  foto_arquivo_id: string | null
   /** De 0 a 100. */
   completude: number
   faltando: ItemDoCadastro[]
@@ -76,7 +71,7 @@ export interface PerfilDoFormando {
  * Campo vazio vai `null`, que apaga.
  */
 export interface AtualizarPerfil {
-  pessoais?: { [Campo in keyof DadosPessoais]-?: DadosPessoais[Campo] | null }
-  endereco?: { [Campo in keyof DadosDeEndereco]-?: DadosDeEndereco[Campo] | null }
-  contato_de_emergencia?: { [Campo in keyof DadosDeEmergencia]-?: DadosDeEmergencia[Campo] | null }
+  pessoais?: DadosPessoais
+  endereco?: DadosDeEndereco
+  contato_de_emergencia?: DadosDeEmergencia
 }

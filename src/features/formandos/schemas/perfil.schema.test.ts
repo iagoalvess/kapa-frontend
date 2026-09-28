@@ -2,15 +2,33 @@ import { describe, expect, it } from 'vitest'
 import type { PerfilDoFormando } from '../types/formandos.types'
 import { comDadosDoTitular, esquemaDoTitular } from './perfil.schema'
 
-/** Como a API devolve: campo vazio não vem (`WhenWritingNull`). */
+/** Como a API devolve: campo vazio vem `null`. */
 const perfil: PerfilDoFormando = {
   usuario_id: 'u-1',
   nome: 'Ana',
   email: 'ana@kapa.dev',
   papel: 'Formando',
-  pessoais: { nome_completo: 'Ana Souza', telefone: '+5541998765432', rg: '12.345.678-9' },
-  endereco: {},
-  contato_de_emergencia: {},
+  pessoais: {
+    nome_completo: 'Ana Souza',
+    nome_no_diploma: null,
+    cpf: null,
+    rg: '12.345.678-9',
+    matricula: null,
+    telefone: '+5541998765432',
+    data_de_nascimento: null,
+    observacoes: null,
+  },
+  endereco: {
+    cep: null,
+    logradouro: null,
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+  },
+  contato_de_emergencia: { nome: null, telefone: null, parentesco: null },
+  foto_arquivo_id: null,
   completude: 30,
   faltando: ['cpf', 'data_de_nascimento'],
   essencial_pendente: true,

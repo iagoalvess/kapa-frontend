@@ -1,9 +1,11 @@
 import { api } from '@/lib/http/cliente'
 import type {
+  AutorizacaoDoProvedor,
   ContaDeRecebimento,
   ContaDeRecebimentoDaTurma,
   MeiosDaConta,
   PixDeTeste,
+  ProvedorDaTurma,
 } from '../types/recebimentos.types'
 
 const CONTA = '/api/v1/recebimentos/conta'
@@ -26,4 +28,21 @@ export function obterPixDeTeste(signal?: AbortSignal) {
 /** Registra que o banco mostrou o titular cadastrado. Só o Presidente. */
 export function conferirConta() {
   return api.post<ContaDeRecebimento>(`${CONTA}/conferir`)
+}
+
+const MERCADO_PAGO = `${CONTA}/mercado-pago`
+
+/** O Mercado Pago da turma, se conectado. Tesouraria. */
+export function obterMercadoPago(signal?: AbortSignal) {
+  return api.get<ProvedorDaTurma>(MERCADO_PAGO, { signal })
+}
+
+/** A página do Mercado Pago onde o presidente autoriza o Kapa na conta da turma. Só o Presidente. */
+export function autorizarMercadoPago() {
+  return api.post<AutorizacaoDoProvedor>(`${MERCADO_PAGO}/autorizacao`)
+}
+
+/** Desconecta o Mercado Pago; os outros meios continuam. Só o Presidente. */
+export function desconectarMercadoPago() {
+  return api.delete<void>(MERCADO_PAGO)
 }

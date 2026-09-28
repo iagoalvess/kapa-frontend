@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { rotaDaDespesa } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
+import { abrirNaAba } from '@/lib/download'
 import { formatarCentavos, formatarData, formatarMesCurto } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { useAbrirComprovante, useCancelarDespesa } from '../hooks/useDespesas'
 import { type Despesa, ROTULOS_DE_CATEGORIA, rotuloDaDespesa } from '../types/financeiro.types'
 import { DialogoDePagamento } from './DialogoDePagamento'
@@ -44,12 +45,10 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
   const abrirComprovante = () => {
     const aba = window.open('', '_blank')
     comprovante.mutate(despesa.id, {
-      onSuccess: (arquivo) => {
-        if (aba) aba.location.href = URL.createObjectURL(arquivo)
-      },
+      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
       onError: (erro) => {
         aba?.close()
-        toast.error(mensagemDoErro(erro))
+        avisarErro(erro)
       },
     })
   }
@@ -119,7 +118,7 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
                   Cancelar
                 </Button>
               }
-              titulo={`Cancelar ${rotuloDaDespesa(despesa)}?`}
+              titulo={`Cancelar “${rotuloDaDespesa(despesa)}”?`}
               descricao="A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo."
               rotuloDeCancelar="Voltar"
               rotulo="Cancelar despesa"
@@ -127,7 +126,7 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
               aoConfirmar={() =>
                 cancelar.mutate(despesa.id, {
                   onSuccess: () => toast.info('Despesa cancelada.'),
-                  onError: (erro) => toast.error(mensagemDoErro(erro)),
+                  onError: avisarErro,
                 })
               }
             />

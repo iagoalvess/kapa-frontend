@@ -1,0 +1,25 @@
+# Cabeçalhos do Cloudflare Pages, nos dois projetos (app e site) — o que o nginx fazia (Sprint 33).
+#
+# A CSP é a da Sprint 16: fonte, ícone e imagem vêm do bundle, e o único destino externo é a API. O
+# endereço dela entra na build (VITE_API_URL), como o nginx fazia com o envsubst.
+#   'unsafe-inline' em style-src: React escreve style="" em elemento (altura de gráfico, popover).
+#   data: e blob: em img-src: QR do PIX e pré-visualização de foto antes do upload.
+# O HTML é revalidado pelo próprio Pages a cada visita; o cache longo é só do que tem hash no nome.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' %VITE_API_URL%; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fora do hash do Vite: o nome é a versão. Trocar a arte é trocar o nome no manifesto e no HTML.
+/icones/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# O Chrome ignora, em silêncio, manifesto servido com outro tipo. Cache curto: é por ele que o celular
+# percebe nome ou ícone novo.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache

@@ -87,19 +87,19 @@ describe('DocumentosPage', () => {
 
     // Coluna vazia continua no quadro: é nela que se envia o primeiro.
     expect(
-      within(screen.getByRole('region', { name: 'Orçamentos' })).getByText('Nenhum documento'),
+      within(screen.getByRole('region', { name: 'Orçamentos' })).getByText('Nenhum documento.'),
     ).toBeInTheDocument()
     expect(
       screen.getAllByRole('region', { name: /^(Atas|Contratos|Orçamentos|Regulamentos|Outros)$/ }),
     ).toHaveLength(5)
   })
 
-  it('o "+ Adicionar" do pé da coluna abre o formulário já na categoria dela', async () => {
+  it('o "+ Novo…" do pé da coluna abre o formulário já na categoria dela', async () => {
     entrarComo('Tesoureiro')
     comApi()
 
     renderizar(<DocumentosPage />)
-    await userEvent.click(await screen.findByRole('button', { name: '+ Adicionar regulamento' }))
+    await userEvent.click(await screen.findByRole('button', { name: '+ Novo regulamento' }))
 
     const dialogo = await screen.findByRole('alertdialog')
     expect(within(dialogo).getByLabelText('Categoria')).toHaveValue('Regulamento')
@@ -130,10 +130,10 @@ describe('DocumentosPage', () => {
     renderizar(<DocumentosPage />)
 
     await screen.findByRole('button', { name: 'Baixar Contrato do buffet' })
-    expect(screen.queryByRole('button', { name: /Adicionar documento/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Corrigir/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Novo documento/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Editar/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Excluir/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^\+ Adicionar/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^\+ Nov[oa] / })).not.toBeInTheDocument()
   })
 
   it('baixar pede o arquivo à API e abre o PDF numa aba', async () => {
@@ -170,13 +170,13 @@ describe('DocumentosPage', () => {
     )
 
     renderizar(<DocumentosPage />)
-    await userEvent.click(await screen.findByRole('button', { name: /Adicionar documento/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^Novo documento/ }))
     const dialogo = await screen.findByRole('alertdialog')
 
     await userEvent.type(within(dialogo).getByLabelText('Título'), 'Regulamento da turma')
     await userEvent.selectOptions(within(dialogo).getByLabelText('Categoria'), 'Regulamento')
     await userEvent.selectOptions(within(dialogo).getByLabelText('Para quem é'), 'Turma')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Adicionar' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar' }))
 
     expect(await within(dialogo).findByRole('alert')).toHaveTextContent('Anexe o arquivo do documento.')
     expect(envios).toBe(0)
@@ -185,7 +185,7 @@ describe('DocumentosPage', () => {
       within(dialogo).getByLabelText('Anexar o arquivo'),
       new File(['%PDF-1.4'], 'regulamento.pdf', { type: 'application/pdf' }),
     )
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Adicionar' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar' }))
 
     await waitFor(() => expect(envios).toBe(1))
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())

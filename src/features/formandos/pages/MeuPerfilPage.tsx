@@ -1,3 +1,4 @@
+import { Cartao } from '@/components/Cartao'
 import type { ReactNode } from 'react'
 import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -39,7 +40,7 @@ export default function MeuPerfilPage({ acoes }: { acoes?: ReactNode }) {
 
   return (
     <>
-      <section aria-label="Resumo do cadastro" className="bg-card shadow-cartao grid gap-5 rounded-3xl p-5">
+      <Cartao rotulo="Resumo do cadastro">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <UploadDeFoto perfil={dados} desabilitado={!escritaLiberada} />
           <div className="grid text-sm sm:text-right">
@@ -50,7 +51,7 @@ export default function MeuPerfilPage({ acoes }: { acoes?: ReactNode }) {
         </div>
         {/* A senha mora aqui, e não no menu: é a conta da pessoa, e é neste cartão que ela está. */}
         <IndicadorDeCompletude perfil={dados} acoes={acoes} />
-      </section>
+      </Cartao>
 
       <FormularioDePerfil key={dados.usuario_id} perfil={dados} editavel={escritaLiberada} />
     </>

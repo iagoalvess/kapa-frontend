@@ -1,6 +1,6 @@
-import { CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
+import { Armchair, CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
@@ -19,16 +19,16 @@ import { useDetalheDoItem, useItensDaFesta, useMetaDaFesta } from '@/hooks/useIt
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
+import { ehOpcao } from '@/lib/opcao'
+import { contemBusca } from '@/lib/busca'
 import { type EstadoDoItem, type ItemDaFesta, percentualDaMeta, ROTULOS_DE_ESTADO } from '@/types/festa'
+import { AvisoDaMinhaMesa } from '../components/AvisoDaMinhaMesa'
 import { DetalheDoItem } from '../components/DetalheDoItem'
 import { DialogoDeItem } from '../components/DialogoDeItem'
 import { LinhaDoItem } from '../components/LinhaDoItem'
 import { useCancelarItem, useExcluirItem, useReativarItem } from '../hooks/useEscritaDaFesta'
-
-/** Toda falha de escrita desta tela vira o mesmo aviso: o texto certo vem da API, pelo código. */
-const aoFalhar = (erro: unknown) => toast.error(mensagemDoErro(erro))
 
 /**
  * As seções da lista, na ordem da vida do item.
@@ -39,7 +39,7 @@ const aoFalhar = (erro: unknown) => toast.error(mensagemDoErro(erro))
  */
 const SECOES = ['AContratar', 'Contratado', 'Pago', 'Cancelado'] as const satisfies readonly EstadoDoItem[]
 
-const ehEstado = (valor: string | null): valor is EstadoDoItem => valor !== null && valor in ROTULOS_DE_ESTADO
+const ehEstado = (valor: string | null): valor is EstadoDoItem => ehOpcao(valor, ROTULOS_DE_ESTADO)
 
 /**
  * Filtro e busca acontecem aqui, e não na API.
@@ -53,23 +53,10 @@ const ehEstado = (valor: string | null): valor is EstadoDoItem => valor !== null
  * @param busca O que foi digitado, já sem acento na comparação.
  */
 function filtrar(itens: readonly ItemDaFesta[], estado: EstadoDoItem | null, busca: string) {
-  const termo = semAcento(busca.trim())
-
   return itens.filter(
-    (item) =>
-      (estado === null || item.estado === estado) &&
-      (termo === '' ||
-        semAcento(item.titulo).includes(termo) ||
-        semAcento(item.fornecedor ?? '').includes(termo)),
+    (item) => (estado === null || item.estado === estado) && contemBusca(busca, item.titulo, item.fornecedor),
   )
 }
-
-/** Busca por nome ignora acento e caixa, como a das listas que o backend atende com `unaccent`. */
-const semAcento = (texto: string) =>
-  texto
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
 
 /**
  * O que a turma está comprando, e quanto falta para pagar por isso.
@@ -123,12 +110,12 @@ export default function FestaPage() {
     if (acao === 'excluir')
       excluir.mutate(item.id, {
         onSuccess: () => {
-          toast.success('Item excluído.')
+          toast.info('Item excluído.')
           navegar(ROTAS.festa)
         },
-        onError: aoFalhar,
+        onError: avisarErro,
       })
-    else cancelar.mutate(item.id, { onSuccess: () => toast.success('Item cancelado.'), onError: aoFalhar })
+    else cancelar.mutate(item.id, { onSuccess: () => toast.info('Item cancelado.'), onError: avisarErro })
   }
 
   if (itens.isError) return <ErroDaConsulta erro={itens.error} />
@@ -174,6 +161,8 @@ export default function FestaPage() {
         ]}
       />
 
+      <AvisoDaMinhaMesa />
+
       {/* A escadinha e a busca ficam acima das duas colunas, como no mural: é a lista inteira que
           elas recortam, e não o painel da direita. No celular somem junto com a lista.
 
@@ -205,12 +194,22 @@ export default function FestaPage() {
           ))}
           busca={{ valor: busca, rotulo: 'Buscar item', aoBuscar: (termo) => atualizar({ busca: termo }) }}
           acoes={
-            editavel ? (
-              <Button size="sm" className="h-8" onClick={() => definirCadastro({})}>
-                <Plus aria-hidden />
-                Novo item
-              </Button>
-            ) : null
+            <>
+              {ehGestao ? (
+                <Button asChild size="xs">
+                  <Link to={ROTAS.mesas}>
+                    <Armchair aria-hidden />
+                    Gerenciar mesas
+                  </Link>
+                </Button>
+              ) : null}
+              {editavel ? (
+                <Button size="xs" onClick={() => definirCadastro({})}>
+                  <Plus aria-hidden />
+                  Novo item
+                </Button>
+              ) : null}
+            </>
           }
           contagem={{ mostrando: visiveis.length, total: todos.length, unidade: 'itens' }}
         />
@@ -279,7 +278,7 @@ export default function FestaPage() {
               aoReativar={() =>
                 reativar.mutate(aberto.item.id, {
                   onSuccess: () => toast.success('Item reativado.'),
-                  onError: aoFalhar,
+                  onError: avisarErro,
                 })
               }
               aoExcluir={() => definirConfirmando({ item: aberto.item, acao: 'excluir' })}
@@ -302,7 +301,7 @@ export default function FestaPage() {
       <DialogoDeConfirmacao
         aberto={confirmando !== false}
         aoFechar={() => definirConfirmando(false)}
-        titulo={confirmando && confirmando.acao === 'excluir' ? 'Excluir este item?' : 'Cancelar este item?'}
+        titulo={confirmando && confirmando.acao === 'excluir' ? 'Excluir o item?' : 'Cancelar o item?'}
         descricao={
           confirmando && confirmando.acao === 'excluir'
             ? `"${confirmando.item.titulo}" sai da lista e do custo da festa. Não há despesa lançada nele, então nada do caixa muda — as propostas levantadas vão junto.`

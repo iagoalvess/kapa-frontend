@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { abrirOuBaixar } from '@/lib/download'
-import { mensagemDoErro } from '@/lib/http/erros'
+import { abreNoNavegador, abrirOuBaixar } from '@/lib/download'
+import { avisarErro } from '@/lib/http/erros'
 import {
   atualizarDocumento,
   baixarDocumento,
@@ -57,9 +56,6 @@ export function useBaixarDocumento() {
   return useMutation({ mutationFn: baixarDocumento })
 }
 
-/** Tipos que o navegador abre sozinho: vão para uma aba. O resto (Word, Excel) baixa com o nome original. */
-const ABRE_NO_NAVEGADOR = /^(application\/pdf|image\/)/
-
 /**
  * Abre um documento: PDF e imagem numa aba — sem visualizador embutido, o navegador já tem um —, Word
  * e Excel baixando com o nome original.
@@ -70,12 +66,12 @@ export function useAbrirDocumento() {
   const baixar = useBaixarDocumento()
 
   const abrir = (documento: Documento) => {
-    const aba = ABRE_NO_NAVEGADOR.test(documento.content_type) ? window.open('', '_blank') : null
+    const aba = abreNoNavegador(documento.content_type) ? window.open('', '_blank') : null
     baixar.mutate(documento.id, {
       onSuccess: (arquivo) => abrirOuBaixar(arquivo, documento.nome_do_arquivo, aba),
       onError: (erro) => {
         aba?.close()
-        toast.error(mensagemDoErro(erro))
+        avisarErro(erro)
       },
     })
   }
