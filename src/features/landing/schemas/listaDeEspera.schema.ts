@@ -7,7 +7,7 @@ import { z } from 'zod'
 */
 
 /** A versão do aviso de privacidade publicada. Mudou o texto do aviso, sobe aqui: a inscrição grava esta. */
-export const AVISO_DA_LISTA_DE_ESPERA = { versao: 1, publicadoEm: '28/09/2026' } as const
+export const AVISO_DA_LISTA_DE_ESPERA = { versao: 2, publicadoEm: '28/09/2026' } as const
 
 /** O papel de quem se inscreve. Formando entra também (P4): a conversa prioriza a comissão. */
 export const PAPEIS_NA_TURMA = {
@@ -31,9 +31,6 @@ const umaDas = (mapa: object, mensagem: string) =>
 
 const texto = (mensagem: string, maximo: number) => z.string(mensagem).trim().min(1, mensagem).max(maximo)
 
-/** O WhatsApp só com os números: DDD + 8 ou 9 dígitos. */
-export const soNumeros = (valor: string) => valor.replaceAll(/\D/g, '')
-
 export const esquemaDaInscricao = z.object({
   nome: texto('Informe o seu nome.', 120),
   email: z
@@ -50,10 +47,6 @@ export const esquemaDaInscricao = z.object({
     .regex(/^20\d{2}\.[12]$/, 'Escolha quando a turma se forma.'),
   papel: umaDas(PAPEIS_NA_TURMA, 'Escolha o seu papel na turma.'),
   tamanho_da_turma: umaDas(TAMANHOS_DA_TURMA, 'Escolha o tamanho da turma.'),
-  whatsapp: z
-    .string('Informe o WhatsApp com DDD.')
-    .trim()
-    .refine((valor) => valor === '' || /^\d{10,11}$/.test(soNumeros(valor)), 'Informe o WhatsApp com DDD.'),
   aceite: z
     .boolean('Confirme que leu o aviso de privacidade.')
     .refine(Boolean, 'Confirme que leu o aviso de privacidade.'),
@@ -69,7 +62,6 @@ export const inscricaoEmBranco: FormularioDaInscricao = {
   semestre_de_formatura: '',
   papel: '',
   tamanho_da_turma: '',
-  whatsapp: '',
   aceite: false,
 }
 

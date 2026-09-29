@@ -11,7 +11,6 @@ const VALIDA = {
   semestre_de_formatura: '2027.2',
   papel: 'presidente',
   tamanho_da_turma: 'de_51_a_100',
-  whatsapp: '(41) 99999-0000',
   aceite: true,
   origem: 'utm_source=instagram',
   token_do_turnstile: 'token-bom',
@@ -57,14 +56,13 @@ describe('POST /api/lista-de-espera', () => {
 
     expect(resposta.status).toBe(204)
     expect(gravacoes).toHaveLength(1)
-    const [email, , , , semestre, papel, faixa, whatsapp, aceitoEm, versao, origem] = gravacoes[0]!
-    expect([email, semestre, papel, faixa, whatsapp, versao, origem]).toEqual([
+    const [email, , , , semestre, papel, faixa, aceitoEm, versao, origem] = gravacoes[0]!
+    expect([email, semestre, papel, faixa, versao, origem]).toEqual([
       'ana@exemplo.com',
       '2027.2',
       'presidente',
       'de_51_a_100',
-      '41999990000',
-      1,
+      2,
       'utm_source=instagram',
     ])
     expect(aceitoEm).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/)
@@ -92,13 +90,13 @@ describe('POST /api/lista-de-espera', () => {
     const { banco, gravacoes } = bancoFalso()
 
     const resposta = await enviar(
-      { ...VALIDA, papel: 'toString', tamanho_da_turma: 'mil', aceite: false, whatsapp: '123' },
+      { ...VALIDA, papel: 'toString', tamanho_da_turma: 'mil', aceite: false },
       { LISTA_DE_ESPERA: banco, TURNSTILE_SECRET: 'segredo' },
     )
 
     expect(resposta.status).toBe(400)
     const corpo = (await resposta.json()) as { errors: Record<string, string[]> }
-    expect(Object.keys(corpo.errors).toSorted()).toEqual(['aceite', 'papel', 'tamanho_da_turma', 'whatsapp'])
+    expect(Object.keys(corpo.errors).toSorted()).toEqual(['aceite', 'papel', 'tamanho_da_turma'])
     expect(gravacoes).toHaveLength(0)
   })
 

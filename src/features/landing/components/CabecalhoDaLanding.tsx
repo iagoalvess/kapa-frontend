@@ -6,6 +6,11 @@ import { env } from '@/config/env'
 import { ROTAS, urlDoApp } from '@/config/rotas'
 import { ChamadaPrincipal } from './ChamadaPrincipal'
 
+/** O botão ao lado do CTA: "Entrar" no app ou, com a lista de espera, o e-mail do contato@. */
+const entrar = env.VITE_LISTA_DE_ESPERA
+  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Fale com a gente' }
+  : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar' }
+
 /**
  * As âncoras do menu, na ordem em que as seções aparecem na página. Com a lista de espera ligada, a
  * tabela de preços sai (P10 da Sprint 36), e "Planos" sai junto para não apontar para o nada.
@@ -28,7 +33,8 @@ const SECOES = [
  * `scroll-mt` de cada seção, não de JavaScript.
  *
  * "Entrar" e "Criar minha turma" levam ao app, em outro endereço (P2 da Sprint 33). Com a lista de espera
- * ligada (Sprint 36), "Entrar" some e o CTA leva ao formulário: o app ainda não está no ar. O site não sabe se
+ * ligada (Sprint 36), o app ainda não está no ar: "Criar minha turma" leva ao formulário, e "Entrar" vira
+ * "Fale com a gente", um e-mail para o contato@ — o Kapa só fala com as turmas por e-mail. O site não sabe se
  * há sessão, de propósito: o cookie dela é da API e não vem para cá — quem já entrou e clica em
  * "Entrar" cai no app, que o manda direto para o Início.
  */
@@ -57,11 +63,9 @@ export function CabecalhoDaLanding() {
         </nav>
 
         <div className="col-start-3 hidden items-center gap-2 justify-self-end md:flex">
-          {env.VITE_LISTA_DE_ESPERA ? null : (
-            <Button asChild variant="ghost">
-              <a href={urlDoApp(ROTAS.login)}>Entrar</a>
-            </Button>
-          )}
+          <Button asChild variant="ghost">
+            <a href={entrar.href}>{entrar.rotulo}</a>
+          </Button>
           <ChamadaPrincipal />
         </div>
 
@@ -93,15 +97,10 @@ export function CabecalhoDaLanding() {
               {secao.rotulo}
             </a>
           ))}
-          {env.VITE_LISTA_DE_ESPERA ? null : (
-            <Button asChild variant="outline" className="mt-2">
-              <a href={urlDoApp(ROTAS.login)}>Entrar</a>
-            </Button>
-          )}
-          <ChamadaPrincipal
-            className={env.VITE_LISTA_DE_ESPERA ? 'mt-2' : undefined}
-            onClick={() => definirGavetaAberta(false)}
-          />
+          <Button asChild variant="outline" className="mt-2">
+            <a href={entrar.href}>{entrar.rotulo}</a>
+          </Button>
+          <ChamadaPrincipal onClick={() => definirGavetaAberta(false)} />
         </div>
       ) : null}
     </header>

@@ -3,39 +3,57 @@ import mascoteSuporte from '@/assets/mascote/suporte.webp'
 import { env } from '@/config/env'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
-/** As seis perguntas que toda comissão faz antes de contratar. */
+/**
+ * As perguntas que toda comissão faz antes de contratar. Revistas em 28/09/2026, a pedido dele: tom
+ * leve, de conversa, sem termo técnico (nada de "balancete", "trilha de auditoria", "criptografado").
+ * O "quanto custa" responde sem valor (P10 da Sprint 36), e com a lista de espera ligada entra a
+ * pergunta de quando a turma começa.
+ */
 const PERGUNTAS = [
   {
-    pergunta: 'Quem administra o dinheiro da turma?',
+    pergunta: 'Quem cuida do dinheiro da turma?',
     resposta:
-      'A própria comissão. O formando paga direto na chave PIX que vocês cadastram, e o dinheiro cai na conta de vocês. O Kapa monta o QR, registra a baixa e fecha o caixa — mas nunca recebe nem repassa nada.',
+      'Vocês mesmos. Os formandos pagam por PIX direto na conta da turma, e o Kapa nunca toca no dinheiro. A gente só ajuda a organizar quem pagou e quanto tem em caixa.',
   },
   {
-    pergunta: 'E se um formando desistir no meio do caminho?',
+    pergunta: 'Quanto custa?',
     resposta:
-      'A comissão desliga o formando, escolhe o motivo e decide o que acontece com as parcelas que ainda não venceram. O que ele já pagou continua no caixa e no extrato dele — sai dos números da turma, não do histórico.',
+      'Nada até a turma começar a pagar as parcelas. Depois, é uma assinatura mensal ou anual, com o preço de acordo com o tamanho da turma. Não cobramos nada sobre o que vocês arrecadam.',
   },
   {
-    pergunta: 'Dá para cancelar a assinatura?',
+    pergunta: 'E se alguém desistir no meio do caminho?',
     resposta:
-      'Dá, a qualquer momento, pela própria tela da assinatura. A vigência que vocês já pagaram continua valendo até o fim, e depois disso a turma vira somente leitura: nada é apagado.',
+      'A comissão tira a pessoa da turma e decide o que fazer com as parcelas que ainda não venceram. O que ela já pagou continua registrado, sem bagunçar as contas.',
   },
   {
-    pergunta: 'Precisa de cartão de crédito da comissão?',
+    pergunta: 'Dá para cancelar quando quiser?',
     resposta:
-      'Só para a assinatura do Kapa, que é a licença do software. As cobranças da turma não passam por cartão nenhum — elas são PIX na conta de vocês.',
+      'Dá. Vocês usam até o fim do período que já pagaram, e depois disso tudo continua lá para consulta. Nada é apagado.',
   },
   {
-    pergunta: 'Como fica a prestação de contas na assembleia?',
-    resposta:
-      'O caixa, o balancete do período e os relatórios saem prontos, e todo membro da turma pode abrir o caixa — não só a comissão. Quem quiser conferir quem baixou qual parcela abre a trilha de auditoria.',
+    pergunta: 'Precisa de cartão de crédito?',
+    resposta: 'Não. Dá para pagar o Kapa por PIX ou no cartão, como preferirem.',
   },
   {
-    pergunta: 'Meus dados e os dos formandos ficam seguros?',
+    pergunta: 'Como fica a prestação de contas?',
     resposta:
-      'O CPF é criptografado no banco e sai mascarado nas telas, o consentimento fica registrado com versão e data, e cada pessoa tem um portal para exportar os próprios dados, revogar consentimento ou pedir eliminação.',
+      'Fica pronta. Qualquer pessoa da turma pode ver quanto entrou, quanto saiu e quanto sobrou, sem precisar pedir para a comissão. Nada de planilha no fim do mês.',
   },
-] as const
+  {
+    pergunta: 'Os dados da turma ficam seguros?',
+    resposta:
+      'Ficam. Os dados pessoais são protegidos e cada pessoa pode baixar ou pedir para apagar os próprios dados quando quiser.',
+  },
+  ...(env.VITE_LISTA_DE_ESPERA
+    ? [
+        {
+          pergunta: 'Quando a minha turma pode começar?',
+          resposta:
+            'Estamos abrindo o Kapa aos poucos. Clique em "Criar minha turma", deixe seu contato e a gente fala com você por e-mail.',
+        },
+      ]
+    : []),
+]
 
 /**
  * As perguntas frequentes, em `<details>` nativo.

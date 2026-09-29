@@ -11,7 +11,6 @@
 import {
   AVISO_DA_LISTA_DE_ESPERA,
   esquemaDaInscricao,
-  soNumeros,
 } from '../../src/features/landing/schemas/listaDeEspera.schema.ts'
 
 /** O pedaço do D1 que a Function usa. Sem `@cloudflare/workers-types` por três métodos. */
@@ -32,8 +31,8 @@ const VERIFICACAO_DO_TURNSTILE = 'https://challenges.cloudflare.com/turnstile/v0
  */
 const GRAVAR = `
 INSERT INTO inscricoes (email, nome, instituicao, curso, semestre_de_formatura, papel, tamanho_da_turma,
-  whatsapp, aceito_em, versao_do_aviso, origem, criado_em)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?9)
+  aceito_em, versao_do_aviso, origem, criado_em)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?8)
 ON CONFLICT (email) DO UPDATE SET
   nome = excluded.nome,
   instituicao = excluded.instituicao,
@@ -41,7 +40,6 @@ ON CONFLICT (email) DO UPDATE SET
   semestre_de_formatura = excluded.semestre_de_formatura,
   papel = excluded.papel,
   tamanho_da_turma = excluded.tamanho_da_turma,
-  whatsapp = excluded.whatsapp,
   aceito_em = excluded.aceito_em,
   versao_do_aviso = excluded.versao_do_aviso,
   origem = COALESCE(excluded.origem, inscricoes.origem)`
@@ -91,7 +89,6 @@ export async function onRequestPost({ request, env }: { request: Request; env: A
       inscricao.semestre_de_formatura,
       inscricao.papel,
       inscricao.tamanho_da_turma,
-      soNumeros(inscricao.whatsapp) || null,
       new Date().toISOString(),
       AVISO_DA_LISTA_DE_ESPERA.versao,
       typeof origem === 'string' && origem !== '' ? origem.slice(0, 300) : null,

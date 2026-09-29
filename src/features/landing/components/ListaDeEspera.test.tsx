@@ -54,14 +54,13 @@ describe('lista de espera', () => {
     globalThis.history.replaceState(null, '', '/?utm_source=instagram&ref=x')
 
     const usuario = await preencher()
-    await usuario.click(screen.getByRole('button', { name: 'Entrar na lista de espera' }))
+    await usuario.click(screen.getByRole('button', { name: 'Criar minha turma' }))
 
     expect(await screen.findByText('Recebemos sua inscrição.')).toBeInTheDocument()
     expect(corpos[0]).toMatchObject({
       email: 'ana@exemplo.com',
       semestre_de_formatura: SEMESTRE,
       papel: 'formando',
-      whatsapp: '',
       token_do_turnstile: 'token-1',
       origem: 'utm_source=instagram',
     })
@@ -96,10 +95,10 @@ describe('lista de espera', () => {
     renderizar(<ListaDeEspera />)
 
     const usuario = await preencher()
-    await usuario.click(screen.getByRole('button', { name: 'Entrar na lista de espera' }))
+    await usuario.click(screen.getByRole('button', { name: 'Criar minha turma' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('não é um robô')
 
-    await usuario.click(screen.getByRole('button', { name: 'Entrar na lista de espera' }))
+    await usuario.click(screen.getByRole('button', { name: 'Criar minha turma' }))
 
     expect(await screen.findByText('Recebemos sua inscrição.')).toBeInTheDocument()
     expect(tokens).toEqual(['token-1', 'token-2'])
@@ -108,7 +107,7 @@ describe('lista de espera', () => {
   it('não envia sem os campos obrigatórios nem o aceite', async () => {
     renderizar(<ListaDeEspera />)
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Entrar na lista de espera' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Criar minha turma' }))
 
     expect(await screen.findByText('Confirme que leu o aviso de privacidade.')).toBeInTheDocument()
     expect(screen.getByText('Escolha o seu papel na turma.')).toBeInTheDocument()

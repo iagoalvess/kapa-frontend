@@ -11,13 +11,13 @@ vi.mock('@/config/env', async (original) => {
 })
 
 describe('site com a lista de espera ligada', () => {
-  it('troca "Entrar" e "Criar minha turma" pela lista de espera, sem link para o app nem preços', async () => {
+  it('leva "Criar minha turma" ao formulário e troca "Entrar" pelo e-mail, sem link para o app nem preços', async () => {
     const html = await renderizar('/')
 
-    expect(html).toContain('Entrar na lista de espera')
     expect(html).toContain('href="#lista-de-espera"')
-    expect(html).not.toContain('Criar minha turma')
+    expect(html).toContain('href="mailto:contato@kapaformaturas.com.br"')
     expect(html).not.toContain('>Entrar<')
+    expect(html).not.toContain('/criar-conta')
     expect(html).not.toContain('http://localhost:5173')
     expect(html).not.toContain('#planos')
   })
@@ -25,7 +25,7 @@ describe('site com a lista de espera ligada', () => {
   it('tira Termos, Política e Operadores e põe o aviso da lista no lugar', async () => {
     expect(PAGINAS.map((pagina) => pagina.caminho)).toEqual(['/', '/lista-de-espera/privacidade'])
     expect(await renderizar('/termos-de-uso')).toContain('Página não encontrada')
-    expect(await renderizar('/lista-de-espera/privacidade')).toContain('Versão 1')
+    expect(await renderizar('/lista-de-espera/privacidade')).toContain('Versão 2')
     expect(await renderizar('/')).not.toContain('href="/privacidade"')
   })
 

@@ -30,7 +30,7 @@ const DOCUMENTOS_LEGAIS: PaginaDoSite[] = [
 
 const AVISO_DA_LISTA_DE_ESPERA: PaginaDoSite = {
   caminho: ROTAS.avisoDaListaDeEspera,
-  titulo: 'Lista de espera: aviso de privacidade — Kapa',
+  titulo: 'Privacidade da lista de espera — Kapa',
   descricao:
     'Quem trata os dados da lista de espera do Kapa, para quê, por quanto tempo e como pedir para sair.',
 }

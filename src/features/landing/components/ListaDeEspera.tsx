@@ -22,7 +22,7 @@ import {
 import { SecaoDaLanding } from './SecaoDaLanding'
 import { Turnstile } from './Turnstile'
 
-/** A âncora da seção: é para onde todo "Entrar na lista de espera" da landing leva. */
+/** A âncora da seção: é para onde todo "Criar minha turma" da landing leva enquanto a lista está ligada. */
 export const ANCORA_DA_LISTA_DE_ESPERA = 'lista-de-espera'
 
 /** Os `utm_*` da URL, como vieram — a origem da inscrição. Nulo sem nenhum. */
@@ -118,14 +118,6 @@ function FormularioDaListaDeEspera({ aoEnviar }: { aoEnviar: () => void }) {
           rotulo="Tamanho da turma"
           opcoes={Object.entries(TAMANHOS_DA_TURMA)}
         />
-        <CampoDeTexto
-          nome="whatsapp"
-          rotulo="WhatsApp (opcional)"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="(41) 99999-9999"
-        />
 
         <CampoDeMarcar
           control={formulario.control}
@@ -154,7 +146,7 @@ function FormularioDaListaDeEspera({ aoEnviar }: { aoEnviar: () => void }) {
         <ErroDoFormulario className="sm:col-span-2" />
 
         <Button type="submit" size="lg" disabled={enviando} className="sm:col-span-2">
-          {enviando ? 'Enviando…' : 'Entrar na lista de espera'}
+          {enviando ? 'Enviando…' : 'Criar minha turma'}
         </Button>
       </form>
     </Form>
