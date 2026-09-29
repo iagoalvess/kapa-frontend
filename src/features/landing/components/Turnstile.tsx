@@ -8,6 +8,7 @@ interface ApiDoTurnstile {
     opcoes: {
       sitekey: string
       language: string
+      appearance: 'interaction-only'
       callback: (token: string) => void
       'expired-callback': () => void
       'error-callback': () => void
@@ -67,6 +68,7 @@ export function Turnstile({ aoVerificar }: { aoVerificar: (token: string) => voi
         id = api.render(caixa.current, {
           sitekey: env.VITE_TURNSTILE_SITE_KEY ?? '',
           language: 'pt-br',
+          appearance: 'interaction-only',
           callback: aoVerificar,
           'expired-callback': () => aoVerificar(''),
           'error-callback': () => aoVerificar(''),
@@ -83,7 +85,7 @@ export function Turnstile({ aoVerificar }: { aoVerificar: (token: string) => voi
   }, [aoVerificar])
 
   return (
-    <div className="grid min-h-[65px] gap-1">
+    <div className="grid gap-1">
       <div ref={caixa} />
       {falhou ? (
         <p role="alert" className="text-destructive text-sm">

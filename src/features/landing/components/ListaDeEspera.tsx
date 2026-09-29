@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CircleCheck } from 'lucide-react'
+import { CircleCheck, GraduationCap } from 'lucide-react'
 import { type ComponentProps, useState } from 'react'
 import { useForm, useFormState } from 'react-hook-form'
 import { CampoDeMarcar } from '@/components/CampoDeMarcar'
@@ -121,33 +121,32 @@ function FormularioDaListaDeEspera({ aoEnviar }: { aoEnviar: () => void }) {
           opcoes={Object.entries(TAMANHOS_DA_TURMA)}
         />
 
-        <CampoDeMarcar
-          control={formulario.control}
-          name="aceite"
-          className="sm:col-span-2"
-          rotulo={
-            <span>
-              Li o{' '}
-              <a
-                href={ROTAS.avisoDaListaDeEspera}
-                target="_blank"
-                rel="noreferrer"
-                className="text-brand-text underline underline-offset-2"
-              >
-                aviso de privacidade
-              </a>{' '}
-              da lista de espera
-            </span>
-          }
-        />
-
-        <div className="sm:col-span-2">
+        <div className="grid gap-2 sm:col-span-2">
+          <CampoDeMarcar
+            control={formulario.control}
+            name="aceite"
+            rotulo={
+              <span>
+                Li o{' '}
+                <a
+                  href={ROTAS.avisoDaListaDeEspera}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand-text underline underline-offset-2"
+                >
+                  aviso de privacidade
+                </a>{' '}
+                da lista de espera
+              </span>
+            }
+          />
           <Turnstile key={tentativa} aoVerificar={definirToken} />
         </div>
 
         <ErroDoFormulario className="sm:col-span-2" />
 
         <Button type="submit" size="lg" disabled={enviando} className="sm:col-span-2">
+          <GraduationCap className="size-4" aria-hidden />
           {enviando ? 'Enviando…' : 'Criar minha turma'}
         </Button>
       </form>
