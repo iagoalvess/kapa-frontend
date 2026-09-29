@@ -10,13 +10,19 @@ import { cn } from '@/lib/utils'
 import { SecaoDaLanding } from './SecaoDaLanding'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
 
-/** Mantém a grade 2–1–1 / 1–1–2 e reserva o mesmo espaço para cada maquete. */
+/**
+ * Mantém a grade 2–1–1 / 1–1–2 e reserva o mesmo espaço para cada maquete.
+ *
+ * No celular só o cartão `principal` mostra a maquete (decisão de 28/09/2026: um desenho por seção);
+ * os outros ficam com título e texto, e a seção deixa de ocupar quatro telas.
+ */
 function Cartao({
   titulo,
   texto,
   largo = false,
   tom = 'creme',
   tituloPrimeiro = false,
+  principal = false,
   children,
 }: {
   titulo: string
@@ -24,12 +30,14 @@ function Cartao({
   largo?: boolean
   tom?: 'creme' | 'destaque'
   tituloPrimeiro?: boolean
+  principal?: boolean
   children: ReactNode
 }) {
   return (
     <li
       className={cn(
-        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-h-52 min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow',
+        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow sm:min-h-52',
+        principal && 'min-h-52',
         // A seção é o creme; o cartão é o claro do hero. Chapado, porque um degradê que terminasse
         // no creme faria o canto do cartão sumir no fundo.
         tom === 'creme' && 'border-brand-tint/70 bg-background',
@@ -37,7 +45,9 @@ function Cartao({
         largo && 'lg:col-span-2',
       )}
     >
-      <div className="relative flex h-36 min-w-0 items-center">{children}</div>
+      <div className={cn('relative h-36 min-w-0 items-center', principal ? 'flex' : 'hidden sm:flex')}>
+        {children}
+      </div>
       <div className={cn('relative grid gap-1', tituloPrimeiro && 'order-first')}>
         <h3
           className={cn(
@@ -355,10 +365,11 @@ export function Recursos() {
       }
       descricao="Quem já pagou, quem esqueceu e quanto ainda falta para a festa acontecer."
     >
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <Cartao
           largo
           tituloPrimeiro
+          principal
           titulo="Cobranças e parcelas"
           texto="Plano da turma, parcela por formando e pagamento de várias de uma vez."
         >

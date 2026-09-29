@@ -36,9 +36,9 @@ const COLUNAS = [
  */
 export function RodapeDaLanding() {
   return (
-    <footer className="border-t px-4 py-12">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="grid content-start gap-3">
+    <footer className="border-t px-4 py-10 sm:py-12">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-8 sm:gap-10 lg:grid-cols-4">
+        <div className="col-span-2 grid content-start gap-3 sm:col-span-1">
           <LogoKapa className="text-foreground h-9 justify-self-start" />
           <p className="text-muted-foreground text-sm text-pretty">
             Gestão de formatura para a comissão que faz tudo à mão.

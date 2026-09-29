@@ -3,24 +3,23 @@ import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import carteira from '@/assets/outros/carteira.webp'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
+/** Em tom de conversa, sem termo técnico — o mesmo pedido das perguntas frequentes (28/09/2026). */
 const GARANTIAS = [
   {
     icone: WalletMinimal,
     titulo: 'O dinheiro fica com a turma',
-    texto:
-      'O PIX vai direto para a conta da comissão. O Kapa organiza as cobranças e registra os pagamentos, sem receber ou reter o dinheiro.',
+    texto: 'O PIX cai direto na conta da comissão. O Kapa só organiza, nunca recebe nem guarda o dinheiro.',
   },
   {
     icone: RotateCcwClock,
-    titulo: 'Cada mudança tem um registro',
-    texto:
-      'Pagamentos, estornos e alterações na chave PIX ficam no histórico, com autor e data. Mais transparência para prestar contas à turma.',
+    titulo: 'Tudo fica registrado',
+    texto: 'Cada pagamento e cada mudança ficam anotados, com quem fez e quando. Fica fácil prestar contas.',
   },
   {
     icone: FingerprintPattern,
     titulo: 'Seus dados protegidos',
     texto:
-      'CPF criptografado e mascarado nas telas. Você pode exportar seus dados, revogar consentimentos e solicitar a exclusão pelo portal do titular.',
+      'Os dados pessoais ficam guardados com segurança, e cada um pode baixar ou apagar os seus quando quiser.',
   },
 ] as const
 
@@ -39,11 +38,12 @@ export function SegurancaEDinheiro() {
           decoding="async"
           width={1280}
           height={1280}
-          className="h-auto w-56 max-w-full sm:w-64 md:w-80"
+          className="h-auto w-36 max-w-full sm:w-64 md:w-80"
         />
 
         {/* Seção creme, cartão no claro do hero — o mesmo par dos cartões de Recursos. */}
-        <div className="border-brand-tint/70 bg-background flex w-full max-w-sm items-center gap-4 rounded-2xl border px-5 py-4">
+        {/* No celular sai: repete a primeira garantia, logo abaixo. */}
+        <div className="border-brand-tint/70 bg-background hidden w-full max-w-sm items-center gap-4 rounded-2xl border px-5 py-4 sm:flex">
           <img
             src={carteira}
             alt=""
@@ -61,13 +61,13 @@ export function SegurancaEDinheiro() {
         </div>
       </div>
 
-      <div className="grid gap-7 sm:gap-8">
-        <h2 className="text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+      <div className="grid gap-5 sm:gap-8">
+        <h2 className="text-foreground text-2xl leading-tight font-bold tracking-tight sm:text-4xl">
           Segurança para
           <span className="block">sua turma</span>
         </h2>
 
-        <ul className="grid gap-6">
+        <ul className="grid gap-5 sm:gap-6">
           {GARANTIAS.map((garantia) => (
             <li key={garantia.titulo} className="flex items-start gap-3.5">
               <span className="text-brand-text inline-flex size-8 shrink-0 items-center justify-center">

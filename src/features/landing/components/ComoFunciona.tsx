@@ -181,18 +181,22 @@ function MaqueteDaBaixa() {
 const PASSOS = [
   {
     tom: 'creme',
+    principal: false,
     titulo: 'Crie a turma',
     texto: 'Informe o nome, a instituição, o curso e a data da colação. A comissão inteira entra junto.',
     maquete: <MaqueteDaTurma />,
   },
   {
     tom: 'creme',
+    principal: false,
     titulo: 'Convide os formandos',
     texto: 'Compartilhe o link no grupo do WhatsApp. Cada um se cadastra e assina o termo pelo celular.',
     maquete: <MaqueteDoConvite />,
   },
   {
     tom: 'destaque',
+    // O passo que mostra o resultado: é o desenho que fica no celular (um por seção, 28/09/2026).
+    principal: true,
     titulo: 'Receba no PIX da turma',
     texto: 'Gere QR Code para cada parcela, confira o extrato e confirme os pagamentos na plataforma.',
     maquete: <MaqueteDaBaixa />,
@@ -223,12 +227,13 @@ export function ComoFunciona() {
           <Tracos className="text-brand absolute -top-6 -right-2 size-8" />
           <Heart className="text-brand mt-1 ml-auto size-4 rotate-12" />
         </div>
-        <ol className="grid gap-5 lg:grid-cols-3">
+        <ol className="grid gap-3 sm:gap-5 lg:grid-cols-3">
           {PASSOS.map((passo, indice) => (
             <li
               key={passo.titulo}
               className={cn(
-                'shadow-vitrine relative mx-auto grid w-full max-w-md min-w-0 content-start gap-10 overflow-hidden rounded-3xl border p-5 pb-0 lg:max-w-none',
+                'shadow-vitrine relative mx-auto grid w-full max-w-md min-w-0 content-start overflow-hidden rounded-3xl border p-5 sm:gap-10 sm:pb-0 lg:max-w-none',
+                passo.principal ? 'gap-10 pb-0' : 'pb-5',
                 passo.tom === 'destaque'
                   ? 'border-primary bg-primary'
                   : 'border-brand-tint/70 from-brand-wash to-brand-tint/35 bg-gradient-to-br',
@@ -261,7 +266,7 @@ export function ComoFunciona() {
                   {passo.texto}
                 </p>
               </div>
-              {passo.maquete}
+              <div className={passo.principal ? undefined : 'hidden sm:block'}>{passo.maquete}</div>
             </li>
           ))}
         </ol>

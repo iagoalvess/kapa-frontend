@@ -69,17 +69,23 @@ export function CabecalhoDaLanding() {
           <ChamadaPrincipal />
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="col-start-3 justify-self-end md:hidden"
-          aria-expanded={gavetaAberta}
-          aria-controls="menu-da-landing"
-          aria-label={gavetaAberta ? 'Fechar menu' : 'Abrir menu'}
-          onClick={() => definirGavetaAberta((aberto) => !aberto)}
-        >
-          {gavetaAberta ? <X aria-hidden /> : <Menu aria-hidden />}
-        </Button>
+        {/* No celular o CTA fica à vista, ao lado do menu: escondido na gaveta, ninguém o achava. */}
+        <div className="col-start-3 flex items-center gap-1 justify-self-end md:hidden">
+          <ChamadaPrincipal
+            size="sm"
+            className="h-9 rounded-full px-3 text-xs [&_svg]:hidden min-[380px]:[&_svg]:block"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-expanded={gavetaAberta}
+            aria-controls="menu-da-landing"
+            aria-label={gavetaAberta ? 'Fechar menu' : 'Abrir menu'}
+            onClick={() => definirGavetaAberta((aberto) => !aberto)}
+          >
+            {gavetaAberta ? <X aria-hidden /> : <Menu aria-hidden />}
+          </Button>
+        </div>
       </div>
 
       {gavetaAberta ? (
@@ -100,7 +106,6 @@ export function CabecalhoDaLanding() {
           <Button asChild variant="outline" className="mt-2">
             <a href={entrar.href}>{entrar.rotulo}</a>
           </Button>
-          <ChamadaPrincipal onClick={() => definirGavetaAberta(false)} />
         </div>
       ) : null}
     </header>

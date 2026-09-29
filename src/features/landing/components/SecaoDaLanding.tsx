@@ -46,21 +46,24 @@ export function SecaoDaLanding({
   children,
 }: Props) {
   return (
-    <section className={cn('px-4', compacta ? 'py-10 sm:py-12' : 'py-16 sm:py-24', creme && 'bg-brand-wash')}>
+    <section className={cn('px-4', compacta ? 'py-8 sm:py-12' : 'py-10 sm:py-24', creme && 'bg-brand-wash')}>
       {/*
         A âncora fica no conteúdo, e não na `<section>`: o respiro de cima é `py-24`, e um
         `scroll-mt` na seção **soma** a ele — a pessoa clicava em "Planos", caía 96px acima do
         título e os cards terminavam 170px abaixo da dobra, parecendo cortados. Mirando o conteúdo,
         o `scroll-mt` só precisa dar conta do cabeçalho grudado (64px) e de um respiro.
       */}
-      <div id={id} className={cn('mx-auto grid w-full max-w-6xl scroll-mt-20 gap-10', className)}>
+      <div
+        id={id}
+        className={cn('mx-auto grid w-full max-w-6xl scroll-mt-20 gap-10 max-sm:gap-6', className)}
+      >
         {/* `col-span-full` no cabeçalho: numa seção de coluna única não faz nada, e nas de duas
             colunas (contato, perguntas) é o que impede o título de ocupar só a primeira e empurrar
             o conteúdo para a linha de baixo, deixando meia tela vazia ao lado dele. */}
         {titulo || etiqueta || descricao ? (
           <header
             className={cn(
-              'revelar col-span-full grid gap-3',
+              'revelar col-span-full grid gap-2 sm:gap-3',
               aEsquerda ? 'max-w-2xl' : 'mx-auto max-w-2xl justify-items-center text-center',
             )}
           >
@@ -68,9 +71,11 @@ export function SecaoDaLanding({
               <p className="text-brand-text text-sm font-semibold tracking-wide uppercase">{etiqueta}</p>
             ) : null}
             {titulo ? (
-              <h2 className="text-foreground text-3xl font-semibold text-balance sm:text-4xl">{titulo}</h2>
+              <h2 className="text-foreground text-2xl font-semibold text-balance sm:text-4xl">{titulo}</h2>
             ) : null}
-            {descricao ? <p className="text-muted-foreground text-lg text-pretty">{descricao}</p> : null}
+            {descricao ? (
+              <p className="text-muted-foreground text-base text-pretty sm:text-lg">{descricao}</p>
+            ) : null}
           </header>
         ) : null}
 

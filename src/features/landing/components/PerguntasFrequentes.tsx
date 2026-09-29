@@ -71,7 +71,7 @@ export function PerguntasFrequentes() {
       titulo="O que toda comissão pergunta"
       descricao={
         env.VITE_LISTA_DE_ESPERA
-          ? 'Se ficar dúvida, entre na lista de espera e a gente conversa.'
+          ? 'Ficou alguma dúvida? É só falar com a gente.'
           : 'Se ficar dúvida, dá para criar a turma e ver por dentro, sem cartão.'
       }
       className="lg:grid-cols-[0.8fr_1.2fr] lg:items-start"
