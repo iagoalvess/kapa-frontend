@@ -8,8 +8,8 @@ import { ChamadaPrincipal } from './ChamadaPrincipal'
 
 /** O botão ao lado do CTA: "Entrar" no app ou, com a lista de espera, o e-mail do contato@. */
 const entrar = env.VITE_LISTA_DE_ESPERA
-  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Contato' }
-  : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar' }
+  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Fale com a gente', rotuloCurto: 'Contato' }
+  : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar', rotuloCurto: 'Entrar' }
 
 /**
  * As âncoras do menu, na ordem em que as seções aparecem na página. Com a lista de espera ligada, a
@@ -25,9 +25,8 @@ const SECOES = [
  * O cabeçalho da página institucional: logo, âncoras, "Entrar" e o CTA.
  *
  * Fica grudado no topo e com fundo translúcido — a página é longa, e o CTA precisa continuar a um
- * clique de distância na décima rolagem. Os dois botões ficam à vista em qualquer largura, no padrão de
- * botão da casa e com texto curto ("Contato"/"Entrar" e "Criar turma", 28/09/2026); no celular só as
- * âncoras vão para a gaveta.
+ * clique de distância na décima rolagem. Os dois botões ficam à vista em qualquer largura, com
+ * rótulos curtos só no celular; as âncoras vão para a gaveta nessa largura.
  *
  * As âncoras são `<a href="#...">` de verdade, e não `onClick` com `scrollTo`: link é copiável,
  * abre em nova aba e funciona com o teclado. O deslocamento do cabeçalho grudado sai do
@@ -47,7 +46,11 @@ export function CabecalhoDaLanding() {
       {/* Três colunas com o meio em `auto`: as âncoras ficam no centro da página, e não no centro do
           espaço que sobra entre a logo e os botões — que mudam de largura com a sessão aberta. */}
       <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:gap-4">
-        <a href="#topo" aria-label="Kapa — início" className="shrink-0 justify-self-start">
+        <a
+          href="#topo"
+          aria-label="Kapa — início"
+          className="shrink-0 justify-self-start max-[359px]:w-7 max-[359px]:overflow-hidden"
+        >
           <LogoKapa className="text-foreground h-7 sm:h-9" />
         </a>
 
@@ -65,7 +68,10 @@ export function CabecalhoDaLanding() {
 
         <div className="col-start-3 flex items-center gap-1.5 justify-self-end sm:gap-2">
           <Button asChild variant="ghost" className="max-sm:px-2">
-            <a href={entrar.href}>{entrar.rotulo}</a>
+            <a href={entrar.href}>
+              <span className="md:hidden">{entrar.rotuloCurto}</span>
+              <span className="hidden md:inline">{entrar.rotulo}</span>
+            </a>
           </Button>
           <ChamadaPrincipal curta className="max-sm:px-3 max-sm:[&_svg]:hidden" />
           <Button

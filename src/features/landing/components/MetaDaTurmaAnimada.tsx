@@ -104,20 +104,20 @@ export function MetaDaTurmaAnimada({ grande = false, className }: { grande?: boo
       ref={cartao}
       className={cn(
         'bg-card relative rounded-2xl shadow-md',
-        grande ? 'p-3.5' : 'w-full max-w-60 p-2.5 lg:p-3',
+        grande ? 'p-3.5 max-[374px]:p-2.5' : 'w-full max-w-60 p-2.5 lg:p-3',
         className,
       )}
     >
       <span className="sr-only">Meta da turma: R$ 48.000. 100% alcançados, R$ 48.000 arrecadados.</span>
       <div className={cn('grid', grande ? 'gap-2.5' : 'gap-2')} aria-hidden>
-        <div className={cn('flex items-center', grande ? 'gap-2.5' : 'gap-1.5 lg:gap-2')}>
+        <div className={cn('flex items-center', grande ? 'gap-2.5 max-[374px]:gap-1.5' : 'gap-1.5 lg:gap-2')}>
           <img
             src={alvo}
             alt=""
             loading="lazy"
             width={36}
             height={36}
-            className={cn('shrink-0', grande ? 'size-9' : 'size-6 lg:size-8')}
+            className={cn('shrink-0', grande ? 'size-9 max-[374px]:size-6' : 'size-6 lg:size-8')}
           />
           <div className="grid min-w-0">
             <span className={cn('text-muted-foreground', grande ? 'text-xs' : 'text-[9px] lg:text-[10px]')}>
@@ -126,7 +126,7 @@ export function MetaDaTurmaAnimada({ grande = false, className }: { grande?: boo
             <strong
               className={cn(
                 'text-foreground leading-tight font-extrabold tracking-tight whitespace-nowrap',
-                grande ? 'text-xl' : 'text-sm lg:text-lg',
+                grande ? 'text-xl max-[374px]:text-sm' : 'text-sm lg:text-lg',
               )}
             >
               R$ 48.000
