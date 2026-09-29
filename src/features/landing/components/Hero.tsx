@@ -117,7 +117,7 @@ export function Hero() {
 
           <CardDaTurma />
 
-          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-sm:[&>div]:-mr-4 sm:max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
+          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-[359px]:[&>div]:-translate-x-11 max-sm:[&>div]:-mr-4 min-[360px]:max-sm:[&>div]:-translate-x-5 sm:max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
             <Polaroid
               foto={fotoViagem}
               legenda="Viagem"
@@ -208,96 +208,100 @@ function CardDaTurma() {
           />
 
           <div className="relative h-28 max-sm:h-36">
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-hidden
-              className="text-brand absolute inset-x-0 top-0 w-full"
-              style={{ height: ALTURA_DA_CURVA }}
-            >
-              <defs>
-                <linearGradient id="sombra-da-curva" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {/* A área sob a curva, fechada na base: é o que dá o volume do gráfico. */}
-              <path
-                d="M11 78 Q 23 57 34 46 T 57 28 T 81 14 L81 100 L11 100 Z"
-                fill="url(#sombra-da-curva)"
-                stroke="none"
-              />
-              <path
-                d="M11 78 Q 23 57 34 46 T 57 28 T 81 14"
-                fill="none"
-                stroke="currentColor"
-                strokeOpacity="0.75"
-                strokeWidth={2}
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-
-            {/* A linha pontilhada que amarra o marcador ao seu rótulo. O comprimento é diferente em
-                cada etapa: é ela que absorve a subida da curva. */}
-            {ETAPAS.map((etapa, indice) => {
-              const { marcador, rotulo } = alturasDa(etapa)
-              return (
-                <span
-                  key={`guia-${etapa.rotulo}`}
-                  aria-hidden
-                  style={{
-                    left: `${etapa.x}%`,
-                    top: marcador + 10,
-                    height: `calc(${rotulo - marcador - 14}px + var(--desce, 0px))`,
-                  }}
-                  className={cn(
-                    'border-brand/45 absolute -translate-x-1/2 border-l border-dashed',
-                    indice % 2 === 1 && DESCE_NO_CELULAR,
-                  )}
-                />
-              )
-            })}
-
-            {ETAPAS.map((etapa) => (
-              <span
-                key={etapa.rotulo}
+            {/* No celular, a curva ocupa a região central para os rótulos das pontas caberem
+                no painel. O mesmo recuo se aplica ao SVG, aos marcadores e às legendas. */}
+            <div className="relative h-full max-sm:ml-[14%] max-sm:w-[82%]">
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
                 aria-hidden
-                style={{ left: `${etapa.x}%`, top: alturasDa(etapa).marcador }}
-                className={cn(
-                  'absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full',
-                  etapa.estado === 'concluida' && 'bg-brand text-on-brand size-6 shadow-sm',
-                  etapa.estado === 'proxima' && 'border-brand bg-card size-3 border-2',
-                  etapa.estado === 'final' && 'border-brand/70 bg-card text-brand-text size-8 border',
-                )}
+                className="text-brand absolute inset-x-0 top-0 w-full"
+                style={{ height: ALTURA_DA_CURVA }}
               >
-                {etapa.estado === 'concluida' ? <Check className="size-3.5" strokeWidth={3} /> : null}
-                {etapa.estado === 'final' ? <GraduationCap className="size-4" /> : null}
-              </span>
-            ))}
+                <defs>
+                  <linearGradient id="sombra-da-curva" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {/* A área sob a curva, fechada na base: é o que dá o volume do gráfico. */}
+                <path
+                  d="M11 78 Q 23 57 34 46 T 57 28 T 81 14 L81 100 L11 100 Z"
+                  fill="url(#sombra-da-curva)"
+                  stroke="none"
+                />
+                <path
+                  d="M11 78 Q 23 57 34 46 T 57 28 T 81 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeOpacity="0.75"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
 
-            {/* Cada rótulo sai no `x` do seu marcador e acompanha em parte a altura dele — numa
-                linha reta o texto descolaria da curva, que não anda em passos regulares. */}
-            <ol className="absolute inset-0">
-              {ETAPAS.map((etapa, indice) => (
-                <li
+              {/* A linha pontilhada que amarra o marcador ao seu rótulo. O comprimento é diferente em
+                cada etapa: é ela que absorve a subida da curva. */}
+              {ETAPAS.map((etapa, indice) => {
+                const { marcador, rotulo } = alturasDa(etapa)
+                return (
+                  <span
+                    key={`guia-${etapa.rotulo}`}
+                    aria-hidden
+                    style={{
+                      left: `${etapa.x}%`,
+                      top: marcador + 10,
+                      height: `calc(${rotulo - marcador - 14}px + var(--desce, 0px))`,
+                    }}
+                    className={cn(
+                      'border-brand/45 absolute -translate-x-1/2 border-l border-dashed',
+                      indice % 2 === 1 && DESCE_NO_CELULAR,
+                    )}
+                  />
+                )
+              })}
+
+              {ETAPAS.map((etapa) => (
+                <span
                   key={etapa.rotulo}
-                  style={{
-                    left: `${etapa.x}%`,
-                    top: `calc(${alturasDa(etapa).rotulo}px + var(--desce, 0px))`,
-                  }}
+                  aria-hidden
+                  style={{ left: `${etapa.x}%`, top: alturasDa(etapa).marcador }}
                   className={cn(
-                    'absolute grid -translate-x-1/2 text-center',
-                    indice % 2 === 1 && DESCE_NO_CELULAR,
+                    'absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full',
+                    etapa.estado === 'concluida' && 'bg-brand text-on-brand size-6 shadow-sm',
+                    etapa.estado === 'proxima' && 'border-brand bg-card size-3 border-2',
+                    etapa.estado === 'final' && 'border-brand/70 bg-card text-brand-text size-8 border',
                   )}
                 >
-                  <span className="text-foreground text-[clamp(8px,2.3vw,10px)] font-semibold sm:text-xs">
-                    {etapa.rotulo}
-                  </span>
-                  <span className="text-muted-foreground text-[9px] sm:text-[10px]">{etapa.periodo}</span>
-                </li>
+                  {etapa.estado === 'concluida' ? <Check className="size-3.5" strokeWidth={3} /> : null}
+                  {etapa.estado === 'final' ? <GraduationCap className="size-4" /> : null}
+                </span>
               ))}
-            </ol>
+
+              {/* Cada rótulo sai no `x` do seu marcador e acompanha em parte a altura dele — numa
+                linha reta o texto descolaria da curva, que não anda em passos regulares. */}
+              <ol className="absolute inset-0">
+                {ETAPAS.map((etapa, indice) => (
+                  <li
+                    key={etapa.rotulo}
+                    style={{
+                      left: `${etapa.x}%`,
+                      top: `calc(${alturasDa(etapa).rotulo}px + var(--desce, 0px))`,
+                    }}
+                    className={cn(
+                      'absolute grid -translate-x-1/2 text-center',
+                      indice % 2 === 1 && DESCE_NO_CELULAR,
+                    )}
+                  >
+                    <span className="text-foreground text-[clamp(8px,2.3vw,10px)] font-semibold sm:text-xs">
+                      {etapa.rotulo}
+                    </span>
+                    <span className="text-muted-foreground text-[9px] sm:text-[10px]">{etapa.periodo}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
 
           {/* A cauda sai do alto à esquerda e aponta para o rosto do mascote. */}
