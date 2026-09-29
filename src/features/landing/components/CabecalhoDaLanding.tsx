@@ -25,8 +25,8 @@ const SECOES = [
  * O cabeçalho da página institucional: logo, âncoras, "Entrar" e o CTA.
  *
  * Fica grudado no topo e com fundo translúcido — a página é longa, e o CTA precisa continuar a um
- * clique de distância na décima rolagem. Os dois botões ficam à vista em qualquer largura, em pílula e
- * com texto curto ("Contato"/"Entrar" e "Criar turma", 28/09/2026, no modelo do Visor); no celular só as
+ * clique de distância na décima rolagem. Os dois botões ficam à vista em qualquer largura, no padrão de
+ * botão da casa e com texto curto ("Contato"/"Entrar" e "Criar turma", 28/09/2026); no celular só as
  * âncoras vão para a gaveta.
  *
  * As âncoras são `<a href="#...">` de verdade, e não `onClick` com `scrollTo`: link é copiável,
@@ -64,14 +64,14 @@ export function CabecalhoDaLanding() {
         </nav>
 
         <div className="col-start-3 flex items-center gap-1.5 justify-self-end sm:gap-2">
-          <Button asChild variant="outline" size="sm" className="max-sm:px-3">
+          <Button asChild variant="ghost" className="max-sm:px-2">
             <a href={entrar.href}>{entrar.rotulo}</a>
           </Button>
-          <ChamadaPrincipal curta size="sm" className="max-sm:px-3 max-[380px]:[&_svg]:hidden" />
+          <ChamadaPrincipal curta className="max-sm:px-3 max-sm:[&_svg]:hidden" />
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="size-9 rounded-full md:hidden"
+            className="md:hidden"
             aria-expanded={gavetaAberta}
             aria-controls="menu-da-landing"
             aria-label={gavetaAberta ? 'Fechar menu' : 'Abrir menu'}

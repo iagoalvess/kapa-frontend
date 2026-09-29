@@ -50,7 +50,9 @@ export function ListaDeEspera() {
       descricao="Deixe seu contato. A gente conversa com você sobre o Kapa e sobre o acesso da sua turma."
       className="gap-8"
     >
-      <div className="bg-card shadow-painel mx-auto w-full max-w-2xl rounded-2xl border p-5 sm:p-8">
+      {/* `px-3` no celular: o widget do Turnstile tem 300 px fixos, e com `p-5` ele empurrava o cartão para
+          fora da tela em 360 px — sobrava margem à esquerda e quase nada à direita. */}
+      <div className="bg-card shadow-painel mx-auto w-full max-w-2xl min-w-0 rounded-2xl border px-3 py-5 min-[400px]:px-5 sm:p-8">
         {enviada ? (
           <output className="grid justify-items-center gap-3 py-6 text-center">
             <CircleCheck className="text-brand-text size-10" aria-hidden />

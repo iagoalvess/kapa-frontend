@@ -87,10 +87,10 @@ export function Hero() {
 
         {/* No desktop o mural começa abaixo do texto. A altura disponível da tela regula o
             tamanho das fotos e o espaço entre elas; no celular continuam em duas colunas. */}
-        {/* No celular: o cartão da turma em cima e as polaroids embaixo, em duas colunas em zigue-zague que
-            se sobrepõem — o mural do desktop dobrado, no modelo do Visor (28/09/2026). */}
-        <div className="mt-12 grid grid-cols-2 gap-x-2 gap-y-6 lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
-          <div className="order-2 grid justify-items-start lg:order-none lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-end max-lg:[&>div+div]:-mt-8 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:ml-8 lg:[&>div:nth-child(2)]:self-center">
+        {/* No celular, a mesma grade do desktop — fotos, cartão, fotos —, com as colunas de fotos estreitas:
+            as polaroids saem pela borda da tela e passam por baixo do cartão, como no Visor (28/09/2026). */}
+        <div className="mt-12 grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center sm:grid-cols-[7rem_minmax(0,1fr)_7rem] lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
+          <div className="grid justify-items-start lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-end max-lg:[&>div]:-ml-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:-ml-5 lg:[&>div:nth-child(2)]:self-center">
             {/* As fotos das pontas ficam perto do card; a do meio abre o zigue-zague para fora. */}
             <Polaroid
               foto={fotoBaile}
@@ -119,7 +119,7 @@ export function Hero() {
 
           <CardDaTurma />
 
-          <div className="order-3 grid justify-items-end lg:order-none lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-lg:[&>div+div]:-mt-8 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:mr-8 lg:[&>div:nth-child(2)]:self-center">
+          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
             <Polaroid
               foto={fotoViagem}
               legenda="Viagem"
@@ -158,6 +158,12 @@ const ETAPAS = [
   { rotulo: 'Formatura', periodo: 'Dez', x: 81, y: 14, estado: 'final' },
 ] as const
 
+/**
+ * No celular o cartão fica estreito entre as polaroids, e os quatro rótulos lado a lado se encavalavam:
+ * os de posição ímpar descem uma linha, com a linha pontilhada esticando junto.
+ */
+const DESCE_NO_CELULAR = 'max-sm:[--desce:1.75rem]'
+
 /** Altura da área da curva, em px. O `y` das etapas é uma porcentagem dela. */
 const ALTURA_DA_CURVA = 72
 
@@ -184,11 +190,11 @@ function alturasDa(etapa: (typeof ETAPAS)[number]) {
  */
 function CardDaTurma() {
   return (
-    <div className="relative order-1 col-span-2 lg:order-none lg:col-span-1">
+    <div className="relative z-10">
       <img
         src={mascoteEncostado}
         alt=""
-        className="relative z-20 mx-auto -mb-10 w-40 drop-shadow-xl sm:w-48 lg:hidden"
+        className="relative z-20 mx-auto -mb-8 w-32 drop-shadow-xl sm:-mb-10 sm:w-48 lg:hidden"
       />
 
       <div className="from-brand-wash to-brand-tint/70 border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">
@@ -203,7 +209,7 @@ function CardDaTurma() {
             className="pointer-events-none absolute right-1 bottom-full z-20 hidden w-48 translate-y-[calc(11%+7px)] drop-shadow-lg lg:block"
           />
 
-          <div className="relative h-28">
+          <div className="relative h-28 max-sm:h-36">
             <svg
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
@@ -236,14 +242,21 @@ function CardDaTurma() {
 
             {/* A linha pontilhada que amarra o marcador ao seu rótulo. O comprimento é diferente em
                 cada etapa: é ela que absorve a subida da curva. */}
-            {ETAPAS.map((etapa) => {
+            {ETAPAS.map((etapa, indice) => {
               const { marcador, rotulo } = alturasDa(etapa)
               return (
                 <span
                   key={`guia-${etapa.rotulo}`}
                   aria-hidden
-                  style={{ left: `${etapa.x}%`, top: marcador + 10, height: rotulo - marcador - 14 }}
-                  className="border-brand/45 absolute -translate-x-1/2 border-l border-dashed"
+                  style={{
+                    left: `${etapa.x}%`,
+                    top: marcador + 10,
+                    height: `calc(${rotulo - marcador - 14}px + var(--desce, 0px))`,
+                  }}
+                  className={cn(
+                    'border-brand/45 absolute -translate-x-1/2 border-l border-dashed',
+                    indice % 2 === 1 && DESCE_NO_CELULAR,
+                  )}
                 />
               )
             })}
@@ -268,11 +281,17 @@ function CardDaTurma() {
             {/* Cada rótulo sai no `x` do seu marcador e acompanha em parte a altura dele — numa
                 linha reta o texto descolaria da curva, que não anda em passos regulares. */}
             <ol className="absolute inset-0">
-              {ETAPAS.map((etapa) => (
+              {ETAPAS.map((etapa, indice) => (
                 <li
                   key={etapa.rotulo}
-                  style={{ left: `${etapa.x}%`, top: alturasDa(etapa).rotulo }}
-                  className="absolute grid -translate-x-1/2 text-center"
+                  style={{
+                    left: `${etapa.x}%`,
+                    top: `calc(${alturasDa(etapa).rotulo}px + var(--desce, 0px))`,
+                  }}
+                  className={cn(
+                    'absolute grid -translate-x-1/2 text-center',
+                    indice % 2 === 1 && DESCE_NO_CELULAR,
+                  )}
                 >
                   <span className="text-foreground text-[clamp(8px,2.3vw,10px)] font-semibold sm:text-xs">
                     {etapa.rotulo}
@@ -338,7 +357,7 @@ function Polaroid({
   coracao?: 'normal' | 'alto'
 }) {
   return (
-    <div className={cn('relative w-32 shrink-0 sm:w-36 lg:w-[clamp(5rem,12svh,7rem)]', className)}>
+    <div className={cn('relative w-28 shrink-0 sm:w-36 lg:w-[clamp(5rem,12svh,7rem)]', className)}>
       <img
         src={pin}
         alt=""
