@@ -79,14 +79,17 @@ export interface Preferencia {
 }
 
 /**
- * O nome curto de um degrau na linha do tempo: `D-5`, `D0`, `D+3`.
+ * Quando o lembrete é enviado, em palavras para aparecer na tela e no histórico.
  *
  * @param regra Degrau.
  */
 export function marcoDoDegrau(regra: Pick<Regra, 'gatilho' | 'dias_de_deslocamento'>) {
-  if (regra.gatilho === 'InformePendente') return 'Fila'
-  if (regra.dias_de_deslocamento === 0) return 'D0'
-  return regra.dias_de_deslocamento < 0 ? `D${regra.dias_de_deslocamento}` : `D+${regra.dias_de_deslocamento}`
+  const dias = regra.dias_de_deslocamento
+  if (regra.gatilho === 'InformePendente')
+    return `${dias} ${dias === 1 ? 'dia' : 'dias'} após o aviso de pagamento`
+  if (dias === 0) return 'No vencimento'
+  if (dias < 0) return `${Math.abs(dias)} ${dias === -1 ? 'dia' : 'dias'} antes do vencimento`
+  return `${dias} ${dias === 1 ? 'dia' : 'dias'} após o vencimento`
 }
 
 /**
@@ -97,7 +100,7 @@ export function marcoDoDegrau(regra: Pick<Regra, 'gatilho' | 'dias_de_deslocamen
 export function tomDoDegrau(regra: Pick<Regra, 'gatilho' | 'dias_de_deslocamento'>) {
   const dias = regra.dias_de_deslocamento
 
-  if (regra.gatilho === 'InformePendente') return `Informe parado há ${dias} dias`
+  if (regra.gatilho === 'InformePendente') return 'Pagamento aguardando conferência'
   if (dias < 0) return 'Lembrete'
   if (dias === 0) return 'Vence hoje'
   if (dias <= 7) return 'Em atraso'

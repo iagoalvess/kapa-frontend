@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { DialogoDeFornecedor } from '../components/DialogoDeFornecedor'
 import { useContagemDeFornecedores, useExcluirFornecedor, useFornecedores } from '../hooks/useFornecedores'
 import { formatarDocumento, type Fornecedor, ROTULOS_DE_CATEGORIA } from '../types/financeiro.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -33,6 +34,7 @@ const TAMANHO_DA_PAGINA = 20
  * tira do seletor de despesa sem apagar o histórico de gastos.
  */
 export default function FornecedoresPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const contagem = useContagemDeFornecedores()
   const [cadastro, definirCadastro] = useState<false | { fornecedor?: Fornecedor }>(false)
@@ -46,7 +48,7 @@ export default function FornecedoresPage() {
   const ordenacao = useOrdenacao(atualizar)
   const fornecedores = useFornecedores({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     ativo,
     busca: busca || undefined,
     ...ordenacao.filtro,
@@ -116,7 +118,7 @@ export default function FornecedoresPage() {
           rotulo: 'Buscar fornecedor',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
+        acaoPrincipal={
           <Button size="xs" disabled={!editavel} onClick={() => definirCadastro({})}>
             <Plus aria-hidden />
             Novo fornecedor
@@ -231,7 +233,7 @@ function ExcluirFornecedor({ fornecedor, desabilitado }: { fornecedor: Fornecedo
           titulo: `Excluir “${fornecedor.nome}”?`,
           descricao:
             fornecedor.quantidade_de_despesas > 0
-              ? 'Ele tem despesa lançada, e a API não vai deixar excluir. Desative o fornecedor na tela dele: some do seletor de despesa e o histórico de gastos fica.'
+              ? 'Este fornecedor já tem despesas registradas e não pode ser excluído. Você pode desativá-lo na página dele: ele deixa de aparecer nas novas despesas, e o histórico continua disponível.'
               : 'O cadastro é apagado. Não há como recuperar.',
           rotulo: 'Excluir',
           aoConfirmar: () =>

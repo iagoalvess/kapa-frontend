@@ -51,6 +51,35 @@ export interface ProvedorConectado {
   conta_no_provedor: string
   conectado_em: string
   conectado_por: string | null
+  /** O cartão da turma (Sprint 39). */
+  cartao: CartaoDaTurma
+  /**
+   * Desde quando parcelas e opcionais se pagam só pelo Mercado Pago (29/09/2026). Nulo: cobrança manual — o
+   * formando vê os meios da comissão e avisa o pagamento. A loja é sempre Mercado Pago.
+   */
+  cobranca_automatica_em: string | null
+}
+
+/** Trocar o modo de cobrança. Espelha `ModoDeCobrancaRequestDTO`. */
+export interface ModoDeCobranca {
+  automatica: boolean
+}
+
+/** O cartão da turma: ligado ou não, por quem e com que taxa. Espelha `CartaoDaTurmaDTO`. */
+export interface CartaoDaTurma {
+  /** Falso na conexão anterior ao cartão: o Presidente conecta a conta de novo antes de ligar. */
+  disponivel: boolean
+  /** Nulo: desligado — a opção não aparece em lugar nenhum (P7). */
+  ligado_em: string | null
+  ligado_por: string | null
+  /** A taxa repassada a quem paga, base 10.000; nula, a turma absorve (P2). */
+  taxa_repassada: number | null
+}
+
+/** Ligar ou desligar o cartão. Espelha `ConfiguracaoDoCartaoRequestDTO`. */
+export interface ConfiguracaoDoCartao {
+  ligado: boolean
+  taxa_repassada: number | null
 }
 
 /** O Mercado Pago da turma. `provedor` nulo: ainda não conectou. Espelha `ProvedorDaTurmaDTO`. */

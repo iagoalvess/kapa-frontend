@@ -19,6 +19,7 @@ import { ehOpcao } from '@/lib/opcao'
 import { useBaixarPdf } from '../hooks/useAderir'
 import { useLembrar, useSituacoes } from '../hooks/usePainel'
 import type { ResumoDeAdesoes, SituacaoDeAdesao } from '../types/adesoes.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -49,6 +50,7 @@ interface Props {
  * vivem na URL.
  */
 export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
 
   const situacaoNaUrl = parametros.get('situacao')
@@ -58,7 +60,7 @@ export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
   const ordenacao = useOrdenacao(atualizar)
   const situacoes = useSituacoes({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     aderiu: SITUACOES[situacao].aderiu,
     busca: busca || undefined,
     ...ordenacao.filtro,

@@ -84,7 +84,7 @@ export function SemFormatura() {
         <Caminho
           icone={GraduationCap}
           titulo="Sou formando"
-          descricao="Quem te inclui é a comissão da sua turma. Cole aqui o link do convite que ela enviou."
+          descricao="A comissão da sua turma precisa convidar você. Se já recebeu o link, cole-o aqui."
         >
           <form onSubmit={abrirConvite} className="flex flex-col gap-2 sm:flex-row">
             <Input

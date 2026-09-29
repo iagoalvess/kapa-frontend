@@ -203,13 +203,15 @@ export default function FestaPage() {
                   </Link>
                 </Button>
               ) : null}
-              {editavel ? (
-                <Button size="xs" onClick={() => definirCadastro({})}>
-                  <Plus aria-hidden />
-                  Novo item
-                </Button>
-              ) : null}
             </>
+          }
+          acaoPrincipal={
+            editavel ? (
+              <Button size="xs" onClick={() => definirCadastro({})}>
+                <Plus aria-hidden />
+                Novo item
+              </Button>
+            ) : null
           }
           contagem={{ mostrando: visiveis.length, total: todos.length, unidade: 'itens' }}
         />

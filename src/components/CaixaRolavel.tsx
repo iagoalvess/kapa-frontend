@@ -17,6 +17,18 @@ export const CABECALHO_GRUDADO = 'bg-card py-2 shadow-[inset_0_-1px_0_var(--bord
 const temSobra = (caixa: HTMLDivElement | null) =>
   caixa !== null && caixa.scrollHeight - caixa.scrollTop - caixa.clientHeight > 1
 
+/**
+ * A seta rola quase uma caixa inteira: a última linha que estava à vista continua no topo, e o olho não
+ * perde onde estava. Sem animação para quem pediu menos movimento ao sistema.
+ */
+function descer(caixa: HTMLDivElement | null) {
+  if (!caixa) return
+
+  const reduzido = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+  caixa.scrollBy({ top: caixa.clientHeight * 0.8, behavior: reduzido ? 'auto' : 'smooth' })
+}
+
 interface Props {
   /** Altura máxima antes de rolar; o padrão é o da lista de parcelas do termo. */
   altura?: string
@@ -29,7 +41,7 @@ interface Props {
  *
  * Nasceu na lista de parcelas do termo de adesão e subiu para cá quando o "pagar várias parcelas"
  * pediu a mesma lista. A seta é o que diz que há mais: sem barra visível, uma lista cortada no meio
- * parece ter acabado ali.
+ * parece ter acabado ali. E ela é botão: clicar rola para baixo (`descer`).
  *
  * Sem padding em cima e embaixo: o cabeçalho grudado e o degradê se prendem ao **content box**, e
  * um `py-` na caixa abre uma faixa por fora deles em que o conteúdo reaparece nítido, cortado no
@@ -66,13 +78,20 @@ export function CaixaRolavel({ altura = 'max-h-80', className, children }: Props
     >
       <div ref={conteudo}>{children}</div>
 
-      {/* Altura zero no fluxo (`-mt-10` desfaz o `h-10`): cobre a última linha visível sem mudar a rolagem. */}
+      {/*
+        Altura zero no fluxo (`-mt-10` desfaz o `h-10`): cobre a última linha visível sem mudar a rolagem. O
+        degradê deixa o clique passar para a linha de baixo; só a seta o pega.
+      */}
       {temMais ? (
-        <div
-          aria-hidden
-          className="from-card pointer-events-none sticky bottom-0 -mt-10 flex h-10 items-end justify-center bg-linear-to-t to-transparent"
-        >
-          <ChevronDown className="text-muted-foreground size-4" />
+        <div className="from-card pointer-events-none sticky bottom-0 -mt-10 flex h-10 items-end justify-center bg-linear-to-t to-transparent">
+          <button
+            type="button"
+            aria-label="Ver mais"
+            onClick={() => descer(caixa.current)}
+            className="text-muted-foreground hover:text-foreground pointer-events-auto rounded-full px-3"
+          >
+            <ChevronDown className="size-4" aria-hidden />
+          </button>
         </div>
       ) : null}
     </div>

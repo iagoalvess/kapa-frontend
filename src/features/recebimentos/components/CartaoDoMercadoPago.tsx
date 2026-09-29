@@ -14,8 +14,11 @@ import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarDataHora } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { PAPEIS } from '@/config/perfis'
 import { useConectarMercadoPago, useDesconectarMercadoPago, useMercadoPago } from '../hooks/useMercadoPago'
 import type { ProvedorConectado } from '../types/recebimentos.types'
+import { CartaoDaTurma } from './CartaoDaTurma'
+import { ModoDaCobranca } from './ModoDaCobranca'
 
 /** O que dizer quando o Mercado Pago devolve o navegador com erro — pelo `codigo`, nunca pela mensagem. */
 const ERROS_DO_RETORNO: Record<string, string> = {
@@ -38,7 +41,7 @@ const ERROS_DO_RETORNO: Record<string, string> = {
  */
 export function CartaoDoMercadoPago() {
   const consulta = useMercadoPago()
-  const { ehPresidente } = usePapel()
+  const { ehPresidente, tem } = usePapel()
   const liberado = useEscritaLiberada()
   const conectar = useConectarMercadoPago()
   const [parametros, definirParametros] = useSearchParams()
@@ -50,7 +53,9 @@ export function CartaoDoMercadoPago() {
     if (!retorno) return
 
     if (retorno === 'conectado')
-      toast.success('Mercado Pago conectado. O PIX com confirmação automática já aparece para a turma.')
+      toast.success(
+        'Mercado Pago conectado. Ligue a cobrança pelo Mercado Pago para os formandos pagarem por ele.',
+      )
     else
       toast.error(
         (codigo && ERROS_DO_RETORNO[codigo]) ?? 'Não deu para conectar o Mercado Pago. Tente de novo.',
@@ -77,7 +82,7 @@ export function CartaoDoMercadoPago() {
       titulo="Mercado Pago"
       icone={Zap}
       selo={provedor ? <Selo tom="sucesso">Conectado</Selo> : <Selo tom="neutro">Não conectado</Selo>}
-      descricao="PIX com confirmação automática, direto na conta da turma."
+      descricao="PIX e cartão com confirmação automática, direto na conta da turma."
       acao={
         !escreve ? null : provedor ? (
           <AcoesDaConta aoTrocar={conectarAgora} trocando={conectar.isPending} />
@@ -89,13 +94,20 @@ export function CartaoDoMercadoPago() {
       }
     >
       {provedor ? (
-        <Conectado provedor={provedor} />
+        <>
+          <Conectado provedor={provedor} />
+          <ModoDaCobranca
+            desde={provedor.cobranca_automatica_em}
+            escreve={tem(PAPEIS.tesoureiro) && liberado}
+          />
+          <CartaoDaTurma cartao={provedor.cartao} escreve={tem(PAPEIS.tesoureiro) && liberado} />
+        </>
       ) : (
         <>
           <p className="text-muted-foreground text-sm">
-            Conectando a conta Mercado Pago da turma, o formando paga por um PIX gerado na hora e a parcela
-            muda para paga sozinha — sem aviso e sem conferência da tesouraria. O dinheiro cai direto na conta
-            da turma; o Kapa não toca nele.
+            Conectando a conta Mercado Pago da turma e ligando a cobrança por ele, o formando paga por um PIX
+            gerado na hora e a parcela muda para paga sozinha — sem aviso e sem conferência da tesouraria. O
+            dinheiro cai direto na conta da turma; o Kapa não toca nele.
           </p>
           {escreve ? null : (
             <p className="text-muted-foreground text-sm">Quem conecta é o Presidente da turma.</p>
@@ -123,7 +135,7 @@ function AcoesDaConta({ aoTrocar, trocando }: { aoTrocar: () => void; trocando: 
       </Button>
       <DialogoDeConfirmacao
         titulo="Desconectar o Mercado Pago?"
-        descricao="O PIX com confirmação automática sai da tela de pagamento; os outros meios continuam. A comissão recebe um e-mail. Pagamentos já gerados ainda podem ser pagos até vencer."
+        descricao="Os formandos continuam pagando pelos meios da comissão. Com convite à venda na loja pública, encerre as vendas antes: ela só vende pelo Mercado Pago. A comissão recebe um e-mail, e pagamentos já gerados ainda podem ser pagos até vencer."
         rotulo="Desconectar"
         destrutivo
         gatilho={

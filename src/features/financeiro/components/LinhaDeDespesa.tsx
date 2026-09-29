@@ -113,7 +113,7 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
               confirmacao={{
                 titulo: `Cancelar “${rotuloDaDespesa(despesa)}”?`,
                 descricao:
-                  'A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo.',
+                  'Esta despesa deixa de entrar nos valores previstos do caixa. Se precisar registrá-la novamente, crie uma nova despesa.',
                 rotuloDeCancelar: 'Voltar',
                 rotulo: 'Cancelar despesa',
                 aoConfirmar: () =>

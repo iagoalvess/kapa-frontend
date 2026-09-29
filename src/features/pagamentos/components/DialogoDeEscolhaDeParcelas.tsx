@@ -35,8 +35,6 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
   // "Mensalidade" em toda linha é ruído — é o que a grade do termo de adesão faz.
   const variosTipos = new Set(parcelas.map(rotuloDoItem)).size > 1
 
-  const todasEscolhidas = parcelas.length > 0 && escolhidas.length === parcelas.length
-
   const soma = parcelas
     .filter((parcela) => escolhidas.includes(parcela.id))
     .reduce((total, parcela) => total + valorNaLista(parcela), 0)
@@ -72,17 +70,6 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
         descricao="Escolha o que este pagamento vai cobrir. Na tela seguinte sai um PIX só, com a soma."
       >
         <form onSubmit={continuar} noValidate className="grid gap-4">
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              size="xs"
-              variant="outline"
-              onClick={() => definirEscolhidas(todasEscolhidas ? [] : parcelas.map((parcela) => parcela.id))}
-            >
-              {todasEscolhidas ? 'Limpar seleção' : 'Selecionar todas'}
-            </Button>
-          </div>
-
           {/* Sem respiro na caixa: o fundo da linha escolhida vai de borda a borda, e o espaço
               lateral é das células da `LinhaSelecionavel`. */}
           <CaixaRolavel className="border-border rounded-xl border" altura="max-h-72">

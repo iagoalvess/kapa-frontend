@@ -30,13 +30,13 @@ const PASSOS = [
   },
   {
     titulo: 'As datas',
-    descricao: 'Se já tiver uma previsão. Dá para marcar ou mudar depois, na Agenda.',
+    descricao: 'Informe as datas previstas, se já souber. Você poderá alterá-las depois na Agenda.',
     campos: ['previsao_de_colacao', 'previsao_da_festa'],
     Conteudo: PassoDasDatas,
   },
   {
     titulo: 'Confirmação',
-    descricao: 'Confira os dados e dê o nome pelo qual a turma vai se reconhecer.',
+    descricao: 'Confira os dados e escolha o nome que identificará a turma.',
     campos: ['nome'],
     Conteudo: PassoDeConfirmacao,
   },

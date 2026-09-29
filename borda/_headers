@@ -4,9 +4,12 @@
 # endereço dela entra na build (VITE_API_URL), como o nginx fazia com o envsubst.
 #   'unsafe-inline' em style-src: React escreve style="" em elemento (altura de gráfico, popover).
 #   data: e blob: em img-src: QR do PIX e pré-visualização de foto antes do upload.
+#   Mercado Pago (Sprint 39): o formulário de cartão é deles — o SDK (sdk.mercadopago.com), os campos seguros
+#   num iframe (secure-fields), as APIs que ele chama e os ícones das bandeiras (mlstatic, mercadolibre/livre).
+#   Levantado no navegador em 29/09/2026, pagando no sandbox; o PCI exige que o SDK venha do servidor deles.
 # O HTML é revalidado pelo próprio Pages a cada visita; o cache longo é só do que tem hash no nome.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' %VITE_API_URL%; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://sdk.mercadopago.com https://http2.mlstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.mlstatic.com https://www.mercadolibre.com https://www.mercadolivre.com; font-src 'self' https://http2.mlstatic.com; connect-src 'self' %VITE_API_URL% https://api.mercadopago.com https://api.mercadolibre.com https://secure-fields.mercadopago.com https://http2.mlstatic.com https://www.mercadolibre.com; frame-src https://secure-fields.mercadopago.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY

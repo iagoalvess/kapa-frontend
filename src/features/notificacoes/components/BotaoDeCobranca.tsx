@@ -29,9 +29,8 @@ export function BotaoDeCobranca({ parcela }: { parcela: Parcela }) {
         titulo: 'Cobrar agora?',
         descricao: (
           <>
-            {parcela.nome} recebe por e-mail o texto da régua para uma parcela em atraso, com o valor
-            atualizado e o vencimento de {formatarData(parcela.vencimento)}. Cada pessoa recebe no máximo uma
-            cobrança por dia.
+            {parcela.nome} receberá um e-mail sobre a parcela em atraso, com o valor atualizado e o vencimento
+            de {formatarData(parcela.vencimento)}. Cada pessoa recebe no máximo uma cobrança por dia.
           </>
         ),
         rotulo: cobrar.isPending ? 'Enviando…' : 'Enviar cobrança',

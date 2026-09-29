@@ -56,6 +56,10 @@ export function LinhaSelecionavel({ selecionada, aoAlternar, children, className
         selecionada
           ? '[&>:first-child]:border-brand bg-brand-tint'
           : 'hover:bg-border/40 [&>:first-child]:border-transparent',
+        // Na lista do celular (`Tabela emLista`) a linha é um bloco, e a barra passa para ela: na
+        // primeira célula, que ali é só a linha do título, ela ficaria pela metade.
+        'max-lg:border-l-2 max-lg:pl-3 max-lg:[&>:first-child]:border-l-0',
+        selecionada ? 'max-lg:border-l-brand' : 'max-lg:border-l-transparent',
         className,
       )}
     >

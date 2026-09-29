@@ -9,4 +9,7 @@ export const chaves = {
   gestao: ['loja', 'gestao'] as const,
   compras: (filtro: FiltroDeCompras) => ['loja', 'gestao', 'lista', filtro] as const,
   resumo: ['loja', 'gestao', 'resumo'] as const,
+  /** A fila de pedidos de cancelamento (Sprint 38). */
+  pedidos: ['loja', 'gestao', 'pedidos'] as const,
+  convitesDaCompra: (compraId: string) => ['loja', 'gestao', 'convites', compraId] as const,
 }

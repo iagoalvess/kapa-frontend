@@ -29,15 +29,15 @@ function detalhe(solicitacao: SolicitacaoDePrivacidade) {
   if (solicitacao.status === 'Pendente')
     return solicitacao.tipo === 'Exclusao'
       ? `Seus dados serão eliminados em ${formatarData(solicitacao.prazo_em)}. Até lá, você pode desistir.`
-      : 'Estamos preparando seu pacote. Você recebe um e-mail quando ele ficar pronto.'
+      : 'Estamos preparando uma cópia dos seus dados. Você receberá um e-mail quando ela estiver pronta.'
 
   if (solicitacao.status === 'Cancelada') return `Cancelado em ${formatarData(solicitacao.concluida_em)}.`
 
   if (solicitacao.tipo === 'Exclusao') return `Concluído em ${formatarData(solicitacao.concluida_em)}.`
 
   return solicitacao.disponivel
-    ? `Pronto. O pacote fica disponível até ${formatarData(solicitacao.expira_em)}.`
-    : `Gerado em ${formatarData(solicitacao.concluida_em)}. O prazo acabou e o pacote foi apagado — peça outro quando quiser.`
+    ? `Sua cópia dos dados está disponível até ${formatarData(solicitacao.expira_em)}.`
+    : `Arquivo gerado em ${formatarData(solicitacao.concluida_em)}. O prazo para baixar terminou; você pode pedir outra cópia.`
 }
 
 /**
@@ -80,7 +80,7 @@ function Pedido({
         {pronto ? (
           <Button size="sm" disabled={ocupado} onClick={() => aoBaixar(solicitacao)}>
             <Download aria-hidden />
-            Baixar o pacote
+            Baixar meus dados
           </Button>
         ) : null}
         {pendente && solicitacao.tipo === 'Exclusao' ? (

@@ -7,6 +7,7 @@ import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ListaVazia } from '@/components/ListaVazia'
+import { Paginacao } from '@/components/Paginacao'
 import { ColunaOrdenavel, Tabela } from '@/components/Planilha'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
@@ -19,6 +20,8 @@ import { ResumoDoExtrato } from '../components/ResumoDoExtrato'
 import { useExtrato } from '../hooks/useExtrato'
 import { ehOpcao } from '@/lib/opcao'
 import { contemBusca } from '@/lib/busca'
+import { paginar } from '@/lib/paginar'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 /**
  * As pílulas de situação, como as de Parcelas e Membros. "Em conferência" é uma leitura, e não um
@@ -80,8 +83,9 @@ function ordenar(parcelas: Parcela[], por: string | undefined, descendente: bool
  * numa consulta só (é a grade de um formando), e um `?situacao=` na API não traria nada de novo.
  */
 export default function MeuExtratoPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const extrato = useExtrato()
-  const { parametros, busca, atualizar } = useFiltrosDaUrl()
+  const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
 
   const situacaoNaUrl = parametros.get('situacao')
   // Sem `?situacao=` a tela abre no que ainda vai vencer — é o que o formando vem ver. Por isso
@@ -100,6 +104,7 @@ export default function MeuExtratoPage() {
     ordenacao.por,
     ordenacao.descendente,
   )
+  const pagina = paginar(parcelas, paginaNaUrl, tamanhoDaPagina)
   // Quem não tem parcela nenhuma vê uma coisa; quem recortou a lista, outra. Como a tela já abre
   // filtrada, ter parcela e não ver nenhuma é sempre recorte.
   const recortando = todas.length > 0
@@ -112,7 +117,7 @@ export default function MeuExtratoPage() {
 
       {todas.length > 0 ? (
         <FiltrosDaPlanilha
-          acoes={<DialogoDeEscolhaDeParcelas parcelas={todas.filter(aPagar)} />}
+          acaoPrincipal={<DialogoDeEscolhaDeParcelas parcelas={todas.filter(aPagar)} />}
           busca={{
             valor: busca,
             rotulo: 'Buscar parcela',
@@ -182,23 +187,32 @@ export default function MeuExtratoPage() {
           ) : null}
 
           {parcelas.length > 0 ? (
-            <Tabela
-              ordenacao={ordenacao}
-              cabecalho={
-                <>
-                  <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="valor" numerica>
-                    Valor
-                  </ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
-                </>
-              }
-            >
-              {parcelas.map((parcela) => (
-                <LinhaDeParcela key={parcela.id} parcela={parcela} />
-              ))}
-            </Tabela>
+            <>
+              <Tabela
+                emLista
+                ordenacao={ordenacao}
+                cabecalho={
+                  <>
+                    <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
+                    <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
+                    <ColunaOrdenavel coluna="valor" numerica>
+                      Valor
+                    </ColunaOrdenavel>
+                    <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
+                  </>
+                }
+              >
+                {pagina.visiveis.map((parcela) => (
+                  <LinhaDeParcela key={parcela.id} parcela={parcela} />
+                ))}
+              </Tabela>
+              <Paginacao
+                pagina={pagina.pagina}
+                totalPaginas={pagina.totalPaginas}
+                total={pagina.total}
+                aoMudar={(numero) => atualizar({ pagina: String(numero) })}
+              />
+            </>
           ) : null}
         </Cartao>
 

@@ -36,7 +36,7 @@ describe('AcoesDaParcela', () => {
     entrarComo('Tesoureiro')
 
     const { unmount } = renderizar(<AcoesDaParcela parcela={parcelaDeTeste()} />)
-    expect(screen.getByRole('button', { name: 'Baixar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Registrar pagamento' })).toBeInTheDocument()
     unmount()
 
     const avisada = renderizar(<AcoesDaParcela parcela={parcelaDeTeste({ em_conferencia: true })} />)
@@ -65,12 +65,12 @@ describe('AcoesDaParcela', () => {
 
     renderizar(<AcoesDaParcela parcela={vencidaDeTeste()} />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Baixar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar pagamento' }))
     const dialogo = await screen.findByRole('alertdialog')
     expect(dialogo).toHaveTextContent('Esta ação fica registrada em seu nome.')
     expect(within(dialogo).getByLabelText('Valor recebido')).toHaveValue(formatarCentavos(36_120))
     await userEvent.selectOptions(within(dialogo).getByLabelText('Como o dinheiro chegou'), 'Dinheiro')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Baixar' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Registrar pagamento' }))
 
     await waitFor(() => expect(pedidos.baixas).toHaveLength(1))
     expect(pedidos.baixas[0]?.get('forma')).toBe('Dinheiro')
@@ -85,13 +85,13 @@ describe('AcoesDaParcela', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Estornar' }))
     const dialogo = await screen.findByRole('alertdialog')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar baixa' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar pagamento' }))
     expect(
-      await within(dialogo).findByText('Explique por que a baixa está sendo desfeita.'),
+      await within(dialogo).findByText('Explique por que este pagamento está sendo estornado.'),
     ).toBeInTheDocument()
 
     await userEvent.type(within(dialogo).getByLabelText('Justificativa'), 'Baixa na parcela errada.')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar baixa' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar pagamento' }))
 
     await waitFor(() => expect(pedidos.estornos).toEqual([{ justificativa: 'Baixa na parcela errada.' }]))
   })

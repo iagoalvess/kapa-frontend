@@ -1,5 +1,5 @@
-import type { LucideIcon } from 'lucide-react'
-import { useId } from 'react'
+import { ChevronDown, type LucideIcon } from 'lucide-react'
+import { useId, useState } from 'react'
 import { Esqueleto } from '@/components/Esqueleto'
 import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -113,11 +113,16 @@ function Minigrafico({ serie }: { serie: number[] }) {
  * houver, o sinal verde ou vermelho, a nota da comparação e o minigráfico embaixo.
  *
  * Os números ficam lado a lado, separados por um traço vertical, e viram duas colunas no celular.
+ * Lá só os dois primeiros aparecem (P4 da Sprint 41): o resto fica atrás de "Ver detalhes" — por isso
+ * a ordem de leitura é também a de importância.
  *
  * @param indicadores Os números, na ordem de leitura.
  * @param rotulo Nome da faixa para o leitor de tela ("Resumo dos membros").
  */
 export function FaixaDeIndicadores({ indicadores, rotulo }: { indicadores: Indicador[]; rotulo: string }) {
+  const [detalhes, definirDetalhes] = useState(false)
+  const id = useId()
+
   return (
     // Altura da faixa: o `py-*` daqui (24px). A referência respira mais que um cartão comum.
     <section
@@ -125,7 +130,15 @@ export function FaixaDeIndicadores({ indicadores, rotulo }: { indicadores: Indic
       className="bg-card shadow-faixa grid grid-cols-2 gap-y-5 rounded-3xl px-5 py-7 lg:grid-cols-4"
     >
       {indicadores.map(({ rotulo: nome, valor, unidade, icone: Icone, sinal, nota, serie }, indice) => (
-        <dl key={nome} className={cn('flex items-center gap-3 px-2', indice > 0 && 'lg:border-l lg:pl-6')}>
+        <dl
+          key={nome}
+          id={indice === 2 ? id : undefined}
+          className={cn(
+            'flex items-center gap-3 px-2',
+            indice > 0 && 'lg:border-l lg:pl-6',
+            indice > 1 && !detalhes && 'max-lg:hidden',
+          )}
+        >
           <span className="bloco-de-icone text-card inline-flex size-10 shrink-0 items-center justify-center rounded-xl">
             <Icone className="size-5" strokeWidth={1.75} aria-hidden />
           </span>
@@ -167,6 +180,18 @@ export function FaixaDeIndicadores({ indicadores, rotulo }: { indicadores: Indic
           </div>
         </dl>
       ))}
+      {indicadores.length > 2 ? (
+        <button
+          type="button"
+          aria-expanded={detalhes}
+          aria-controls={id}
+          onClick={() => definirDetalhes(!detalhes)}
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring col-span-2 -mb-2 inline-flex items-center justify-center gap-1 rounded-md text-sm focus-visible:ring-2 focus-visible:outline-none lg:hidden"
+        >
+          {detalhes ? 'Menos detalhes' : 'Ver detalhes'}
+          <ChevronDown className={cn('size-4', detalhes && 'rotate-180')} aria-hidden />
+        </button>
+      ) : null}
     </section>
   )
 }

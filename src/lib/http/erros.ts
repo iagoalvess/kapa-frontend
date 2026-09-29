@@ -58,7 +58,7 @@ export class ErroDaApi extends Error {
 
 /** Falha antes de haver resposta: rede fora, DNS, CORS ou tempo limite estourado. */
 export class ErroDeRede extends Error {
-  constructor(mensagem = 'Não foi possível falar com o servidor. Verifique sua conexão.') {
+  constructor(mensagem = 'Não foi possível conectar agora. Confira sua conexão e tente novamente.') {
     super(mensagem)
     this.name = 'ErroDeRede'
   }

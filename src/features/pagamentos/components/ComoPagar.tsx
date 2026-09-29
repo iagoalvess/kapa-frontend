@@ -1,16 +1,18 @@
-import { Copy, Info, Zap } from 'lucide-react'
+import { Copy, CreditCard, Info, Zap } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { ComoVoceQuerPagar } from '@/components/ComoVoceQuerPagar'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
+import { FormularioDeCartao } from '@/components/FormularioDeCartao'
 import { IconePix } from '@/components/IconePix'
 import { QrCodePix } from '@/components/QrCodePix'
 import { Button } from '@/components/ui/button'
 import { copiar } from '@/lib/copiar'
 import { formatarCentavos } from '@/lib/formato'
-import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
-import { type OpcaoDaCobranca, opcoesDaCobranca } from '../hooks/useCobranca'
+import { avisarErro, ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import type { CartaoParaPagar } from '@/types/pagamento'
+import { type OpcaoDaCobranca, opcoesDaCobranca, usePagarNoCartao } from '../hooks/useCobranca'
 import type { CobrancaDaParcela, MeioDaCobranca, PeloMercadoPago } from '../types/pagamentos.types'
 import { DadosDoRecebedor } from './DadosDoRecebedor'
 
@@ -25,6 +27,8 @@ interface Props {
   descricao: string
   /** Avisos extras do PIX — o lote acrescenta o "pague de uma vez". */
   avisos?: ReactNode
+  /** As parcelas que o pagamento cobre — o cartão paga por elas (Sprint 39). */
+  parcelaIds: string[]
 }
 
 /**
@@ -41,7 +45,7 @@ interface Props {
  * Com o Mercado Pago da turma conectado (Sprint 25), os meios dele vêm primeiro: baixam a parcela
  * sozinhos, e a tela diz isso no lugar do "avise depois".
  */
-export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos }: Props) {
+export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos, parcelaIds }: Props) {
   const semConta = ehErroDaApi(cobranca.error) && cobranca.error.codigo === 'pagamento.sem_conta'
   const opcoes = opcoesDaCobranca(cobranca.data)
 
@@ -54,7 +58,7 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos }
       {cobranca.isError ? (
         <p role="alert" className="text-destructive text-sm">
           {semConta
-            ? 'A comissão ainda está configurando a conta de recebimento da turma. Volte em alguns dias.'
+            ? 'A comissão ainda está configurando como a turma receberá pagamentos. Tente novamente mais tarde.'
             : mensagemDoErro(cobranca.error)}
         </p>
       ) : null}
@@ -65,10 +69,7 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos }
             opcoes={opcoes.map((opcao) => ({
               chave: opcao.chave,
               rotulo: opcao.rotulo,
-              icone:
-                (opcao.mercadoPago ?? opcao.comissao).meio === 'Pix' ? (
-                  <IconePix className="size-3.5" />
-                ) : null,
+              icone: IconeDoMeio((opcao.mercadoPago ?? opcao.comissao).meio),
             }))}
             escolhida={escolhido.chave}
             aoEscolher={aoEscolher}
@@ -79,6 +80,7 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos }
               meio={escolhido.mercadoPago}
               valorEmCentavos={cobranca.data!.valor_em_centavos}
               avisos={avisos}
+              parcelaIds={parcelaIds}
             />
           ) : (
             <DaComissao
@@ -93,16 +95,27 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos }
   )
 }
 
-/** O meio do Mercado Pago da turma: o QR, e o aviso de que não há o que avisar. */
+/** O ícone da pílula: o PIX e o cartão têm; os demais meios, não. */
+function IconeDoMeio(meio: string) {
+  if (meio === 'Pix') return <IconePix className="size-3.5" />
+  if (meio === 'Cartao') return <CreditCard className="size-3.5" aria-hidden />
+  return null
+}
+
+/** O meio do Mercado Pago da turma: o QR ou o formulário do cartão, e o aviso de que não há o que avisar. */
 function DoMercadoPago({
   meio,
   valorEmCentavos,
   avisos,
+  parcelaIds,
 }: {
   meio: PeloMercadoPago
   valorEmCentavos: number
   avisos?: ReactNode
+  parcelaIds: string[]
 }) {
+  if (meio.cartao) return <NoCartao cartao={meio.cartao} parcelaIds={parcelaIds} />
+
   if (!meio.pix) return null
 
   return (
@@ -115,6 +128,40 @@ function DoMercadoPago({
         <li>Não precisa avisar ninguém: a parcela muda para paga sozinha, em instantes.</li>
         {avisos}
       </Avisos>
+    </div>
+  )
+}
+
+/**
+ * O cartão da turma (Sprint 39): o formulário do Mercado Pago e, aprovado, a parcela paga na hora. Em análise, a
+ * tela espera o aviso do Mercado Pago como no PIX.
+ */
+function NoCartao({ cartao, parcelaIds }: { cartao: CartaoParaPagar; parcelaIds: string[] }) {
+  const pagar = usePagarNoCartao()
+
+  return (
+    <div className="grid gap-4">
+      <SeloDeAutomatico />
+      <FormularioDeCartao
+        cartao={cartao}
+        aoPagar={async (dados) => {
+          try {
+            const { situacao } = await pagar.mutateAsync({
+              parcelaIds,
+              cartao: dados,
+              valorEmCentavos: cartao.valor_em_centavos,
+            })
+            if (situacao === 'Pago') toast.success('Pagamento aprovado no cartão.')
+            else
+              toast.info(
+                'O Mercado Pago está analisando o pagamento. A parcela muda sozinha quando ele decidir.',
+              )
+          } catch (erro) {
+            avisarErro(erro)
+            throw erro
+          }
+        }}
+      />
     </div>
   )
 }

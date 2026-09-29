@@ -5,9 +5,9 @@ import { ROTULOS_DE_VISIBILIDADE, type Visibilidade } from '../types/comunicacao
 
 /** O que cada escolha significa, dito embaixo do combo — quem publica precisa ler antes de enviar. */
 const DICAS: Record<Visibilidade | '', string> = {
-  '': 'Escolha se toda a turma lê ou só a comissão.',
-  Turma: 'Todo membro vê, o formando inclusive.',
-  SomenteComissao: 'Só Presidente, Tesouraria e Comissão veem. O formando não recebe nem pela API.',
+  '': 'Escolha quem poderá ver este conteúdo.',
+  Turma: 'Presidente, tesouraria, comissão e formandos podem ver.',
+  SomenteComissao: 'Apenas presidente, tesouraria e comissão podem ver. Os formandos não terão acesso.',
 }
 
 /**

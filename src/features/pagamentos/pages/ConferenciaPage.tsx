@@ -47,6 +47,7 @@ import {
 } from '../hooks/useInformes'
 import { esquemaDaRecusa, ROTULOS_DE_FORMA } from '../schemas/pagamento.schema'
 import type { Divergencia, Informe, Parcela } from '../types/pagamentos.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -100,6 +101,7 @@ function faixasDoPagamento(hoje = new Date()): Record<string, [string, string]> 
  * daquela lista.
  */
 export default function ConferenciaPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar: gravarFiltro } = useFiltrosDaUrl()
   const abaNaUrl = parametros.get('aba')
   const aba: Aba = ehAba(abaNaUrl) ? abaNaUrl : 'conferir'
@@ -130,7 +132,7 @@ export default function ConferenciaPage() {
   const informes = useInformes({
     status: 'Pendente',
     pagina: paginaDe('conferir'),
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     busca: busca || undefined,
     de,
     ate,
@@ -140,7 +142,7 @@ export default function ConferenciaPage() {
     status: 'Confirmado',
     conferidos_hoje: true,
     pagina: paginaDe('confirmados'),
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     busca: busca || undefined,
     de,
     ate,
@@ -149,7 +151,7 @@ export default function ConferenciaPage() {
   // A divergência não guarda o dia informado, e sim a baixa: o período é da fila, não dela.
   const divergencias = useDivergencias({
     pagina: paginaDe('divergencias'),
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     busca: busca || undefined,
     ...ordenacaoDe('divergencias'),
   })
@@ -227,7 +229,7 @@ export default function ConferenciaPage() {
           rotulo: 'Buscar formando',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
+        filtrosAvancados={
           <BotaoDeFiltros id="filtros-da-conferencia" ligados={de || ate ? 1 : 0}>
             <fieldset className="grid gap-2">
               <legend className="text-muted-foreground mb-2 text-sm">Pagamento informado</legend>
@@ -324,7 +326,7 @@ export default function ConferenciaPage() {
               consulta={confirmados}
               vazio={{
                 titulo: 'Nada confirmado hoje ainda',
-                dica: 'As baixas que você fizer hoje aparecem aqui, com a hora de cada uma.',
+                dica: 'Os pagamentos que você confirmar hoje aparecerão aqui, com o horário de cada confirmação.',
                 // Nenhuma busca aconteceu aqui: o dia é que ainda não começou.
                 mascote: mascoteChecklist,
               }}
@@ -334,7 +336,7 @@ export default function ConferenciaPage() {
                   <th className="py-3 pr-4 font-normal">Formando</th>
                   <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
                   <ColunaOrdenavel coluna="recebido" numerica>
-                    Baixado
+                    Recebido
                   </ColunaOrdenavel>
                   <ColunaOrdenavel coluna="conferido">Conferido</ColunaOrdenavel>
                 </>
@@ -357,7 +359,7 @@ export default function ConferenciaPage() {
                 titulo: filtrando ? 'Nenhuma divergência com esses filtros' : 'Nenhuma divergência',
                 dica: filtrando
                   ? 'Tente outro nome.'
-                  : 'Tudo bateu: nenhuma baixa saiu por valor diferente do devido.',
+                  : 'Tudo certo: nenhum pagamento foi confirmado com valor diferente do esperado.',
                 // "Tudo bateu" é a melhor notícia da tela; não se anuncia com cara de procura.
                 mascote: filtrando ? undefined : mascoteFeliz,
               }}
@@ -374,7 +376,7 @@ export default function ConferenciaPage() {
                   </ColunaOrdenavel>
                   {/* A diferença é a subtração das duas colunas, feita na projeção: não ordena. */}
                   <th className="py-3 pr-4 font-normal">Diferença</th>
-                  <ColunaOrdenavel coluna="baixa">Baixa</ColunaOrdenavel>
+                  <ColunaOrdenavel coluna="baixa">Registrado em</ColunaOrdenavel>
                 </>
               }
               aoMudarPagina={(nova) =>
@@ -407,7 +409,7 @@ function LateralDaConferencia() {
           <li className="pb-3">Abra o extrato do banco no período dos avisos.</li>
           <li className="py-3">
             Ache cada pagamento pelo dia e pelo valor. Se entrou outro valor, corrija na linha antes de
-            confirmar: depois da baixa, a diferença vira divergência.
+            confirmar: depois, a diferença fica registrada para conferência.
           </li>
           <li className="pt-3">
             Marque o que bateu e confirme em lote. O formando recebe o recibo por e-mail.
@@ -417,7 +419,7 @@ function LateralDaConferencia() {
 
       <Cartao
         titulo="Pagou e não avisou?"
-        descricao="Viu no extrato um pagamento sem aviso? Dê a baixa direto na parcela."
+        descricao="Encontrou um pagamento no extrato que o formando não avisou? Registre-o na página de Parcelas."
       >
         <Button asChild variant="outline" size="sm" className="justify-self-start">
           <Link to={ROTAS.parcelas}>Ir para Parcelas</Link>
@@ -658,7 +660,7 @@ function ConfirmarLote({ informes, total, recebido, aoConcluir }: PropsDoLote) {
           </Button>
         }
         titulo={`Confirmar ${formatarNumero(quantidade)} ${quantidade === 1 ? 'pagamento' : 'pagamentos'}, no total de ${formatarCentavos(total)}?`}
-        descricao="Esta ação fica registrada em seu nome. Cada parcela marcada é baixada com o valor recebido, e o formando recebe um e-mail de confirmação."
+        descricao="A confirmação fica registrada em seu nome. O valor informado será registrado em cada parcela selecionada, e o formando receberá um e-mail."
         rotuloDeCancelar="Voltar"
         rotulo="Confirmar"
         aoConfirmar={() =>

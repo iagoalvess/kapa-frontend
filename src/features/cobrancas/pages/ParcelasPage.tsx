@@ -20,6 +20,7 @@ import {
   rotuloDoItem,
   type StatusDaParcela,
 } from '../types/cobrancas.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -55,6 +56,7 @@ interface Props {
  * a mesma lista. A faixa e as pílulas saem de um resumo só, no mesmo período e busca da lista.
  */
 export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
 
   const statusNaUrl = parametros.get('status')
@@ -69,7 +71,7 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
   const ordenacao = useOrdenacao(atualizar)
   const parcelas = useParcelas({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     status,
     de,
     ate,
@@ -141,15 +143,12 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
           rotulo: 'Buscar formando',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
-          <>
-            <BotaoDeFiltros id="filtros-de-parcelas" ligados={de || ate ? 1 : 0}>
-              <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
-            </BotaoDeFiltros>
-            {AcoesDaBarra ? <AcoesDaBarra /> : null}
-          </>
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-parcelas" ligados={de || ate ? 1 : 0}>
+            <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
+          </BotaoDeFiltros>
         }
-        quebrarAcoesNoCelular={Boolean(AcoesDaBarra)}
+        acoes={<>{AcoesDaBarra ? <AcoesDaBarra /> : null}</>}
         contagem={{
           mostrando: parcelas.data?.itens.length ?? 0,
           total: parcelas.data?.total ?? 0,
@@ -164,7 +163,7 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
           titulo: filtrando ? 'Nenhuma parcela com esses filtros' : 'Nenhuma parcela ainda',
           dica: filtrando
             ? 'Tente outra situação, outro período ou outro nome.'
-            : 'As parcelas de cada formando nascem quando ele adere ao plano de cobrança em vigor.',
+            : 'As parcelas aparecerão aqui quando os formandos aderirem ao plano de cobrança.',
         }}
         ordenacao={ordenacao}
         cabecalho={

@@ -1,15 +1,16 @@
 import type { PaginacaoRequest } from '@/types/paginacao'
-import type { EventoDoConvite, MeuConvite } from '@/types/festa'
-import type { MeioDePagamento } from '@/types/pagamento'
+import type { DadosDoConvidado, EventoDoConvite, MeuConvite } from '@/types/festa'
+import type { CartaoParaPagar, MeioDePagamento } from '@/types/pagamento'
 
 /** Em que ponto está a compra. Espelha `StatusDaCompra`. */
-export type StatusDaCompra = 'Pendente' | 'Paga' | 'Expirada' | 'ADevolver'
+export type StatusDaCompra = 'Pendente' | 'Paga' | 'Expirada' | 'ADevolver' | 'Devolvida'
 
 export const ROTULOS_DA_COMPRA = {
   Pendente: 'Aguardando pagamento',
   Paga: 'Paga',
   Expirada: 'Expirada',
   ADevolver: 'A devolver',
+  Devolvida: 'Devolvida',
 } as const satisfies Record<StatusDaCompra, string>
 
 /** Um convite à venda. Espelha `ItemDaLojaDTO`. */
@@ -53,6 +54,8 @@ export interface DadosDaCompra {
   meio: MeioDePagamento
   /** Sorteada ao abrir o formulário e repetida em toda nova tentativa (decisão 7). */
   chave_de_idempotencia: string
+  /** Quem vai usar cada convite, na ordem — um por unidade. */
+  convidados: DadosDoConvidado[]
 }
 
 /** O documento para pagar. Espelha `CobrancaDaCompraDTO`. */
@@ -87,6 +90,28 @@ export interface Compra {
   convites: MeuConvite[]
   /** A turma — o caminho de volta para a loja. */
   formatura_id: string
+  /** Quantos convites da compra deixaram de valer (Sprint 38). */
+  convites_cancelados: number
+  /** O que a comissão ainda devolve. */
+  valor_a_devolver_em_centavos: number
+  /** O pedido aberto, ou o último respondido (P1). */
+  pedido_de_cancelamento: PedidoDoComprador | null
+  /** Se há convite que ele ainda pode pedir para cancelar. */
+  pode_pedir_cancelamento: boolean
+  /** O formulário do cartão e o valor, na compra pendente no cartão (Sprint 39); nulo nas demais. */
+  cartao: CartaoParaPagar | null
+}
+
+/** Situação do pedido de cancelamento. Espelha `StatusDoPedidoDeCancelamento`. */
+export type StatusDoPedidoDeCancelamento = 'Aberto' | 'Aprovado' | 'Recusado'
+
+/** O pedido como o comprador o acompanha. Espelha `PedidoDoCompradorDTO`. */
+export interface PedidoDoComprador {
+  status: StatusDoPedidoDeCancelamento
+  pedido_em: string
+  convites: number
+  respondido_em: string | null
+  motivo_da_resposta: string | null
 }
 
 /** A compra recém-criada. Espelha `CompraCriadaDTO`. */
@@ -115,6 +140,44 @@ export interface CompraNaGestao {
   valor_pago_em_centavos: number | null
   /** O CPF de quem pagou não é o da compra — o sinal da P6. */
   pagador_diferente: boolean
+  /** Quantos convites deixaram de valer (Sprint 38). */
+  convites_cancelados: number
+  /** O que a comissão ainda devolve. */
+  valor_a_devolver_em_centavos: number
+  devolvida_em: string | null
+  /** O comprador pediu cancelamento e ninguém respondeu. */
+  pedido_de_cancelamento_aberto: boolean
+}
+
+/** Um convite da compra, para a Gestão escolher o que cancelar. Espelha `ConviteDaCompraDTO`. */
+export interface ConviteDaCompra {
+  id: string
+  sequencial: number
+  codigo: string
+  nome_do_convidado: string | null
+  /** A entrada na portaria — convite usado não se cancela (P3). */
+  validado_em: string | null
+  revogado_em: string | null
+  motivo_da_revogacao: string | null
+}
+
+/** Um pedido de cancelamento aberto. Espelha `PedidoNaGestaoDTO`. */
+export interface PedidoNaGestao {
+  id: string
+  compra_id: string
+  nome: string | null
+  email: string | null
+  item: string
+  quantidade_da_compra: number
+  convites: number
+  motivo: string | null
+  pedido_em: string
+}
+
+/** O que o cancelamento fez. Espelha `CompraCanceladaDTO`. */
+export interface CompraCancelada {
+  convites_cancelados: number
+  estorno_em_centavos: number
 }
 
 /** A conta da loja. Espelha `ResumoDaLojaDTO`. */
@@ -123,6 +186,8 @@ export interface ResumoDaLoja {
   aguardando_pix: number
   compras_a_devolver: number
   arrecadado_em_centavos: number
+  /** A festa da agenda — o alvo de "Cancelar as vendas da festa" (P6). */
+  festa_id: string | null
 }
 
 /** O filtro da lista da Gestão. */

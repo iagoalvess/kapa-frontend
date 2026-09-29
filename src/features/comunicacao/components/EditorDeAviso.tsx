@@ -69,8 +69,8 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
       icone={Megaphone}
       descricao={
         aviso
-          ? 'Autor e data de publicação ficam; a correção aparece como atualização.'
-          : 'Escreva em markdown: **negrito**, - lista, [link](https://…), ## título. A prévia mostra como a turma vai ler.'
+          ? 'O nome de quem publicou e a data original continuam visíveis. A mudança aparece como uma atualização.'
+          : 'Escreva o aviso e use os botões para formatar o texto. Confira a prévia antes de publicar.'
       }
     >
       <Form {...formulario}>
@@ -127,14 +127,14 @@ export function EditorDeAviso({ aviso, aoConcluir, aoCancelar }: Props) {
                 control={formulario.control}
                 name="fixado"
                 rotulo="Fixar no topo do mural"
-                dica={`No máximo ${LIMITE_DE_FIXADOS} fixados por vez.`}
+                dica={`Você pode manter até ${LIMITE_DE_FIXADOS} avisos no topo.`}
                 desabilitado={!editavel}
               />
               <CampoDeMarcar
                 control={formulario.control}
                 name="destaque"
                 rotulo="Marcar como importante"
-                dica="Leva o selo de importante no cartão."
+                dica="O aviso aparece com a marca de importante."
                 desabilitado={!editavel}
               />
             </fieldset>

@@ -1,8 +1,9 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
+import { simularMercadoPago } from '@/test/mercadoPago'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
 import type { MeuConvite } from '@/types/festa'
@@ -49,6 +50,11 @@ const compra = (dados: Partial<Compra> = {}): Compra => ({
   pode_apagar_dados: false,
   formatura_id: '01a09d04-81c4-70cb-a89f-a092091158dd',
   convites: [],
+  convites_cancelados: 0,
+  valor_a_devolver_em_centavos: 0,
+  pedido_de_cancelamento: null,
+  pode_pedir_cancelamento: false,
+  cartao: null,
   ...dados,
 })
 
@@ -74,7 +80,7 @@ describe('CompraPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Seus convites' }, { timeout: 7000 }),
     ).toBeInTheDocument()
-    expect(screen.getByText('A definir')).toBeInTheDocument()
+    expect(screen.getByText('Falta dizer quem vai usar')).toBeInTheDocument()
   }, 10_000)
 
   it('sem documento, oferece gerar o pagamento', async () => {
@@ -88,6 +94,36 @@ describe('CompraPage', () => {
     await usuario.click(await screen.findByRole('button', { name: 'Gerar pagamento' }))
 
     expect(await screen.findByDisplayValue('00020126PIXDACOMPRA')).toBeInTheDocument()
+  })
+
+  /** Sprint 39, P5: a compra no cartão mostra o formulário do Mercado Pago, e aprovada vira paga com os convites. */
+  it('no cartão, paga pelo formulário e mostra os convites na hora', async () => {
+    const cartao = {
+      chave_publica: 'APP_USR-publica',
+      valor_em_centavos: 52_632,
+      acrescimo_em_centavos: 2_632,
+      maximo_de_parcelas: 12,
+    }
+    const pagamentos: unknown[] = []
+    servidor.use(
+      http.get(COMPRA, () => HttpResponse.json(compra({ meio: 'Cartao', cobranca: null, cartao }))),
+      http.post(`${COMPRA}/cartao`, async ({ request }) => {
+        pagamentos.push(await request.json())
+        return HttpResponse.json(
+          compra({ status: 'Paga', meio: 'Cartao', cobranca: null, convites: [convite()] }),
+        )
+      }),
+    )
+    const formulario = simularMercadoPago()
+    abrir()
+
+    expect(await screen.findByText('No cartão')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Gerar pagamento' })).not.toBeInTheDocument()
+    await waitFor(() => expect(formulario.chavePublica()).toBe('APP_USR-publica'))
+    await formulario.enviar('tok-1', 'visa', 2)
+
+    expect(await screen.findByRole('heading', { name: 'Seus convites' })).toBeInTheDocument()
+    expect(pagamentos).toEqual([{ token: 'tok-1', bandeira: 'visa', parcelas: 2, valor_em_centavos: 52_632 }])
   })
 
   it('paga: nomeia o convite pelo link, sem conta', async () => {
@@ -104,7 +140,7 @@ describe('CompraPage', () => {
     const usuario = userEvent.setup()
     abrir()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Nomear convidado' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Dizer quem vai' }))
     await usuario.type(screen.getByLabelText('Nome do convidado'), 'Tia Carmem')
     await usuario.selectOptions(screen.getByLabelText('Documento'), 'Cpf')
     await usuario.type(screen.getByLabelText('Número'), '111.444.777-35')
@@ -121,11 +157,111 @@ describe('CompraPage', () => {
   })
 
   it('a devolver explica que o dinheiro volta pela turma', async () => {
-    servidor.use(http.get(COMPRA, () => HttpResponse.json(compra({ status: 'ADevolver', cobranca: null }))))
+    servidor.use(
+      http.get(COMPRA, () =>
+        HttpResponse.json(
+          compra({
+            status: 'ADevolver',
+            cobranca: null,
+            convites_cancelados: 2,
+            valor_a_devolver_em_centavos: 50_000,
+          }),
+        ),
+      ),
+    )
 
     abrir()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('a devolução é feita por ela')
+    expect(await screen.findByRole('alert')).toHaveTextContent(/turma vai devolver R\$\s500,00/)
+  })
+
+  it('cancelamento parcial mostra os convites que continuam e quanto volta', async () => {
+    servidor.use(
+      http.get(COMPRA, () =>
+        HttpResponse.json(
+          compra({
+            status: 'ADevolver',
+            cobranca: null,
+            convites: [convite({ nome_do_convidado: 'Tia Carmem' })],
+            convites_cancelados: 1,
+            valor_a_devolver_em_centavos: 25_000,
+          }),
+        ),
+      ),
+    )
+
+    abrir()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '1 convite desta compra foi cancelado; o outro continua valendo',
+    )
+    expect(screen.getByText('Tia Carmem')).toBeInTheDocument()
+  })
+
+  it('pede o cancelamento de um convite e passa a mostrar o pedido aberto (P1)', async () => {
+    const paga = compra({
+      status: 'Paga',
+      cobranca: null,
+      convites: [convite(), convite({ id: 'cv-2', sequencial: 2, codigo: 'MED27-9ZZ1' })],
+      pode_pedir_cancelamento: true,
+    })
+    let corpo: unknown
+    servidor.use(
+      http.get(COMPRA, () => HttpResponse.json(paga)),
+      http.post(`${COMPRA}/pedido-de-cancelamento`, async ({ request }) => {
+        corpo = await request.json()
+        return HttpResponse.json({
+          ...paga,
+          pode_pedir_cancelamento: false,
+          pedido_de_cancelamento: {
+            status: 'Aberto',
+            pedido_em: '2026-09-28T12:00:00Z',
+            convites: 1,
+            respondido_em: null,
+            motivo_da_resposta: null,
+          },
+        })
+      }),
+    )
+    const usuario = userEvent.setup()
+    abrir()
+
+    await usuario.click(await screen.findByRole('button', { name: 'Pedir cancelamento' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    const enviar = within(dialogo).getByRole('button', { name: 'Pedir cancelamento' })
+    expect(enviar).toBeDisabled()
+    await usuario.click(within(dialogo).getByRole('checkbox', { name: /MED27-9ZZ1/ }))
+    await usuario.type(within(dialogo).getByLabelText('Motivo (opcional)'), 'Não vou poder ir')
+    await usuario.click(enviar)
+
+    await waitFor(() => expect(corpo).toEqual({ convite_ids: ['cv-2'], motivo: 'Não vou poder ir' }))
+    expect(await screen.findByText(/Você pediu o cancelamento de 1 convite/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pedir cancelamento' })).not.toBeInTheDocument()
+  })
+
+  it('pedido recusado mostra o motivo da comissão', async () => {
+    servidor.use(
+      http.get(COMPRA, () =>
+        HttpResponse.json(
+          compra({
+            status: 'Paga',
+            cobranca: null,
+            convites: [convite()],
+            pedido_de_cancelamento: {
+              status: 'Recusado',
+              pedido_em: '2026-09-20T12:00:00Z',
+              convites: 1,
+              respondido_em: '2026-09-21T12:00:00Z',
+              motivo_da_resposta: 'Fora do prazo',
+            },
+          }),
+        ),
+      ),
+    )
+
+    abrir()
+
+    expect(await screen.findByText(/A comissão recusou o seu pedido/)).toHaveTextContent('“Fora do prazo”')
   })
 
   it('link antigo diz que não vale mais', async () => {

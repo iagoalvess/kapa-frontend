@@ -6,8 +6,11 @@ import { CartaoDeValor } from '@/components/CartaoDeValor'
 import { EsqueletoDeCartao, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
+import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
+import { paginar } from '@/lib/paginar'
 import { cn } from '@/lib/utils'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { IconeDoTipo } from '../components/IconeDoTipo'
@@ -15,6 +18,7 @@ import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
 import { FiltrosDaVitrine, VitrineDeItens } from '../components/VitrineDeItens'
 import { useMeusPedidos } from '../hooks/usePedidos'
 import { type Pedido, rotuloDoItem } from '../types/cobrancas.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 /** Vitrine e acompanhamento lado a lado; o pagamento é composto por app, que conhece o extrato. */
 export default function MeusPedidosPage({
@@ -26,7 +30,10 @@ export default function MeusPedidosPage({
   AcoesDoResumo?: ComponentType<{ pedidos: Pedido[] }>
   aoPedir?: (pedido: Pedido) => void
 }) {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const meus = useMeusPedidos()
+  const filtros = useFiltrosDaUrl()
+  const pagina = paginar(meus.data ?? [], filtros.pagina, tamanhoDaPagina)
   const confirmados = (meus.data ?? []).filter((pedido) => pedido.status === 'Confirmado')
   const soma = (campo: (pedido: Pedido) => number) =>
     meus.data ? confirmados.reduce((total, pedido) => total + campo(pedido), 0) : null
@@ -90,10 +97,16 @@ export default function MeusPedidosPage({
               descricao={`${formatarNumero(meus.data.length)} ${meus.data.length === 1 ? 'pedido' : 'pedidos'}`}
             >
               <ul className="grid gap-4" aria-label="Pedidos realizados">
-                {meus.data.map((pedido) => (
+                {pagina.visiveis.map((pedido) => (
                   <LinhaDoPedido key={pedido.id} pedido={pedido} AcoesDaLinha={AcoesDaLinha} />
                 ))}
               </ul>
+              <Paginacao
+                pagina={pagina.pagina}
+                totalPaginas={pagina.totalPaginas}
+                total={pagina.total}
+                aoMudar={(numero) => filtros.atualizar({ pagina: String(numero) })}
+              />
               <dl className="grid gap-2 border-t pt-4 text-sm">
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Total pedido</dt>

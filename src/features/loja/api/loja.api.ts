@@ -1,13 +1,17 @@
 import { api } from '@/lib/http/cliente'
+import type { CartaoTokenizado } from '@/types/pagamento'
 import type { DadosDoConvidado, MeuConvite } from '@/types/festa'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
 import type {
   Compra,
+  CompraCancelada,
   CompraCriada,
   CompraNaGestao,
+  ConviteDaCompra,
   DadosDaCompra,
   FiltroDeCompras,
   Loja,
+  PedidoNaGestao,
   ResumoDaLoja,
 } from '../types/loja.types'
 
@@ -42,6 +46,22 @@ export function buscarCompra(token: string, signal?: AbortSignal) {
  */
 export function gerarCobranca(token: string) {
   return api.post<Compra>(`${LOJA}/compras/${encodeURIComponent(token)}/cobranca`, PUBLICO)
+}
+
+/** Paga no cartão a compra pendente no cartão (Sprint 39). A compra volta como ficou — paga, na aprovação. */
+export function pagarCompraNoCartao({
+  token,
+  cartao,
+  valorEmCentavos,
+}: {
+  token: string
+  cartao: CartaoTokenizado
+  valorEmCentavos: number
+}) {
+  return api.post<Compra>(`${LOJA}/compras/${encodeURIComponent(token)}/cartao`, {
+    ...PUBLICO,
+    body: { ...cartao, valor_em_centavos: valorEmCentavos },
+  })
 }
 
 /** Nomeia ou transfere um convite da compra. */
@@ -83,5 +103,71 @@ export function exportarCompras(filtro: Pick<FiltroDeCompras, 'status' | 'busca'
   return api.get<Blob>(`${LOJA}/compras/planilha`, {
     query: { status: filtro.status, busca: filtro.busca },
     resposta: 'blob',
+  })
+}
+
+/** Os convites de uma compra, válidos e cancelados — para a Gestão escolher o que cancelar (Sprint 38). */
+export function listarConvitesDaCompra(compraId: string, signal?: AbortSignal) {
+  return api.get<ConviteDaCompra[]>(`${LOJA}/compras/${compraId}/convites`, { signal })
+}
+
+/** Cancela convites de uma compra paga; sem `convite_ids`, todos os que ainda valem. */
+export function cancelarCompra({
+  compraId,
+  conviteIds,
+  motivo,
+}: {
+  compraId: string
+  conviteIds: string[] | null
+  motivo: string
+}) {
+  return api.post<CompraCancelada>(`${LOJA}/compras/${compraId}/cancelamento`, {
+    body: { convite_ids: conviteIds, motivo },
+  })
+}
+
+/** A comissão fez o PIX de volta: marca a compra devolvida, com o comprovante. */
+export function marcarDevolvida({ compraId, comprovante }: { compraId: string; comprovante: File }) {
+  const corpo = new FormData()
+  corpo.append('comprovante', comprovante)
+
+  return api.post<void>(`${LOJA}/compras/${compraId}/devolucao`, { body: corpo })
+}
+
+/** Festa cancelada: cancela todas as compras pagas da loja e as põe na lista a devolver (P6). */
+export function cancelarVendasDaFesta({ festaId, motivo }: { festaId: string; motivo: string }) {
+  return api.post<{ compras_canceladas: number }>(`${LOJA}/eventos/${festaId}/cancelamento-das-compras`, {
+    body: { motivo },
+  })
+}
+
+/** Os pedidos de cancelamento abertos, do mais antigo. */
+export function listarPedidosDeCancelamento(signal?: AbortSignal) {
+  return api.get<PedidoNaGestao[]>(`${LOJA}/pedidos-de-cancelamento`, { signal })
+}
+
+/** Aprova o pedido: os convites pedidos são cancelados. */
+export function aprovarPedidoDeCancelamento(pedidoId: string) {
+  return api.post<CompraCancelada>(`${LOJA}/pedidos-de-cancelamento/${pedidoId}/aprovacao`)
+}
+
+/** Recusa o pedido, com motivo — o comprador recebe por e-mail. */
+export function recusarPedidoDeCancelamento({ pedidoId, motivo }: { pedidoId: string; motivo: string }) {
+  return api.post<void>(`${LOJA}/pedidos-de-cancelamento/${pedidoId}/recusa`, { body: { motivo } })
+}
+
+/** O comprador pede à comissão o cancelamento de convites (P1); sem `convite_ids`, todos. */
+export function pedirCancelamento({
+  token,
+  conviteIds,
+  motivo,
+}: {
+  token: string
+  conviteIds: string[] | null
+  motivo: string | null
+}) {
+  return api.post<Compra>(`${LOJA}/compras/${encodeURIComponent(token)}/pedido-de-cancelamento`, {
+    ...PUBLICO,
+    body: { convite_ids: conviteIds, motivo },
   })
 }

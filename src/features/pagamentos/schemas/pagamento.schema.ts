@@ -54,5 +54,5 @@ export const esquemaDaRecusa = z.object({
 
 /** A justificativa fica na auditoria. */
 export const esquemaDoEstorno = z.object({
-  justificativa: textoObrigatorio('Explique por que a baixa está sendo desfeita.'),
+  justificativa: textoObrigatorio('Explique por que este pagamento está sendo estornado.'),
 })

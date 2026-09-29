@@ -332,6 +332,17 @@ export function formatarPercentual(base: number) {
   return `${PERCENTUAL.format(base / 100)}%`
 }
 
+/**
+ * O inverso de {@link formatarPercentual}: `2,5` ou `2.5` em base 10.000 (250). Nulo se não for um percentual
+ * de até duas casas.
+ */
+export function lerPercentual(texto: string) {
+  const normalizado = texto.trim().replace(',', '.')
+  if (!/^\d{1,3}(\.\d{1,2})?$/.test(normalizado)) return null
+
+  return Math.round(Number(normalizado) * 100)
+}
+
 /** CPF como `529.982.247-25`. O que não tiver 11 dígitos sai como veio. */
 export function formatarCpf(cpf: string | null | undefined) {
   if (!cpf) return ''

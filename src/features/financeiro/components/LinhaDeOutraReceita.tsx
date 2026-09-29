@@ -99,7 +99,7 @@ export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEdit
               confirmacao={{
                 titulo: `Cancelar “${outraReceita.descricao}”?`,
                 descricao:
-                  'A receita sai da projeção do caixa. Cancelada é situação final: se o dinheiro vier, é lançar de novo.',
+                  'Esta receita deixa de entrar nos valores previstos do caixa. Se o dinheiro chegar depois, registre uma nova receita.',
                 rotuloDeCancelar: 'Voltar',
                 rotulo: 'Cancelar receita',
                 aoConfirmar: () =>

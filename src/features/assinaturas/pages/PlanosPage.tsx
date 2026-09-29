@@ -158,7 +158,12 @@ export default function PlanosPage() {
                 : undefined)
 
             return (
-              <CartaoDePlano key={plano.id} plano={plano} faixa={ehAtual ? 'Plano atual' : undefined}>
+              <CartaoDePlano
+                key={plano.id}
+                plano={plano}
+                faixa={ehAtual ? 'Plano atual' : undefined}
+                textoDeAvisos="Mural, avisos e lembretes de cobrança"
+              >
                 <Button
                   size="lg"
                   variant={plano.recomendado || ehAtual ? 'default' : 'outline'}

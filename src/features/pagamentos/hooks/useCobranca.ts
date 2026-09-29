@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { ehErroDaApi } from '@/lib/http/erros'
 import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
 import { MEIOS } from '@/types/recebimento'
 import {
@@ -7,6 +8,7 @@ import {
   informarPagamentoEmLote,
   obterCobranca,
   obterCobrancaDeVarias,
+  pagarNoCartao,
 } from '../api/pagamentos.api'
 import type { CobrancaDaParcela, MeioDaCobranca, PeloMercadoPago } from '../types/pagamentos.types'
 import { chaves } from './chaves'
@@ -119,6 +121,27 @@ export function useInformarVariasParcelas() {
     onSuccess: (parcelas) => {
       for (const parcela of parcelas) queryClient.setQueryData(chaves.parcela(parcela.id), parcela)
       void queryClient.invalidateQueries({ queryKey: chaves.extrato() })
+    },
+  })
+}
+
+/**
+ * Paga no cartão (Sprint 39). Aprovado, as parcelas já estão pagas: a parcela e o extrato relêem, e a tela troca
+ * sozinha para "paga". A cobrança não relê no sucesso — de parcela paga ela responde 409 —, só quando o valor do
+ * dia mudou, para a tela mostrar o novo.
+ */
+export function usePagarNoCartao() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: pagarNoCartao,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.extrato() })
+      void queryClient.invalidateQueries({ queryKey: ['pagamentos', 'parcela'] })
+    },
+    onError: (erro) => {
+      if (ehErroDaApi(erro) && erro.codigo === 'pagamento.valor_mudou')
+        void queryClient.invalidateQueries({ queryKey: ['pagamentos', 'cobranca'] })
     },
   })
 }

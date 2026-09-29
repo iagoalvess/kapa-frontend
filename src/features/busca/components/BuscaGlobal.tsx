@@ -1,6 +1,7 @@
 import { Loader2, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
+import { cn } from '@/lib/utils'
 import { detalheDe, GRUPOS, TAMANHO_MINIMO, type BuscaNaTurma } from '../types/busca.types'
 import { useBusca } from '../hooks/useBusca'
 
@@ -31,14 +32,17 @@ const comResultado = (busca: BuscaNaTurma | undefined) =>
  * exportação: clique fora e Esc fecham sem uma linha de JS, e ele vive na camada de cima, que é o
  * que impede o `<header>` de cortá-lo.
  *
- * No celular o campo é só o ícone e cresce ao receber o foco: um campo de 14rem ao lado do seletor
- * de turma e do avatar não cabe em 430px, e esconder a busca do celular seria tirá-la justamente de
- * quem está com o telefone na mão.
+ * No celular a busca mora na folha "Mais" (P2 da Sprint 41), e `larga` a desenha lá, na largura da
+ * folha: o topo do celular ficou só com o título, o sino e o avatar. A moldura monta uma só — o painel
+ * tem id fixo.
+ *
+ * @param larga O campo na largura de quem o hospeda, e não os 16rem do topo.
+ * @param aoEscolher Chamado ao abrir um resultado — é o que fecha a folha "Mais".
  *
  * Quem decide o que cada papel enxerga é a API: a Comissão não recebe fornecedor, o formando não
  * recebe a lista de membros nem o aviso interno. A tela só desenha o que chegou.
  */
-export function BuscaGlobal() {
+export function BuscaGlobal({ larga = false, aoEscolher }: { larga?: boolean; aoEscolher?: () => void }) {
   const campo = useRef<HTMLInputElement>(null)
   const caixa = useRef<HTMLElement>(null)
   // O balão fecha sozinho no clique fora: o evento `toggle` é como o React fica sabendo disso.
@@ -121,11 +125,13 @@ export function BuscaGlobal() {
     // `contents`: quem manda no espaçamento é o header, e uma div a mais no meio viraria um item do
     // `flex` dele — o campo e o balão têm de ser irmãos dos outros itens da barra.
     <search ref={caixa} className="contents">
-      {/* `<label>`, e não `<div>`: no celular o campo nasce do tamanho do ícone, e é o rótulo que
-          faz o toque em qualquer ponto da pílula cair no `<input>` que ainda não tem largura.
-          Cresce só no celular — no computador ele já nasce grande, e um campo que se alarga ao
-          receber o foco empurraria o seletor de turma a cada clique. */}
-      <label className="border-border bg-card focus-within:ring-ring flex h-9 w-9 items-center gap-2 rounded-full border px-2.5 transition-[width] [anchor-name:--busca] focus-within:ring-2 max-sm:focus-within:w-[min(62vw,20rem)] sm:w-56 sm:px-3 lg:w-64">
+      {/* `<label>`, e não `<div>`: o toque em qualquer ponto da pílula cai no `<input>`. */}
+      <label
+        className={cn(
+          'border-border bg-card focus-within:ring-ring flex items-center gap-2 rounded-full border [anchor-name:--busca] focus-within:ring-2',
+          larga ? 'h-11 w-full px-4' : 'h-9 w-64 px-3',
+        )}
+      >
         <span className="sr-only">Buscar na turma</span>
         {busca.isFetching ? (
           <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" aria-hidden />
@@ -185,7 +191,10 @@ export function BuscaGlobal() {
                   to={para(resultado)}
                   data-resultado=""
                   onKeyDown={andar}
-                  onClick={() => setTermo('')}
+                  onClick={() => {
+                    setTermo('')
+                    aoEscolher?.()
+                  }}
                   className="hover:bg-muted focus-visible:ring-ring flex items-center gap-3 rounded-xl px-3 py-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 >
                   <Icone className="text-muted-foreground size-4 shrink-0" strokeWidth={1.75} aria-hidden />

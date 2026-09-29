@@ -171,24 +171,6 @@ describe('MeuExtratoPage', () => {
     const { pathname, search } = router.state.location
     expect(pathname + search).toBe('/minhas-parcelas/pagar?parcelas=pa-venc,pa-aberta')
   })
-
-  it('"Selecionar todas" escolhe a grade inteira, e o mesmo botão limpa', async () => {
-    responder()
-
-    renderizar(<MeuExtratoPage />)
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Pagar várias parcelas' }))
-    const dialogo = await screen.findByRole('alertdialog')
-
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Selecionar todas' }))
-    for (const linha of within(dialogo).getAllByRole('row').slice(1))
-      expect(linha).toHaveAttribute('aria-selected', 'true')
-    expect(within(dialogo).getByText(/somam/)).toHaveTextContent(reais(71_120))
-
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Limpar seleção' }))
-    expect(within(dialogo).queryByText(/somam/)).not.toBeInTheDocument()
-  })
-
   it('sem nada escolhido, não dá para continuar', async () => {
     responder()
 

@@ -28,6 +28,8 @@ export const esquemaDeNovaConta = z.object({
   email,
   senha: z.string().min(1, 'A senha é obrigatória.'),
   aceite: z.literal(true, 'É preciso aceitar para continuar.'),
+  /** Opcional e desmarcada: marketing do Kapa só com consentimento (Sprint 40, P1). */
+  receber_comunicacao_do_kapa: z.boolean(),
 })
 
 /** Pedido que só leva o e-mail: esqueci a senha e reenvio da confirmação. */

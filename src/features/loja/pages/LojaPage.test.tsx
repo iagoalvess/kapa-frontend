@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -52,6 +52,11 @@ const compra: Compra = {
   pode_apagar_dados: false,
   formatura_id: '01a09d04-81c4-70cb-a89f-a092091158dd',
   convites: [],
+  convites_cancelados: 0,
+  valor_a_devolver_em_centavos: 0,
+  pedido_de_cancelamento: null,
+  pode_pedir_cancelamento: false,
+  cartao: null,
 }
 
 function abrir() {
@@ -65,6 +70,14 @@ async function preencher(usuario: ReturnType<typeof userEvent.setup>) {
   await usuario.type(screen.getByLabelText('E-mail'), 'maria@teste.dev')
   await usuario.type(screen.getByLabelText('CPF'), '529.982.247-25')
   await usuario.click(screen.getByRole('checkbox', { name: 'Li como meus dados são usados' }))
+  await usuario.click(screen.getByRole('button', { name: /^Continuar/ }))
+  const nomes = screen.getAllByLabelText('Nome completo')
+  const documentos = screen.getAllByLabelText('Número')
+  await usuario.type(nomes[0]!, 'Tia Carmem')
+  await usuario.type(documentos[0]!, '111.444.777-35')
+  await usuario.type(nomes[1]!, 'Tio Beto')
+  await usuario.selectOptions(screen.getAllByLabelText('Documento')[1]!, 'Rg')
+  await usuario.type(documentos[1]!, '12.345.678-9')
 }
 
 describe('LojaPage', () => {
@@ -76,6 +89,27 @@ describe('LojaPage', () => {
     expect(await screen.findByText('Restam 12')).toBeInTheDocument()
     expect(screen.getByText('Medicina 2027', { selector: 'strong' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'presidencia@med27.dev' })).toBeInTheDocument()
+  })
+
+  it('com um convite só, ele é o título; com vários, a lista mostra cada um', async () => {
+    servidor.use(http.get(LOJA, () => HttpResponse.json(loja())))
+    const { unmount } = abrir()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Convite adulto' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Convites à venda' })).not.toBeInTheDocument()
+    unmount()
+
+    servidor.use(
+      http.get(LOJA, () =>
+        HttpResponse.json(loja({ itens: [item(), item({ id: 'i-2', descricao: 'Convite infantil' })] })),
+      ),
+    )
+    abrir()
+
+    const lista = await screen.findByRole('list', { name: 'Convites à venda' })
+    expect(within(lista).getByText('Convite adulto')).toBeInTheDocument()
+    expect(within(lista).getByText('Convite infantil')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Convites da festa' })).toBeInTheDocument()
   })
 
   it('esgotado diz esgotado e não oferece a compra', async () => {
@@ -110,6 +144,31 @@ describe('LojaPage', () => {
     expect(screen.queryByRole('heading', { name: 'Comprar' })).not.toBeInTheDocument()
   })
 
+  it('leva o erro do documento de um convidado para o campo dele', async () => {
+    servidor.use(
+      http.get(LOJA, () => HttpResponse.json(loja())),
+      http.post(`${LOJA}/compras`, () =>
+        HttpResponse.json(
+          {
+            status: 400,
+            codigo: 'validacao.invalido',
+            detail: 'Dados inválidos.',
+            errors: { 'convidados[1].numero_do_documento': ['RG inválido: de 5 a 14 letras e números.'] },
+          },
+          { status: 400 },
+        ),
+      ),
+    )
+    const usuario = userEvent.setup()
+    abrir()
+
+    await preencher(usuario)
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
+
+    expect(await screen.findByText('RG inválido: de 5 a 14 letras e números.')).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Número')[1]).toHaveAttribute('aria-invalid', 'true')
+  })
+
   /** Decisão 7: a fila cheia repete sozinha, com a mesma chave — uma compra só. */
   it('repete a compra na fila cheia com a mesma chave e vai para a compra', async () => {
     const chaves: string[] = []
@@ -120,10 +179,20 @@ describe('LojaPage', () => {
           chave_de_idempotencia: string
           cpf: string
           quantidade: number
+          convidados: unknown[]
         }
         chaves.push(corpo.chave_de_idempotencia)
         expect(corpo.cpf).toBe('52998224725')
         expect(corpo.quantidade).toBe(2)
+        expect(corpo.convidados).toEqual([
+          {
+            nome: 'Tia Carmem',
+            tipo_do_documento: 'Cpf',
+            numero_do_documento: '111.444.777-35',
+            email: null,
+          },
+          { nome: 'Tio Beto', tipo_do_documento: 'Rg', numero_do_documento: '12.345.678-9', email: null },
+        ])
 
         return chaves.length === 1
           ? HttpResponse.json(
@@ -137,7 +206,7 @@ describe('LojaPage', () => {
     const { router } = abrir()
 
     await preencher(usuario)
-    await usuario.click(screen.getByRole('button', { name: /Reservar e pagar/ }))
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/compra/tok-1'), { timeout: 4000 })
     expect(chaves).toHaveLength(2)
@@ -162,7 +231,7 @@ describe('LojaPage', () => {
     abrir()
 
     await preencher(usuario)
-    await usuario.click(screen.getByRole('button', { name: /Reservar e pagar/ }))
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Os convites esgotaram.')
     await waitFor(() => expect(leituras).toBeGreaterThan(1))
@@ -183,7 +252,7 @@ describe('LojaPage', () => {
 
     await preencher(usuario)
     expect(screen.queryByRole('group', { name: 'Como você quer pagar?' })).not.toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: /Reservar e pagar/ }))
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
 
     await waitFor(() => expect(corpos).toHaveLength(1))
     expect(corpos[0]?.meio).toBe('Pix')
@@ -202,9 +271,9 @@ describe('LojaPage', () => {
     const usuario = userEvent.setup()
     abrir()
 
+    await usuario.click(await screen.findByRole('button', { name: 'Cartão de crédito' }))
     await preencher(usuario)
-    await usuario.click(screen.getByRole('button', { name: 'Cartão de crédito' }))
-    await usuario.click(screen.getByRole('button', { name: /Reservar e pagar/ }))
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
 
     await waitFor(() => expect(corpos[0]?.meio).toBe('Cartao'))
   })
@@ -217,10 +286,10 @@ describe('LojaPage', () => {
     const usuario = userEvent.setup()
     abrir()
 
-    await usuario.click(await screen.findByText('Perdi o link da minha compra'))
-    await usuario.type(screen.getByLabelText('E-mail da compra'), 'maria@teste.dev')
-    await usuario.click(screen.getByRole('button', { name: 'Reenviar o link' }))
+    await usuario.click(await screen.findByText('Já comprei e não acho meus convites'))
+    await usuario.type(screen.getByLabelText('E-mail que você usou na compra'), 'maria@teste.dev')
+    await usuario.click(screen.getByRole('button', { name: 'Receber de novo' }))
 
-    expect(await screen.findByText(/Se houver compra com este e-mail/)).toBeInTheDocument()
+    expect(await screen.findByText(/Se você comprou com este e-mail/)).toBeInTheDocument()
   })
 })

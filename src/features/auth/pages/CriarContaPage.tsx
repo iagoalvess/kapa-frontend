@@ -3,11 +3,12 @@ import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { AceiteObrigatorio } from '@/components/legal/AceiteObrigatorio'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { TIPOS_DE_DOCUMENTO } from '@/config/legal'
+import { TEXTO_DO_CONSENTIMENTO_DE_MARKETING, TIPOS_DE_DOCUMENTO } from '@/config/legal'
 import { ROTAS } from '@/config/rotas'
 import { useDocumentosVigentes } from '@/hooks/useDocumentosVigentes'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
@@ -25,14 +26,14 @@ export default function CriarContaPage() {
 
   const formulario = useForm<FormularioDeNovaConta>({
     resolver: zodResolver(esquemaDeNovaConta),
-    defaultValues: { nome: '', email: '', senha: '' },
+    defaultValues: { nome: '', email: '', senha: '', receber_comunicacao_do_kapa: false },
   })
 
-  const enviar = formulario.handleSubmit(({ nome, email, senha }) => {
+  const enviar = formulario.handleSubmit(({ nome, email, senha, receber_comunicacao_do_kapa }) => {
     const aceites = (vigentes.data ?? []).map(({ tipo, versao }) => ({ tipo, versao }))
 
     registrar.mutate(
-      { nome, email, senha, aceites },
+      { nome, email, senha, aceites, receber_comunicacao_do_kapa },
       {
         onError: (erro) => {
           // O 409 não é erro de validação e chega sem campo; o lugar dele é embaixo do e-mail.
@@ -127,6 +128,13 @@ export default function CriarContaPage() {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <CampoDeMarcar
+              control={formulario.control}
+              name="receber_comunicacao_do_kapa"
+              rotulo={TEXTO_DO_CONSENTIMENTO_DE_MARKETING}
+              className="text-muted-foreground"
             />
 
             {vigentes.isError ? <ErroDaConsulta erro={vigentes.error} /> : null}

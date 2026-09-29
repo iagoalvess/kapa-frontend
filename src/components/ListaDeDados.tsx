@@ -23,7 +23,7 @@ export function ListaDeDados({
       {rotulo ? (
         <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{rotulo}</h3>
       ) : null}
-      <dl className="grid gap-3 text-[15px]">{children}</dl>
+      <dl className="@container grid gap-3 text-[15px]">{children}</dl>
     </div>
   )
 }
@@ -31,9 +31,12 @@ export function ListaDeDados({
 /**
  * Uma linha da lista: ícone, rótulo em cinza e o valor, separados por um traço.
  *
- * O rótulo tem coluna própria — entre 7 e 11rem, conforme a largura de quem a hospeda, porque a
- * mesma lista aparece num cartão largo e na coluna lateral estreita. O traço embaixo separa um dado
- * do outro: em cinco pares seguidos, sem ele o olho procura onde um acaba e o outro começa.
+ * Em lista larga o rótulo tem coluna própria, entre 7 e 11rem. Em lista estreita — a coluna lateral, o
+ * diálogo, o celular — o valor desce para baixo do rótulo e ganha a largura inteira: com a coluna do
+ * rótulo ao lado, sobravam uns 150px, e um e-mail ou um código quebrava em quatro linhas. Quem decide é
+ * a largura da lista (container query), não a da tela: a mesma lista mora nos dois lugares. O traço
+ * embaixo separa um dado do outro: em cinco pares seguidos, sem ele o olho procura onde um acaba e o
+ * outro começa.
  */
 export function Dado({
   icone: Icone,
@@ -45,10 +48,12 @@ export function Dado({
   children: ReactNode
 }) {
   return (
-    <div className="border-border grid grid-cols-[1.25rem_minmax(7rem,11rem)_minmax(0,1fr)] items-start gap-x-6 gap-y-3 border-b pb-3 last:border-0 last:pb-0">
+    <div className="border-border grid grid-cols-[1.25rem_minmax(0,1fr)] items-start gap-x-3 gap-y-0.5 border-b pb-3 last:border-0 last:pb-0 @lg:grid-cols-[1.25rem_minmax(7rem,11rem)_minmax(0,1fr)] @lg:gap-x-6">
       <Icone className="text-muted-foreground mt-0.5 size-4" strokeWidth={1.75} aria-hidden />
       <dt className="text-muted-foreground">{rotulo}</dt>
-      <dd className="text-foreground font-medium break-words">{children}</dd>
+      <dd className="text-foreground col-start-2 font-medium break-words @lg:col-start-3 @lg:row-start-1">
+        {children}
+      </dd>
     </div>
   )
 }

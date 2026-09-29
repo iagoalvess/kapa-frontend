@@ -8,7 +8,6 @@ import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
-import { ehErroDaApi } from '@/lib/http/erros'
 import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { BotaoDeRecibo } from '../components/BotaoDeRecibo'
 import { CalculoDoValor, temEncargoOuDesconto } from '../components/CalculoDoValor'
@@ -103,7 +102,6 @@ function Cabecalho({ parcela }: { parcela: Parcela }) {
 /** Os dois passos, lado a lado no computador e empilhados no celular. */
 function Pagamento({ parcela }: { parcela: Parcela }) {
   const cobranca = useCobranca(parcela.id, true)
-  const semConta = ehErroDaApi(cobranca.error) && cobranca.error.codigo === 'pagamento.sem_conta'
   const [escolhido, escolher] = useMeioEscolhido(cobranca.data)
   const automatico = Boolean(escolhido?.mercadoPago)
 
@@ -116,20 +114,23 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
         cobranca={cobranca}
         escolhido={escolhido}
         aoEscolher={escolher}
+        parcelaIds={[parcela.id]}
         descricao={
           automatico
-            ? 'Pague pelo Mercado Pago da turma: a confirmação chega sozinha.'
+            ? 'Pague pelo Mercado Pago da turma. A confirmação será automática.'
             : 'Pague por onde a turma aceita receber, e depois avise a tesouraria.'
         }
       />
 
       {automatico ? (
         <ConfirmacaoAutomatica />
-      ) : (
+      ) : !escolhido?.comissao ? null : (
+        // Só com um meio da comissão na tela: na cobrança automática não há o que avisar, nem com o Mercado
+        // Pago fora do ar — o passo 1 pede para tentar de novo.
         <Cartao
           passo={2}
           titulo="Já pagou?"
-          descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — a parcela muda quando ela confirmar."
+          descricao="Avise que você pagou. A tesouraria confere o recebimento e atualiza a situação da parcela."
         >
           {temEncargoOuDesconto(parcela.valor_do_dia) ? (
             <div className="bg-muted grid gap-3 rounded-2xl p-4">
@@ -145,8 +146,7 @@ function Pagamento({ parcela }: { parcela: Parcela }) {
               parcela.valor_do_dia?.total_em_centavos ??
               parcela.valor_original_em_centavos
             }
-            meio={escolhido?.comissao?.meio}
-            desabilitado={semConta}
+            meio={escolhido.comissao.meio}
           />
         </Cartao>
       )}

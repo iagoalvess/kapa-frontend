@@ -1,4 +1,5 @@
 import { api } from '@/lib/http/cliente'
+import type { CartaoTokenizado } from '@/types/pagamento'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
 import type {
   ConfirmacaoDeInforme,
@@ -12,6 +13,7 @@ import type {
   PendenciasDoExtrato,
   CobrancaDaParcela,
   ResultadoDaConferencia,
+  SituacaoDoCartao,
 } from '../types/pagamentos.types'
 
 const BASE = '/api/v1'
@@ -72,6 +74,24 @@ export function obterCobrancaDeVarias(parcelaIds: string[], signal?: AbortSignal
   return api.get<CobrancaDaParcela>(`${BASE}/parcelas/cobranca`, {
     query: { parcela_ids: parcelaIds },
     signal,
+  })
+}
+
+/**
+ * Paga uma ou várias parcelas no cartão (Sprint 39). O valor é o que a tela mostrou: se o do dia mudou, a API
+ * recusa sem cobrar (`pagamento.valor_mudou`).
+ */
+export function pagarNoCartao({
+  parcelaIds,
+  cartao,
+  valorEmCentavos,
+}: {
+  parcelaIds: string[]
+  cartao: CartaoTokenizado
+  valorEmCentavos: number
+}) {
+  return api.post<{ situacao: SituacaoDoCartao }>(`${BASE}/parcelas/cartao`, {
+    body: { parcela_ids: parcelaIds, ...cartao, valor_em_centavos: valorEmCentavos },
   })
 }
 

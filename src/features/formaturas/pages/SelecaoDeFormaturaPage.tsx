@@ -33,7 +33,7 @@ export default function SelecaoDeFormaturaPage() {
   return (
     <>
       <h1 className={estilos.titulo}>Escolha a formatura</h1>
-      <p className={estilos.subtitulo}>Tudo o que você vê no sistema pertence à turma selecionada aqui.</p>
+      <p className={estilos.subtitulo}>Escolha a turma que você quer acessar agora.</p>
 
       <div className="grid gap-2">
         {formaturas.isPending ? (

@@ -24,6 +24,7 @@ import {
   type OutraReceita,
   type ResumoDeOutrasReceitas,
 } from '../types/financeiro.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -46,6 +47,7 @@ const ehCategoria = (valor: string | null): valor is CategoriaDeOutraReceita =>
  * festa (P2). Situação, categoria, período e busca vivem na URL, como em Despesas.
  */
 export default function OutrasReceitasPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const [dialogo, definirDialogo] = useState<false | { outraReceita?: OutraReceita }>(false)
   const { tem } = usePapel()
@@ -68,7 +70,7 @@ export default function OutrasReceitasPage() {
   const ordenacao = useOrdenacao(atualizar)
   const outrasReceitas = useOutrasReceitas({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     status,
     atrasadas: atrasadas || undefined,
     categoria,
@@ -147,34 +149,33 @@ export default function OutrasReceitasPage() {
           total: outrasReceitas.data?.total ?? 0,
           unidade: 'receitas',
         }}
-        acoes={
-          <>
-            <BotaoDeFiltros id="filtros-de-receitas" ligados={(categoria ? 1 : 0) + (de || ate ? 1 : 0)}>
-              <fieldset className="grid gap-2">
-                <legend className="text-muted-foreground mb-2 text-sm">Categoria</legend>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(ROTULOS_DE_CATEGORIA_DE_OUTRA_RECEITA).map(([valor, rotulo]) => (
-                    <Chip
-                      key={valor}
-                      ativo={categoria === valor}
-                      onClick={() => atualizar({ categoria: categoria === valor ? null : valor })}
-                    >
-                      {rotulo}
-                    </Chip>
-                  ))}
-                </div>
-              </fieldset>
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-receitas" ligados={(categoria ? 1 : 0) + (de || ate ? 1 : 0)}>
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Categoria</legend>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ROTULOS_DE_CATEGORIA_DE_OUTRA_RECEITA).map(([valor, rotulo]) => (
+                  <Chip
+                    key={valor}
+                    ativo={categoria === valor}
+                    onClick={() => atualizar({ categoria: categoria === valor ? null : valor })}
+                  >
+                    {rotulo}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
 
-              <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
-            </BotaoDeFiltros>
-
-            {tesouraria ? (
-              <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
-                <Plus aria-hidden />
-                Nova receita
-              </Button>
-            ) : null}
-          </>
+            <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
+          </BotaoDeFiltros>
+        }
+        acaoPrincipal={
+          tesouraria ? (
+            <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
+              <Plus aria-hidden />
+              Nova receita
+            </Button>
+          ) : null
         }
       />
 
@@ -185,7 +186,7 @@ export default function OutrasReceitasPage() {
           titulo: filtrando ? 'Nenhuma receita com esses filtros' : 'Nenhuma receita lançada',
           dica: filtrando
             ? 'Tente outra situação, outra categoria ou outro período.'
-            : 'Lance o que entra sem ser parcela — patrocínio, festa junina, doação, rendimento — e o caixa passa a fechar com o extrato do banco.',
+            : 'Registre aqui patrocínios, doações, rendimentos e outros valores que entram para a turma fora das parcelas.',
         }}
         ordenacao={ordenacao}
         cabecalho={

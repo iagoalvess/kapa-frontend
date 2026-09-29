@@ -11,6 +11,7 @@ import MinhaPrivacidadePage from './MinhaPrivacidadePage'
 const MEUS_DADOS = `${env.VITE_API_URL}/api/v1/privacidade/meus-dados`
 const SOLICITACOES = `${env.VITE_API_URL}/api/v1/privacidade/solicitacoes`
 const REVOGAR = `${env.VITE_API_URL}/api/v1/privacidade/consentimentos/c-1/revogar`
+const COMUNICACAO_DO_KAPA = `${env.VITE_API_URL}/api/v1/privacidade/comunicacao-do-kapa`
 
 /** O titular de duas turmas: é o caso que a decisão 2 da Sprint 14 existe para cobrir. */
 const dados = {
@@ -75,7 +76,12 @@ const dados = {
       revogado: false,
     },
   ],
-  comunicacoes: { preferencias: [], notificacoes_enviadas: 3, ultima_enviada_em: '2026-09-01T09:00:00Z' },
+  comunicacoes: {
+    preferencias: [],
+    notificacoes_enviadas: 3,
+    ultima_enviada_em: '2026-09-01T09:00:00Z',
+    do_kapa: { receber: false, historico: [], envios: [] },
+  },
 }
 
 describe('MinhaPrivacidadePage', () => {
@@ -155,6 +161,41 @@ describe('MinhaPrivacidadePage', () => {
     await userEvent.click(screen.getByRole('button', { name: /^solicitar eliminação$/i }))
 
     await waitFor(() => expect(corpo).toEqual({ tipo: 'Exclusao', senha: 'Kapa@2026' }))
+  })
+
+  /** Sprint 40: o interruptor grava na hora, e a tela relê o histórico para a linha nova aparecer. */
+  it('liga as novidades do Kapa pelo interruptor', async () => {
+    let corpo: unknown
+    let recebe = false
+    servidor.use(
+      http.get(MEUS_DADOS, () =>
+        HttpResponse.json({
+          ...dados,
+          comunicacoes: { ...dados.comunicacoes, do_kapa: { receber: recebe, historico: [], envios: [] } },
+        }),
+      ),
+      http.get(SOLICITACOES, () => HttpResponse.json([])),
+      http.put(COMUNICACAO_DO_KAPA, async ({ request }) => {
+        corpo = await request.json()
+        recebe = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderizar(<MinhaPrivacidadePage />)
+
+    const chave = await screen.findByRole('switch', { name: 'Receber novidades do Kapa' })
+    expect(chave).toHaveAttribute('aria-checked', 'false')
+
+    await userEvent.click(chave)
+
+    await waitFor(() => expect(corpo).toEqual({ receber: true }))
+    await waitFor(() =>
+      expect(screen.getByRole('switch', { name: 'Receber novidades do Kapa' })).toHaveAttribute(
+        'aria-checked',
+        'true',
+      ),
+    )
   })
 
   it('revoga o consentimento vigente', async () => {

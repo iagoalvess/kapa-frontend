@@ -140,7 +140,11 @@ describe('MembrosPage', () => {
 
     renderizar(<MembrosPage />, '/?pagina=2')
 
-    expect(await screen.findByText('Página 2 de 3 · 60 no total')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('navigation', { name: 'Paginação' })).toHaveTextContent(
+        'Página 2 de 3 · 60 no total',
+      ),
+    )
     // Quantos a página mostra, e não o total do filtro.
     expect(screen.getByText('Mostrando 1 de 60 membros')).toBeInTheDocument()
     expect(pedidas[0]?.get('pagina')).toBe('2')
@@ -148,7 +152,11 @@ describe('MembrosPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Próxima/ }))
 
-    expect(await screen.findByText('Página 3 de 3 · 60 no total')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('navigation', { name: 'Paginação' })).toHaveTextContent(
+        'Página 3 de 3 · 60 no total',
+      ),
+    )
     expect(screen.getByRole('button', { name: /Próxima/ })).toBeDisabled()
   })
 

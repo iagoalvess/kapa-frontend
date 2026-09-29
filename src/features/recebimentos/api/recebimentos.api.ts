@@ -4,8 +4,10 @@ import type {
   ContaDeRecebimento,
   ContaDeRecebimentoDaTurma,
   MeiosDaConta,
+  ModoDeCobranca,
   PixDeTeste,
   ProvedorDaTurma,
+  ConfiguracaoDoCartao,
 } from '../types/recebimentos.types'
 
 const CONTA = '/api/v1/recebimentos/conta'
@@ -42,7 +44,20 @@ export function autorizarMercadoPago() {
   return api.post<AutorizacaoDoProvedor>(`${MERCADO_PAGO}/autorizacao`)
 }
 
-/** Desconecta o Mercado Pago; os outros meios continuam. Só o Presidente. */
+/** Liga ou desliga o cartão da turma, com a taxa repassada ou absorvida (Sprint 39). Tesouraria e Presidente. */
+export function configurarCartao(dados: ConfiguracaoDoCartao) {
+  return api.put<ProvedorDaTurma>(`${MERCADO_PAGO}/cartao`, { body: dados })
+}
+
+/**
+ * Troca entre a cobrança manual e a automática. 409 `recebimento.avisos_pendentes` ou `recebimento.pix_em_aberto`
+ * enquanto há algo no meio do caminho. Tesouraria e Presidente.
+ */
+export function configurarCobranca(dados: ModoDeCobranca) {
+  return api.put<ProvedorDaTurma>(`${MERCADO_PAGO}/cobranca`, { body: dados })
+}
+
+/** Desconecta o Mercado Pago. 409 `recebimento.cobranca_automatica_ligada` na cobrança automática. Só o Presidente. */
 export function desconectarMercadoPago() {
   return api.delete<void>(MERCADO_PAGO)
 }

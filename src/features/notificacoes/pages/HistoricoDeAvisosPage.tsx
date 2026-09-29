@@ -17,6 +17,7 @@ import {
   ROTULOS_DE_STATUS,
   type StatusDaNotificacao,
 } from '../types/notificacoes.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -36,13 +37,14 @@ const SITUACOES: StatusDaNotificacao[] = ['Enfileirada', 'Entregue', 'Falhou']
  * definitivo aparece com o motivo, porque a régua para de tentar aquele endereço.
  */
 export default function HistoricoDeAvisosPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const tesouraria = usePapel().tem(PAPEIS.tesoureiro)
   const status = (parametros.get('status') as StatusDaNotificacao | null) ?? undefined
 
   const historico = useHistorico({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     status,
     busca: busca || undefined,
     ordenar_por: parametros.get('ordenar_por') ?? undefined,
@@ -114,7 +116,7 @@ export default function HistoricoDeAvisosPage() {
         consulta={historico}
         vazio={{
           titulo: 'Nenhum aviso enviado ainda',
-          dica: 'A régua roda todo dia útil, das 9h às 20h. Quando ela falar com alguém, o registro aparece aqui.',
+          dica: 'Os lembretes são enviados em dias úteis, das 9h às 20h. Cada envio aparecerá aqui.',
         }}
         aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
         ordenacao={{
@@ -133,7 +135,7 @@ export default function HistoricoDeAvisosPage() {
           <>
             <ColunaOrdenavel coluna="destinatario">Destinatário</ColunaOrdenavel>
             <th className="py-3 pr-4 font-normal">Assunto</th>
-            <th className="py-3 pr-4 font-normal">Degrau</th>
+            <th className="py-3 pr-4 font-normal">Momento do lembrete</th>
             <ColunaOrdenavel coluna="data">Dia</ColunaOrdenavel>
             <th className="py-3 font-normal">Resultado</th>
           </>

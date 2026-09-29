@@ -27,6 +27,7 @@ import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ListaDeDados, Dado } from '@/components/ListaDeDados'
 import { ListaVazia } from '@/components/ListaVazia'
+import { Paginacao } from '@/components/Paginacao'
 import { Tabela } from '@/components/Planilha'
 import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ import { contemBusca } from '@/lib/busca'
 import { formatarData, formatarDataHora, formatarHorario } from '@/lib/formato'
 import { avisarErro, ErroDeRede, ehErroDaApi } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
+import { paginar } from '@/lib/paginar'
 import { cn } from '@/lib/utils'
 import { DialogoDoConvidado } from '../components/DialogoDoConvidado'
 import { ResultadoDaValidacao } from '../components/ResultadoDaValidacao'
@@ -62,6 +64,9 @@ import {
   type SituacaoNaPortaria,
   type TipoDoEventoDoConvite,
 } from '../types/convites.types'
+
+/** A porta procura pela busca; a página só evita desenhar mil linhas de uma vez. */
+const CONVIDADOS_POR_PAGINA = 20
 
 const TOM_DA_SITUACAO = {
   Valido: 'cinza',
@@ -90,7 +95,7 @@ export default function PortariaPage() {
   const [reemitindo, definirReemitindo] = useState<ConviteNaPortaria | null>(null)
   const editavel = useEscritaLiberada()
   const { usuario } = useSessao()
-  const { parametros, busca, atualizar } = useFiltrosDaUrl()
+  const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
   const eventoNaUrl = parametros.get('evento')
   const tipo: TipoDoEventoDoConvite = ehOpcao(eventoNaUrl, ROTULOS_DO_EVENTO) ? eventoNaUrl : 'Festa'
   const situacaoNaUrl = parametros.get('situacao')
@@ -198,6 +203,8 @@ export default function PortariaPage() {
       (situacao === null || c.situacao === situacao) &&
       (!busca || contemBusca(busca, c.nome_do_convidado, c.convidado_de, c.codigo)),
   )
+  // A lista vem inteira de propósito — é ela que a porta usa sem rede (decisão 16); a tela só desenha uma página.
+  const pagina = paginar(visiveis, paginaNaUrl, CONVIDADOS_POR_PAGINA)
   const pendentes = tipo === 'Festa' ? (resumo.data?.pedidos_quitados_sem_convite ?? 0) : 0
 
   return (
@@ -289,12 +296,6 @@ export default function PortariaPage() {
               <FileDown aria-hidden />
               Lista em PDF
             </Button>
-            {editavel ? (
-              <Button size="xs" onClick={() => definirCortesia(true)}>
-                <Gift aria-hidden />
-                Nova cortesia
-              </Button>
-            ) : null}
             {editavel && pendentes > 0 ? (
               <Button
                 size="xs"
@@ -314,6 +315,14 @@ export default function PortariaPage() {
             ) : null}
           </>
         }
+        acaoPrincipal={
+          editavel ? (
+            <Button size="xs" onClick={() => definirCortesia(true)}>
+              <Gift aria-hidden />
+              Nova cortesia
+            </Button>
+          ) : null
+        }
         contagem={{ mostrando: visiveis.length, total: convites.length, unidade: 'convites' }}
       />
 
@@ -327,6 +336,7 @@ export default function PortariaPage() {
             </p>
           ) : (
             <Tabela
+              emLista
               legenda="Lista de convidados"
               cabecalho={
                 <>
@@ -337,7 +347,7 @@ export default function PortariaPage() {
                 </>
               }
             >
-              {visiveis.map((convite) => (
+              {pagina.visiveis.map((convite) => (
                 <LinhaDaPortaria
                   key={convite.id}
                   convite={convite}
@@ -353,6 +363,12 @@ export default function PortariaPage() {
               ))}
             </Tabela>
           )}
+          <Paginacao
+            pagina={pagina.pagina}
+            totalPaginas={pagina.totalPaginas}
+            total={pagina.total}
+            aoMudar={(numero) => atualizar({ pagina: String(numero) })}
+          />
         </Cartao>
 
         <div className="grid min-w-0 content-start gap-5">

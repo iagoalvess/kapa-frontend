@@ -8,6 +8,7 @@ import { PlanosPublicos } from '../components/PlanosPublicos'
 import { Recursos } from '../components/Recursos'
 import { RodapeDaLanding } from '../components/RodapeDaLanding'
 import { SegurancaEDinheiro } from '../components/SegurancaEDinheiro'
+import { TelasReais } from '../components/TelasReais'
 
 /**
  * A página institucional do Kapa: o que é, como funciona, quanto custa e onde deixar contato.
@@ -35,6 +36,7 @@ export default function LandingPage() {
       <main>
         <Hero />
         <Recursos />
+        <TelasReais />
         <ComoFunciona />
         <SegurancaEDinheiro />
         {/* Com a lista de espera (Sprint 36), o formulário ocupa o lugar dos preços (P10): a tabela lê

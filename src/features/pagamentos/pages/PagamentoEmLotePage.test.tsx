@@ -82,7 +82,7 @@ describe('PagamentoEmLotePage', () => {
     expect(informes[0]!.get('meio')).toBe('Pix')
   })
 
-  it('sem meio cadastrado, explica e não deixa avisar', async () => {
+  it('sem meio cadastrado, explica e não oferece o aviso', async () => {
     responder()
     servidor.use(
       http.get(`${env.VITE_API_URL}/api/v1/parcelas/cobranca`, () =>
@@ -96,8 +96,8 @@ describe('PagamentoEmLotePage', () => {
     renderizarLote()
 
     expect(
-      await screen.findByText(/A comissão ainda está configurando a conta de recebimento/),
+      await screen.findByText(/A comissão ainda está configurando como a turma receberá pagamentos/),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Já paguei' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Já paguei' })).not.toBeInTheDocument()
   })
 })

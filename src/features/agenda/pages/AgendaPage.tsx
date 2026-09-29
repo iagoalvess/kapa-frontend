@@ -308,7 +308,7 @@ export default function AgendaPage() {
           rotulo: 'Buscar evento',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
+        acaoPrincipal={
           editavel ? (
             <Button size="xs" onClick={() => definirCadastro({})}>
               <Plus aria-hidden />
@@ -448,10 +448,10 @@ function AvisoDosConvites() {
 
   const avisos = [
     !dados.evento_completo && dados.pedidos_quitados_sem_convite + dados.emitidos > 0
-      ? 'A festa está sem hora ou sem local: os convites pagos só saem quando ela estiver completa.'
+      ? 'Informe o horário e o local da festa para liberar os convites que já foram pagos.'
       : null,
     dados.pedidos_com_parcela_depois_do_fechamento > 0
-      ? `${dados.pedidos_com_parcela_depois_do_fechamento} ${dados.pedidos_com_parcela_depois_do_fechamento === 1 ? 'pedido tem' : 'pedidos têm'} parcela de convite vencendo depois do fechamento da lista, 24 h antes da festa. O convite só sai quitado — combine a antecipação com quem pediu.`
+      ? `${dados.pedidos_com_parcela_depois_do_fechamento} ${dados.pedidos_com_parcela_depois_do_fechamento === 1 ? 'pedido tem' : 'pedidos têm'} parcela de convite com vencimento depois do fechamento da lista, 24 horas antes da festa. O convite só é emitido após o pagamento total. Combine a antecipação com quem fez o pedido.`
       : null,
   ].filter((aviso) => aviso !== null)
 

@@ -109,7 +109,6 @@ export default function ConvitePublicoPage() {
       </p>
 
       <Button
-        variant="outline"
         disabled={baixar.isPending}
         onClick={() =>
           baixar.mutate({ token: convite.data.token, codigo: convite.data.codigo }, { onError: avisarErro })

@@ -64,18 +64,18 @@ function Acao({ parcela }: { parcela: Parcela }) {
       <DialogoDeTexto
         gatilho="Estornar"
         gatilhoIcone={{ icone: Undo2, tom: 'perigo' }}
-        titulo="Estornar a baixa"
+        titulo="Desfazer o pagamento registrado"
         descricao={
           <>
             A parcela de {parcela.nome} volta a ficar em aberto, e o recebimento de{' '}
-            {formatarCentavos(parcela.valor_pago_em_centavos)} fica marcado como estornado. A baixa e o
-            estorno ficam registrados, em nome de quem fez cada um.
+            {formatarCentavos(parcela.valor_pago_em_centavos)} ficará marcado como estornado. O registro do
+            pagamento e o estorno continuarão no histórico, com o nome de quem fez cada ação.
           </>
         }
         campo="justificativa"
         rotulo="Justificativa"
         esquema={esquemaDoEstorno}
-        confirmar="Estornar baixa"
+        confirmar="Estornar pagamento"
         confirmarOcupado="Estornando…"
         ocupado={estornar.isPending}
         desabilitado={!liberado}
@@ -84,7 +84,7 @@ function Acao({ parcela }: { parcela: Parcela }) {
             { parcelaId: parcela.id, justificativa },
             {
               onSuccess: () => {
-                toast.info('Baixa estornada. A parcela voltou a ficar em aberto.')
+                toast.info('Pagamento estornado. A parcela voltou a ficar em aberto.')
                 concluir()
               },
               onError: falhar,

@@ -38,10 +38,12 @@ const DESTAQUES = [
 export function CartaoDePlano({
   plano,
   faixa,
+  textoDeAvisos,
   children,
 }: {
   plano: Plano
   faixa?: string
+  textoDeAvisos?: string
   children: ReactNode
 }) {
   const Icone = ICONES_DE_PLANO[plano.codigo] ?? ICONE_DE_PLANO_PADRAO
@@ -122,7 +124,7 @@ export function CartaoDePlano({
                   <X className="text-danger-text mt-0.5 size-4 shrink-0" strokeWidth={2.5} aria-hidden />
                 )}
                 <span className="sr-only">{incluido ? 'Incluído: ' : 'Não incluído: '}</span>
-                {destaque.texto}
+                {destaque.modulo === 'avisos' ? (textoDeAvisos ?? destaque.texto) : destaque.texto}
               </li>
             )
           })}

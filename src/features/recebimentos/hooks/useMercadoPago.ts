@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { autorizarMercadoPago, desconectarMercadoPago, obterMercadoPago } from '../api/recebimentos.api'
+import {
+  autorizarMercadoPago,
+  configurarCartao,
+  configurarCobranca,
+  desconectarMercadoPago,
+  obterMercadoPago,
+} from '../api/recebimentos.api'
 import { chaves } from './chaves'
 
 /** O Mercado Pago da turma. `data.provedor` nulo: ainda não conectou. */
@@ -25,5 +31,25 @@ export function useDesconectarMercadoPago() {
   return useMutation({
     mutationFn: desconectarMercadoPago,
     onSuccess: () => queryClient.setQueryData(chaves.mercadoPago(), { provedor: null }),
+  })
+}
+
+/** Troca o modo de cobrança; a conexão que volta vai direto para o cache. */
+export function useConfigurarCobranca() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: configurarCobranca,
+    onSuccess: (provedor) => queryClient.setQueryData(chaves.mercadoPago(), provedor),
+  })
+}
+
+/** Liga ou desliga o cartão (Sprint 39); a conexão que volta vai direto para o cache. */
+export function useConfigurarCartao() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: configurarCartao,
+    onSuccess: (provedor) => queryClient.setQueryData(chaves.mercadoPago(), provedor),
   })
 }

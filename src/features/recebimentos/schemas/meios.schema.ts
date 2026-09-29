@@ -33,7 +33,7 @@ export const TIPOS_DE_CHAVE: Record<
     exemplo: '11.222.333/0001-81',
     teclado: 'text',
     valida: (chave) => chave.replace(/[^0-9a-z]/gi, '').length === 14,
-    motivo: 'CNPJ inválido: confira os 14 caracteres.',
+    motivo: 'CNPJ inválido: confira os 14 dígitos.',
   },
   Email: {
     rotulo: 'E-mail',

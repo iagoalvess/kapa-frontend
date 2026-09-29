@@ -25,8 +25,6 @@ interface Props {
   valor_em_centavos: number
   /** O meio que a pessoa escolheu no passo 1; ausente enquanto a cobrança carrega. */
   meio?: MeioDeRecebimento
-  /** Sem meio de recebimento não há o que avisar. */
-  desabilitado?: boolean
 }
 
 /**
@@ -41,12 +39,7 @@ interface Props {
  * Serve às duas telas de pagamento, e o caminho da parcela avulsa não passa pelo do lote: é o
  * `POST /parcelas/{id}/informes` que grava o id da parcela na auditoria.
  */
-export function DialogoDeInforme({
-  parcelaIds,
-  valor_em_centavos,
-  meio = 'Pix',
-  desabilitado = false,
-}: Props) {
+export function DialogoDeInforme({ parcelaIds, valor_em_centavos, meio = 'Pix' }: Props) {
   const [aberto, definirAberto] = useState(false)
   const avulso = useInformarPagamento()
   const varias = useInformarVariasParcelas()
@@ -79,7 +72,7 @@ export function DialogoDeInforme({
 
   return (
     <>
-      <Button size="lg" className="w-full" disabled={desabilitado} onClick={abrir}>
+      <Button size="lg" className="w-full" onClick={abrir}>
         <Send aria-hidden />
         Já paguei
       </Button>

@@ -1,24 +1,27 @@
+import { FormularioDeCartao } from '@/components/FormularioDeCartao'
 import { QrCodePix } from '@/components/QrCodePix'
 import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarDataHora, instanteDe } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
-import { useGerarCobranca } from '../hooks/useLoja'
+import { useGerarCobranca, usePagarCompraNoCartao } from '../hooks/useLoja'
 import type { Compra } from '../types/loja.types'
 import { ContagemRegressiva, useAgoraDoServidor } from './ContagemRegressiva'
 
 /**
- * A compra reservada esperando o pagamento: o PIX, e até quando a reserva vale.
+ * A compra reservada esperando o pagamento: o PIX ou o cartão, e até quando a reserva vale.
  *
- * Sem documento — o Mercado Pago falhou na hora da compra —, a tela oferece gerar de novo.
+ * Sem documento — o Mercado Pago falhou na hora da compra —, a tela oferece gerar de novo. No cartão (Sprint 39),
+ * o formulário do Mercado Pago cobra na hora; recusado, a reserva continua e dá para tentar outro cartão.
  *
  * @param token O segredo do link.
  * @param compra A compra pendente.
  */
 export function PagamentoDaCompra({ token, compra }: { token: string; compra: Compra }) {
   const gerar = useGerarCobranca(token)
+  const pagarNoCartao = usePagarCompraNoCartao(token)
   // A reserva é contada pelo relógio do aparelho: aqui não há decisão, só aviso, e a API decide a expiração.
   const agora = useAgoraDoServidor(0)
-  const { cobranca } = compra
+  const { cobranca, cartao } = compra
   // O PIX vence um pouco antes da reserva (decisão 9): com ele na tela, o prazo que importa é o dele.
   const prazo = cobranca?.meio === 'Pix' ? cobranca.expira_em : compra.expira_em
 
@@ -41,7 +44,25 @@ export function PagamentoDaCompra({ token, compra }: { token: string; compra: Co
         </p>
       </div>
 
-      {cobranca === null ? (
+      {compra.meio === 'Cartao' ? (
+        cartao ? (
+          <FormularioDeCartao
+            cartao={cartao}
+            aoPagar={async (dados) => {
+              try {
+                await pagarNoCartao.mutateAsync({ cartao: dados, valorEmCentavos: cartao.valor_em_centavos })
+              } catch (erro) {
+                avisarErro(erro)
+                throw erro
+              }
+            }}
+          />
+        ) : (
+          <p className="bg-muted rounded-2xl p-4 text-center text-sm">
+            A turma não está aceitando cartão agora. Faça uma compra nova na loja, pelo PIX.
+          </p>
+        )
+      ) : cobranca === null ? (
         <div className="bg-muted grid justify-items-center gap-3 rounded-2xl p-4 text-center">
           <p className="text-sm">
             O pagamento não foi gerado. Tente de novo — a sua reserva continua valendo.

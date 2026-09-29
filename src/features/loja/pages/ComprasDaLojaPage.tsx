@@ -12,8 +12,12 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { formatarCentavos, formatarDataHora, formatarNumero } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
+import { AcoesDaCompra } from '../components/AcoesDaCompra'
+import { CancelarVendasDaFesta } from '../components/CancelarVendasDaFesta'
+import { PedidosDeCancelamento } from '../components/PedidosDeCancelamento'
 import { useComprasDaLoja, useExportarCompras, useResumoDaLoja } from '../hooks/useComprasDaLoja'
 import { ROTULOS_DA_COMPRA, type StatusDaCompra } from '../types/loja.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -22,6 +26,7 @@ const TOM_DA_COMPRA = {
   Paga: 'sucesso',
   Expirada: 'neutro',
   ADevolver: 'perigo',
+  Devolvida: 'neutro',
 } as const satisfies Record<StatusDaCompra, TomDoSelo>
 
 /**
@@ -33,6 +38,7 @@ const TOM_DA_COMPRA = {
  * faz no banco dela.
  */
 export default function ComprasDaLojaPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const resumo = useResumoDaLoja()
   const exportar = useExportarCompras()
@@ -41,7 +47,7 @@ export default function ComprasDaLojaPage() {
   const status = ehOpcao(statusNaUrl, ROTULOS_DA_COMPRA) ? statusNaUrl : undefined
   const filtrando = Boolean(status || busca)
 
-  const compras = useComprasDaLoja({ pagina, tamanho: TAMANHO_DA_PAGINA, status, busca: busca || undefined })
+  const compras = useComprasDaLoja({ pagina, tamanho: tamanhoDaPagina, status, busca: busca || undefined })
 
   if (compras.data && compras.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
@@ -69,7 +75,7 @@ export default function ComprasDaLojaPage() {
             rotulo: 'A devolver',
             valor: resumo.data ? resumo.data.compras_a_devolver : null,
             icone: CircleAlert,
-            nota: 'pagaram sem lugar',
+            nota: 'canceladas ou pagas sem lugar',
           },
           {
             rotulo: 'Arrecadado',
@@ -78,6 +84,8 @@ export default function ComprasDaLojaPage() {
           },
         ]}
       />
+
+      <PedidosDeCancelamento />
 
       <FiltrosDaPlanilha
         principal={
@@ -103,6 +111,7 @@ export default function ComprasDaLojaPage() {
         acoes={
           <>
             <BotaoDoLinkDaLoja tamanho="xs" />
+            <CancelarVendasDaFesta festaId={resumo.data?.festa_id ?? null} />
             <Button
               size="xs"
               variant="outline"
@@ -128,7 +137,7 @@ export default function ComprasDaLojaPage() {
           titulo: filtrando ? 'Nenhuma compra com esses filtros' : 'Nenhuma compra ainda',
           dica: filtrando
             ? 'Tente outra situação ou outro nome.'
-            : 'As compras aparecem aqui quando alguém compra pelo link da loja. Abra a loja num opcional de convite, na tela do Plano.',
+            : 'As compras aparecerão aqui quando alguém usar o link da loja. Para começar a vender convites, configure um item opcional no Plano de cobrança.',
         }}
         cabecalho={
           <>
@@ -163,7 +172,23 @@ export default function ComprasDaLojaPage() {
               <div className="flex flex-wrap gap-1">
                 <Selo tom={TOM_DA_COMPRA[compra.status]}>{ROTULOS_DA_COMPRA[compra.status]}</Selo>
                 {compra.pagador_diferente ? <Selo tom="alerta">Pagou outro CPF</Selo> : null}
+                {compra.pedido_de_cancelamento_aberto ? <Selo tom="alerta">Pediu cancelamento</Selo> : null}
               </div>
+              {compra.convites_cancelados > 0 && compra.convites_cancelados < compra.quantidade ? (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {formatarNumero(compra.convites_cancelados)} de {formatarNumero(compra.quantidade)}{' '}
+                  cancelado
+                  {compra.convites_cancelados === 1 ? '' : 's'}
+                </p>
+              ) : null}
+              {compra.valor_a_devolver_em_centavos > 0 ? (
+                <p className="text-danger-text mt-1 text-xs">
+                  {formatarCentavos(compra.valor_a_devolver_em_centavos)} a devolver
+                </p>
+              ) : null}
+            </td>
+            <td className="py-3 text-right">
+              <AcoesDaCompra compra={compra} />
             </td>
           </tr>
         ))}

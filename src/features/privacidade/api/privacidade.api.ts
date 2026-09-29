@@ -53,6 +53,24 @@ export function revogarConsentimento(id: string) {
   return api.post<void>(`${PRIVACIDADE}/consentimentos/${id}/revogar`)
 }
 
+/** Liga ou desliga "Receber novidades do Kapa". Grava uma linha no histórico só quando muda. */
+export function definirComunicacaoDoKapa(receber: boolean) {
+  return api.put<void>(`${PRIVACIDADE}/comunicacao-do-kapa`, { body: { receber } })
+}
+
+/**
+ * Sai das novidades do Kapa pelo token do e-mail, sem login.
+ *
+ * A API responde igual para token válido, vencido ou adulterado — a tela não tem como, nem por que,
+ * distinguir.
+ */
+export function descadastrar(token: string) {
+  return api.post<void>(`${PRIVACIDADE}/descadastro`, {
+    query: { token },
+    autenticar: false,
+  })
+}
+
 /** Com quem a Kapa compartilha dado pessoal. Anônimo: abre antes do cadastro. */
 export function listarOperadores(signal?: AbortSignal) {
   return api.get<Operador[]>(`${PRIVACIDADE}/operadores`, { signal })

@@ -43,6 +43,7 @@ export function Avatar({
         src={foto}
         alt=""
         aria-hidden
+        data-avatar=""
         className={cn('size-6 shrink-0 rounded-full object-cover', className)}
       />
     )
@@ -51,6 +52,7 @@ export function Avatar({
   return (
     <span
       aria-hidden
+      data-avatar=""
       className={cn(
         'text-on-brand inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
         corDe(semente),

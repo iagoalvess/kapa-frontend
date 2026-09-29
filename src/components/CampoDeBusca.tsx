@@ -36,7 +36,7 @@ export function CampoDeBusca({ valor, rotulo, aoBuscar, className }: Props) {
           defaultValue={valor}
           placeholder={rotulo}
           aria-label={rotulo}
-          className="border-border placeholder:text-texto-muted focus-visible:ring-ring h-8 w-full rounded-full border bg-transparent pr-3 pl-9 text-sm focus-visible:ring-2 focus-visible:outline-none"
+          className="border-border placeholder:text-texto-muted focus-visible:ring-ring h-8 w-full rounded-full border bg-transparent pr-3 pl-9 text-sm focus-visible:ring-2 focus-visible:outline-none max-lg:h-10 max-lg:text-base"
         />
         <button type="submit" className="sr-only">
           Buscar

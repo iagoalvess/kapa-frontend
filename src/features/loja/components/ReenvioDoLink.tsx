@@ -12,7 +12,7 @@ import { useReenviarLink } from '../hooks/useLoja'
 const esquema = z.object({ email: z.string().trim().email('Informe o e-mail que você usou na compra.') })
 
 /**
- * "Perdi o link da minha compra": o Kapa reenvia para o mesmo e-mail (decisão 10).
+ * "Já comprei e não acho meus convites": o Kapa reenvia para o mesmo e-mail (decisão 10).
  *
  * A resposta é a mesma exista compra ou não — a tela não diz se alguém comprou com aquele e-mail, como
  * o "esqueci a senha".
@@ -30,7 +30,8 @@ export function ReenvioDoLink({ formaturaId }: { formaturaId: string }) {
   if (enviado)
     return (
       <output className="text-muted-foreground text-sm">
-        Se houver compra com este e-mail, enviamos o link para ele agora. O link anterior deixou de funcionar.
+        Pronto! Se você comprou com este e-mail, acabamos de mandar para ele um novo acesso aos seus convites.
+        O e-mail antigo não vale mais.
       </output>
     )
 
@@ -46,7 +47,7 @@ export function ReenvioDoLink({ formaturaId }: { formaturaId: string }) {
 
   return (
     <details className="text-sm">
-      <summary className="text-brand-text cursor-pointer">Perdi o link da minha compra</summary>
+      <summary className="text-brand-text cursor-pointer">Já comprei e não acho meus convites</summary>
       <Form {...formulario}>
         <form onSubmit={enviar} noValidate className="mt-3 grid gap-3">
           <FormField
@@ -54,7 +55,7 @@ export function ReenvioDoLink({ formaturaId }: { formaturaId: string }) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>E-mail da compra</FormLabel>
+                <FormLabel>E-mail que você usou na compra</FormLabel>
                 <FormControl>
                   <Input {...field} type="email" autoComplete="email" />
                 </FormControl>
@@ -70,7 +71,7 @@ export function ReenvioDoLink({ formaturaId }: { formaturaId: string }) {
             className="justify-self-start"
             disabled={reenviar.isPending}
           >
-            {reenviar.isPending ? 'Enviando…' : 'Reenviar o link'}
+            {reenviar.isPending ? 'Enviando…' : 'Receber de novo'}
           </Button>
         </form>
       </Form>

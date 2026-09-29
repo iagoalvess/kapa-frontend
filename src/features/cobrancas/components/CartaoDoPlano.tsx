@@ -40,8 +40,8 @@ export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, child
   const descricao = vigente
     ? `Em vigor desde ${formatarData(plano.vigente_desde)}. Mudar o valor de uma cobrança vale só para as parcelas que ainda não venceram.`
     : ehPresidente
-      ? 'Em montagem. Confira a grade ao lado e coloque o plano em vigor.'
-      : 'Em montagem. Conferida a grade, quem coloca o plano em vigor é o Presidente.'
+      ? 'Confira as parcelas ao lado. Quando estiver tudo certo, coloque o plano em vigor.'
+      : 'O plano está sendo preparado. Depois de conferir as parcelas, o presidente poderá colocá-lo em vigor.'
 
   return (
     <Cartao

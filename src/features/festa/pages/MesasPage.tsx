@@ -10,6 +10,7 @@ import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { ListaVazia } from '@/components/ListaVazia'
+import { Paginacao } from '@/components/Paginacao'
 import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
@@ -18,11 +19,13 @@ import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { contemBusca } from '@/lib/busca'
 import { formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { paginar } from '@/lib/paginar'
 import { DialogoDeMesa } from '../components/DialogoDeMesa'
 import { EditorDoSalao } from '../components/EditorDoSalao'
 import { SeletorDeDono } from '../components/SeletorDeDono'
 import { useExcluirMesa, useMapaDeMesas } from '../hooks/useMesas'
 import type { Mesa } from '../types/mesas.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 /**
  * As mesas do jantar, na Gestão (Sprint 27): o mapa do salão e a lista.
@@ -36,9 +39,11 @@ import type { Mesa } from '../types/mesas.types'
  * não pode perder o rascunho.
  */
 export default function MesasPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const mapa = useMapaDeMesas()
   const editavel = useEscritaLiberada()
-  const { busca, parametros, atualizar } = useFiltrosDaUrl()
+  const { busca, pagina: paginaNaUrl, parametros, atualizar } = useFiltrosDaUrl()
+  const [paginaDosCompradores, definirPaginaDosCompradores] = useState(1)
   const vista = parametros.get('vista') === 'lista' ? 'lista' : 'mapa'
   const [dialogo, definirDialogo] = useState<false | { mesa?: Mesa }>(false)
   const excluir = useExcluirMesa()
@@ -54,6 +59,8 @@ export default function MesasPage() {
 
   const { lista, compradores } = mapa.data
   const visiveis = lista.filter((mesa) => contemBusca(busca, mesa.identificacao, mesa.dono))
+  const pagina = paginar(visiveis, paginaNaUrl, tamanhoDaPagina)
+  const paginaDeCompradores = paginar(compradores, paginaDosCompradores, tamanhoDaPagina)
 
   return (
     <>
@@ -129,6 +136,7 @@ export default function MesasPage() {
                 <p className="text-muted-foreground text-sm">Nenhuma mesa com esse nome ou dono.</p>
               ) : (
                 <Tabela
+                  emLista
                   legenda="Mesas do jantar"
                   cabecalho={
                     <>
@@ -138,7 +146,7 @@ export default function MesasPage() {
                     </>
                   }
                 >
-                  {visiveis.map((mesa) => (
+                  {pagina.visiveis.map((mesa) => (
                     <tr key={mesa.id} className="border-b last:border-0">
                       <td className="text-foreground py-3 pr-4 font-medium">
                         <div className="grid min-w-24">
@@ -178,7 +186,7 @@ export default function MesasPage() {
                               confirmacao={{
                                 titulo: `Excluir “${mesa.identificacao}”?`,
                                 descricao:
-                                  'A mesa sai do mapa. Mesa com dono não se exclui: solte o dono antes.',
+                                  'A mesa será removida do mapa. Se estiver reservada para alguém, libere a mesa antes de excluir.',
                                 rotulo: 'Excluir',
                                 aoConfirmar: () =>
                                   excluir.mutate(mesa.id, {
@@ -194,6 +202,12 @@ export default function MesasPage() {
                   ))}
                 </Tabela>
               )}
+              <Paginacao
+                pagina={pagina.pagina}
+                totalPaginas={pagina.totalPaginas}
+                total={pagina.total}
+                aoMudar={(numero) => atualizar({ pagina: String(numero) })}
+              />
             </div>
           )}
         </Cartao>
@@ -205,6 +219,7 @@ export default function MesasPage() {
           descricao="Pedidos confirmados do opcional Mesa, e quantas já têm mesa no mapa."
         >
           <Tabela
+            emLista
             legenda="Quem comprou mesa"
             cabecalho={
               <>
@@ -214,7 +229,7 @@ export default function MesasPage() {
               </>
             }
           >
-            {compradores.map((comprador) => (
+            {paginaDeCompradores.visiveis.map((comprador) => (
               <tr key={comprador.vinculo_id} className="border-b last:border-0">
                 <td className="text-foreground py-3 pr-4">{comprador.nome}</td>
                 <td className="py-3 pr-4 text-right tabular-nums">{formatarNumero(comprador.compradas)}</td>
@@ -230,6 +245,12 @@ export default function MesasPage() {
               </tr>
             ))}
           </Tabela>
+          <Paginacao
+            pagina={paginaDeCompradores.pagina}
+            totalPaginas={paginaDeCompradores.totalPaginas}
+            total={paginaDeCompradores.total}
+            aoMudar={definirPaginaDosCompradores}
+          />
         </Cartao>
       ) : null}
 

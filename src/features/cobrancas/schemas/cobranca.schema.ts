@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { formatarNumero } from '@/lib/formato'
+import { formatarNumero, lerPercentual } from '@/lib/formato'
 import { inteiroEmTexto } from '@/lib/esquemas'
 import {
   type DadosDoItem,
@@ -57,7 +57,7 @@ export const esquemaDeItem = z
       contexto.addIssue({
         code: 'custom',
         path: ['primeiro_mes'],
-        message: 'O rateio não pode começar num mês que já passou: a parcela nasceria vencida.',
+        message: 'Escolha este mês ou um mês futuro para a primeira parcela.',
       })
   })
 
@@ -146,14 +146,6 @@ export const dadosDe = ({
   dia_de_vencimento,
   primeiro_mes,
 })
-
-/** `2,5` ou `2.5` em base 10.000 (250). Nulo se não for um percentual de até duas casas. */
-export function lerPercentual(texto: string) {
-  const normalizado = texto.trim().replace(',', '.')
-  if (!/^\d{1,3}(\.\d{1,2})?$/.test(normalizado)) return null
-
-  return Math.round(Number(normalizado) * 100)
-}
 
 const percentual = (rotulo: string) =>
   z

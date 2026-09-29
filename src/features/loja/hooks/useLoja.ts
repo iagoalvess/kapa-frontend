@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { CartaoTokenizado } from '@/types/pagamento'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { instanteDe } from '@/lib/formato'
 import {
@@ -7,6 +8,7 @@ import {
   buscarLoja,
   comprar,
   gerarCobranca,
+  pagarCompraNoCartao,
   nomearConvidadoDaCompra,
   reenviarLink,
 } from '../api/loja.api'
@@ -89,6 +91,17 @@ export function useGerarCobranca(token: string) {
   const gravar = useGravarCompra(token)
 
   return useMutation({ mutationFn: () => gerarCobranca(token), onSuccess: gravar })
+}
+
+/** Paga a compra no cartão (Sprint 39); a compra que volta — paga, com os convites — vai direto para a tela. */
+export function usePagarCompraNoCartao(token: string) {
+  const gravar = useGravarCompra(token)
+
+  return useMutation({
+    mutationFn: (dados: { cartao: CartaoTokenizado; valorEmCentavos: number }) =>
+      pagarCompraNoCartao({ token, ...dados }),
+    onSuccess: gravar,
+  })
 }
 
 /** Nomeia ou transfere um convite da compra; a lista relê, porque a troca de titular troca o código. */

@@ -65,11 +65,11 @@ describe('ReguaPage', () => {
     expect(screen.getByRole('link', { name: 'Plano de cobrança' })).toHaveAttribute('href', '/cobrancas')
     // O lembrete vem antes do vencimento, mesmo tendo chegado depois da API.
     const linhas = await screen.findAllByRole('row')
-    expect(linhas[1]).toHaveTextContent('D-5')
-    expect(linhas[1]).toHaveTextContent('5 dias antes')
+    expect(linhas[1]).toHaveTextContent('5 dias antes do vencimento')
+    expect(linhas[1]).toHaveTextContent('Lembrete')
     expect(linhas[1]).toHaveTextContent('Desligado')
-    expect(linhas[2]).toHaveTextContent('D0')
-    expect(linhas[2]).toHaveTextContent('No dia do vencimento')
+    expect(linhas[2]).toHaveTextContent('No vencimento')
+    expect(linhas[2]).toHaveTextContent('Vence hoje')
     expect(linhas[2]).toHaveTextContent('Ativo')
 
     // O assunto some da tela quando o editor é a única forma de lê-lo.
@@ -83,9 +83,9 @@ describe('ReguaPage', () => {
     renderizar(<ReguaPage />)
 
     const cartao = await screen.findByRole('region', { name: 'Fila da tesouraria' })
-    expect(within(cartao).getByText('Parado há 3 dias')).toBeInTheDocument()
+    expect(within(cartao).getByText('3 dias após o aviso de pagamento')).toBeInTheDocument()
     // Vem por último, depois dos quatro degraus de vencimento.
-    expect(screen.getAllByRole('row').at(-1)).toHaveTextContent('Fila')
+    expect(screen.getAllByRole('row').at(-1)).toHaveTextContent('Pagamento aguardando conferência')
   })
 
   it('liga e desliga o degrau pela chave, mandando só a situação', async () => {
@@ -105,7 +105,7 @@ describe('ReguaPage', () => {
 
     renderizar(<ReguaPage />)
 
-    const chave = await screen.findByRole('switch', { name: 'D+3 — Em atraso' })
+    const chave = await screen.findByRole('switch', { name: '3 dias após o vencimento — Em atraso' })
     expect(chave).toBeChecked()
 
     await userEvent.click(chave)

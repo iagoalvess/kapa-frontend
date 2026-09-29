@@ -20,6 +20,8 @@ export interface NovaConta {
   senha: string
   /** A versão vigente de cada documento, como veio de `GET /legal/vigentes`. */
   aceites: AceiteDeDocumento[]
+  /** A caixa opcional "Quero receber dicas e novidades do Kapa" — desmarcada por padrão (Sprint 40). */
+  receber_comunicacao_do_kapa: boolean
 }
 
 /** Corpo de `POST /api/v1/conta/redefinir-senha`. `email` e `token` vêm do link do e-mail. */

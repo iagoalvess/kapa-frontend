@@ -1,3 +1,4 @@
+import type { ComunicacaoDoKapa } from '@/types/comunicacaoDoKapa'
 import type { CobrancaDoPlano } from '@/types/assinatura'
 
 /** Uma turma na lista de resultados da busca. Espelha `TurmaEncontradaDTO`. */
@@ -103,6 +104,8 @@ export interface UsuarioNoSuporte {
   anonimizado_em: string | null
   criado_em: string
   vinculos: VinculoNoSuporte[]
+  /** Se recebe as novidades do Kapa, e os últimos e-mails de marketing (Sprint 40). */
+  comunicacao_do_kapa: ComunicacaoDoKapa
 }
 
 /** As ações que o painel executa sobre uma conta. O caminho é o próprio nome no backend. */

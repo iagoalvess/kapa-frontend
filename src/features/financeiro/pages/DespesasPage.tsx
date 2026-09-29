@@ -27,6 +27,7 @@ import {
   ROTULOS_DE_CATEGORIA,
   type ResumoDeDespesas,
 } from '../types/financeiro.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -52,6 +53,7 @@ const ehCategoria = (valor: string | null): valor is CategoriaDeDespesa =>
  * leitura — a mesma regra de `Vencida` na parcela.
  */
 export default function DespesasPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const [lancamento, definirLancamento] = useState<false | { despesa?: Despesa }>(false)
   const { tem } = usePapel()
@@ -76,7 +78,7 @@ export default function DespesasPage() {
   const ordenacao = useOrdenacao(atualizar)
   const despesas = useDespesas({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     status,
     atrasadas: atrasadas || undefined,
     categoria,
@@ -190,28 +192,29 @@ export default function DespesasPage() {
           total: despesas.data?.total ?? 0,
           unidade: 'despesas',
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-despesas" ligados={(categoria ? 1 : 0) + (de || ate ? 1 : 0)}>
+            {/* Categoria e vencimento em pílulas, como o painel de Membros. */}
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Categoria</legend>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ROTULOS_DE_CATEGORIA).map(([valor, rotulo]) => (
+                  <Chip
+                    key={valor}
+                    ativo={categoria === valor}
+                    onClick={() => atualizar({ categoria: categoria === valor ? null : valor })}
+                  >
+                    {rotulo}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+
+            <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
+          </BotaoDeFiltros>
+        }
         acoes={
           <>
-            <BotaoDeFiltros id="filtros-de-despesas" ligados={(categoria ? 1 : 0) + (de || ate ? 1 : 0)}>
-              {/* Categoria e vencimento em pílulas, como o painel de Membros. */}
-              <fieldset className="grid gap-2">
-                <legend className="text-muted-foreground mb-2 text-sm">Categoria</legend>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(ROTULOS_DE_CATEGORIA).map(([valor, rotulo]) => (
-                    <Chip
-                      key={valor}
-                      ativo={categoria === valor}
-                      onClick={() => atualizar({ categoria: categoria === valor ? null : valor })}
-                    >
-                      {rotulo}
-                    </Chip>
-                  ))}
-                </div>
-              </fieldset>
-
-              <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
-            </BotaoDeFiltros>
-
             {tesouraria ? (
               <Button asChild size="xs">
                 <Link to={ROTAS.fornecedores}>
@@ -222,13 +225,15 @@ export default function DespesasPage() {
             ) : null}
             {/* Some para quem não é da Tesouraria; desabilitado, prometeria uma ação que nunca vai
                 ser dele. Para a Tesouraria com a turma fora de Ativa, aí sim: fica cinza. */}
-            {tesouraria ? (
-              <Button size="xs" disabled={!editavel} onClick={() => definirLancamento({})}>
-                <Plus aria-hidden />
-                Nova despesa
-              </Button>
-            ) : null}
           </>
+        }
+        acaoPrincipal={
+          tesouraria ? (
+            <Button size="xs" disabled={!editavel} onClick={() => definirLancamento({})}>
+              <Plus aria-hidden />
+              Nova despesa
+            </Button>
+          ) : null
         }
       />
 
@@ -239,7 +244,7 @@ export default function DespesasPage() {
           titulo: filtrando ? 'Nenhuma despesa com esses filtros' : 'Nenhuma despesa lançada',
           dica: filtrando
             ? 'Tente outra situação, outra categoria ou outro período.'
-            : 'Lance o que a turma contratou — o buffet, o espaço, a banda — e o caixa passa a mostrar os dois lados.',
+            : 'Registre os gastos da turma, como buffet, espaço e banda. Eles aparecerão no caixa junto com os valores recebidos.',
         }}
         ordenacao={ordenacao}
         cabecalho={

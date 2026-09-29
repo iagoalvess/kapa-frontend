@@ -1,3 +1,4 @@
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { formatarCentavos, formatarMesAno, formatarMesCurto, formatarMoedaCurta } from '@/lib/formato'
 
 /**
@@ -22,8 +23,15 @@ export interface MesDoGrafico {
 /** Geometria do desenho, em unidades do `viewBox`. */
 const ALTURA = 190
 const LARGURA = 760
+/**
+ * No celular o desenho tem a largura do cartão, e não a do computador: com 760 unidades num cartão de
+ * 300px, tudo encolhia a 40% — a curva virava um risco de 80px de altura e o texto do eixo, 4px.
+ */
+const LARGURA_NO_CELULAR = 340
 /** Sobra à esquerda para os rótulos do eixo (`R$ 12 mil`). */
 const EIXO = 52
+/** No celular o texto do eixo não encolhe junto com o desenho, e "R$ 180 mil" pedia mais sobra. */
+const EIXO_NO_CELULAR = 64
 /** Topo do desenho: onde fica a linha de grade do valor máximo. */
 const TOPO = 16
 /** As cinco linhas de grade, do chão ao teto da escala. */
@@ -96,9 +104,12 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
   // de "R$ 0,01" repetido cinco vezes — um número que não existe. A divisão por zero é tratada
   // em `alturaDe`, que é o único lugar onde ela apareceria.
   const teto = Math.max(...linhas.flatMap((linha) => [linha.entrada, linha.saida]), 0)
-  const passo = (LARGURA - EIXO) / Math.max(linhas.length - 1, 1)
+  const telaGrande = useTelaGrande()
+  const largura = telaGrande ? LARGURA : LARGURA_NO_CELULAR
+  const eixo = telaGrande ? EIXO : EIXO_NO_CELULAR
+  const passo = (largura - eixo) / Math.max(linhas.length - 1, 1)
   const alturaDe = (valor: number) => (teto === 0 ? ALTURA : ALTURA - (valor / teto) * (ALTURA - TOPO))
-  const x = (indice: number) => EIXO + indice * passo
+  const x = (indice: number) => eixo + indice * passo
 
   const serie = (chave: 'entrada' | 'saida') =>
     linhas.map((linha, indice) => ({ x: x(indice), y: alturaDe(linha[chave]) }))
@@ -116,7 +127,8 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
   ]
 
   // Com dois anos de projeção, um rótulo por mês vira uma tarja preta.
-  const passoDoRotulo = Math.ceil(linhas.length / 8)
+  // No celular cabem quatro rótulos de mês, e não oito.
+  const passoDoRotulo = Math.ceil(linhas.length / (telaGrande ? 8 : 4))
   const inicioDaProjecao = corte > 0 ? x(corte - 1) : null
   // Série só de meses fechados — o período de um relatório — não fala de projeção: a legenda e a
   // frase do leitor de tela sumiriam prometendo um tracejado que não existe no desenho.
@@ -183,7 +195,7 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
         </table>
       </div>
 
-      <svg viewBox={`0 0 ${LARGURA} ${ALTURA + 26}`} className="h-[240px] w-full" aria-hidden>
+      <svg viewBox={`0 0 ${largura} ${ALTURA + 26}`} className="h-auto w-full lg:h-[240px]" aria-hidden>
         <defs>
           {series.map(({ cor, degrade }) => (
             <linearGradient key={degrade} id={degrade} x1="0" y1="0" x2="0" y2="1">
@@ -198,8 +210,8 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
 
           return (
             <g key={fracao}>
-              <line x1={EIXO} y1={y} x2={LARGURA} y2={y} stroke="var(--line)" strokeWidth="1" />
-              <text x={EIXO - 10} y={y + 3} textAnchor="end" fontSize="10" fill="var(--text-muted)">
+              <line x1={eixo} y1={y} x2={largura} y2={y} stroke="var(--line)" strokeWidth="1" />
+              <text x={eixo - 10} y={y + 3} textAnchor="end" fontSize="10" fill="var(--text-muted)">
                 {formatarMoedaCurta(teto * fracao)}
               </text>
             </g>
@@ -250,7 +262,7 @@ export function GraficoDeCaixa({ meses }: { meses: MesDoGrafico[] }) {
           const ySaida = alturaDe(linha.saida)
 
           // A caixinha abre acima do ponto mais alto e não passa das bordas do desenho.
-          const xDica = Math.min(Math.max(centro - DICA.largura / 2, EIXO), LARGURA - DICA.largura)
+          const xDica = Math.min(Math.max(centro - DICA.largura / 2, eixo), largura - DICA.largura)
           const yDica = Math.max(Math.min(yEntrada, ySaida) - DICA.altura - 12, 0)
 
           return (

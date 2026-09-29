@@ -11,6 +11,13 @@ export const TIPOS_DE_DOCUMENTO = {
   politicaDePrivacidade: 'PoliticaDePrivacidade',
 } as const
 
+/**
+ * A caixa opcional do cadastro e de "Minha privacidade" (Sprint 40). Espelha
+ * `TextoDoConsentimentoDeMarketing.Texto` do backend: mudou a frase, suba a versão lá — o registro prova
+ * qual texto a pessoa viu.
+ */
+export const TEXTO_DO_CONSENTIMENTO_DE_MARKETING = 'Quero receber dicas e novidades do Kapa por e-mail.'
+
 export type TipoDeDocumento = (typeof TIPOS_DE_DOCUMENTO)[keyof typeof TIPOS_DE_DOCUMENTO]
 
 /** Como cada documento aparece na tela e onde ele abre — no site, em endereço absoluto (Sprint 33). */

@@ -14,6 +14,7 @@ import { FiltroDeAuditoria } from '../components/FiltroDeAuditoria'
 import { LinhaDeAuditoria } from '../components/LinhaDeAuditoria'
 import { useAuditoria, useOpcoesDeAuditoria, useResumoDeAuditoria } from '../hooks/useAuditoria'
 import { type ResumoDaAuditoria, rotuloDoEvento } from '../types/auditoria.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -79,6 +80,7 @@ function indicadores(resumo: ResumoDaAuditoria | undefined): Indicador[] {
  * auditoria que alguém edita.
  */
 export default function AuditoriaPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
 
   const filtro = {
@@ -89,7 +91,7 @@ export default function AuditoriaPage() {
     busca: busca || undefined,
   }
 
-  const trilha = useAuditoria({ pagina, tamanho: TAMANHO_DA_PAGINA }, filtro)
+  const trilha = useAuditoria({ pagina, tamanho: tamanhoDaPagina }, filtro)
   const opcoes = useOpcoesDeAuditoria()
   const resumo = useResumoDeAuditoria()
 
@@ -143,7 +145,7 @@ export default function AuditoriaPage() {
             />
           </>
         }
-        acoes={<FiltroDeAuditoria de={filtro.de} ate={filtro.ate} aoMudar={atualizar} />}
+        filtrosAvancados={<FiltroDeAuditoria de={filtro.de} ate={filtro.ate} aoMudar={atualizar} />}
         contagem={
           trilha.data
             ? { mostrando: itens.length, total: trilha.data.total, unidade: 'registros' }
@@ -153,8 +155,8 @@ export default function AuditoriaPage() {
 
       <Cartao
         icone={ScrollText}
-        rotulo="Trilha de auditoria"
-        descricao="Cada operação que muda dinheiro, permissão ou registro da turma deixa uma linha aqui. Nada nesta lista pode ser editado ou apagado."
+        rotulo="Histórico de alterações"
+        descricao="As mudanças em pagamentos, acessos e registros da turma aparecem aqui. Este histórico não pode ser editado ou apagado."
         titulo="O que aconteceu na turma"
       >
         {trilha.isPending ? <EsqueletoDeDados linhas={6} /> : null}
@@ -166,7 +168,7 @@ export default function AuditoriaPage() {
             titulo={semFiltro ? 'Nada registrado ainda' : 'Nenhum registro com esse filtro'}
             dica={
               semFiltro
-                ? 'Baixa de parcela, troca da chave PIX, mudança de papel e exclusão de aviso aparecem aqui assim que acontecerem.'
+                ? 'Pagamentos confirmados, troca da chave PIX, mudanças de função e avisos excluídos aparecerão aqui.'
                 : 'Tente outra busca, tire um filtro ou amplie o período.'
             }
           />

@@ -67,6 +67,12 @@ export const router = createBrowserRouter([
         path: ROTAS.confirmarEmail,
         lazy: pagina(() => import('@/features/auth/pages/ConfirmarEmailPage')),
       },
+      // O "Não quero mais receber" do e-mail de marketing (Sprint 40): pedir login para sair é o que
+      // manda a pessoa para o botão de spam.
+      {
+        path: ROTAS.descadastro,
+        lazy: pagina(() => import('@/features/privacidade/pages/DescadastroPage')),
+      },
       // Público: o convite chega por WhatsApp a quem ainda não tem conta. Com sessão, aceita sozinho.
       {
         path: `${ROTAS.convite}/:token`,
@@ -374,7 +380,7 @@ export const router = createBrowserRouter([
                           // soma. Só leitura — não há ação nenhuma na tela.
                           {
                             path: ROTAS.auditoria,
-                            handle: { titulo: 'Auditoria' },
+                            handle: { titulo: 'Histórico da turma' },
                             lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
                           },
                         ],

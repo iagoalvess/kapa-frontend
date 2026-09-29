@@ -359,6 +359,51 @@ function Cartao({ titulo, children }: { titulo: string; children: React.ReactNod
 
 ---
 
+## Celular
+
+Desde a Sprint 41 o celular (abaixo de `lg`, 1024px) tem desenho próprio, e **ele mora nas peças, não
+nas telas**. Tela nova montada com as peças do catálogo já sai certa no celular; nenhuma tela escreve
+`if` de largura.
+
+| No celular                                                             | Quem resolve                                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Barra de baixo com 4 destinos do papel + "Mais"                        | `BarraInferior` (`app/layouts`); destinos novos entram lá                      |
+| Menu inteiro e busca                                                   | folha "Mais" do `LayoutApp` (a `BarraLateral` inteira)                         |
+| Tabela vira lista (título + ação em cima, dados embaixo)               | `Tabela emLista` — a `Planilha` já passa                                       |
+| Cinco por página e paginação compacta                                  | `useTamanhoDaPagina` (`hooks/useTelaGrande`) + `Paginacao`                     |
+| Só dois números na faixa, o resto em "Ver detalhes"                    | `FaixaDeIndicadores` — ponha os dois mais importantes antes                    |
+| Ação principal presa acima da barra                                    | `AcaoFixa` (`components/layout`) — só quando é **uma**                         |
+| Ajuda longa do cartão some                                             | `Cartao` (descrição em texto com mais de 80 caracteres)                        |
+| Busca + filtros; botões da tela e 2 pílulas à vista, o resto no painel | `FiltrosDaPlanilha` com as vagas `filtrosAvancados`, `acoes` e `acaoPrincipal` |
+| Lista sem cartão, ponta a ponta; avatar alinhando a linha de baixo     | `Planilha` + `Avatar` (`data-avatar`)                                          |
+| Ações da linha num "⋯" com ícone e nome                                | `AcoesDaLinha`                                                                 |
+| Grid sem colunas não estoura a tela                                    | regra `:where(main, main .grid)` em `styles/index.css`                         |
+
+```tsx
+// Lista paginada: o tamanho vem do hook, a página da URL.
+const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA) // 20 no computador, 5 no celular
+const pagina = paginar(itens, filtros.pagina, useTamanhoDaPagina()) // 10 / 5
+
+// A ação que é a razão da tela.
+<AcaoFixa>
+  <Button size="xs" onClick={abrir}>Novo aviso</Button>
+</AcaoFixa>
+```
+
+- **Na barra de filtros, diga o que cada botão é**, e não onde ele fica: o `BotaoDeFiltros` vai em
+  `filtrosAvancados`, a ação que é a razão da tela em `acaoPrincipal` (vira `AcaoFixa` no celular) e
+  o resto — ir a outra tela, exportar — em `acoes` (à vista também no celular: é o que não se acha de
+  outro jeito). As pílulas vão todas para o painel; fora ficam a primeira e a ligada. Nenhum painel preso a
+  botão leva `grid`/`flex` na raiz: vence o `display: none` do popover fechado.
+- **CSS primeiro.** `max-lg:`/`lg:` resolvem quase tudo. `useTelaGrande()` só quando a largura muda
+  **dado** (tamanho da página) ou **quantas cópias** de uma peça existem (a busca tem id fixo) — ou para
+  não montar o que sai (o gráfico do Início não faz nem a consulta no celular).
+- **Na linha de tabela, a primeira célula nomeia e a última é a ação** (ou o selo). É isso que a lista
+  do celular põe na primeira linha; o resto desce.
+- **Confira em 360px** que não há rolagem lateral: `scrollWidth - clientWidth` do documento tem de dar 0.
+
+---
+
 ## Testes
 
 Um arquivo `*.test.ts(x)` ao lado do código. O que se testa é comportamento, não implementação.

@@ -11,6 +11,7 @@ import { ICONE_DO_TIPO } from '@/features/agenda'
 import { useResumoDaAgenda } from '@/hooks/useAgenda'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePapel, useSessao } from '@/hooks/useSessao'
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
 import { CartaoDaFesta } from './CartaoDaFesta'
 import { CartaoDaProximaParcela } from './CartaoDaProximaParcela'
@@ -23,6 +24,7 @@ export function PaginaInicial() {
   const { tem } = usePapel()
   const formatura = useFormaturaAtual()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
+  const telaGrande = useTelaGrande()
 
   if (formatura.isPending) return <Esqueleto className="h-80 rounded-3xl" />
   if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
@@ -155,7 +157,8 @@ export function PaginaInicial() {
         <div className="grid items-stretch gap-5 md:grid-cols-2">
           <CartaoDaFesta />
           <CartaoDaProximaParcela />
-          <GraficoDaArrecadacao />
+          {/* No celular o gráfico sai (P4 da Sprint 41), e sem montar: nem a consulta dele vai. */}
+          {telaGrande ? <GraficoDaArrecadacao /> : null}
           <CartaoDoMural />
         </div>
       </section>

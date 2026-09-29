@@ -43,12 +43,21 @@ export function ConvitesDaCompra({ token, compra }: { token: string; compra: Com
       </p>
     )
 
+  const nomeados = compra.convites.filter((convite) => convite.nome_do_convidado).length
+
   return (
     <section aria-labelledby="titulo-dos-convites" className="grid gap-3">
       <div className="grid gap-1">
-        <h2 id="titulo-dos-convites" className="text-lg font-semibold">
-          Seus convites
-        </h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="titulo-dos-convites" className="text-lg font-semibold">
+            Seus convites
+          </h2>
+          {nomeados < compra.convites.length ? (
+            <span className="text-muted-foreground text-sm tabular-nums">
+              {nomeados} de {compra.convites.length} com nome
+            </span>
+          ) : null}
+        </div>
         <p className="text-muted-foreground text-sm">
           {compra.lista_aberta
             ? `Diga quem vai usar cada um. Dá para trocar até ${compra.festa ? formatarDataHora(compra.festa.fechamento_da_lista) : '24 horas antes da festa'}.`
@@ -62,7 +71,11 @@ export function ConvitesDaCompra({ token, compra }: { token: string; compra: Com
             <div className="flex items-start justify-between gap-3">
               <div className="grid">
                 <span className="text-muted-foreground text-xs">Convite {convite.sequencial}</span>
-                <span className="font-medium">{convite.nome_do_convidado ?? 'A definir'}</span>
+                {convite.nome_do_convidado ? (
+                  <span className="font-medium">{convite.nome_do_convidado}</span>
+                ) : (
+                  <span className="text-muted-foreground">Falta dizer quem vai usar</span>
+                )}
                 {convite.documento ? (
                   <span className="text-muted-foreground text-xs">{convite.documento}</span>
                 ) : null}
@@ -71,8 +84,12 @@ export function ConvitesDaCompra({ token, compra }: { token: string; compra: Com
             </div>
             <div className="flex flex-wrap gap-2">
               {compra.lista_aberta ? (
-                <Button variant="outline" size="sm" onClick={() => definirEditando(convite)}>
-                  {convite.nome_do_convidado ? 'Editar convidado' : 'Nomear convidado'}
+                <Button
+                  variant={convite.nome_do_convidado ? 'outline' : 'default'}
+                  size="sm"
+                  onClick={() => definirEditando(convite)}
+                >
+                  {convite.nome_do_convidado ? 'Editar convidado' : 'Dizer quem vai'}
                 </Button>
               ) : null}
               {convite.token ? <AcoesDoLink token={convite.token} /> : null}
@@ -84,7 +101,7 @@ export function ConvitesDaCompra({ token, compra }: { token: string; compra: Com
       <DialogoDeFormulario
         aberto={editando !== null}
         aoFechar={() => definirEditando(null)}
-        titulo={editando?.nome_do_convidado ? 'Editar convidado' : 'Nomear convidado'}
+        titulo={editando?.nome_do_convidado ? 'Editar convidado' : 'Quem vai usar este convite?'}
         descricao={
           editando?.nome_do_convidado
             ? 'Trocar o nome passa o convite para outra pessoa: o código muda e o anterior deixa de valer.'

@@ -94,7 +94,7 @@ export function PainelDaCota({ editavel }: { editavel: boolean }) {
               </Button>
               <p className="text-muted-foreground text-xs">
                 {painel.aberta_em
-                  ? 'Emite só o que falta — para quem entrou depois. Ninguém ganha convite a mais.'
+                  ? 'Emite convites apenas para os formandos que entraram depois. Quem já recebeu mantém a mesma quantidade.'
                   : 'Emite os convites de todos os formandos de uma vez.'}
               </p>
             </div>

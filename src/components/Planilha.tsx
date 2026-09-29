@@ -75,7 +75,12 @@ export function Planilha<T>({
 
   return (
     <>
-      <section aria-label={rotulo} className="bg-card shadow-cartao rounded-3xl px-5 py-2">
+      {/* No celular a lista não é cartão: é uma faixa branca de ponta a ponta, com o traço entre as
+          linhas — a "lista densa" que ele escolheu (Sprint 41). */}
+      <section
+        aria-label={rotulo}
+        className="bg-card shadow-cartao rounded-3xl px-5 py-2 max-lg:-mx-4 max-lg:rounded-none max-lg:border-y max-lg:px-4 max-lg:py-0 max-lg:shadow-none"
+      >
         {consulta.isPending ? <EsqueletoDeTabela colunas={5} /> : null}
 
         {consulta.isError ? <ErroDaConsulta erro={consulta.error} className="py-4" /> : null}
@@ -83,7 +88,7 @@ export function Planilha<T>({
         {consulta.data && itens.length === 0 ? <ListaVazia {...vazio} /> : null}
 
         {itens.length > 0 ? (
-          <Tabela cabecalho={cabecalho} ordenacao={ordenacao}>
+          <Tabela cabecalho={cabecalho} ordenacao={ordenacao} emLista>
             {children}
           </Tabela>
         ) : null}
@@ -101,6 +106,30 @@ export function Planilha<T>({
     </>
   )
 }
+
+/**
+ * A tabela como lista, abaixo de `lg` — o padrão da casa para lista no celular: na primeira linha, o
+ * que nomeia a linha (a primeira célula) e, encostada à direita, a última — as ações, ou o selo onde
+ * não há ações; embaixo, as outras células, uma ao lado da outra. O traço entre linhas continua o da
+ * `<tr>`, e a quebra entre as duas linhas é um `::after` da própria `<tr>` na largura inteira.
+ *
+ * Só CSS, e aqui: as linhas de cada tela continuam as mesmas `<tr>`, e toda `Planilha` vira lista sem
+ * uma tela saber disso. O cabeçalho some — sem colunas, ele não aponta para nada; é a data, o valor e
+ * o selo que se explicam sozinhos. Por isso a ordenação é só do computador.
+ */
+const LISTA_NO_CELULAR = cn(
+  'max-lg:block',
+  'max-lg:[&>tr]:flex max-lg:[&>tr]:flex-wrap max-lg:[&>tr]:items-center max-lg:[&>tr]:gap-x-3 max-lg:[&>tr]:gap-y-1 max-lg:[&>tr]:py-3',
+  'max-lg:[&>tr>*]:order-3 max-lg:[&>tr>*]:p-0 max-lg:[&>tr>*]:text-left max-lg:[&>tr>:empty]:hidden',
+  'max-lg:[&>tr>:first-child]:order-1 max-lg:[&>tr>:first-child]:min-w-0 max-lg:[&>tr>:first-child]:flex-1',
+  'max-lg:[&>tr>:last-child]:order-2 max-lg:[&>tr>:last-child]:ml-auto',
+  'max-lg:[&>tr]:after:order-2 max-lg:[&>tr]:after:basis-full',
+  // Linha que abre com avatar: ele cresce, e o que desce fica alinhado sob o nome, e não sob o avatar.
+  'max-lg:[&_[data-avatar]]:size-10 max-lg:[&_[data-avatar]]:text-base',
+  // O recuo é da linha inteira, e a primeira célula volta para a borda: toda linha que descer —
+  // duas, três — começa sob o nome.
+  'max-lg:[&>tr:has(>:first-child_[data-avatar])]:pl-[3.25rem] max-lg:[&>tr:has(>:first-child_[data-avatar])>:first-child]:-ml-[3.25rem]',
+)
 
 /**
  * A tabela das listas do app: rolagem lateral quando não cabe, cabeçalho em cinza pequeno e a
@@ -122,6 +151,7 @@ export function Planilha<T>({
  * @param rodape As células do `<tfoot>` — o total; a `<tr>` em volta é daqui.
  * @param grudado Cabeçalho preso ao topo do contêiner que rola. Sem a rolagem lateral própria: um
  *   contêiner com `overflow` no meio seria o que o `sticky` acompanharia, e ele não rola.
+ * @param emLista No celular a tabela vira lista (P3 da Sprint 41); ver {@link LISTA_NO_CELULAR}.
  */
 export function Tabela({
   cabecalho,
@@ -131,6 +161,7 @@ export function Tabela({
   legenda,
   rodape,
   grudado = false,
+  emLista = false,
 }: {
   cabecalho: ReactNode
   children: ReactNode
@@ -139,18 +170,23 @@ export function Tabela({
   legenda?: string
   rodape?: ReactNode
   grudado?: boolean
+  emLista?: boolean
 }) {
   const faixa = variante === 'faixa'
 
   const tabela = (
-    <table className="w-full text-sm">
+    <table className={cn('w-full text-sm', emLista && 'max-lg:block')}>
       {legenda ? <caption className="sr-only">{legenda}</caption> : null}
       <thead
         className={cn(
           'text-texto-muted text-left text-xs',
           faixa &&
-            'bg-muted/60 [&_th]:px-3 [&_th]:py-2 [&_th]:font-normal [&_th:first-child]:rounded-l-lg [&_th:last-child]:rounded-r-lg',
+            '[&_th]:px-3 [&_th]:py-2 [&_th]:font-normal [&_th:first-child]:rounded-l-lg [&_th:last-child]:rounded-r-lg',
+          // Grudada, a faixa translúcida deixava ver as linhas passando por baixo: o mesmo cinza, por cima do
+          // fundo do cartão, dá a mesma cor, só que opaca.
+          faixa && (grudado ? 'bg-card from-muted/60 to-muted/60 bg-linear-to-r' : 'bg-muted/60'),
           grudado && 'sticky top-0',
+          emLista && 'max-lg:hidden',
         )}
       >
         <tr className={faixa ? undefined : 'border-b'}>
@@ -158,7 +194,7 @@ export function Tabela({
         </tr>
       </thead>
       {/* `tabular-nums`: valor e data alinham coluna a coluna, e não mexe em texto. */}
-      <tbody className="tabular-nums">{children}</tbody>
+      <tbody className={cn('tabular-nums', emLista && LISTA_NO_CELULAR)}>{children}</tbody>
       {rodape ? (
         <tfoot>
           <tr>{rodape}</tr>

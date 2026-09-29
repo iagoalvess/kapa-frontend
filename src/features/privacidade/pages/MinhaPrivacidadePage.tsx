@@ -5,6 +5,7 @@ import {
   FileSignature,
   GraduationCap,
   Mail,
+  Megaphone,
   ShieldCheck,
   UserRound,
   Wallet,
@@ -13,6 +14,7 @@ import { Link } from 'react-router'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { Interruptor } from '@/components/Interruptor'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
@@ -33,6 +35,7 @@ import {
   useBaixarPacote,
   useCancelarSolicitacao,
   useConfirmarSolicitacao,
+  useDefinirComunicacaoDoKapa,
   useMeusDados,
   useRevogarConsentimento,
   useSolicitacoes,
@@ -70,6 +73,7 @@ export default function MinhaPrivacidadePage() {
   const cancelar = useCancelarSolicitacao()
   const baixar = useBaixarPacote()
   const revogar = useRevogarConsentimento()
+  const definirComunicacaoDoKapa = useDefinirComunicacaoDoKapa()
 
   const ocupado = confirmar.isPending || cancelar.isPending || baixar.isPending
 
@@ -78,13 +82,14 @@ export default function MinhaPrivacidadePage() {
   if (dados.isError) return <ErroDaConsulta erro={dados.error} />
 
   const { conta, turmas, consentimentos, comunicacoes } = dados.data
+  const [ultimaNovidade] = comunicacoes.do_kapa.envios
 
   return (
     <div className="grid gap-5">
       <Cartao
         titulo="Seus direitos sobre estes dados"
         icone={ShieldCheck}
-        descricao="A Lei Geral de Proteção de Dados garante que você veja, corrija, leve embora e peça a eliminação do que guardamos."
+        descricao="Você pode consultar e corrigir seus dados, baixar uma cópia deles ou pedir que sejam eliminados."
         acao={
           <>
             <Button
@@ -114,7 +119,7 @@ export default function MinhaPrivacidadePage() {
           — o cadastro é seu e você o edita quando quiser. Para saber{' '}
           <strong className="text-foreground font-medium">com quem compartilhamos</strong>, veja a{' '}
           <Link to={urlDoSite(ROTAS.operadores)} className="text-brand-text underline underline-offset-4">
-            lista de operadores
+            empresas que recebem seus dados
             <ExternalLink className="ml-0.5 inline size-3.5" aria-hidden />
           </Link>
           .
@@ -246,10 +251,23 @@ export default function MinhaPrivacidadePage() {
           <SecaoDeDados
             titulo="Comunicações"
             icone={BellRing}
-            porQue="Guardamos o que você escolheu receber e o registro do que já enviamos — é o que responde 'nunca fui avisado'."
-            porQuanto="O histórico de envio fica 180 dias. As preferências ficam enquanto o vínculo existir."
+            porQue="Guardamos o que você escolheu receber e o registro do que já enviamos — é o que responde 'nunca fui avisado'. As novidades do Kapa só chegam com a sua autorização, e só para quem cuida de uma turma."
+            porQuanto="O histórico de envio fica 180 dias. As preferências ficam enquanto o vínculo existir; cada vez que você liga ou desliga as novidades fica registrada."
           >
             <ListaDeDados>
+              <Dado icone={Megaphone} rotulo="Novidades do Kapa">
+                <Interruptor
+                  ligado={comunicacoes.do_kapa.receber}
+                  rotulo="Receber novidades do Kapa"
+                  desabilitado={definirComunicacaoDoKapa.isPending}
+                  aoAlternar={(ligado) => definirComunicacaoDoKapa.mutate(ligado)}
+                />
+              </Dado>
+              {ultimaNovidade ? (
+                <Dado icone={Megaphone} rotulo="Novidades enviadas">
+                  {comunicacoes.do_kapa.envios.length} · a última em {formatarData(ultimaNovidade.enviado_em)}
+                </Dado>
+              ) : null}
               <Dado icone={Mail} rotulo="Avisos enviados">
                 {comunicacoes.notificacoes_enviadas}
                 {comunicacoes.ultima_enviada_em

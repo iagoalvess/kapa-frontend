@@ -13,6 +13,8 @@ export const ROTAS = {
   // Estes dois chegam por link de e-mail: o backend monta a URL com eles (`Conta:Caminho*`).
   redefinirSenha: '/redefinir-senha',
   confirmarEmail: '/confirmar-email',
+  // O "Não quero mais receber" do e-mail de marketing, com o token na query (`LinkDeDescadastro`).
+  descadastro: '/descadastro',
   // A página institucional, na raiz do site (`kapaformaturas.com.br`, Sprint 33). No app, `/` só
   // redireciona para o Início, que mora em `/inicio` desde a Sprint 16.
   landing: '/',

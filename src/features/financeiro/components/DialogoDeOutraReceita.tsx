@@ -52,7 +52,7 @@ export function DialogoDeOutraReceita({ aberto, aoFechar }: Props) {
       titulo={outraReceita ? 'Editar receita' : 'Nova receita'}
       descricao={
         outraReceita
-          ? 'A correção vale para esta receita. Receber e cancelar ficam na lista.'
+          ? 'As mudanças valem apenas para esta receita. Para marcar como recebida ou cancelar, use as ações da lista.'
           : 'O que entrou na conta da turma sem ser parcela de formando: patrocínio, evento, doação, rendimento.'
       }
       largura="largo"
@@ -233,7 +233,7 @@ function FormularioDeOutraReceita({
             <p className="text-muted-foreground text-sm">
               {recebida
                 ? 'Entra no arrecadado, no caixa e na meta da festa.'
-                : 'Fica como prevista: aparece só na projeção do caixa até ser recebida.'}
+                : 'Até o dinheiro chegar, esta receita aparece apenas entre os valores previstos do caixa.'}
             </p>
           </div>
         )}

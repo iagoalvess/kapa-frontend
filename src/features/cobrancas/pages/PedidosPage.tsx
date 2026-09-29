@@ -18,6 +18,7 @@ import { rotuloDoItem, type FiltroDePedidos } from '../types/cobrancas.types'
 import { AcoesDoPedido } from '../components/AcoesDoPedido'
 import { LiberarConvites } from '../components/LiberarConvites'
 import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -39,6 +40,7 @@ const SITUACOES = {
  * porta na linha da busca: como grade de cartões aqui em cima, empurrava a lista para baixo.
  */
 export default function PedidosPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const resumo = useResumoDosPedidos()
 
@@ -51,7 +53,7 @@ export default function PedidosPage() {
   const ordenacao = useOrdenacao(atualizar)
   const pedidos = usePedidos({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     ...(situacao ? SITUACOES[situacao].filtro : {}),
     item_de_cobranca_id: item,
     busca: busca || undefined,
@@ -159,7 +161,6 @@ export default function PedidosPage() {
             </Button>
           </>
         }
-        quebrarAcoesNoCelular
         contagem={{
           mostrando: pedidos.data?.itens.length ?? 0,
           total: pedidos.data?.total ?? 0,

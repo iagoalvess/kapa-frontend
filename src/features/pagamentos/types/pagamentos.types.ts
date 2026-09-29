@@ -1,6 +1,6 @@
 import type { Parcela } from '@/types/cobranca'
 import type { PaginacaoRequest } from '@/types/paginacao'
-import type { MeioDePagamento } from '@/types/pagamento'
+import type { CartaoParaPagar, MeioDePagamento } from '@/types/pagamento'
 import type { DadosBancarios, MeioDeRecebimento } from '@/types/recebimento'
 
 export type { MeioDeRecebimento } from '@/types/recebimento'
@@ -65,7 +65,12 @@ export interface PeloMercadoPago {
   meio: MeioDePagamento
   /** O PIX pronto, em `Pix`. */
   pix: PixDoMercadoPago | null
+  /** O formulário do cartão e o valor que ele cobra, em `Cartao` (Sprint 39). */
+  cartao: CartaoParaPagar | null
 }
+
+/** Em que pé ficou o pagamento no cartão. Espelha `SituacaoDoCartao`. */
+export type SituacaoDoCartao = 'Pago' | 'EmAnalise'
 
 /** O PIX do Mercado Pago da turma. Espelha `PixDinamicoParaPagarDTO`. */
 export interface PixDoMercadoPago {

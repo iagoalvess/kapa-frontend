@@ -237,7 +237,7 @@ export function FiltrosDoRelatorio({
           />
         </div>
       }
-      acoes={
+      filtrosAvancados={
         <>
           {/* Conta o período personalizado e os recortes do painel — os seletores da barra estão à
               vista, e somá-los aqui contaria duas vezes o que já se lê na tela. */}
@@ -307,7 +307,10 @@ export function FiltrosDoRelatorio({
               </fieldset>
             </div>
           </BotaoDeFiltros>
-
+        </>
+      }
+      acoes={
+        <>
           <MenuDeExportacao
             formato={formato}
             aoTrocarFormato={aoTrocarFormato}

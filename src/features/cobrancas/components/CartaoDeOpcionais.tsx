@@ -4,16 +4,19 @@ import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { BotaoDoLinkDaLoja } from '@/components/BotaoDoLinkDaLoja'
 import { Cartao } from '@/components/Cartao'
+import { Paginacao } from '@/components/Paginacao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarDataHora, formatarNumero, jaChegou } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { paginar } from '@/lib/paginar'
 import { cn } from '@/lib/utils'
 import { useEncerrarOpcional, useExcluirOpcional } from '../hooks/useOpcionais'
 import { type ItemDeCobranca, type PlanoDeCobranca, rotuloDoItem } from '../types/cobrancas.types'
 import { FormularioDeOpcional } from './FormularioDeOpcional'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 /**
  * Os opcionais da turma: o que o formando pode pedir só para ele.
@@ -26,6 +29,7 @@ import { FormularioDeOpcional } from './FormularioDeOpcional'
  * quantidade é o pedido.
  */
 export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca; editavel: boolean }) {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const [dialogo, definirDialogo] = useState<false | { item?: ItemDeCobranca }>(false)
   const encerrar = useEncerrarOpcional()
   const excluir = useExcluirOpcional()
@@ -36,13 +40,15 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
   const abertos = itens.filter((item) => !item.encerrado_em)
   const ordenados = [...abertos, ...itens.filter((item) => item.encerrado_em)]
   const temLoja = abertos.some((item) => item.modo_de_venda === 'Publica')
+  const [paginaPedida, definirPagina] = useState(1)
+  const pagina = paginar(ordenados, paginaPedida, tamanhoDaPagina)
 
   return (
     <>
       <Cartao
         titulo="Opcionais"
         icone={ShoppingBag}
-        descricao="O que só alguns compram: o convite a mais, o kit, a foto. Não entra na adesão de ninguém — vira parcela quando o formando pede."
+        descricao="Convites extras, kits e fotos são cobrados apenas de quem pedir. Cada pedido gera parcelas para o formando."
         acao={
           <div className="flex flex-wrap gap-2">
             {temLoja ? <BotaoDoLinkDaLoja /> : null}
@@ -62,6 +68,7 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
           </p>
         ) : (
           <Tabela
+            emLista
             cabecalho={
               <>
                 <th className="py-3 pr-4 font-normal">Item</th>
@@ -72,7 +79,7 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
               </>
             }
           >
-            {ordenados.map((item) => (
+            {pagina.visiveis.map((item) => (
               <tr key={item.id} className={cn('border-b last:border-0', item.encerrado_em && 'opacity-60')}>
                 <td className="text-foreground py-3 pr-4 font-medium">
                   <div className="grid">
@@ -156,6 +163,12 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
             ))}
           </Tabela>
         )}
+        <Paginacao
+          pagina={pagina.pagina}
+          totalPaginas={pagina.totalPaginas}
+          total={pagina.total}
+          aoMudar={definirPagina}
+        />
       </Cartao>
 
       <DialogoDeFormulario

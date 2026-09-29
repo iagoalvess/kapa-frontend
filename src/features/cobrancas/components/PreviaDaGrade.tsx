@@ -1,6 +1,5 @@
-import { ChevronDown } from 'lucide-react'
-import { useRef, useState } from 'react'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
+import { CaixaRolavel } from '@/components/CaixaRolavel'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -21,24 +20,6 @@ interface Props {
  * ruído. Nenhuma conta é feita aqui: o que está na tela é o que o servidor vai gerar.
  */
 export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
-  const lista = useRef<HTMLDivElement | null>(null)
-  const [temMais, definirTemMais] = useState(false)
-
-  /** A seta do pé só aparece enquanto sobra lista para rolar. */
-  const conferirSeTemMais = () => {
-    const caixa = lista.current
-    if (caixa) definirTemMais(caixa.scrollHeight - caixa.scrollTop - caixa.clientHeight > 1)
-  }
-
-  /**
-   * Mede assim que o nó entra, e não só ao rolar: aqui a grade já nasce à vista — diferente da
-   * adesão, onde ela abre num `<details>` e a medição pega o `onToggle`.
-   */
-  const medir = (caixa: HTMLDivElement | null) => {
-    lista.current = caixa
-    conferirSeTemMais()
-  }
-
   if (erro) {
     return <ErroDaConsulta erro={erro} />
   }
@@ -59,15 +40,8 @@ export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
 
   return (
     <div className={cn('grid gap-4', atualizando && 'opacity-60')} aria-busy={atualizando}>
-      {/* A rolagem não mostra barra, e a seta no pé avisa que ainda há parcelas para baixo — o
-          mesmo da grade da adesão, que é onde o formando lê exatamente esta lista. */}
-      {/* `key` pelo número de parcelas: é o que muda a altura da lista, e remontar refaz a medida. */}
-      <div
-        key={simulacao.parcelas.length}
-        ref={medir}
-        onScroll={conferirSeTemMais}
-        className="max-h-[26rem] [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden"
-      >
+      {/* A mesma caixa da grade da adesão, que é onde o formando lê exatamente esta lista. */}
+      <CaixaRolavel altura="max-h-[26rem]">
         <Tabela
           variante="faixa"
           grudado
@@ -106,17 +80,7 @@ export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
             </tr>
           ))}
         </Tabela>
-
-        {/* Altura zero no fluxo (`-mt-10` desfaz o `h-10`): cobre a última linha visível sem mudar a rolagem. */}
-        {temMais ? (
-          <div
-            aria-hidden
-            className="from-card pointer-events-none sticky bottom-0 -mt-10 flex h-10 items-end justify-center bg-linear-to-t to-transparent"
-          >
-            <ChevronDown className="text-muted-foreground size-4" />
-          </div>
-        ) : null}
-      </div>
+      </CaixaRolavel>
     </div>
   )
 }

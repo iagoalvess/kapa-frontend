@@ -16,17 +16,6 @@ import { cn } from '@/lib/utils'
 import { useDefinirRegra, useHistorico, useRegua } from '../hooks/useRegras'
 import { destinoDoDegrau, marcoDoDegrau, type Regra, tomDoDegrau } from '../types/notificacoes.types'
 
-/** Em palavras, a distância do gatilho — a coluna que explica o `D-5` ao lado. */
-function quandoDispara(regra: Regra) {
-  const dias = regra.dias_de_deslocamento
-
-  if (regra.gatilho === 'InformePendente') return `Parado há ${dias} dias`
-  if (dias === 0) return 'No dia do vencimento'
-  if (dias < 0) return `${Math.abs(dias)} dias antes`
-
-  return `${dias} dias depois`
-}
-
 /**
  * A régua de cobrança da turma: os degraus na tabela do cartão, do lembrete antes do vencimento à
  * cobrança firme, e a mesma sequência desenhada ao lado.
@@ -54,10 +43,10 @@ export default function ReguaPage() {
     <>
       <LinkDeVolta para={ROTAS.cobrancas}>Plano de cobrança</LinkDeVolta>
       <FaixaDeIndicadores
-        rotulo="Resumo da régua"
+        rotulo="Resumo dos lembretes"
         indicadores={[
           {
-            rotulo: 'Degraus ativos',
+            rotulo: 'Lembretes ativos',
             valor: regua.data ? ativos.length : null,
             unidade: `de ${regras.length}`,
             icone: CalendarClock,
@@ -69,11 +58,11 @@ export default function ReguaPage() {
             icone: Mail,
           },
           {
-            rotulo: 'Avisa a tesouraria',
+            rotulo: 'Também avisam a tesouraria',
             valor: regua.data
               ? regras.filter((regra) => regra.ativa && regra.avisar_tesouraria).length
               : null,
-            unidade: 'degraus',
+            unidade: 'lembretes',
             icone: Bell,
           },
           {
@@ -91,9 +80,9 @@ export default function ReguaPage() {
       {regua.data ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <Cartao
-            titulo="Régua de cobrança"
+            titulo="Lembretes de cobrança"
             icone={CalendarClock}
-            descricao="Na ordem em que o formando recebe. Ninguém recebe mais de uma mensagem por dia."
+            descricao="Veja quando cada lembrete é enviado. Cada formando recebe no máximo uma mensagem por dia."
             acao={
               <Button asChild variant="outline" size="sm">
                 <Link to={ROTAS.avisosEnviados}>
@@ -120,8 +109,8 @@ export default function ReguaPage() {
                   <div className="grid gap-0.5">
                     <h3 className="text-foreground font-medium">Fila da tesouraria</h3>
                     <p className="text-muted-foreground text-sm">
-                      Informe de pagamento parado trava a cobrança da parcela — este aviso lembra quem
-                      confere.
+                      Quando um formando avisa que pagou, a cobrança da parcela fica pausada até a tesouraria
+                      conferir. Este lembrete avisa sobre pagamentos ainda não conferidos.
                     </p>
                   </div>
                 </div>
@@ -137,7 +126,7 @@ export default function ReguaPage() {
           {/* A segunda linha do grid é da sequência: ela ocupa a altura que o cartão da régua der. */}
           <Cartao
             titulo="Sequência de lembretes"
-            descricao="Visão do fluxo de comunicação"
+            descricao="Quando cada mensagem é enviada"
             className="grid-rows-[auto_1fr]"
           >
             <SequenciaDeLembretes degraus={vencimentos} />
@@ -157,7 +146,7 @@ export default function ReguaPage() {
  */
 function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
   if (degraus.length === 0) {
-    return <p className="text-muted-foreground text-sm">Nenhum lembrete na régua.</p>
+    return <p className="text-muted-foreground text-sm">Nenhum lembrete configurado.</p>
   }
 
   return (
@@ -181,7 +170,7 @@ function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
           </span>
           <div className="grid min-w-0 flex-1 gap-0.5 text-sm">
             <span className="text-foreground font-medium tabular-nums">{marcoDoDegrau(regra)}</span>
-            <span className="text-muted-foreground">{quandoDispara(regra)}</span>
+            <span className="text-muted-foreground">{tomDoDegrau(regra)}</span>
             <span className="text-muted-foreground">Para o {destinoDoDegrau(regra).toLowerCase()}</span>
           </div>
           <p className="bg-brand-tint text-foreground w-36 shrink-0 rounded-xl px-3 py-2 text-sm">
@@ -199,8 +188,8 @@ function TabelaDeDegraus({ children }: { children: ReactNode }) {
     <Tabela
       cabecalho={
         <>
-          <th className="py-3 pr-4 font-normal">Momento</th>
           <th className="py-3 pr-4 font-normal">Quando</th>
+          <th className="py-3 pr-4 font-normal">Mensagem</th>
           <th className="py-3 pr-4 font-normal">Vai para</th>
           <th className="py-3 pr-4 font-normal">Assunto</th>
           <th className="py-3 font-normal">Situação</th>
@@ -234,7 +223,7 @@ function LinhaDoDegrau({ regra }: { regra: Regra }) {
   return (
     <tr className="border-b last:border-0">
       <td className="text-foreground py-3 pr-4 font-medium tabular-nums">{marcoDoDegrau(regra)}</td>
-      <td className="py-3 pr-4 whitespace-nowrap">{quandoDispara(regra)}</td>
+      <td className="py-3 pr-4 whitespace-nowrap">{tomDoDegrau(regra)}</td>
       <td className="py-3 pr-4 whitespace-nowrap">{destinoDoDegrau(regra)}</td>
       <td className="max-w-64 truncate py-3 pr-4" title={regra.assunto}>
         {regra.assunto}

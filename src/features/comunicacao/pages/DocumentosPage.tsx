@@ -187,32 +187,31 @@ export default function DocumentosPage() {
           rotulo: 'Buscar documento',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
-          <>
-            <BotaoDeFiltros id="filtros-do-acervo" ligados={ordem === 'recentes' ? 0 : 1}>
-              <fieldset className="grid gap-2">
-                <legend className="text-muted-foreground mb-2 text-sm">Ordem nas colunas</legend>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(ORDENS).map(([valor, { rotulo }]) => (
-                    <Chip
-                      key={valor}
-                      ativo={ordem === valor}
-                      onClick={() => atualizar({ ordem: valor === 'recentes' ? null : valor })}
-                    >
-                      {rotulo}
-                    </Chip>
-                  ))}
-                </div>
-              </fieldset>
-            </BotaoDeFiltros>
-            {gestao ? (
-              <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
-                <Upload aria-hidden />
-                {/* No celular, só "Novo": com o complemento, a busca ao lado fica espremida. */}
-                Novo <span className="hidden sm:inline">documento</span>
-              </Button>
-            ) : null}
-          </>
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-do-acervo" ligados={ordem === 'recentes' ? 0 : 1}>
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Ordem nas colunas</legend>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ORDENS).map(([valor, { rotulo }]) => (
+                  <Chip
+                    key={valor}
+                    ativo={ordem === valor}
+                    onClick={() => atualizar({ ordem: valor === 'recentes' ? null : valor })}
+                  >
+                    {rotulo}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+          </BotaoDeFiltros>
+        }
+        acaoPrincipal={
+          gestao ? (
+            <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
+              <Upload aria-hidden />
+              Novo documento
+            </Button>
+          ) : null
         }
         contagem={{
           mostrando: visiveis.length,

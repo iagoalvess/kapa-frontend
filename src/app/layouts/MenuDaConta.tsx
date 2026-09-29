@@ -140,7 +140,7 @@ export function MenuDaConta({
           {ehGestao ? (
             <Link to={ROTAS.auditoria} onClick={fechar} className={estiloDoItem}>
               <Fingerprint strokeWidth={1.75} aria-hidden />
-              Auditoria
+              Histórico da turma
             </Link>
           ) : null}
 

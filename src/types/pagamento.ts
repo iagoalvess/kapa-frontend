@@ -15,3 +15,26 @@ export const MEIOS_DE_PAGAMENTO: Record<MeioDePagamento, { rotulo: string; descr
   Pix: { rotulo: 'PIX', descricao: 'QR e copia-e-cola, com confirmação na hora.' },
   Cartao: { rotulo: 'Cartão de crédito', descricao: 'Confirmação na hora.' },
 }
+
+/**
+ * O cartão pronto para pagar (Sprint 39): a chave pública da conta da turma, para o formulário do Mercado Pago
+ * tokenizar no navegador, e o valor que ele cobra. Espelha `CartaoParaPagarDTO`.
+ */
+export interface CartaoParaPagar {
+  chave_publica: string
+  /** O valor do PIX mais o acréscimo. */
+  valor_em_centavos: number
+  /** A taxa do cartão que a turma repassa a quem paga (P2); zero quando ela absorve. */
+  acrescimo_em_centavos: number
+  /** Em quantas vezes, no máximo — os juros do parcelamento são de quem paga (P3). */
+  maximo_de_parcelas: number
+}
+
+/** O que o formulário do Mercado Pago devolve: o número do cartão nunca passa pelo Kapa. */
+export interface CartaoTokenizado {
+  token: string
+  /** O `payment_method_id` (`visa`, `master`…). */
+  bandeira: string
+  /** Em quantas vezes. */
+  parcelas: number
+}

@@ -97,8 +97,8 @@ export default function DetalheDoFornecedorPage() {
         selo={dados.ativo ? null : <Selo tom="neutro">Inativo</Selo>}
         descricao={
           dados.ativo
-            ? 'Aparece ao lançar uma despesa, já com a categoria escolhida.'
-            : 'Aposentado: não aparece mais ao lançar uma despesa. O histórico continua aqui.'
+            ? 'Você pode selecionar este fornecedor ao registrar uma despesa.'
+            : 'Este fornecedor não aparece mais nas novas despesas. As despesas anteriores continuam no histórico.'
         }
         acao={
           <Button variant="outline" size="sm" disabled={!editavel} onClick={() => definirEditando(true)}>

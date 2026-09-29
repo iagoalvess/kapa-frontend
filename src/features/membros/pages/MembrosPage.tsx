@@ -32,6 +32,7 @@ import { DialogoDeDesligamento } from '../components/DialogoDeDesligamento'
 import { IndicadoresDeMembros } from '../components/IndicadoresDeMembros'
 import { SeloDeDesligado } from '../components/SeloDeDesligado'
 import type { MembroDaFormatura, SituacaoDoCadastro } from '../types/membros.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -74,6 +75,7 @@ const ehPapel = (valor: string | null): valor is Papel =>
  * na pílula ser o que a lista vai trazer ao clicar.
  */
 export default function MembrosPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const { ehPresidente } = usePapel()
   const resumo = useResumoDeMembros()
@@ -90,7 +92,7 @@ export default function MembrosPage() {
   const ordenacao = useOrdenacao(atualizar)
   const membros = useMembros({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     busca: busca || undefined,
     ativo,
     desligado,
@@ -148,12 +150,14 @@ export default function MembrosPage() {
           rotulo: 'Buscar membro',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <FiltrosDeCadastro
+            cadastro={cadastro}
+            aoEscolher={(valor) => atualizar({ cadastro: cadastro === valor ? null : valor })}
+          />
+        }
         acoes={
           <>
-            <FiltrosDeCadastro
-              cadastro={cadastro}
-              aoEscolher={(valor) => atualizar({ cadastro: cadastro === valor ? null : valor })}
-            />
             {/* Adesões saiu do menu da esquerda e virou porta daqui: é a mesma turma vista de outro
                 ângulo — quem já assinou o termo —, e quem vai atrás disso chegou por esta lista.
                 O recorte é o mesmo da rota, então quem lê Membros lê Adesões. */}

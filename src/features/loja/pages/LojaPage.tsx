@@ -1,21 +1,13 @@
-import { CalendarDays, MapPin } from 'lucide-react'
 import { useParams } from 'react-router'
 import mascoteErro from '@/assets/mascote/erro.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Selo } from '@/components/Selo'
-import {
-  formatarCentavos,
-  formatarData,
-  formatarDiaDaSemana,
-  formatarHora,
-  formatarNumero,
-  instanteDe,
-} from '@/lib/formato'
+import { formatarCentavos, formatarData, formatarNumero, instanteDe } from '@/lib/formato'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { ContagemRegressiva, useAgoraDoServidor } from '../components/ContagemRegressiva'
 import { FormularioDeCompra } from '../components/FormularioDeCompra'
-import { MolduraDaLoja, QuemVende } from '../components/MolduraDaLoja'
+import { CabecalhoDaFesta, MolduraDaLoja, QuemVende } from '../components/MolduraDaLoja'
 import { ReenvioDoLink } from '../components/ReenvioDoLink'
 import { useLoja } from '../hooks/useLoja'
 import type { ItemDaLoja } from '../types/loja.types'
@@ -77,59 +69,49 @@ function Vitrine({
   const aberto = (item: ItemDaLoja) =>
     item.aberto || (item.abertura_de_vendas !== null && instanteDe(item.abertura_de_vendas) <= agora)
   const compraveis = loja.itens.filter((item) => aberto(item) && item.disponivel !== 0)
-  const { festa } = loja
+  const unico = loja.itens.length === 1 ? loja.itens[0] : undefined
 
   return (
     <MolduraDaLoja>
-      <header className="grid gap-1 text-center">
-        <p className="text-muted-foreground text-sm">
-          {loja.turma} · {loja.instituicao}
-        </p>
-        <h1 className="text-2xl font-semibold">{festa?.titulo ?? 'Convites da festa'}</h1>
-        {festa ? (
-          <div className="text-muted-foreground mt-1 grid gap-1 text-sm">
-            <p className="flex items-center justify-center gap-2">
-              <CalendarDays className="size-4" aria-hidden />
-              {formatarDiaDaSemana(festa.data)}, {formatarData(festa.data)}
-              {festa.hora ? ` · ${formatarHora(festa.hora)}` : null}
+      {unico ? (
+        // Um convite só: ele é o título, e o cartão some — preço e situação ficam no topo.
+        <CabecalhoDaFesta
+          turma={`${loja.turma} · ${loja.instituicao}`}
+          festa={loja.festa}
+          titulo={unico.descricao}
+        >
+          <div className="mt-1 grid justify-items-center gap-1">
+            <p className="flex items-center gap-2">
+              <span className="text-xl font-semibold tabular-nums">
+                {formatarCentavos(unico.preco_em_centavos)}
+              </span>
+              <SituacaoDoItem item={unico} aberto={aberto(unico)} />
             </p>
-            {festa.local ? (
-              <p className="flex items-center justify-center gap-2">
-                <MapPin className="size-4" aria-hidden />
-                {festa.local}
-              </p>
-            ) : null}
+            <PrazosDoItem item={unico} aberto={aberto(unico)} agora={agora} />
           </div>
-        ) : null}
-      </header>
+        </CabecalhoDaFesta>
+      ) : (
+        <>
+          <CabecalhoDaFesta turma={`${loja.turma} · ${loja.instituicao}`} festa={loja.festa} />
 
-      <ul className="grid gap-3" aria-label="Convites à venda">
-        {loja.itens.map((item) => (
-          <li key={item.id} className="grid gap-2 rounded-xl border p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="grid">
-                <span className="font-medium">{item.descricao}</span>
-                <span className="text-lg font-semibold tabular-nums">
-                  {formatarCentavos(item.preco_em_centavos)}
-                </span>
-              </div>
-              <SituacaoDoItem item={item} aberto={aberto(item)} />
-            </div>
-            {!aberto(item) && item.abertura_de_vendas && instanteDe(item.abertura_de_vendas) > agora ? (
-              <p className="text-sm">
-                <ContagemRegressiva
-                  ate={item.abertura_de_vendas}
-                  agora={agora}
-                  prefixo="As vendas abrem em"
-                />
-              </p>
-            ) : null}
-            {item.vendas_ate ? (
-              <p className="text-muted-foreground text-xs">Vendas até {formatarData(item.vendas_ate)}.</p>
-            ) : null}
-          </li>
-        ))}
-      </ul>
+          <ul className="grid gap-3" aria-label="Convites à venda">
+            {loja.itens.map((item) => (
+              <li key={item.id} className="grid gap-2 rounded-xl border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid">
+                    <span className="font-medium">{item.descricao}</span>
+                    <span className="text-lg font-semibold tabular-nums">
+                      {formatarCentavos(item.preco_em_centavos)}
+                    </span>
+                  </div>
+                  <SituacaoDoItem item={item} aberto={aberto(item)} />
+                </div>
+                <PrazosDoItem item={item} aberto={aberto(item)} agora={agora} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {compraveis.length > 0 ? (
         <section aria-labelledby="titulo-da-compra" className="grid gap-4">
@@ -148,6 +130,22 @@ function Vitrine({
       <QuemVende turma={loja.turma} contato={loja.contato_da_comissao} />
       <ReenvioDoLink formaturaId={formaturaId} />
     </MolduraDaLoja>
+  )
+}
+
+/** Quando as vendas abrem (em contagem regressiva) e até quando vão. */
+function PrazosDoItem({ item, aberto, agora }: { item: ItemDaLoja; aberto: boolean; agora: number }) {
+  return (
+    <>
+      {!aberto && item.abertura_de_vendas && instanteDe(item.abertura_de_vendas) > agora ? (
+        <p className="text-sm">
+          <ContagemRegressiva ate={item.abertura_de_vendas} agora={agora} prefixo="As vendas abrem em" />
+        </p>
+      ) : null}
+      {item.vendas_ate ? (
+        <p className="text-muted-foreground text-xs">Vendas até {formatarData(item.vendas_ate)}.</p>
+      ) : null}
+    </>
   )
 }
 

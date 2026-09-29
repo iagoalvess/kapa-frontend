@@ -53,7 +53,7 @@ export function UploadDeDocumento({ aberto, aoFechar }: Props) {
       descricao={
         documento
           ? `Versão ${documento.versao}. Anexar um arquivo substitui o atual pela versão ${documento.versao + 1}.`
-          : 'Ata, contrato, orçamento ou regulamento — o que não pode se perder na rolagem do grupo.'
+          : 'Guarde aqui atas, contratos, orçamentos e outros arquivos importantes para a turma.'
       }
     >
       <FormularioDoDocumento

@@ -117,7 +117,7 @@ describe('ConferenciaPage', () => {
 
     const dialogo = await screen.findByRole('alertdialog')
     expect(dialogo).toHaveTextContent('Confirmar 2 pagamentos')
-    expect(dialogo).toHaveTextContent('Esta ação fica registrada em seu nome.')
+    expect(dialogo).toHaveTextContent('A confirmação fica registrada em seu nome.')
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Confirmar' }))
 
     await waitFor(() =>

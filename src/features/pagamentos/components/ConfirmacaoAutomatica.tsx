@@ -17,7 +17,7 @@ export function ConfirmacaoAutomatica({ children }: { children?: ReactNode }) {
     <Cartao
       passo={2}
       titulo="Não precisa avisar"
-      descricao="O Mercado Pago avisa o Kapa, e a parcela muda para paga sozinha."
+      descricao="O Mercado Pago confirma o pagamento automaticamente, sem você precisar avisar a tesouraria."
     >
       {children}
 
@@ -25,7 +25,8 @@ export function ConfirmacaoAutomatica({ children }: { children?: ReactNode }) {
         <img src={mascoteCelular} alt="" className="w-14 shrink-0 drop-shadow-lg" />
         <p className="text-muted-foreground flex items-start gap-2 text-sm">
           <LoaderCircle className="mt-0.5 size-4 shrink-0 motion-safe:animate-spin" aria-hidden />
-          Pagou? Fique nesta tela: em instantes ela mostra a parcela paga. Você também recebe um e-mail.
+          Depois de pagar, aguarde nesta tela. Assim que o pagamento for confirmado, a parcela aparecerá como
+          paga. Você também receberá um e-mail.
         </p>
       </div>
     </Cartao>

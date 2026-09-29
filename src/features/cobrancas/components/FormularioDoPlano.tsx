@@ -6,13 +6,13 @@ import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { lerPercentual } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useAtualizarPlano, useCriarPlano } from '../hooks/usePlano'
 import {
   esquemaDoPlano,
   type FormularioDoPlano as ValoresDoPlano,
   LIMITES_DE_MERCADO,
-  lerPercentual,
   paraDadosDoPlano,
   paraFormularioDoPlano,
   planoEmBranco,

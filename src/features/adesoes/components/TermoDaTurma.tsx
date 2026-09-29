@@ -55,7 +55,7 @@ export function EditorDoTermo({
       <Cartao
         titulo={vigente ? `Versão ${proxima} do termo` : 'Primeira versão do termo'}
         icone={FilePenLine}
-        descricao="Escreva em markdown: # título, ## seção, - item, **negrito**. O plano de pagamento entra sozinho, antes do texto."
+        descricao="Escreva o termo e use os botões para formatar o texto. O plano de pagamento aparece antes dele."
       >
         <Form {...formulario}>
           <form onSubmit={enviar} noValidate className="grid gap-4">
@@ -94,7 +94,7 @@ export function EditorDoTermo({
                   </Button>
                 }
                 titulo={`Publicar a versão ${proxima}?`}
-                descricao="Ela passa a valer agora para quem ainda não aderiu. Quem já aderiu continua na versão que aceitou; se a comissão quiser todos na nova, lembre cada um pelo painel."
+                descricao="A nova versão vale para quem ainda não aderiu. Quem já aderiu mantém a versão que aceitou. Para pedir um novo aceite, avise essas pessoas na tela de adesões."
                 rotuloDeCancelar="Revisar"
                 rotulo="Publicar"
                 aoConfirmar={() => void enviar()}

@@ -34,10 +34,10 @@ export function DialogoDeDespesa({ aberto, fornecedores, itensDaFesta, contratan
       titulo={despesa ? 'Editar despesa' : contratando ? `Contratar ${contratando.titulo}` : 'Nova despesa'}
       descricao={
         despesa
-          ? 'A correção vale para esta linha. Despesa paga também se corrige — o que não se faz é cancelá-la.'
+          ? 'As mudanças valem apenas para esta despesa. Você pode corrigir uma despesa paga, mas não cancelá-la.'
           : contratando
-            ? 'O que o item já sabe veio preenchido. Falta o que só o contrato diz: de quem, em quantas vezes e quando vence.'
-            : 'Parcelada gera uma linha por vencimento. Se já foi paga, anexe o comprovante.'
+            ? 'Os dados do item já estão preenchidos. Informe o fornecedor, as parcelas e os vencimentos do contrato.'
+            : 'Se o pagamento for parcelado, cada vencimento aparecerá separadamente. Se já foi pago, anexe o comprovante.'
       }
       largura="largo"
     >

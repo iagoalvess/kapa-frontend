@@ -75,11 +75,35 @@ describe('CriarContaPage', () => {
       expect(sessao.accessToken()).toBe('token-novo')
     })
     expect(corpo).toMatchObject({
+      receber_comunicacao_do_kapa: false,
       aceites: [
         { tipo: 'PoliticaDePrivacidade', versao: '1' },
         { tipo: 'TermosDeUso', versao: '1' },
       ],
     })
+  })
+
+  /** Sprint 40, P1: consentimento — a caixa nasce desmarcada, e só vai `true` quem a marca. */
+  it('manda a caixa das novidades desmarcada, a menos que a pessoa a marque', async () => {
+    const corpos: unknown[] = []
+    servidor.use(
+      http.post(REGISTRAR, async ({ request }) => {
+        corpos.push(await request.json())
+        return HttpResponse.json({ access_token: 'token-novo', expira_em: new Date().toISOString() })
+      }),
+    )
+
+    renderizar(<CriarContaPage />)
+    const caixa = await screen.findByRole('checkbox', { name: /novidades do Kapa/ })
+    expect(caixa).not.toBeChecked()
+
+    await preencherDados()
+    await aceitarTudo()
+    await userEvent.click(caixa)
+    await criarConta()
+
+    await waitFor(() => expect(corpos).toHaveLength(1))
+    expect(corpos[0]).toMatchObject({ receber_comunicacao_do_kapa: true })
   })
 
   /** Sem passar pela página do convite: ela só apareceria para dizer "Entrando na turma…". */

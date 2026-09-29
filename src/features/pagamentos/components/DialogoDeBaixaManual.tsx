@@ -51,7 +51,7 @@ export function DialogoDeBaixaManual({
       { parcelaId: parcela.id, ...valores },
       {
         onSuccess: () => {
-          toast.success('Parcela baixada.')
+          toast.success('Pagamento registrado.')
           definirAberto(false)
         },
         onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
@@ -62,7 +62,7 @@ export function DialogoDeBaixaManual({
   return (
     <>
       <AcaoDaLinha
-        rotulo="Baixar"
+        rotulo="Registrar pagamento"
         icone={Check}
         desabilitada={desabilitado}
         onClick={() => {
@@ -73,7 +73,7 @@ export function DialogoDeBaixaManual({
       <DialogoDeFormulario
         aberto={aberto}
         aoFechar={() => definirAberto(false)}
-        titulo="Baixar parcela"
+        titulo="Registrar pagamento da parcela"
         descricao={
           <>
             {parcela.nome} · {rotuloDoItem(parcela)} {parcela.numero}/{parcela.de}, vencimento em{' '}
@@ -157,8 +157,8 @@ export function DialogoDeBaixaManual({
         <AcoesDoFormulario
           aoCancelar={() => definirAberto(false)}
           ocupado={baixar.isPending}
-          rotulo="Baixar"
-          rotuloOcupado="Baixando…"
+          rotulo="Registrar pagamento"
+          rotuloOcupado="Registrando…"
           form={`baixa-${parcela.id}`}
         />
       </DialogoDeFormulario>

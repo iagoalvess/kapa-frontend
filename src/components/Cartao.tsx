@@ -31,6 +31,16 @@ interface Props {
 }
 
 /**
+ * Texto de ajuda que sai no celular (P4 da Sprint 41): a frase que explica o cartão, quando passa de
+ * uma linha e pouco. Só texto — descrição montada em JSX costuma trazer dado (uma data, um valor), e
+ * esse fica.
+ *
+ * ponytail: corte por tamanho, e não por marcação de quem escreve; se uma ajuda curta precisar sair
+ * ou uma longa ficar, vira prop.
+ */
+const ehAjudaLonga = (descricao: ReactNode) => typeof descricao === 'string' && descricao.length > 80
+
+/**
  * O cartão branco das telas do app: fundo, sombra e respiro de sempre.
  *
  * O cabeçalho segue os cartões do modelo (`docs/design/modelo`): ícone num bloco cinza, título,
@@ -70,13 +80,23 @@ export function Cartao({
               <Icone className="size-5" strokeWidth={1.75} aria-hidden />
             </span>
           ) : null}
-          {/* `basis-60`: sem espaço para o texto e as ações lado a lado, as ações descem de linha. */}
-          <div className="grid min-w-0 flex-1 basis-60 gap-0.5">
+          {/* `basis-60`: sem espaço para o texto e as ações lado a lado, as ações descem de linha. Só
+              a seta não desce: ela cabe em qualquer largura, e sozinha numa linha parecia solta. */}
+          <div className={cn('grid min-w-0 flex-1 gap-0.5', acao ? 'basis-60' : 'basis-0')}>
             <h2 className="text-foreground flex flex-wrap items-center gap-2 text-xl leading-snug font-medium">
               {titulo}
               {selo}
             </h2>
-            {descricao ? <p className="text-muted-foreground text-[15px]">{descricao}</p> : null}
+            {descricao ? (
+              <p
+                className={cn(
+                  'text-muted-foreground text-[15px]',
+                  ehAjudaLonga(descricao) && 'max-lg:hidden',
+                )}
+              >
+                {descricao}
+              </p>
+            ) : null}
           </div>
           {acao || para ? (
             <div className="flex flex-wrap items-center gap-2">

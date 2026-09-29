@@ -19,18 +19,21 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
+import { Paginacao } from '@/components/Paginacao'
 import { Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { rotaDaContaNoSuporte, ROTAS } from '@/config/rotas'
 import { formatarCentavos, formatarConclusao, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { paginar } from '@/lib/paginar'
 import { APARENCIA_DA_COBRANCA, type CobrancaDoPlano, MOTIVO_DA_COBRANCA } from '@/types/assinatura'
 import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
 import { SeloDaAssinatura, SeloDaTurma } from '../components/SeloDeStatus'
 import { useAtivarAssinatura, useEstornarPagamento, useTurmaNoSuporte } from '../hooks/useSuporte'
 import type { ModoDeEstorno } from '../types/suporte.types'
 import { toast } from 'sonner'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 /**
  * A turma no painel de suporte: situação, licença, membros e os números que explicam a ligação.
@@ -47,9 +50,11 @@ import { toast } from 'sonner'
  * usuário, e não no de quem atendeu.
  */
 export default function TurmaNoSuportePage() {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const { id = '' } = useParams()
   const turma = useTurmaNoSuporte(id)
   const ativar = useAtivarAssinatura(id)
+  const [paginaDosMembros, definirPaginaDosMembros] = useState(1)
 
   if (turma.isPending) {
     return (
@@ -72,6 +77,7 @@ export default function TurmaNoSuportePage() {
   }
 
   const dados = turma.data
+  const membros = paginar(dados.membros, paginaDosMembros, tamanhoDaPagina)
   const assinatura = dados.assinatura
   const jaAtiva = dados.status === 'Ativa' && assinatura?.status === 'Ativa'
 
@@ -134,7 +140,7 @@ export default function TurmaNoSuportePage() {
             assinatura && !jaAtiva ? (
               <DialogoDeConfirmacao
                 titulo="Ativar a licença desta turma?"
-                descricao="Use quando o pagamento entrou e o webhook do provedor se perdeu. A ação fica registrada na trilha de auditoria da turma, no seu nome, e o Presidente recebe o aviso de licença ativa."
+                descricao="Use se o pagamento foi confirmado, mas a licença ainda não foi ativada. Esta ação fica registrada em seu nome, e o presidente recebe um aviso."
                 rotulo="Ativar"
                 aoConfirmar={() =>
                   ativar.mutate(undefined, {
@@ -188,10 +194,10 @@ export default function TurmaNoSuportePage() {
         titulo="Membros"
         descricao="Quem está na turma, com o papel de cada um. O CPF sai mascarado, como sai para a comissão."
       >
-        {/* Rolagem interna: uma turma de 150 pessoas deixa a página com seis mil pixels, e quem
-            atende perde de vista a licença e os números que explicam a ligação. */}
-        <ul className="rolagem-discreta grid max-h-[28rem] gap-1 overflow-y-auto">
-          {dados.membros.map((membro) => (
+        {/* Paginada: uma turma de 150 pessoas deixaria a página com seis mil pixels, e quem atende
+            perderia de vista a licença e os números que explicam a ligação. */}
+        <ul className="grid gap-1">
+          {membros.visiveis.map((membro) => (
             <li key={membro.usuario_id}>
               <Link
                 to={rotaDaContaNoSuporte(membro.usuario_id)}
@@ -213,6 +219,12 @@ export default function TurmaNoSuportePage() {
             </li>
           ))}
         </ul>
+        <Paginacao
+          pagina={membros.pagina}
+          totalPaginas={membros.totalPaginas}
+          total={membros.total}
+          aoMudar={definirPaginaDosMembros}
+        />
       </Cartao>
     </>
   )
@@ -240,6 +252,7 @@ function PagamentosDaTurma({ turmaId, pagamentos }: { turmaId: string; pagamento
         <p className="text-muted-foreground text-sm">Nenhum pagamento do plano.</p>
       ) : (
         <Tabela
+          emLista
           legenda="Pagamentos do plano"
           cabecalho={
             <>
@@ -324,7 +337,7 @@ function PagamentosDaTurma({ turmaId, pagamentos }: { turmaId: string; pagamento
           </div>
           <p className="text-muted-foreground text-sm text-pretty">
             {modo === 'Integral'
-              ? 'Desistência em até 7 dias do pagamento (Termos, seção 7). Depois disso, a API recusa.'
+              ? 'Use para desistências feitas em até 7 dias após o pagamento, conforme a seção 7 dos Termos.'
               : 'O Kapa encerrou sem culpa da turma, ou ela recusou a versão nova dos Termos (seções 13 e 14).'}
           </p>
         </fieldset>

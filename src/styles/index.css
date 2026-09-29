@@ -463,6 +463,19 @@
   }
 
   /*
+    No celular (Sprint 41), grid sem colunas próprias é uma coluna da largura da tela. Sem isto a
+    trilha implícita é `auto` e cresce até o conteúdo mais largo — um gráfico, uma faixa de números
+    —, e a tela ganha rolagem lateral sem nada à vista para explicá-la. `:where` zera a
+    especificidade e `base` perde para utilitário: qualquer `grid-cols-*` da tela (inclusive
+    `sm:`) continua mandando. O `lg:` para cima fica como sempre foi.
+  */
+  @media (width < 64rem) {
+    :where(main, main .grid) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /*
     Todo controle troca de cor e de anel de foco no ritmo padrão, sem precisar de classe. Quem
     declara o próprio `transition-*` (o `Button` do shadcn, por exemplo) sobrescreve: utilitário
     vence `base`.
@@ -581,6 +594,14 @@
     margin: 0.5rem 0 0;
     position-area: bottom span-left;
     position-try-fallbacks: flip-block;
+  }
+
+  /* No celular o painel é quase da largura da tela: preso pela direita do botão, ele estourava e
+     encostava na borda esquerda. Centrado na tela, sobra a mesma margem dos dois lados. */
+  @media (width < 64rem) {
+    [data-painel] {
+      position-area: bottom span-all;
+    }
   }
 }
 

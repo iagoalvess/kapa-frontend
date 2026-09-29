@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { lerPercentual } from '@/lib/formato'
 import {
   esquemaDeItem,
   itemEmBranco,
-  lerPercentual,
   paraDadosDoItem,
   paraDadosDoPlano,
   paraFormularioDeItem,

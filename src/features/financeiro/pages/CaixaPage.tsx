@@ -160,7 +160,7 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
         <Cartao
           titulo="Outras receitas por categoria"
           icone={HandCoins}
-          descricao="O que entrou sem ser parcela de formando. O previsto não conta no arrecadado."
+          descricao="Valores recebidos de outras fontes, como doações e eventos. Os valores previstos entram aqui só depois do recebimento."
           acao={
             <Button asChild variant="outline" size="sm">
               <Link to={ROTAS.outrasReceitas}>Ver outras receitas</Link>

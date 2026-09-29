@@ -63,9 +63,12 @@ export default function PagamentoEmLotePage() {
           cobranca={cobranca}
           escolhido={escolhido}
           aoEscolher={escolher}
+          parcelaIds={ids}
           descricao="É um pagamento só, com a soma das parcelas."
           avisos={
-            <li key="de-uma-vez">Pague de uma vez: um pagamento pela metade não baixa parcela nenhuma.</li>
+            <li key="de-uma-vez">
+              Pague o valor total de uma vez. Se pagar menos, nenhuma parcela será confirmada.
+            </li>
           }
         />
 
@@ -77,11 +80,13 @@ export default function PagamentoEmLotePage() {
               </output>
             ) : null}
           </ConfirmacaoAutomatica>
-        ) : (
+        ) : !escolhido?.comissao ? null : (
+          // Só com um meio da comissão na tela: na cobrança automática não há o que avisar, nem com o Mercado
+          // Pago fora do ar — o passo 1 pede para tentar de novo.
           <Cartao
             passo={2}
             titulo="Já pagou?"
-            descricao="Avise a tesouraria. Ela confere no extrato do banco e confirma — as parcelas mudam quando ela confirmar."
+            descricao="Avise que você pagou. A tesouraria confere o recebimento e atualiza a situação das parcelas."
           >
             {escolhidas.length > 0 ? (
               <div className="bg-muted grid gap-3 rounded-2xl p-4">
@@ -104,8 +109,7 @@ export default function PagamentoEmLotePage() {
             <DialogoDeInforme
               parcelaIds={ids}
               valor_em_centavos={cobranca.data?.valor_em_centavos ?? 0}
-              meio={escolhido?.comissao?.meio}
-              desabilitado={!cobranca.data}
+              meio={escolhido.comissao.meio}
             />
           </Cartao>
         )}

@@ -104,7 +104,7 @@ function FormularioDaListaDeEspera({ aoEnviar }: { aoEnviar: () => void }) {
   return (
     <Form {...formulario}>
       <form onSubmit={enviar} noValidate className="grid gap-4 sm:grid-cols-2">
-        <CampoDeTexto nome="nome" rotulo="Seu nome" autoComplete="name" />
+        <CampoDeTexto nome="nome" rotulo="Seu nome" autoComplete="name" className="sm:col-span-2" />
         <CampoDeTexto nome="email" rotulo="E-mail" type="email" autoComplete="email" />
         <CampoDeTexto nome="instituicao" rotulo="Instituição" placeholder="UFPR" />
         <CampoDeTexto nome="curso" rotulo="Curso" placeholder="Odontologia" />
@@ -161,13 +161,14 @@ type CampoTextual = Exclude<keyof FormularioDaInscricao, 'aceite'>
 function CampoDeTexto({
   nome,
   rotulo,
+  className,
   ...props
 }: { nome: CampoTextual; rotulo: string } & Omit<ComponentProps<'input'>, 'name'>) {
   return (
     <FormField
       name={nome}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={className}>
           <FormLabel>{rotulo}</FormLabel>
           <FormControl>
             <Input {...props} {...field} />

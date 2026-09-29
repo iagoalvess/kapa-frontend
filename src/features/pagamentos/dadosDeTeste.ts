@@ -111,6 +111,23 @@ export const dinheiroDeTeste = (): MeioDaCobranca => ({
 export const pixDoMercadoPagoDeTeste = (): PeloMercadoPago => ({
   meio: 'Pix',
   pix: { copia_e_cola: '00020126-dinamico', expira_em: '2026-09-25T02:59:59Z' },
+  cartao: null,
+})
+
+/**
+ * O cartão da turma (Sprint 39), com a taxa repassada: 5% sobre R$ 350,00.
+ *
+ * @param acrescimo O que o cartão cobra a mais; zero quando a turma absorve a taxa.
+ */
+export const cartaoDoMercadoPagoDeTeste = (acrescimo = 1_842): PeloMercadoPago => ({
+  meio: 'Cartao',
+  pix: null,
+  cartao: {
+    chave_publica: 'APP_USR-publica',
+    valor_em_centavos: 35_000 + acrescimo,
+    acrescimo_em_centavos: acrescimo,
+    maximo_de_parcelas: 12,
+  },
 })
 
 /**

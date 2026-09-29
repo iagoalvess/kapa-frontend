@@ -1,3 +1,4 @@
+import type { ComunicacaoDoKapa } from '@/types/comunicacaoDoKapa'
 import type { ConsentimentoDoUsuario } from '@/types/legal'
 import type { EmergenciaDoTitular, EnderecoDoTitular } from '@/types/perfil'
 
@@ -85,6 +86,8 @@ export interface MinhasComunicacoes {
   preferencias: MinhaPreferencia[]
   notificacoes_enviadas: number
   ultima_enviada_em: string | null
+  /** "Receber novidades do Kapa" (Sprint 40). */
+  do_kapa: ComunicacaoDoKapa
 }
 
 /** Tudo o que a Kapa guarda sobre o titular, por seção. */

@@ -192,6 +192,10 @@ outra. O catálogo:
 | Pré-carregamento de uma consulta         | `Esqueleto*` (`Esqueleto.tsx`)                       |
 | Erro de consulta                         | `ErroDaConsulta` (`EstadoDaConsulta.tsx`)            |
 | Lista paginada de gestão                 | `Planilha` + `ColunaOrdenavel` + `FiltrosDaPlanilha` |
+| Lista que a API manda inteira (paginar)  | `paginar` (`lib/paginar`) + `Paginacao`, 10 por pág. |
+| Tamanho da página (5 no celular)         | `useTamanhoDaPagina` (`hooks/useTelaGrande`)         |
+| Tabela paginada fora da `Planilha`       | `Tabela emLista` (vira lista no celular)             |
+| Ação principal da tela no celular        | `AcaoFixa` (`components/layout`)                     |
 | Tabela curta dentro de um cartão         | `Tabela`                                             |
 | Superfície branca com cabeçalho          | `Cartao`                                             |
 | Números do topo da tela                  | `FaixaDeIndicadores`                                 |
@@ -210,6 +214,11 @@ outra. O catálogo:
 | Abrir blob numa aba ou baixar            | `abrirNaAba`/`abrirOuBaixar` (`lib/download`)        |
 | Busca sem acento na lista já carregada   | `normalizarBusca`/`contemBusca` (`lib/busca`)        |
 | Ações de linha de tabela (ícone+tooltip) | `AcoesDaLinha` + `AcaoDaLinha`/`AcaoComConfirmacao`  |
+| Pagar no cartão pelo Mercado Pago        | `FormularioDeCartao` (SDK em `lib/mercadoPago`)      |
+| Liga/desliga que grava na hora           | `Interruptor`                                        |
+
+**Celular:** o desenho abaixo de `lg` mora nas peças, não nas telas — ver "Celular" em
+`docs/padroes.md`. Tela nova não escreve `if` de largura.
 
 Componente novo em `components/` quando **a segunda** feature precisar dele — antes disso ele mora
 na feature. Variação de um que já existe entra como prop no que existe, não como cópia ao lado.

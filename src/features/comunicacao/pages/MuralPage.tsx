@@ -27,6 +27,7 @@ import { EditorDeAviso } from '../components/EditorDeAviso'
 import { LinhaDoMural } from '../components/LinhaDoMural'
 import { useAviso, useAvisos, useMarcarMuralVisto, useResumoDoMural } from '../hooks/useAvisos'
 import { LIMITE_DE_FIXADOS, type ResumoDoMural } from '../types/comunicacao.types'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -71,6 +72,7 @@ const ehFiltro = (valor: string | null): valor is Filtro => ehOpcao(valor, FILTR
  * contagem.
  */
 export default function MuralPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { id } = useParams()
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const navegar = useNavigate()
@@ -87,7 +89,7 @@ export default function MuralPage() {
 
   const avisos = useAvisos({
     pagina,
-    tamanho: TAMANHO_DA_PAGINA,
+    tamanho: tamanhoDaPagina,
     busca: busca || undefined,
     de,
     ate,
@@ -185,24 +187,24 @@ export default function MuralPage() {
               />
             ))}
           busca={{ valor: busca, rotulo: 'Buscar aviso', aoBuscar: (termo) => atualizar({ busca: termo }) }}
-          acoes={
-            <>
-              <BotaoDeFiltros id="filtros-do-mural" ligados={de || ate ? 1 : 0}>
-                <FiltroDePeriodo
-                  legenda="Publicação"
-                  faixas={faixasDePublicacao()}
-                  de={de}
-                  ate={ate}
-                  aoMudar={atualizar}
-                />
-              </BotaoDeFiltros>
-              {gestao ? (
-                <Button size="xs" disabled={!editavel} onClick={() => atualizar({ novo: '1' })}>
-                  <Plus aria-hidden />
-                  Novo aviso
-                </Button>
-              ) : null}
-            </>
+          filtrosAvancados={
+            <BotaoDeFiltros id="filtros-do-mural" ligados={de || ate ? 1 : 0}>
+              <FiltroDePeriodo
+                legenda="Publicação"
+                faixas={faixasDePublicacao()}
+                de={de}
+                ate={ate}
+                aoMudar={atualizar}
+              />
+            </BotaoDeFiltros>
+          }
+          acaoPrincipal={
+            gestao ? (
+              <Button size="xs" disabled={!editavel} onClick={() => atualizar({ novo: '1' })}>
+                <Plus aria-hidden />
+                Novo aviso
+              </Button>
+            ) : null
           }
           contagem={{ mostrando: itens.length, total: avisos.data?.total ?? 0, unidade: 'avisos' }}
         />
@@ -263,7 +265,7 @@ export default function MuralPage() {
           {!aberto && umAviso.isError ? (
             <Cartao titulo="Aviso não encontrado">
               <p role="alert" className="text-muted-foreground text-sm">
-                Ele pode ter sido excluído pela comissão. Escolha um da lista.
+                Este aviso pode ter sido excluído ou não estar disponível para você. Escolha outro na lista.
               </p>
             </Cartao>
           ) : null}
@@ -315,7 +317,7 @@ function MuralVazio({ filtrado, gestao }: { filtrado: boolean; gestao: boolean }
           filtrado
             ? 'Tente outra busca ou tire o filtro.'
             : gestao
-              ? 'Publique o primeiro: reunião, prazo, contrato fechado — o que não pode se perder no grupo.'
+              ? 'Publique o primeiro aviso para compartilhar reuniões, prazos e novidades importantes com a turma.'
               : 'Quando a comissão publicar um comunicado, ele aparece aqui.'
         }
       />

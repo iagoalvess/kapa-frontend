@@ -25,7 +25,7 @@ server {
     #   'unsafe-inline' em style-src: React escreve style="" em elemento (altura de gráfico,
     #   posição de popover). Em script-src ele NÃO aparece, que é onde ele importaria.
     #   data: e blob: em img-src: QR do PIX e pré-visualização de foto antes do upload.
-    set $csp "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ${API_ORIGIN}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
+    set $csp "default-src 'self'; script-src 'self' https://sdk.mercadopago.com https://http2.mlstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.mlstatic.com https://www.mercadolibre.com https://www.mercadolivre.com; font-src 'self' https://http2.mlstatic.com; connect-src 'self' ${API_ORIGIN} https://api.mercadopago.com https://api.mercadolibre.com https://secure-fields.mercadopago.com https://http2.mlstatic.com https://www.mercadolibre.com; frame-src https://secure-fields.mercadopago.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'";
 
     add_header Content-Security-Policy $csp always;
     add_header X-Content-Type-Options nosniff always;

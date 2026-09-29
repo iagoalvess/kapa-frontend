@@ -6,6 +6,7 @@ import {
   LockOpen,
   Mail,
   MailCheck,
+  Megaphone,
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
@@ -21,6 +22,7 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { rotaDaTurmaNoSuporte, ROTAS } from '@/config/rotas'
 import { formatarData, formatarDataHora } from '@/lib/formato'
+import { ROTULOS_DAS_JORNADAS } from '@/types/comunicacaoDoKapa'
 import { avisarErro } from '@/lib/http/erros'
 import { SeloDaTurma } from '../components/SeloDeStatus'
 import { useAcaoNaConta, useContaNoSuporte } from '../hooks/useSuporte'
@@ -140,6 +142,18 @@ export default function ContaNoSuportePage() {
             <Dado icone={CalendarDays} rotulo="Conta criada em">
               {formatarData(dados.criado_em)}
             </Dado>
+            <Dado icone={Megaphone} rotulo="Novidades do Kapa">
+              {dados.comunicacao_do_kapa.receber ? 'recebe' : 'não recebe'}
+            </Dado>
+            {dados.comunicacao_do_kapa.envios.map((envio) => (
+              <Dado
+                key={envio.enviado_em + envio.jornada}
+                icone={Megaphone}
+                rotulo={formatarData(envio.enviado_em)}
+              >
+                {ROTULOS_DAS_JORNADAS[envio.jornada] ?? envio.jornada} · {envio.formatura}
+              </Dado>
+            ))}
             {dados.anonimizado_em ? (
               <Dado icone={ShieldCheck} rotulo="Anonimizada em">
                 {formatarData(dados.anonimizado_em)}

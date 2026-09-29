@@ -221,7 +221,7 @@ describe('MeiosDeRecebimento', () => {
     renderizar(<MeiosDeRecebimento />)
 
     expect(await screen.findByText('Sem meios')).toBeInTheDocument()
-    expect(screen.getByText(/Quem escolhe os meios é o Presidente/)).toBeInTheDocument()
+    expect(screen.getByText(/O presidente precisa escolher como a turma vai receber/)).toBeInTheDocument()
     expect(screen.queryByLabelText('Chave PIX')).not.toBeInTheDocument()
   })
 })

@@ -21,7 +21,7 @@ import { CartaoDoItem } from './CartaoDoItem'
 import { DialogoDePedido } from './DialogoDePedido'
 
 const DESCRICAO =
-  'O que é só seu: o convite a mais, o kit, a foto. Vira parcela no seu nome, paga pelo mesmo PIX da turma.'
+  'Peça convites extras, kits ou fotos. O valor aparece nas suas parcelas, para você pagar pelos meios aceitos pela turma.'
 
 /** O catálogo recortado pela URL; a vitrine e os filtros leem o mesmo recorte. */
 function useRecorte() {

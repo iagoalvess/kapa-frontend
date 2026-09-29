@@ -181,7 +181,7 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    expect(await screen.findByText(/quem coloca o plano em vigor é o Presidente/)).toBeInTheDocument()
+    expect(await screen.findByText(/o presidente poderá colocá-lo em vigor/)).toBeInTheDocument()
     const lembretes = screen.getByRole('region', { name: 'Lembretes automáticos' })
     expect(within(lembretes).getByRole('link', { name: 'Ver lembretes' })).toHaveAttribute(
       'href',
@@ -311,6 +311,6 @@ describe('PlanoDeCobrancaPage', () => {
     // Na lista de itens: a simulação ao lado também tem a linha, com a mesma descrição.
     const itens = await screen.findByRole('region', { name: 'Plano 2027' })
     const linha = await within(itens).findByRole('row', { name: /Rateio do buffet/ })
-    expect(within(linha).getByText('Rateio — assembleia de 12/10')).toBeInTheDocument()
+    expect(within(linha).getByText('Decisão da turma — assembleia de 12/10')).toBeInTheDocument()
   })
 })

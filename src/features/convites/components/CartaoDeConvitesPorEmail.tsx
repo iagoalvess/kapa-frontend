@@ -1,9 +1,11 @@
 import { Ban, Mail } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { Paginacao } from '@/components/Paginacao'
 import { Tabela } from '@/components/Planilha'
 import { Selo, type TomDoSelo } from '@/components/Selo'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
@@ -11,9 +13,11 @@ import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { paginar } from '@/lib/paginar'
 import { useConvites, useRevogarConvite } from '../hooks/useConvites'
 import type { ConviteResumo, StatusDoConvite } from '../types/convite.types'
 import { FormularioDeConvite } from './FormularioDeConvite'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const SITUACOES: Record<StatusDoConvite, { texto: string; tom: TomDoSelo }> = {
   Pendente: { texto: 'Pendente', tom: 'alerta' },
@@ -78,6 +82,10 @@ export function CartaoDeConvitesPorEmail() {
 }
 
 function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
+  const tamanhoDaPagina = useTamanhoDaPagina()
+  const [paginaPedida, definirPagina] = useState(1)
+  const pagina = paginar(convites, paginaPedida, tamanhoDaPagina)
+
   if (convites.length === 0)
     return (
       <p className="text-muted-foreground motion-safe:animate-entrar text-sm">
@@ -86,20 +94,29 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
     )
 
   return (
-    <Tabela
-      cabecalho={
-        <>
-          <th className="py-3 pr-4 font-normal">E-mail</th>
-          <th className="py-3 pr-4 font-normal">Papel</th>
-          <th className="py-3 pr-4 font-normal">Válido até</th>
-          <th className="py-3 pr-4 font-normal">Situação</th>
-        </>
-      }
-    >
-      {convites.map((convite) => (
-        <LinhaDeConvite key={convite.id} convite={convite} />
-      ))}
-    </Tabela>
+    <div>
+      <Tabela
+        emLista
+        cabecalho={
+          <>
+            <th className="py-3 pr-4 font-normal">E-mail</th>
+            <th className="py-3 pr-4 font-normal">Papel</th>
+            <th className="py-3 pr-4 font-normal">Válido até</th>
+            <th className="py-3 pr-4 font-normal">Situação</th>
+          </>
+        }
+      >
+        {pagina.visiveis.map((convite) => (
+          <LinhaDeConvite key={convite.id} convite={convite} />
+        ))}
+      </Tabela>
+      <Paginacao
+        pagina={pagina.pagina}
+        totalPaginas={pagina.totalPaginas}
+        total={pagina.total}
+        aoMudar={definirPagina}
+      />
+    </div>
   )
 }
 

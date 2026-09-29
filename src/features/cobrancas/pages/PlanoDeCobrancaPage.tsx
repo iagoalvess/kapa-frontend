@@ -157,7 +157,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao
             titulo="Prévia da grade"
-            descricao="Um formando, parcela a parcela — calculada pelo servidor, como vai ser cobrada."
+            descricao="Veja as parcelas e os valores que serão cobrados de um formando."
           >
             <PreviaDaGrade simulacao={gravado.data} atualizando={gravado.isFetching} erro={gravado.error} />
           </Cartao>
@@ -283,7 +283,7 @@ function ListaDeItens({
                   {rotuloDoItem(item)}
                   {item.origem_da_decisao ? (
                     <span className="text-muted-foreground text-xs font-normal">
-                      Rateio — {item.origem_da_decisao}
+                      Decisão da turma — {item.origem_da_decisao}
                     </span>
                   ) : null}
                 </div>
@@ -311,7 +311,7 @@ function ListaDeItens({
                         confirmacao={{
                           titulo: `Encerrar ${rotuloDoItem(item).toLowerCase()}?`,
                           descricao:
-                            'A cobrança para: as parcelas que vencem de amanhã em diante são canceladas. O que já venceu ou foi pago continua como está.',
+                            'As parcelas com vencimento a partir de amanhã serão canceladas. As parcelas já vencidas ou pagas continuam como estão.',
                           rotulo: 'Encerrar',
                           aoConfirmar: () =>
                             encerrar.mutate(
@@ -328,7 +328,7 @@ function ListaDeItens({
                         confirmacao={{
                           titulo: `Excluir ${rotuloDoItem(item).toLowerCase()}?`,
                           descricao:
-                            'A cobrança sai do plano e não fica no histórico. Como ela ainda não gerou parcela nenhuma, ninguém deixa de dever nada — mas o que estava escrito aqui se perde.',
+                            'Esta cobrança será excluída do plano. Como ainda não gerou parcelas, os valores devidos não mudam. As informações cadastradas aqui não poderão ser recuperadas.',
                           rotulo: 'Excluir',
                           aoConfirmar: () =>
                             remover.mutate(

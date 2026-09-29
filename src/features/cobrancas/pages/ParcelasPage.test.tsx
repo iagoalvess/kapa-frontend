@@ -161,6 +161,6 @@ describe('ParcelasPage', () => {
     renderizar(<ParcelasPage />)
 
     expect(await screen.findByText('Nenhuma parcela ainda')).toBeInTheDocument()
-    expect(screen.getByText(/nascem quando ele adere ao plano/)).toBeInTheDocument()
+    expect(screen.getByText(/aparecerão aqui quando os formandos aderirem ao plano/)).toBeInTheDocument()
   })
 })

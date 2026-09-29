@@ -301,9 +301,10 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
  * Cada item aparece só para quem o pode abrir (`usePapel`), e cada módulo novo entra numa seção —
  * exibição só; quem recusa é a API.
  *
- * @param aoNavegar Chamado ao clicar num link — é o que fecha a gaveta no celular.
+ * @param aoNavegar Chamado ao clicar num link.
+ * @param comLogo Sem ela na folha "Mais" do celular, que já tem a busca no topo.
  */
-export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
+export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => void; comLogo?: boolean }) {
   const { papel, tem } = usePapel()
   const { selecionada, desligadoEm } = useFormaturaAtiva()
   // Perfil de plataforma, e não papel de turma: é o que abre o painel de suporte.
@@ -329,7 +330,7 @@ export function BarraLateral({ aoNavegar }: { aoNavegar?: () => void }) {
     <div className="flex h-full flex-col gap-4 px-3 py-4">
       {/* A logo leva ao início, como em quase todo produto. Sem formatura na sessão não há para
           onde ir, e aí ela é só a marca. */}
-      <div className="shrink-0 px-3">
+      <div className={cn('shrink-0 px-3', !comLogo && 'hidden')}>
         {selecionada ? (
           <Link
             to={ROTAS.inicio}

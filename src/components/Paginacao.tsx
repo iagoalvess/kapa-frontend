@@ -20,6 +20,9 @@ interface Props {
  * Só desenha e avisa: a página atual vive na URL, e é a tela que a lê e grava — assim voltar,
  * recarregar e mandar o link devolvem o mesmo lugar.
  *
+ * No celular ela encolhe (P7 da Sprint 41): "2 de 7" e as duas setas redondas, do tamanho do dedo — o
+ * total e as palavras "Anterior"/"Próxima" não cabiam numa linha ao lado de dois botões.
+ *
  * @returns `null` quando tudo cabe numa página.
  */
 export function Paginacao({ pagina, totalPaginas, total, aoMudar, ocupado = false }: Props) {
@@ -31,26 +34,30 @@ export function Paginacao({ pagina, totalPaginas, total, aoMudar, ocupado = fals
       className="text-muted-foreground mt-4 flex items-center justify-between gap-4 text-sm"
     >
       <span>
-        Página {formatarNumero(pagina)} de {formatarNumero(totalPaginas)} · {formatarNumero(total)} no total
+        <span className="max-lg:hidden">Página </span>
+        {formatarNumero(pagina)} de {formatarNumero(totalPaginas)}
+        <span className="max-lg:hidden"> · {formatarNumero(total)} no total</span>
       </span>
 
       <div className="flex gap-2">
         <Button
           variant="outline"
           size="sm"
+          className="max-lg:size-10 max-lg:px-0"
           disabled={ocupado || pagina <= 1}
           onClick={() => aoMudar(pagina - 1)}
         >
           <ChevronLeft />
-          Anterior
+          <span className="max-lg:sr-only">Anterior</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
+          className="max-lg:size-10 max-lg:px-0"
           disabled={ocupado || pagina >= totalPaginas}
           onClick={() => aoMudar(pagina + 1)}
         >
-          Próxima
+          <span className="max-lg:sr-only">Próxima</span>
           <ChevronRight />
         </Button>
       </div>

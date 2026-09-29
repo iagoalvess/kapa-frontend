@@ -191,8 +191,8 @@ function SemMeios({ presidente }: { presidente: boolean }) {
         <img src={mascoteCelular} alt="" className="w-20 shrink-0 drop-shadow-lg" />
         <p className="text-muted-foreground text-sm">
           {presidente
-            ? 'Com a turma fora de Ativa, os meios de recebimento não podem ser cadastrados.'
-            : 'Quem escolhe os meios é o Presidente. Sem nenhum, os formandos não têm para onde pagar pelo Kapa.'}
+            ? 'As formas de pagamento só podem ser cadastradas quando a turma estiver ativa.'
+            : 'O presidente precisa escolher como a turma vai receber. Até lá, os formandos não poderão pagar pelo Kapa.'}
         </p>
       </div>
     </Cartao>
@@ -208,12 +208,13 @@ const PASSOS: { icone: LucideIcon; titulo: string; texto: string }[] = [
   {
     icone: HandCoins,
     titulo: 'O Kapa não toca no dinheiro',
-    texto: 'Monta o QR a partir da chave e mostra o resto. Não recebe, não repassa e não cobra taxa.',
+    texto:
+      'Mostra a chave e o QR Code para o formando pagar direto à turma. O Kapa não recebe nem repassa esse dinheiro.',
   },
   {
     icone: ClipboardCheck,
     titulo: 'A tesouraria confirma',
-    texto: 'Quem vê o dinheiro entrar confirma o pagamento no Kapa — já com o meio que o formando avisou.',
+    texto: 'Depois que o formando avisa que pagou, a tesouraria confere o recebimento e confirma no Kapa.',
   },
   {
     icone: Mail,

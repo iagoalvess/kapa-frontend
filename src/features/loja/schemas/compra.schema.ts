@@ -13,6 +13,22 @@ import type { DadosDaCompra } from '../types/loja.types'
 
 const obrigatorio = (mensagem: string, maximo = 200) => z.string().trim().min(1, mensagem).max(maximo)
 
+/** Quem vai usar um convite: nome e documento já na compra — o e-mail do convidado fica para o link. */
+const esquemaDoTitular = z.object({
+  nome: obrigatorio('Informe o nome de quem vai usar.', 120),
+  tipo_do_documento: z.enum(['Cpf', 'Rg']),
+  numero_do_documento: obrigatorio('Informe o documento.', 20),
+})
+
+export type TitularDoConvite = z.infer<typeof esquemaDoTitular>
+
+/** Um titular em branco, com CPF como documento. */
+export const titularEmBranco = (): TitularDoConvite => ({
+  nome: '',
+  tipo_do_documento: 'Cpf',
+  numero_do_documento: '',
+})
+
 export const esquemaDaCompra = z.object({
   quantidade: inteiroEmTexto(1, 10_000, 'Escolha ao menos 1 convite.'),
   nome: obrigatorio('Informe o seu nome.', 120),
@@ -26,6 +42,8 @@ export const esquemaDaCompra = z.object({
     (valor) => typeof valor === 'string' && ehOpcao(valor, MEIOS_DE_PAGAMENTO),
     'Escolha como pagar.',
   ),
+  /** Um por convite, na ordem — a tela acompanha a quantidade. */
+  convidados: z.array(esquemaDoTitular),
   /** O aceite da base legal e do descarte dos dados (decisão 5). */
   ciente: z.boolean().refine(Boolean, 'Confirme que leu como seus dados são usados.'),
 })
@@ -43,6 +61,7 @@ export const compraEmBranco = (meio: MeioDePagamento = 'Pix'): FormularioDaCompr
   email: '',
   cpf: '',
   meio,
+  convidados: [titularEmBranco()],
   ciente: false,
 })
 
@@ -62,5 +81,11 @@ export function paraDadosDaCompra(valores: FormularioDaCompra, itemId: string, c
     cpf: soDigitos(valores.cpf),
     meio: valores.meio,
     chave_de_idempotencia: chave,
+    convidados: valores.convidados.map((convidado) => ({
+      nome: convidado.nome.trim(),
+      tipo_do_documento: convidado.tipo_do_documento,
+      numero_do_documento: convidado.numero_do_documento.trim(),
+      email: null,
+    })),
   }
 }

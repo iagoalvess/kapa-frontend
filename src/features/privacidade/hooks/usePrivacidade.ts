@@ -6,6 +6,8 @@ import {
   baixarPacote,
   cancelarSolicitacao,
   confirmarSolicitacao,
+  definirComunicacaoDoKapa,
+  descadastrar,
   listarOperadores,
   listarSolicitacoes,
   obterMeusDados,
@@ -133,6 +135,31 @@ export function useRevogarConsentimento() {
     },
     onError: avisarErro,
   })
+}
+
+/**
+ * Liga ou desliga "Receber novidades do Kapa" pelo interruptor de "Minha privacidade".
+ *
+ * Invalida `meusDados` porque o histórico mora lá, e a linha nova tem de aparecer sem F5.
+ */
+export function useDefinirComunicacaoDoKapa() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (receber: boolean) => definirComunicacaoDoKapa(receber),
+    onSuccess: (_, receber) => {
+      void queryClient.invalidateQueries({ queryKey: chaves.meusDados })
+
+      if (receber) toast.success('Pronto, você vai receber as novidades do Kapa.')
+      else toast.info('Pronto, você não recebe mais as novidades do Kapa.')
+    },
+    onError: avisarErro,
+  })
+}
+
+/** O "Não quero mais receber" do e-mail — sem sessão, e sem toast: a página inteira é a resposta. */
+export function useDescadastrar() {
+  return useMutation({ mutationFn: (token: string) => descadastrar(token) })
 }
 
 /**
