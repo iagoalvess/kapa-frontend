@@ -87,8 +87,8 @@ export function Hero() {
 
         {/* As colunas laterais deixam as fotos à vista no celular, com uma pequena sobreposição
             sob o painel. No desktop a altura da tela regula o tamanho e o espaço entre elas. */}
-        <div className="mt-12 grid grid-cols-[4.5rem_minmax(0,1fr)_4.5rem] items-center max-[359px]:grid-cols-[3rem_minmax(0,1fr)_3rem] sm:grid-cols-[7rem_minmax(0,1fr)_7rem] lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
-          <div className="grid justify-items-start lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-end max-sm:[&>div]:-ml-4 sm:max-lg:[&>div]:-ml-12 max-sm:[&>div+div]:-mt-6 sm:max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-ml-1 sm:max-lg:[&>div:nth-child(2)]:-ml-5 lg:[&>div:nth-child(2)]:self-center">
+        <div className="mt-12 grid grid-cols-[7rem_minmax(0,1fr)_7rem] items-center max-[359px]:grid-cols-[3rem_minmax(0,1fr)_3rem] min-[360px]:max-sm:grid-cols-[4.5rem_minmax(0,1fr)_4.5rem] lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
+          <div className="grid justify-items-start lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-end max-sm:[&>div]:-ml-4 sm:max-lg:[&>div]:-ml-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-ml-1 sm:max-lg:[&>div:nth-child(2)]:-ml-5 lg:[&>div:nth-child(2)]:self-center">
             {/* As fotos das pontas ficam perto do card; a do meio abre o zigue-zague para fora. */}
             <Polaroid
               foto={fotoBaile}
@@ -117,7 +117,7 @@ export function Hero() {
 
           <CardDaTurma />
 
-          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-sm:[&>div]:-mr-4 sm:max-lg:[&>div]:-mr-12 max-sm:[&>div+div]:-mt-6 sm:max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
+          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-sm:[&>div]:-mr-4 sm:max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
             <Polaroid
               foto={fotoViagem}
               legenda="Viagem"
@@ -355,7 +355,7 @@ function Polaroid({
   coracao?: 'normal' | 'alto'
 }) {
   return (
-    <div className={cn('relative w-24 shrink-0 sm:w-36 lg:w-[clamp(5rem,12svh,7rem)]', className)}>
+    <div className={cn('relative w-36 shrink-0 max-sm:w-24 lg:w-[clamp(5rem,12svh,7rem)]', className)}>
       <img
         src={pin}
         alt=""
