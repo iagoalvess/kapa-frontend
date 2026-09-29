@@ -11,15 +11,18 @@ import { ANCORA_DA_LISTA_DE_ESPERA } from './ListaDeEspera'
  * O texto é sempre "Criar minha turma" (escolha de 28/09/2026). Com a lista de espera ligada (Sprint 36),
  * leva ao formulário na própria página, e nenhum botão aponta para o `app.`, que ainda não está no ar.
  *
- * @param props As do `Button` (`size`, `className`, e o `onClick` com que a gaveta fecha), que o `asChild`
- * passa ao link.
+ * @param curta "Criar turma", para o cabeçalho, onde o espaço é do celular (28/09/2026).
+ * @param props As do `Button` (`size`, `className`), que o `asChild` passa ao link.
  */
-export function ChamadaPrincipal(props: ComponentProps<typeof Button>) {
+export function ChamadaPrincipal({
+  curta = false,
+  ...props
+}: ComponentProps<typeof Button> & { curta?: boolean }) {
   return (
     <Button asChild {...props}>
       <a href={env.VITE_LISTA_DE_ESPERA ? `#${ANCORA_DA_LISTA_DE_ESPERA}` : urlDoApp(ROTAS.criarConta)}>
         <GraduationCap className="size-4" aria-hidden />
-        Criar minha turma
+        {curta ? 'Criar turma' : 'Criar minha turma'}
       </a>
     </Button>
   )

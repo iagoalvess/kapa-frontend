@@ -32,7 +32,7 @@ export function Hero() {
   return (
     <section
       id="topo"
-      className="bg-background relative overflow-hidden px-4 pt-8 pb-8 sm:pt-10 lg:pt-[clamp(1rem,calc(8svh-2.5rem),2.5rem)] lg:pb-6 lg:[@media(max-height:700px)]:pt-2 lg:[@media(max-height:700px)]:pb-4"
+      className="bg-background relative overflow-hidden px-4 pt-10 pb-2 sm:pt-10 lg:pt-[clamp(1rem,calc(8svh-2.5rem),2.5rem)] lg:pb-6 lg:[@media(max-height:700px)]:pt-2 lg:[@media(max-height:700px)]:pb-4"
     >
       {/* Manchas de fundo. `aria-hidden` e sem interação: são textura, não conteúdo. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -44,7 +44,7 @@ export function Hero() {
         <div className="motion-safe:animate-entrar mx-auto grid max-w-4xl justify-items-center text-center">
           {/* Cada frase na sua linha: os dois `block` são o que garante a quebra no ponto certo em
               qualquer largura — sem `text-balance`, que a moveria sozinho. */}
-          <h1 className="text-foreground text-[1.75rem] leading-[1.12] font-extrabold tracking-tight sm:text-[2.5rem] lg:text-[2.875rem] lg:[@media(max-height:700px)]:text-[2.5rem]">
+          <h1 className="text-foreground text-3xl leading-[1.12] font-extrabold tracking-tight sm:text-[2.5rem] lg:text-[2.875rem] lg:[@media(max-height:700px)]:text-[2.5rem]">
             <span className="block">A formatura inteira organizada,</span>
             <span className="block">
               sem planilha e{' '}
@@ -59,21 +59,25 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className="text-muted-foreground mt-5 max-w-[40rem] text-sm leading-5 text-pretty sm:mt-7 lg:[@media(max-height:700px)]:mt-5">
+          <p className="text-muted-foreground mt-7 max-w-[40rem] text-sm leading-5 text-pretty lg:[@media(max-height:700px)]:mt-5">
             O Kapa cuida da cobrança, das despesas e da prestação de contas da sua turma. Cada formando recebe
             as parcelas dele e a comissão vê quem pagou.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-7 lg:[@media(max-height:700px)]:mt-5">
-            <Button asChild size="lg" variant="outline" className="h-11 rounded-xl text-sm">
+          {/* No celular os dois lado a lado, do mesmo tamanho e sem ícone — o modelo do Visor (28/09/2026). */}
+          <div className="mt-7 grid w-full max-w-md grid-cols-2 gap-3 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center lg:[@media(max-height:700px)]:mt-5">
+            <Button asChild size="lg" variant="outline" className="h-11 rounded-xl text-sm max-sm:px-2">
               <a href="#como-funciona">
-                <span className="bg-brand-tint text-brand-text grid size-7 place-items-center rounded-full">
+                <span className="bg-brand-tint text-brand-text hidden size-7 place-items-center rounded-full sm:grid">
                   <Play className="size-3 fill-current" aria-hidden />
                 </span>
                 Ver como funciona
               </a>
             </Button>
-            <ChamadaPrincipal size="lg" className="h-11 rounded-xl text-sm shadow-lg" />
+            <ChamadaPrincipal
+              size="lg"
+              className="h-11 rounded-xl text-sm shadow-lg max-sm:px-2 max-sm:[&_svg]:hidden"
+            />
           </div>
 
           <p className="text-texto-muted mt-3 flex items-center gap-2 text-xs leading-[18px] lg:[@media(max-height:700px)]:mt-2.5">
@@ -83,8 +87,10 @@ export function Hero() {
 
         {/* No desktop o mural começa abaixo do texto. A altura disponível da tela regula o
             tamanho das fotos e o espaço entre elas; no celular continuam em duas colunas. */}
-        <div className="mt-8 grid gap-10 sm:mt-12 lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
-          <div className="order-2 hidden grid-cols-2 justify-items-center gap-6 lg:order-none lg:grid lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-cols-1 lg:grid-rows-3 lg:items-start lg:justify-items-end lg:gap-0 lg:[&>div:last-child]:self-end lg:[&>div:nth-child(2)]:self-center">
+        {/* No celular: o cartão da turma em cima e as polaroids embaixo, em duas colunas em zigue-zague que
+            se sobrepõem — o mural do desktop dobrado, no modelo do Visor (28/09/2026). */}
+        <div className="mt-12 grid grid-cols-2 gap-x-2 gap-y-6 lg:mt-8 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:items-center lg:gap-4 lg:[@media(max-height:700px)]:mt-4">
+          <div className="order-2 grid justify-items-start lg:order-none lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-end max-lg:[&>div+div]:-mt-8 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:ml-8 lg:[&>div:nth-child(2)]:self-center">
             {/* As fotos das pontas ficam perto do card; a do meio abre o zigue-zague para fora. */}
             <Polaroid
               foto={fotoBaile}
@@ -113,7 +119,7 @@ export function Hero() {
 
           <CardDaTurma />
 
-          <div className="order-3 hidden grid-cols-2 justify-items-center gap-6 lg:order-none lg:grid lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-cols-1 lg:grid-rows-3 lg:items-start lg:justify-items-start lg:gap-0 lg:[&>div:last-child]:self-end lg:[&>div:nth-child(2)]:self-center">
+          <div className="order-3 grid justify-items-end lg:order-none lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-lg:[&>div+div]:-mt-8 lg:[&>div:last-child]:self-end max-lg:[&>div:nth-child(2)]:mr-8 lg:[&>div:nth-child(2)]:self-center">
             <Polaroid
               foto={fotoViagem}
               legenda="Viagem"
@@ -178,11 +184,11 @@ function alturasDa(etapa: (typeof ETAPAS)[number]) {
  */
 function CardDaTurma() {
   return (
-    <div className="relative order-1 lg:order-none">
+    <div className="relative order-1 col-span-2 lg:order-none lg:col-span-1">
       <img
         src={mascoteEncostado}
         alt=""
-        className="relative z-20 mx-auto -mb-8 w-28 drop-shadow-xl sm:-mb-10 sm:w-48 lg:hidden"
+        className="relative z-20 mx-auto -mb-10 w-40 drop-shadow-xl sm:w-48 lg:hidden"
       />
 
       <div className="from-brand-wash to-brand-tint/70 border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">

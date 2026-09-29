@@ -38,12 +38,11 @@ export function SegurancaEDinheiro() {
           decoding="async"
           width={1280}
           height={1280}
-          className="h-auto w-36 max-w-full sm:w-64 md:w-80"
+          className="h-auto w-56 max-w-full sm:w-64 md:w-80"
         />
 
         {/* Seção creme, cartão no claro do hero — o mesmo par dos cartões de Recursos. */}
-        {/* No celular sai: repete a primeira garantia, logo abaixo. */}
-        <div className="border-brand-tint/70 bg-background hidden w-full max-w-sm items-center gap-4 rounded-2xl border px-5 py-4 sm:flex">
+        <div className="border-brand-tint/70 bg-background flex w-full max-w-sm items-center gap-4 rounded-2xl border px-5 py-4">
           <img
             src={carteira}
             alt=""
@@ -62,7 +61,7 @@ export function SegurancaEDinheiro() {
       </div>
 
       <div className="grid gap-5 sm:gap-8">
-        <h2 className="text-foreground text-2xl leading-tight font-bold tracking-tight sm:text-4xl">
+        <h2 className="text-foreground text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
           Segurança para
           <span className="block">sua turma</span>
         </h2>

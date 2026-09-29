@@ -13,8 +13,10 @@ import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
 /**
  * Mantém a grade 2–1–1 / 1–1–2 e reserva o mesmo espaço para cada maquete.
  *
- * No celular só o cartão `principal` mostra a maquete (decisão de 28/09/2026: um desenho por seção);
- * os outros ficam com título e texto, e a seção deixa de ocupar quatro telas.
+ * No celular a grade vira o "bento" do Visor (28/09/2026): o cartão `largo` ocupa a linha, os outros
+ * vêm dois por linha, com a maquete reduzida (`zoom`), o título centralizado e sem o texto de apoio.
+ *
+ * @param className A ordem no celular, para as cores se alternarem em xadrez.
  */
 function Cartao({
   titulo,
@@ -22,7 +24,7 @@ function Cartao({
   largo = false,
   tom = 'creme',
   tituloPrimeiro = false,
-  principal = false,
+  className,
   children,
 }: {
   titulo: string
@@ -30,25 +32,27 @@ function Cartao({
   largo?: boolean
   tom?: 'creme' | 'destaque'
   tituloPrimeiro?: boolean
-  principal?: boolean
+  className?: string
   children: ReactNode
 }) {
   return (
     <li
       className={cn(
-        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow sm:min-h-52',
-        principal && 'min-h-52',
+        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow max-sm:p-3 sm:min-h-52',
         // A seção é o creme; o cartão é o claro do hero. Chapado, porque um degradê que terminasse
         // no creme faria o canto do cartão sumir no fundo.
         tom === 'creme' && 'border-brand-tint/70 bg-background',
         tom === 'destaque' && 'border-primary bg-primary',
-        largo && 'lg:col-span-2',
+        largo && 'max-sm:col-span-2 lg:col-span-2',
+        className,
       )}
     >
-      <div className={cn('relative h-36 min-w-0 items-center', principal ? 'flex' : 'hidden sm:flex')}>
+      <div className={cn('relative flex h-36 min-w-0 items-center', !largo && 'max-sm:[zoom:0.7]')}>
         {children}
       </div>
-      <div className={cn('relative grid gap-1', tituloPrimeiro && 'order-first')}>
+      <div
+        className={cn('relative grid gap-1', tituloPrimeiro && 'order-first', !largo && 'max-sm:text-center')}
+      >
         <h3
           className={cn(
             'font-semibold tracking-tight',
@@ -60,6 +64,7 @@ function Cartao({
         <p
           className={cn(
             'text-xs leading-relaxed text-pretty',
+            !largo && 'max-sm:hidden',
             tom === 'destaque' ? 'text-primary-foreground/90' : 'text-muted-foreground',
           )}
         >
@@ -359,17 +364,16 @@ export function Recursos() {
       etiqueta="Recursos"
       // Frase em uma linha só: o corpo encolhe com a viewport para não quebrar no celular.
       titulo={
-        <span className="block text-[clamp(0.95rem,4.3vw,2.25rem)] whitespace-nowrap">
+        <span className="block sm:text-[clamp(0.95rem,4.3vw,2.25rem)] sm:whitespace-nowrap">
           Tudo o que a planilha nunca fez pela turma
         </span>
       }
       descricao="Quem já pagou, quem esqueceu e quanto ainda falta para a festa acontecer."
     >
-      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Cartao
           largo
           tituloPrimeiro
-          principal
           titulo="Cobranças e parcelas"
           texto="Plano da turma, parcela por formando e pagamento de várias de uma vez."
         >
@@ -390,6 +394,7 @@ export function Recursos() {
         </Cartao>
         <Cartao
           tom="destaque"
+          className="max-sm:order-1"
           titulo="Despesas, fornecedores e caixa"
           texto="Saídas da turma e projeção de saldo."
         >
@@ -398,7 +403,12 @@ export function Recursos() {
         <Cartao titulo="Régua de cobrança" texto="Lembretes e notificações automáticas por e-mail.">
           <MaqueteDaRegua />
         </Cartao>
-        <Cartao largo titulo="A festa e a meta" texto="Data, local, orçamento e o progresso da arrecadação.">
+        <Cartao
+          largo
+          className="max-sm:order-2"
+          titulo="A festa e a meta"
+          texto="Data, local, orçamento e o progresso da arrecadação."
+        >
           <MaqueteDaFesta />
         </Cartao>
       </ul>
