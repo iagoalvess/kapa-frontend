@@ -195,19 +195,19 @@ function CardDaTurma() {
         className="relative z-20 mx-auto -mb-8 w-32 drop-shadow-xl sm:-mb-10 sm:w-48 lg:hidden"
       />
 
-      <div className="from-brand-wash to-brand-tint/70 border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">
+      <div className="from-brand-wash to-brand-tint border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">
         {/* O card da meta é uma carta solta sobre o painel: recuado da quina e com a base
             entrando nele (`-mb`), não uma faixa encaixada em cima. */}
         <MetaDaTurmaAnimada grande className="z-10 -mb-6 lg:ml-5 lg:max-w-[47%]" />
 
-        <div className="bg-card/45 relative mt-4 grid rounded-2xl px-2 pt-8 pb-4 sm:px-4">
+        <div className="bg-card relative mt-4 grid rounded-2xl px-2 pt-8 pb-2.5 sm:px-4 sm:pb-4">
           <img
             src={mascoteEncostado}
             alt=""
             className="pointer-events-none absolute right-1 bottom-full z-20 hidden w-48 translate-y-[calc(11%+7px)] drop-shadow-lg lg:block"
           />
 
-          <div className="relative h-28 max-sm:h-36">
+          <div className="relative h-28 max-sm:h-32">
             {/* No celular, a curva ocupa a região central para os rótulos das pontas caberem
                 no painel. O mesmo recuo se aplica ao SVG, aos marcadores e às legendas. */}
             <div className="relative h-full max-sm:ml-[14%] max-sm:w-[82%]">
