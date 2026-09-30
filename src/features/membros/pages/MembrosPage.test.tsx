@@ -347,8 +347,6 @@ describe('MembrosPage', () => {
     servidor.use(
       http.get(`${MEMBROS}/u-2/resumo-da-saida`, () =>
         HttpResponse.json({
-          nome: 'Bruno',
-          tem_adesao: true,
           ja_pago_em_centavos: 420_000,
           parcelas_em_aberto: 14,
           em_aberto_em_centavos: 630_000,
@@ -384,8 +382,6 @@ describe('MembrosPage', () => {
     servidor.use(
       http.get(`${MEMBROS}/u-2/resumo-da-saida`, () =>
         HttpResponse.json({
-          nome: 'Bruno',
-          tem_adesao: true,
           ja_pago_em_centavos: 0,
           parcelas_em_aberto: 3,
           em_aberto_em_centavos: 90_000,

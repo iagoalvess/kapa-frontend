@@ -28,7 +28,7 @@ export const ROTULOS_DE_SITUACAO = {
 } as const satisfies Record<SituacaoNaPortaria, string>
 
 /** De onde veio o direito ao convite (decisão 14). Espelha `OrigemDoConvite`. */
-export type OrigemDoConvite = 'Comprado' | 'Cota' | 'Cortesia' | 'Loja'
+type OrigemDoConvite = 'Comprado' | 'Cota' | 'Cortesia' | 'Loja'
 
 /** A página pública do convite. Espelha `ConvitePublicoDTO`. */
 export interface ConvitePublico {

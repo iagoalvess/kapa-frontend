@@ -1,8 +1,8 @@
 /** De onde veio a mudança da preferência de marketing. */
-export type OrigemDaComunicacaoDoKapa = 'cadastro' | 'descadastro_pelo_email' | 'minha_privacidade'
+type OrigemDaComunicacaoDoKapa = 'cadastro' | 'descadastro_pelo_email' | 'minha_privacidade'
 
 /** Uma mudança de "Receber novidades do Kapa". Espelha `RegistroDaComunicacaoDoKapaDTO`. */
-export interface RegistroDaComunicacaoDoKapa {
+interface RegistroDaComunicacaoDoKapa {
   aceito: boolean
   origem: OrigemDaComunicacaoDoKapa
   versao_do_texto: string
@@ -10,7 +10,7 @@ export interface RegistroDaComunicacaoDoKapa {
 }
 
 /** Um e-mail de marketing já mandado. Espelha `EnvioDoKapaDTO`. */
-export interface EnvioDoKapa {
+interface EnvioDoKapa {
   jornada: string
   formatura: string
   enviado_em: string

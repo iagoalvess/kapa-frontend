@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http/cliente'
-import { abreNoNavegador, abrirOuBaixar } from '@/lib/download'
+import { abrirEmNovaAba } from '@/lib/download'
 import type { Pagina } from '@/types/paginacao'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from './usePlanoDaTurma'
 
 const DOCUMENTOS = '/api/v1/comunicacao/documentos'
 
 /** O que uma tela precisa para listar e abrir um documento do acervo. Espelha o começo de `DocumentoDTO`. */
-export interface ArquivoDoAcervo {
+interface ArquivoDoAcervo {
   id: string
   titulo: string
   nome_do_arquivo: string
@@ -29,6 +31,8 @@ export interface ArquivoDoAcervo {
  * @param habilitado Falso não consulta. As telas só pedem a lista com o formulário aberto.
  */
 export function useDocumentosDaTurma(habilitado = true) {
+  const { inclui } = usePlanoDaTurma()
+
   const consulta = useQuery({
     queryKey: ['comunicacao', 'documentos', 'da-turma'],
     queryFn: ({ signal }) =>
@@ -36,18 +40,20 @@ export function useDocumentosDaTurma(habilitado = true) {
         query: { tamanho: 100, visibilidade: 'Turma' },
         signal,
       }),
-    enabled: habilitado,
+    // O acervo é do módulo `mural`: fora do plano, o seletor fica vazio sem pedir nada (Sprint 45).
+    enabled: habilitado && inclui(MODULOS.mural),
   })
 
   return consulta.data?.itens ?? []
 }
 
 /**
- * Abre um documento do acervo: PDF e imagem numa aba, o resto baixando com o nome original.
+ * Abre um documento do acervo: PDF e imagem numa aba — sem visualizador embutido, o navegador já tem
+ * um —, o resto baixando com o nome original.
  *
- * A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. O
- * endpoint exige o bearer, então o arquivo vem como blob — uma aba aberta por `href` não mandaria o
- * cabeçalho.
+ * A API confere formatura e visibilidade e responde 302 para uma URL assinada de minutos; o `fetch`
+ * segue o redirecionamento sozinho. O endpoint exige o bearer, então o arquivo vem como blob — uma
+ * aba aberta por `href` não mandaria o cabeçalho.
  */
 export function useAbrirArquivoDoAcervo() {
   const baixar = useMutation({
@@ -55,14 +61,11 @@ export function useAbrirArquivoDoAcervo() {
   })
 
   return {
-    abrir: (documento: ArquivoDoAcervo) => {
-      const aba = abreNoNavegador(documento.content_type) ? window.open('', '_blank') : null
-
-      baixar.mutate(documento.id, {
-        onSuccess: (arquivo) => abrirOuBaixar(arquivo, documento.nome_do_arquivo, aba),
-        onError: () => aba?.close(),
-      })
-    },
+    abrir: (documento: ArquivoDoAcervo) =>
+      abrirEmNovaAba(baixar, documento.id, {
+        nome: documento.nome_do_arquivo,
+        contentType: documento.content_type,
+      }),
     abrindo: baixar.isPending,
   }
 }

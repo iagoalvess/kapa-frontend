@@ -5,12 +5,14 @@ Uma feature nova nunca cria pasta de primeiro nível — cria `src/features/<fea
 
 ```
 frontend/
-├── index.html
+├── index.html                # entrada do app
+├── site.html                 # entrada do site público (landing + documentos legais), `--mode site`
+├── scripts/prerenderizar.ts  # gera o HTML estático do site no `build:site`
 ├── vite.config.ts            # plugins, alias @, servidor de dev e configuração do Vitest
 ├── tsconfig.app.json         # regras do código de aplicação (o rigor mora aqui)
 ├── .oxlintrc.json            # regras de lint
 ├── components.json           # para o `npx shadcn add`
-├── Dockerfile / nginx/       # imagem estática servida pelo nginx
+├── borda/                    # _headers e robots.txt do Cloudflare Pages (CSP, cache)
 ├── docs/
 └── src/
     ├── main.tsx              # ponto de entrada: restaura sessão e monta a árvore
@@ -20,6 +22,7 @@ frontend/
     ├── features/             # o domínio
     ├── hooks/                # hooks usados por 2+ features
     ├── lib/                  # infraestrutura sem domínio
+    ├── site/                 # o site: rotas, hidratação e o servidor da pré-renderização
     ├── styles/               # Tailwind e tokens de tema
     ├── test/                 # setup, MSW e utilitários da suíte
     └── types/                # tipos compartilhados do contrato da API
@@ -91,6 +94,7 @@ features/
     ├── hooks/
     │   ├── chaves.ts                 # as query keys desta feature
     │   └── use<Feature>.ts
+    ├── lib/                          # funções puras e catálogos só desta feature
     ├── pages/
     ├── schemas/
     ├── types/
@@ -106,6 +110,7 @@ features/
 | `hooks/chaves.ts` | as query keys              | Por feature, nunca global — invalidar é decisão da feature.           |
 | `pages/`          | telas                      | `export default`, para o `lazy()`. Uma página por rota.               |
 | `components/`     | componentes da feature     | Sobe para `src/components/` só quando a segunda feature usar.         |
+| `lib/`            | funções puras e catálogos  | Sem React e sem API: cálculo, agrupamento, mapa de ícone.             |
 | `schemas/`        | Zod                        | Valida **forma**. Regra de negócio é do backend.                      |
 | `types/`          | tipos do contrato          | Espelham os DTOs da API, com o mesmo nome de campo.                   |
 | `index.ts`        | barrel                     | Só o que é público. Página não entra — ela é carregada por caminho.   |
@@ -199,6 +204,7 @@ paralela. Achar o teste de um arquivo nunca deve exigir busca.
 | tipo de um DTO da API            | `features/<feature>/types/`                            |
 | validação de formulário          | `features/<feature>/schemas/`                          |
 | componente usado por 1 feature   | `features/<feature>/components/`                       |
+| função pura ou catálogo          | `features/<feature>/lib/`                              |
 | componente usado por 2+ features | `src/components/`                                      |
 | componente do shadcn             | `npx shadcn@latest add <nome>` → `src/components/ui/`  |
 | hook usado por 2+ features       | `src/hooks/`                                           |

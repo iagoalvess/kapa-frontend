@@ -51,7 +51,7 @@ function responder() {
         resumo: null,
       }),
     ),
-    http.get(`${BASE}/resumo`, () => HttpResponse.json({ membros: 80, aderiram: 62, versao_vigente: 2 })),
+    http.get(`${BASE}/resumo`, () => HttpResponse.json({ membros: 80, aderiram: 62 })),
     http.get(BASE, ({ request }) => {
       pedidos.push(new URL(request.url).searchParams)
       return HttpResponse.json(pagina([ana, bruno, carla]))

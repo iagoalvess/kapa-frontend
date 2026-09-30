@@ -1,7 +1,6 @@
 import { FileText } from 'lucide-react'
 import { AcaoDaLinha } from '@/components/AcoesDaLinha'
-import { abrirNaAba } from '@/lib/download'
-import { avisarErro } from '@/lib/http/erros'
+import { abrirEmNovaAba } from '@/lib/download'
 import { useAbrirRecibo } from '../hooks/useRecibo'
 
 /**
@@ -23,25 +22,13 @@ export function BotaoDeRecibo({
 }) {
   const recibo = useAbrirRecibo()
 
-  /** A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. */
-  const abrir = () => {
-    const aba = window.open('', '_blank')
-    recibo.mutate(recebimentoId, {
-      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
-      onError: (erro) => {
-        aba?.close()
-        avisarErro(erro)
-      },
-    })
-  }
-
   return (
     <AcaoDaLinha
       rotulo="Recibo"
       descricaoAcessivel={descricaoAcessivel}
       icone={FileText}
       desabilitada={recibo.isPending}
-      onClick={abrir}
+      onClick={() => abrirEmNovaAba(recibo, recebimentoId)}
     />
   )
 }

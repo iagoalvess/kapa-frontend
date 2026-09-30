@@ -18,7 +18,7 @@ import type { SolicitacaoDePrivacidade, TipoDeSolicitacao } from '../types/priva
 import { chaves } from './chaves'
 
 /** O que o botão manda: o tipo e, só na eliminação, a senha da conta. */
-export interface PedidoDePrivacidade {
+interface PedidoDePrivacidade {
   tipo: TipoDeSolicitacao
   senha?: string
 }

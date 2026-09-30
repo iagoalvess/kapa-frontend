@@ -18,10 +18,10 @@ export {
  * Por qual porta o opcional se vende (Sprint 26, decisão 1): a vitrine do formando ou a loja pública.
  * As portas são exclusivas (P8) — o item da loja sai da vitrine, e o formando compra pelo link.
  */
-export type ModoDeVenda = 'AoFormando' | 'Publica'
+type ModoDeVenda = 'AoFormando' | 'Publica'
 
 /** `Rascunho` é nome interno: na tela, "Em montagem". */
-export type StatusDoPlano = 'Rascunho' | 'Vigente'
+type StatusDoPlano = 'Rascunho' | 'Vigente'
 
 /**
  * Um item como a API recebe — no cadastro e na simulação. Espelha `ItemDeCobrancaRequestDTO`.
@@ -47,8 +47,12 @@ export interface DadosDoItem {
   origem_da_decisao?: string
 }
 
-/** Um item gravado. Espelha `ItemDeCobrancaDTO`; a API escreve o nulo em vez de omitir. */
-export interface ItemDeCobranca extends DadosDoItem {
+/**
+ * Um item gravado. Espelha `ItemDeCobrancaDTO`; a API escreve o nulo em vez de omitir.
+ *
+ * Sem `aplicar_a_quem_ja_aderiu`: é ordem da inclusão, não dado do item, e a resposta não o traz.
+ */
+export interface ItemDeCobranca extends Omit<DadosDoItem, 'aplicar_a_quem_ja_aderiu'> {
   id: string
   encerrado_em: string | null
   /** Já gerou parcela: não se remove, só se encerra, e só o valor muda. */
@@ -131,7 +135,7 @@ export interface Opcional {
 }
 
 /** Confirmado ou cancelado — não há aprovação da comissão (P2). */
-export type StatusDoPedido = 'Confirmado' | 'Cancelado'
+type StatusDoPedido = 'Confirmado' | 'Cancelado'
 
 /** Um pedido, como o formando e a Gestão o veem. Espelha `PedidoDTO`. */
 export interface Pedido {
@@ -144,14 +148,12 @@ export interface Pedido {
   quantidade: number
   /** Em quantas vezes o formando escolheu pagar. O aumento de quantidade sai com a mesma divisão. */
   parcelas: number
-  valor_unitario_em_centavos: number
   total_em_centavos: number
   /** O que já entrou pelas parcelas deste pedido. */
   pago_em_centavos: number
   quitado: boolean
   status: StatusDoPedido
   pedido_em: string
-  cancelado_em: string | null
 }
 
 /**
@@ -223,7 +225,7 @@ export interface PlanoDeCobranca extends DadosDoPlano {
 }
 
 /** Espelha `ParcelaSimuladaDTO`. */
-export interface ParcelaSimulada {
+interface ParcelaSimulada {
   tipo: TipoDeCobranca
   descricao: string | null
   numero: number
@@ -255,7 +257,7 @@ export interface FiltroDeParcelas extends PaginacaoRequest {
 }
 
 /** Quantas parcelas e quanto somam. Espelha `SomaDeParcelasDTO`. */
-export interface SomaDeParcelas {
+interface SomaDeParcelas {
   quantidade: number
   /** O original; nas pagas, o que entrou. */
   valor_em_centavos: number

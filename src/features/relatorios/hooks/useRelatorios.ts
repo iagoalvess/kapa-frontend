@@ -155,7 +155,7 @@ export function useSolicitarRelatorio(filtro: FiltroDoRelatorio) {
 }
 
 /** Baixa o PDF de uma solicitação pronta. */
-export function useBaixarRelatorio() {
+function useBaixarRelatorio() {
   return useMutation({
     mutationFn: async (solicitacao: Solicitacao) =>
       baixarArquivo(

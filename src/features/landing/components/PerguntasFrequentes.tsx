@@ -18,7 +18,7 @@ const PERGUNTAS = [
   {
     pergunta: 'Quanto custa?',
     resposta:
-      'Nada até a turma começar a pagar as parcelas. Depois, é uma assinatura mensal ou anual, com o preço de acordo com o tamanho da turma. Não cobramos nada sobre o que vocês arrecadam.',
+      'Comece de graça com a sua comissão. Para chamar os formandos, é uma assinatura mensal ou anual, com o preço de acordo com o tamanho da turma. Não cobramos nada sobre o que vocês arrecadam.',
   },
   {
     pergunta: 'E se alguém desistir no meio do caminho?',

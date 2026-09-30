@@ -20,7 +20,7 @@ const esquemaDoTitular = z.object({
   numero_do_documento: obrigatorio('Informe o documento.', 20),
 })
 
-export type TitularDoConvite = z.infer<typeof esquemaDoTitular>
+type TitularDoConvite = z.infer<typeof esquemaDoTitular>
 
 /** Um titular em branco, com CPF como documento. */
 export const titularEmBranco = (): TitularDoConvite => ({

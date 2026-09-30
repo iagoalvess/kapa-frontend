@@ -1,11 +1,12 @@
-import { useNavigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { estilos } from '@/components/layout/LayoutDeAutenticacao'
 import { Button } from '@/components/ui/button'
-import { ROTULOS_DE_PAPEL } from '@/config/perfis'
+import { PERFIS, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
+import { usePerfil } from '@/hooks/useSessao'
 import { descreverTurma } from '../components/SeletorDeFormatura'
 import { SemFormatura } from '../components/SemFormatura'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
@@ -21,6 +22,7 @@ export default function SelecaoDeFormaturaPage() {
   const navegar = useNavigate()
   const formaturas = useMinhasFormaturas()
   const selecionar = useSelecionarFormatura()
+  const ehDaKapa = usePerfil().tem(PERFIS.administrador)
 
   // Guardado pela guarda `ExigeFormatura`: para onde voltar depois de escolher.
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
@@ -28,7 +30,9 @@ export default function SelecaoDeFormaturaPage() {
   const escolher = (id: string) =>
     selecionar.mutate(id, { onSuccess: () => navegar(destino, { replace: true }) })
 
-  if (formaturas.data?.length === 0) return <SemFormatura />
+  // Quem é da Kapa sem turma não é "conta sem formatura": a porta dele é o painel (Sprint 44, E1).
+  if (formaturas.data?.length === 0)
+    return ehDaKapa ? <Navigate to={ROTAS.painelVisaoGeral} replace /> : <SemFormatura />
 
   return (
     <>

@@ -9,7 +9,7 @@ import { useAbrirArquivoDoAcervo } from '@/hooks/useAcervoDaTurma'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { type ItemDaFesta, percentualDaMeta, type Proposta } from '@/types/festa'
 import { ROTULOS_DE_CATEGORIA } from '@/types/financeiro'
-import { ICONE_DA_CATEGORIA } from './iconeDaCategoria'
+import { ICONE_DA_CATEGORIA } from '../lib/iconeDaCategoria'
 import { Propostas } from './Propostas'
 import { SeloDoItem } from './SeloDoItem'
 

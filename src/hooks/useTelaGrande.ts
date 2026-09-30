@@ -5,7 +5,7 @@ import { TAMANHO_DA_PAGINA_LOCAL } from '@/lib/paginar'
 const CONSULTA = '(min-width: 64rem)'
 
 /** Registros por página no celular (P7 da Sprint 41): a lista vira lista, e dez linhas já são várias telas. */
-export const TAMANHO_DA_PAGINA_NO_CELULAR = 5
+const TAMANHO_DA_PAGINA_NO_CELULAR = 5
 
 const consulta = () => globalThis.matchMedia?.(CONSULTA)
 

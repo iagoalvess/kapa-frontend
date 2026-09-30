@@ -14,8 +14,6 @@ export interface FormaturaDetalhe {
   /** `yyyy-MM-dd`, sem hora nem fuso. */
   previsao_da_festa: string | null
   status: StatusDaFormatura
-  criado_em: string
-  ativada_em: string | null
   encerrada_em: string | null
   /** Se a turma já contratou um plano alguma vez. Falsa é a turma no gratuito. */
   ja_contratou: boolean

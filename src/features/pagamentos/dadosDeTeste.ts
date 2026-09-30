@@ -22,6 +22,7 @@ export const parcelaDeTeste = (mudancas: Partial<Parcela> = {}): Parcela => ({
   valor_pago_em_centavos: null,
   pago_em: null,
   recebimento_id: null,
+  pelo_mercado_pago: false,
   valor_do_dia: {
     original_em_centavos: 35_000,
     multa_em_centavos: 0,

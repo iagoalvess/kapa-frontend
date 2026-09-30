@@ -23,6 +23,7 @@ const vencida: Parcela = {
   valor_pago_em_centavos: null,
   pago_em: null,
   recebimento_id: null,
+  pelo_mercado_pago: false,
   numero: 3,
   de: 24,
   vencimento: '2026-08-10',

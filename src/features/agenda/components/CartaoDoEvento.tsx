@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { formatarData, formatarDiaDaSemana, formatarHora, formatarMesDoDia } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { type EventoDaTurma, ROTULOS_DE_TIPO } from '@/types/agenda'
-import { COR_DO_TIPO, ICONE_DO_TIPO } from './iconeDoTipo'
+import { COR_DO_TIPO, ICONE_DO_TIPO } from '../lib/iconeDoTipo'
 import { IndicadorDoEvento } from './IndicadorDoEvento'
 import { COR_DA_DATA } from './SeloDoEvento'
 

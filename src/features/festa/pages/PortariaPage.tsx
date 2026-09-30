@@ -1,23 +1,19 @@
 import {
   CalendarDays,
-  Check,
   CircleCheck,
   Clock,
   DoorOpen,
   FileDown,
   Gift,
   MapPin,
-  Pencil,
-  RotateCcw,
   Ticket,
   UserRound,
   WifiOff,
 } from 'lucide-react'
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
-import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
@@ -27,11 +23,7 @@ import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ListaDeDados, Dado } from '@/components/ListaDeDados'
 import { ListaVazia } from '@/components/ListaVazia'
-import { Paginacao } from '@/components/Paginacao'
-import { Tabela } from '@/components/Planilha'
-import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
@@ -41,13 +33,11 @@ import { contemBusca } from '@/lib/busca'
 import { formatarData, formatarDataHora, formatarHorario } from '@/lib/formato'
 import { avisarErro, ErroDeRede, ehErroDaApi } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
-import { paginar } from '@/lib/paginar'
-import { cn } from '@/lib/utils'
 import { DialogoDoConvidado } from '../components/DialogoDoConvidado'
-import { ResultadoDaValidacao } from '../components/ResultadoDaValidacao'
+import { ListaDaPortaria } from '../components/ListaDaPortaria'
+import { ValidacaoNaPortaria } from '../components/ValidacaoNaPortaria'
 import {
   useBaixarListaDaPortaria,
-  useDesfazerEntrada,
   useEmitirPendentes,
   usePortaria,
   useReemitirConvite,
@@ -64,16 +54,6 @@ import {
   type SituacaoNaPortaria,
   type TipoDoEventoDoConvite,
 } from '../types/convites.types'
-
-/** A porta procura pela busca; a página só evita desenhar mil linhas de uma vez. */
-const CONVIDADOS_POR_PAGINA = 20
-
-const TOM_DA_SITUACAO = {
-  Valido: 'cinza',
-  SemTitular: 'alerta',
-  Validado: 'sucesso',
-  Revogado: 'perigo',
-} as const satisfies Record<SituacaoNaPortaria, TomDoSelo>
 
 /**
  * A portaria da festa: o código, a lista e a contagem (P4).
@@ -105,7 +85,6 @@ export default function PortariaPage() {
   const lista = usePortaria(tipo, '')
   const resumo = useResumoDosConvites()
   const validar = useValidarEntrada()
-  const desfazer = useDesfazerEntrada()
   const reemitir = useReemitirConvite()
   const emitirPendentes = useEmitirPendentes()
   const baixarLista = useBaixarListaDaPortaria()
@@ -139,12 +118,6 @@ export default function PortariaPage() {
       ))}
     </>
   )
-
-  const enviarCodigo = (evento: FormEvent) => {
-    evento.preventDefault()
-    const limpo = codigo.trim().toUpperCase()
-    if (limpo) validarCodigo(limpo)
-  }
 
   if (lista.isPending)
     return (
@@ -203,8 +176,6 @@ export default function PortariaPage() {
       (situacao === null || c.situacao === situacao) &&
       (!busca || contemBusca(busca, c.nome_do_convidado, c.convidado_de, c.codigo)),
   )
-  // A lista vem inteira de propósito — é ela que a porta usa sem rede (decisão 16); a tela só desenha uma página.
-  const pagina = paginar(visiveis, paginaNaUrl, CONVIDADOS_POR_PAGINA)
   const pendentes = tipo === 'Festa' ? (resumo.data?.pedidos_quitados_sem_convite ?? 0) : 0
 
   return (
@@ -327,115 +298,34 @@ export default function PortariaPage() {
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
-        <Cartao titulo="Lista de convidados">
-          {visiveis.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              {convites.length === 0
-                ? 'Nenhum convite emitido ainda.'
-                : 'Nenhum convite com esse nome, código ou situação.'}
-            </p>
-          ) : (
-            <Tabela
-              emLista
-              legenda="Lista de convidados"
-              cabecalho={
-                <>
-                  <th className="py-3 pr-4 font-normal">Convidado</th>
-                  <th className="py-3 pr-4 font-normal">Convite</th>
-                  <th className="py-3 pr-4 font-normal">Documento</th>
-                  <th className="py-3 pr-4 font-normal">Situação</th>
-                </>
-              }
-            >
-              {pagina.visiveis.map((convite) => (
-                <LinhaDaPortaria
-                  key={convite.id}
-                  convite={convite}
-                  janelaAberta={lista.data.janela_aberta}
-                  offline={offline}
-                  marcadoSemRede={semRede.marcado(convite.codigo)}
-                  editavel={editavel}
-                  aoValidar={() => validarCodigo(convite.codigo)}
-                  aoMarcarSemRede={() => semRede.marcar(convite.codigo, aparelho)}
-                  aoEditar={() => definirEditando({ convite: paraEdicao(convite) })}
-                  aoReemitir={() => definirReemitindo(convite)}
-                />
-              ))}
-            </Tabela>
-          )}
-          <Paginacao
-            pagina={pagina.pagina}
-            totalPaginas={pagina.totalPaginas}
-            total={pagina.total}
-            aoMudar={(numero) => atualizar({ pagina: String(numero) })}
-          />
-        </Cartao>
+        <ListaDaPortaria
+          convites={convites}
+          visiveis={visiveis}
+          paginaNaUrl={paginaNaUrl}
+          janelaAberta={lista.data.janela_aberta}
+          offline={offline}
+          editavel={editavel}
+          marcadoSemRede={semRede.marcado}
+          aoValidar={(convite) => validarCodigo(convite.codigo)}
+          aoMarcarSemRede={(convite) => semRede.marcar(convite.codigo, aparelho)}
+          aoEditar={(convite) => definirEditando({ convite: paraEdicao(convite) })}
+          aoReemitir={definirReemitindo}
+          aoMudarPagina={(numero) => atualizar({ pagina: String(numero) })}
+        />
 
         <div className="grid min-w-0 content-start gap-5">
-          <Cartao titulo="Validar entrada" descricao="Digite o código que o convidado ditar.">
-            {!lista.data.janela_aberta ? (
-              <p className="text-muted-foreground -mt-1 text-sm">
-                {new Date(evento.janela_abre_em) > new Date()
-                  ? `A validação abre em ${formatarDataHora(evento.janela_abre_em)} — 6 horas antes do evento.`
-                  : 'A validação deste evento já fechou.'}
-              </p>
-            ) : null}
-
-            <form onSubmit={enviarCodigo} className="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
-              <Input
-                aria-label="Código do convite"
-                value={codigo}
-                onChange={(mudanca) => definirCodigo(mudanca.target.value)}
-                placeholder={`${convites[0]?.codigo.split('-')[0] ?? 'MED27'}-XXXX`}
-                autoCapitalize="characters"
-                autoComplete="off"
-                className="h-12 font-mono text-lg uppercase"
-              />
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12"
-                disabled={validar.isPending || !lista.data.janela_aberta}
-              >
-                {validar.isPending ? 'Validando…' : 'Validar código'}
-              </Button>
-            </form>
-
-            {resultado ? (
-              <div className="mt-4 grid gap-2">
-                <ResultadoDaValidacao resultado={resultado} />
-                {resultado.semRede ? (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => semRede.marcar(resultado.codigo, aparelho)}
-                  >
-                    Marcar entrada sem rede
-                  </Button>
-                ) : null}
-                {resultado.entrada ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="justify-self-center"
-                    disabled={desfazer.isPending}
-                    onClick={() => {
-                      if (resultado.entrada)
-                        desfazer.mutate(resultado.entrada.check_in_id, {
-                          onSuccess: () => {
-                            toast.info('Entrada desfeita.')
-                            definirResultado(null)
-                          },
-                          onError: avisarErro,
-                        })
-                    }}
-                  >
-                    Desfazer entrada
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </Cartao>
+          <ValidacaoNaPortaria
+            codigo={codigo}
+            aoDigitar={definirCodigo}
+            janelaAberta={lista.data.janela_aberta}
+            janelaAbreEm={evento.janela_abre_em}
+            prefixoDoCodigo={convites[0]?.codigo.split('-')[0] ?? 'MED27'}
+            resultado={resultado}
+            validando={validar.isPending}
+            aoValidar={validarCodigo}
+            aoMarcarSemRede={(alvo) => semRede.marcar(alvo, aparelho)}
+            aoDesfazer={() => definirResultado(null)}
+          />
 
           <Cartao titulo={evento.titulo}>
             <ListaDeDados>
@@ -495,94 +385,4 @@ function paraEdicao(convite: ConviteNaPortaria): MeuConvite {
     emitido_em: '',
     validado_em: convite.entrada?.validado_em ?? null,
   }
-}
-
-interface PropsDaLinha {
-  convite: ConviteNaPortaria
-  janelaAberta: boolean
-  offline: boolean
-  marcadoSemRede: boolean
-  editavel: boolean
-  aoValidar: () => void
-  aoMarcarSemRede: () => void
-  aoEditar: () => void
-  aoReemitir: () => void
-}
-
-/** Um convidado na lista: nome, código, documento mascarado, a situação e a ação que cabe. */
-function LinhaDaPortaria({
-  convite,
-  janelaAberta,
-  offline,
-  marcadoSemRede,
-  editavel,
-  aoValidar,
-  aoMarcarSemRede,
-  aoEditar,
-  aoReemitir,
-}: PropsDaLinha) {
-  const revogado = convite.situacao === 'Revogado'
-  const nome = convite.nome_do_convidado ?? 'Convidado a definir'
-
-  return (
-    <tr className={cn('border-b last:border-0', revogado && 'bg-danger-bg/60')}>
-      <th scope="row" className="py-3 pr-4 text-left font-normal">
-        <div className="grid min-w-0 gap-0.5">
-          <span className="text-foreground text-base font-medium">
-            {convite.nome_do_convidado ?? (
-              <span className="text-muted-foreground font-normal">Convidado a definir</span>
-            )}
-          </span>
-          <span className="text-muted-foreground text-sm">
-            {convite.convidado_de ? `convidado de ${convite.convidado_de}` : 'cortesia da turma'}
-          </span>
-          {revogado && convite.motivo_da_revogacao ? (
-            <span className="text-danger-text text-sm">Revogado: {convite.motivo_da_revogacao}</span>
-          ) : null}
-          {convite.entrada ? (
-            <span className="text-muted-foreground text-sm">
-              Entrou às {formatarHorario(convite.entrada.validado_em)}, por {convite.entrada.validado_por}
-            </span>
-          ) : null}
-        </div>
-      </th>
-      <td className="py-3 pr-4 whitespace-nowrap">
-        <span className="font-mono text-sm">{convite.codigo}</span>
-      </td>
-      <td className="text-muted-foreground py-3 pr-4 text-sm whitespace-nowrap">
-        {convite.documento ?? '—'}
-      </td>
-      <td className="py-3 pr-4">
-        <div className="flex flex-wrap gap-1.5">
-          <Selo tom={marcadoSemRede ? 'sucesso' : TOM_DA_SITUACAO[convite.situacao]}>
-            {marcadoSemRede ? 'Entrou (sem rede)' : ROTULOS_DE_SITUACAO[convite.situacao]}
-          </Selo>
-          {convite.entrou_sem_rede_duas_vezes ? <Selo tom="perigo">Entrou duas vezes sem rede</Selo> : null}
-        </div>
-      </td>
-
-      <td className="py-3 text-right">
-        <AcoesDaLinha rotulo={`Ações de ${nome}`}>
-          {convite.situacao === 'Valido' && janelaAberta && !offline ? (
-            <AcaoDaLinha rotulo="Validar" icone={Check} onClick={aoValidar} />
-          ) : null}
-          {offline && convite.situacao === 'Valido' && !marcadoSemRede ? (
-            <AcaoDaLinha rotulo="Marcar entrada" icone={WifiOff} onClick={aoMarcarSemRede} />
-          ) : null}
-          {editavel && !revogado && !offline ? (
-            <>
-              <AcaoDaLinha
-                rotulo={convite.nome_do_convidado ? 'Editar' : 'Nomear'}
-                icone={Pencil}
-                onClick={aoEditar}
-              />
-              {convite.situacao !== 'Validado' ? (
-                <AcaoDaLinha rotulo="Reemitir" icone={RotateCcw} onClick={aoReemitir} />
-              ) : null}
-            </>
-          ) : null}
-        </AcoesDaLinha>
-      </td>
-    </tr>
-  )
 }

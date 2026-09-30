@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import type { Plano } from '@/types/plano'
 
 /**
- * Os destaques da vitrine: cinco linhas, não os dez módulos.
+ * Os destaques da vitrine: sete linhas, não os doze módulos.
  *
  * A lista inteira faz a pessoa ler dez itens para achar os quatro que separam um plano do outro.
  * Cada linha agrupa o que anda junto e se liga ao <b>código que a representa</b> — é a presença
@@ -20,6 +20,8 @@ const DESTAQUES = [
   { modulo: 'cobrancas', texto: 'Cobranças, parcelas e PIX da turma' },
   { modulo: 'termo', texto: 'Termo de adesão digital e convites' },
   { modulo: 'despesas', texto: 'Despesas, fornecedores e caixa' },
+  { modulo: 'festa', texto: 'Loja de convites e portaria da festa' },
+  { modulo: 'mesas', texto: 'Mesas do jantar e mapa do salão' },
   { modulo: 'avisos', texto: 'Mural, avisos e régua de cobrança' },
   { modulo: 'relatorios', texto: 'Balancete, planilhas e relatórios em PDF' },
 ] as const

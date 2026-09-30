@@ -9,7 +9,7 @@ import { sessao } from './sessao'
 type ValorDeQuery = string | number | boolean | undefined | null | readonly string[]
 
 /** Opções de uma chamada à API. */
-export interface OpcoesDaRequisicao extends Omit<RequestInit, 'body' | 'method' | 'signal'> {
+interface OpcoesDaRequisicao extends Omit<RequestInit, 'body' | 'method' | 'signal'> {
   /** Corpo em JSON, serializado automaticamente — ou `FormData`, que vai como multipart. */
   body?: unknown
   /** `blob` para conteúdo binário (a foto); o padrão é JSON. */

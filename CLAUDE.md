@@ -111,7 +111,7 @@ Todo caminho entra em `config/rotas.ts` antes de ser usado.
 
 ### Data, moeda e número passam por `lib/formato`
 
-`formatarData`, `formatarDataHora`, `formatarMoeda`, `formatarNumero`. Nunca `toLocaleString`
+`formatarData`, `formatarDataHora`, `formatarCentavos`, `formatarNumero`. Nunca `toLocaleString`
 solto na tela, nunca `new Date(iso)` direto — string sem fuso é lida como hora local e a data
 aparece um dia atrás.
 
@@ -216,6 +216,9 @@ outra. O catálogo:
 | Ações de linha de tabela (ícone+tooltip) | `AcoesDaLinha` + `AcaoDaLinha`/`AcaoComConfirmacao`  |
 | Pagar no cartão pelo Mercado Pago        | `FormularioDeCartao` (SDK em `lib/mercadoPago`)      |
 | Liga/desliga que grava na hora           | `Interruptor`                                        |
+| Área fora do plano da turma (rota)       | `ExigeModulo` + `AreaBloqueada` (`AREAS_DO_PLANO`)   |
+| O plano libera o módulo? (consulta/menu) | `usePlanoDaTurma().inclui`/`.bloqueia`               |
+| Pedir upgrade de fora de uma falha       | `upgrade.pedir` (`lib/upgrade`)                      |
 
 **Celular:** o desenho abaixo de `lg` mora nas peças, não nas telas — ver "Celular" em
 `docs/padroes.md`. Tela nova não escreve `if` de largura.
@@ -281,7 +284,7 @@ Camada por pasta, feature por pasta dentro de `features/`. Feature nova nunca cr
 primeiro nível.
 
 ```
-features/<feature>/{api,hooks,pages,schemas,types,components}/ + index.ts
+features/<feature>/{api,hooks,pages,schemas,types,components,lib}/ + index.ts
 ```
 
 Pasta de feature no plural (`produtos/`), tipo no singular (`ProdutoResumo`).

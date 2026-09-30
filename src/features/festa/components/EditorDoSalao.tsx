@@ -1,28 +1,21 @@
-import { Armchair, Copy, Maximize, Minus, Plus, RotateCw, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useBlocker } from 'react-router'
+import { Armchair, Maximize, Minus, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
-import { cn } from '@/lib/utils'
-import { useExcluirMesa, useSalvarSalao } from '../hooks/useMesas'
+import { useAvisoDeSaida } from '../hooks/useAvisoDeSaida'
+import { useSalvarSalao } from '../hooks/useMesas'
 import {
   centroDaMesa,
   encaixarElemento,
-  limitar,
   METRO,
   type Ponto,
   redimensionarSalao,
   type Tamanho,
 } from '../lib/salao'
 import type {
-  CompradorDeMesa,
-  CorDaArea,
   ElementoDoSalao,
   MapaDeMesas,
   Mesa,
@@ -30,10 +23,13 @@ import type {
   PosicaoDaMesa,
   TipoDeElemento,
 } from '../types/mesas.types'
-import { CORES_DA_AREA, ELEMENTOS_DO_SALAO, TIPOS_DE_ELEMENTO } from './catalogoDoSalao'
+import { ELEMENTOS_DO_SALAO, TIPOS_DE_ELEMENTO } from '../lib/catalogoDoSalao'
 import { DialogoDeMesa } from './DialogoDeMesa'
 import { MapaDoSalao, type MesaNoMapa, type Selecao } from './MapaDoSalao'
-import { SeletorDeDono } from './SeletorDeDono'
+import { Legenda } from './salao/Legenda'
+import { PainelDaMesa } from './salao/PainelDaMesa'
+import { PainelDoElemento } from './salao/PainelDoElemento'
+import { PainelDoSalao } from './salao/PainelDoSalao'
 
 interface Props {
   mapa: MapaDeMesas
@@ -364,270 +360,4 @@ function paraOMapa(mesa: MesaPosicionada): MesaNoMapa {
     tom: mesa.reservada ? 'reservada' : mesa.vinculo_id ? 'dono' : 'livre',
     legenda: mesa.reservada ? 'Reservada' : (mesa.dono ?? mesa.observacao),
   }
-}
-
-/**
- * Segura a saída da tela com o mapa por salvar: a navegação do app pergunta antes, e fechar ou
- * recarregar a aba cai no aviso do próprio navegador.
- */
-function useAvisoDeSaida(sujo: boolean) {
-  const bloqueio = useBlocker(
-    ({ currentLocation, nextLocation }) => sujo && currentLocation.pathname !== nextLocation.pathname,
-  )
-
-  useEffect(() => {
-    if (!sujo) return
-    const avisar = (evento: BeforeUnloadEvent) => evento.preventDefault()
-    window.addEventListener('beforeunload', avisar)
-    return () => window.removeEventListener('beforeunload', avisar)
-  }, [sujo])
-
-  return bloqueio
-}
-
-function Legenda() {
-  const itens = [
-    { rotulo: 'Com dono', cor: 'bg-brand-tint border-brand' },
-    { rotulo: 'Reservada', cor: 'bg-evento-festa/20 border-evento-festa' },
-    { rotulo: 'Sem dono', cor: 'bg-card border-muted-foreground/60' },
-  ]
-
-  return (
-    <ul className="text-muted-foreground flex flex-wrap gap-4 text-sm" aria-label="Legenda">
-      {itens.map((item) => (
-        <li key={item.rotulo} className="flex items-center gap-1.5">
-          <span aria-hidden className={cn('size-3 rounded-full border-2', item.cor)} />
-          {item.rotulo}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function PainelDaMesa({
-  mesa,
-  compradores,
-  editavel,
-  aoEditar,
-  aoGirar,
-  aoTirarDoMapa,
-  aoExcluir,
-}: {
-  mesa: Mesa
-  compradores: CompradorDeMesa[]
-  editavel: boolean
-  aoEditar: () => void
-  aoGirar: () => void
-  aoTirarDoMapa: () => void
-  aoExcluir: () => void
-}) {
-  const excluir = useExcluirMesa()
-
-  return (
-    <>
-      <div className="grid gap-1">
-        <h3 className="text-foreground flex flex-wrap items-center gap-2 text-lg font-medium">
-          {mesa.identificacao}
-          {mesa.reservada ? <Selo>Reservada</Selo> : null}
-        </h3>
-        <p className="text-muted-foreground text-sm">
-          {mesa.formato === 'Redonda' ? 'Redonda' : 'Retangular'}, {formatarNumero(mesa.lugares)} lugares
-          {mesa.observacao ? ` · ${mesa.observacao}` : ''}
-        </p>
-      </div>
-
-      {mesa.reservada ? null : (
-        <div className="grid gap-1.5">
-          <span className="text-sm font-medium">Dono</span>
-          {editavel ? (
-            <SeletorDeDono mesa={mesa} compradores={compradores} className="w-full" />
-          ) : (
-            <span className="text-sm">{mesa.dono ?? 'Sem dono'}</span>
-          )}
-        </div>
-      )}
-
-      {editavel ? (
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={aoEditar}>
-            Editar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={aoGirar}
-            disabled={mesa.formato === 'Redonda'}
-            title={mesa.formato === 'Redonda' ? 'Mesa redonda não gira' : undefined}
-          >
-            <RotateCw aria-hidden />
-            Girar
-          </Button>
-          <Button variant="outline" size="sm" onClick={aoTirarDoMapa} disabled={mesa.x === null}>
-            Tirar do mapa
-          </Button>
-          <DialogoDeConfirmacao
-            gatilho={
-              <Button variant="outline" size="sm" disabled={excluir.isPending || !!mesa.vinculo_id}>
-                <Trash2 aria-hidden />
-                Excluir
-              </Button>
-            }
-            titulo={`Excluir “${mesa.identificacao}”?`}
-            descricao="A mesa sai do mapa e da lista. Mesa com dono não se exclui: solte o dono antes."
-            rotulo="Excluir"
-            destrutivo
-            aoConfirmar={() =>
-              excluir.mutate(mesa.id, {
-                onSuccess: () => {
-                  toast.info('Mesa excluída.')
-                  aoExcluir()
-                },
-                onError: avisarErro,
-              })
-            }
-          />
-        </div>
-      ) : null}
-    </>
-  )
-}
-
-function PainelDoElemento({
-  elemento,
-  editavel,
-  aoMudar,
-  aoDuplicar,
-  aoRemover,
-}: {
-  elemento: ElementoDoSalao
-  editavel: boolean
-  aoMudar: (mudanca: Partial<ElementoDoSalao>) => void
-  aoDuplicar: () => void
-  aoRemover: () => void
-}) {
-  const { icone: Icone, rotulo: tipo } = ELEMENTOS_DO_SALAO[elemento.tipo]
-
-  return (
-    <>
-      <h3 className="text-foreground flex items-center gap-2 text-lg font-medium">
-        <Icone aria-hidden className="text-muted-foreground size-5" />
-        {tipo}
-      </h3>
-
-      <div className="grid gap-1.5">
-        <Label htmlFor="rotulo-do-elemento">Nome no mapa</Label>
-        <Input
-          id="rotulo-do-elemento"
-          value={elemento.rotulo}
-          maxLength={40}
-          disabled={!editavel}
-          aria-invalid={!elemento.rotulo.trim()}
-          onChange={(evento) => aoMudar({ rotulo: evento.target.value })}
-        />
-      </div>
-
-      {elemento.tipo === 'Area' ? (
-        <fieldset className="grid gap-1.5">
-          <legend className="mb-1.5 text-sm font-medium">Cor</legend>
-          <div className="flex gap-2">
-            {(Object.keys(CORES_DA_AREA) as CorDaArea[]).map((cor) => (
-              <button
-                key={cor}
-                type="button"
-                aria-pressed={elemento.cor === cor}
-                aria-label={CORES_DA_AREA[cor].rotulo}
-                title={CORES_DA_AREA[cor].rotulo}
-                disabled={!editavel}
-                onClick={() => aoMudar({ cor })}
-                className={cn(
-                  'size-9 cursor-pointer rounded-xl border-2 border-transparent',
-                  CORES_DA_AREA[cor].amostra,
-                  elemento.cor === cor && 'border-brand',
-                )}
-              />
-            ))}
-          </div>
-        </fieldset>
-      ) : null}
-
-      <p className="text-muted-foreground text-sm">
-        {formatarNumero(elemento.largura / METRO)} m × {formatarNumero(elemento.altura / METRO)} m — puxe o
-        canto para mudar o tamanho.
-      </p>
-
-      {editavel ? (
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={aoDuplicar}>
-            <Copy aria-hidden />
-            Duplicar
-          </Button>
-          <Button variant="outline" size="sm" onClick={aoRemover}>
-            <Trash2 aria-hidden />
-            Remover
-          </Button>
-        </div>
-      ) : null}
-    </>
-  )
-}
-
-/**
- * Sem nada escolhido, o painel é o do salão: o tamanho, em metros. O número só vale ao sair do campo
- * (ou no Enter) — enquanto se digita "2" a caminho de "24", o salão não encolhe para 6 m e empurra
- * tudo para o canto.
- */
-function PainelDoSalao({
-  salao,
-  editavel,
-  aoMudar,
-}: {
-  salao: PlantaDoSalao
-  editavel: boolean
-  aoMudar: (tamanho: Tamanho) => void
-}) {
-  const campo = (lado: 'largura' | 'altura', rotulo: string) => (
-    <div className="grid gap-1.5">
-      <Label htmlFor={`salao-${lado}`}>{rotulo}</Label>
-      <Input
-        key={salao[lado]}
-        id={`salao-${lado}`}
-        type="number"
-        inputMode="decimal"
-        min={6}
-        max={100}
-        step={0.5}
-        defaultValue={salao[lado] / METRO}
-        disabled={!editavel}
-        onKeyDown={(evento) => (evento.key === 'Enter' ? evento.currentTarget.blur() : null)}
-        onBlur={(evento) => {
-          const metros = Number(evento.target.value.replace(',', '.'))
-          const centimetros =
-            Number.isFinite(metros) && metros > 0 ? Math.round(limitar(metros, 6, 100) * 2) * 50 : salao[lado]
-          evento.target.value = String(centimetros / METRO)
-          if (centimetros !== salao[lado])
-            aoMudar({ largura: salao.largura, altura: salao.altura, [lado]: centimetros })
-        }}
-      />
-    </div>
-  )
-
-  return (
-    <>
-      <div className="grid gap-1">
-        <h3 className="text-foreground text-lg font-medium">Salão</h3>
-        <p className="text-muted-foreground text-sm">
-          O tamanho é aproximado: serve para as mesas e a pista ficarem na proporção certa.
-        </p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {campo('largura', 'Largura (m)')}
-        {campo('altura', 'Profundidade (m)')}
-      </div>
-      <ul className="text-muted-foreground grid list-disc gap-1 pl-4 text-sm">
-        <li>Clique numa mesa ou elemento para editar.</li>
-        <li>Use a Área para nomear trechos do salão: “Família”, “Próximo ao palco”.</li>
-        <li>Nada vai para a turma até você salvar o mapa.</li>
-      </ul>
-    </>
-  )
 }

@@ -6,7 +6,7 @@ import { env } from '@/config/env'
 import { servidor } from '@/test/msw/server'
 import { reais, renderizar } from '@/test/utils'
 import { pagaDeTeste, parcelaDeTeste } from '../dadosDeTeste'
-import type { Divergencia, Informe } from '../types/pagamentos.types'
+import type { Divergencia, Informe, ValorADevolver } from '../types/pagamentos.types'
 import ConferenciaPage from './ConferenciaPage'
 
 /** Como a tela lê: o Testing Library normaliza o espaço fixo que o `Intl` põe depois do R$. */
@@ -46,6 +46,24 @@ const divergencia: Divergencia = {
   baixado_por: 'Tesa Ribeiro',
 }
 
+const valorADevolver = (id: string, nome: string, dados: Partial<ValorADevolver> = {}): ValorADevolver => ({
+  id,
+  usuario_id: `u-${id}`,
+  nome,
+  origem: 'CreditoDePedido',
+  status: 'ADevolver',
+  valor_em_centavos: 18_000,
+  tipo: 'ConviteExtra',
+  descricao: 'Convite extra',
+  numero_da_parcela: null,
+  vencimento: null,
+  criado_em: '2026-09-29T13:00:00Z',
+  resolvido_em: null,
+  observacao: null,
+  tem_comprovante: false,
+  ...dados,
+})
+
 /** A linha de um formando na planilha — é nela que a tela agrupa o que o quadro punha num cartão. */
 const linhaDe = async (nome: string) => (await screen.findByText(nome)).closest('tr')!
 
@@ -55,12 +73,16 @@ const abrirAba = (nome: RegExp) => userEvent.click(screen.getByRole('button', { 
 function responder(
   pendentes: Informe[] = [informe('i-1', 'Ana Souza'), informe('i-2', 'Bruno Lima')],
   confirmados: Informe[] = [],
+  aDevolver: ValorADevolver[] = [],
 ) {
   const pedidos = {
     lotes: [] as unknown[],
     recusas: [] as unknown[],
     conferidos_hoje: [] as (string | null)[],
     buscas: [] as (string | null)[],
+    devolucoes: [] as { id: unknown; tipo: string | null }[],
+    fechamentos: [] as unknown[],
+    resolvidos: [] as (string | null)[],
   }
   servidor.use(
     http.get(`${API}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status: 'Ativa' })),
@@ -76,6 +98,20 @@ function responder(
     http.get(`${API}/api/v1/recebimentos/divergencias`, ({ request }) => {
       pedidos.buscas.push(new URL(request.url).searchParams.get('busca'))
       return HttpResponse.json(pagina([divergencia]))
+    }),
+    http.get(`${API}/api/v1/valores-a-devolver`, ({ request }) => {
+      pedidos.resolvidos.push(new URL(request.url).searchParams.get('resolvidos'))
+      return HttpResponse.json(pagina(aDevolver))
+    }),
+    // O corpo não se lê aqui: o File do jsdom não atravessa o FormData do fetch do Node. O tipo
+    // multipart basta para saber que o arquivo foi junto, e é a API que exige o comprovante.
+    http.post(`${API}/api/v1/valores-a-devolver/:id/devolucao`, ({ request, params }) => {
+      pedidos.devolucoes.push({ id: params.id, tipo: request.headers.get('content-type') })
+      return HttpResponse.json({ ...aDevolver[0], status: 'Devolvido' })
+    }),
+    http.post(`${API}/api/v1/valores-a-devolver/:id/fechar`, async ({ request, params }) => {
+      pedidos.fechamentos.push({ id: params.id, ...((await request.json()) as object) })
+      return HttpResponse.json({ ...aDevolver[0], status: 'Fechado' })
     }),
     http.post(`${API}/api/v1/informes/confirmar`, async ({ request }) => {
       pedidos.lotes.push(await request.json())
@@ -233,6 +269,71 @@ describe('ConferenciaPage', () => {
 
     // Pendentes, confirmados e divergências: as três consultas levam o mesmo termo.
     await waitFor(() => expect(pedidos.buscas.filter((termo) => termo === 'ana')).toHaveLength(3))
+  })
+
+  it('a aba A devolver mostra a origem e registra a devolução com o comprovante do PIX', async () => {
+    const pedidos = responder([], [], [valorADevolver('v-1', 'Caio Prado')])
+
+    renderizar(<ConferenciaPage />)
+
+    await abrirAba(/^A devolver/)
+    const linha = await linhaDe('Caio Prado')
+    expect(linha).toHaveTextContent('Crédito de pedido cancelado')
+    expect(linha).toHaveTextContent(reais(18_000))
+
+    await userEvent.click(within(linha).getByRole('button', { name: 'Registrar a devolução a Caio Prado' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    expect(dialogo).toHaveTextContent('O Kapa não devolve dinheiro')
+    const registrar = within(dialogo).getByRole('button', { name: 'Registrar' })
+    expect(registrar).toBeDisabled()
+    await userEvent.upload(
+      within(dialogo).getByLabelText(/Anexar comprovante/),
+      new File(['%PDF'], 'pix.pdf', { type: 'application/pdf' }),
+    )
+    const habilitado = within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Registrar' })
+    expect(habilitado).toBeEnabled()
+    await userEvent.click(habilitado)
+
+    await waitFor(() => expect(pedidos.devolucoes).toHaveLength(1))
+    expect(pedidos.devolucoes[0]?.id).toBe('v-1')
+    expect(pedidos.devolucoes[0]?.tipo).toMatch(/^multipart\/form-data/)
+  })
+
+  it('o pago sem parcela não se devolve por PIX: fecha dizendo o que foi feito', async () => {
+    const pedidos = responder(
+      [],
+      [],
+      [valorADevolver('v-2', 'Duda Reis', { origem: 'PagoSemParcela', numero_da_parcela: 4 })],
+    )
+
+    renderizar(<ConferenciaPage />)
+
+    await abrirAba(/^A devolver/)
+    const linha = await linhaDe('Duda Reis')
+    expect(within(linha).queryByRole('button', { name: /Registrar a devolução/ })).not.toBeInTheDocument()
+
+    await userEvent.click(within(linha).getByRole('button', { name: 'Fechar aviso' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar aviso' }))
+    expect(await within(dialogo).findByText('Diga o que foi feito com este pagamento.')).toBeInTheDocument()
+    await userEvent.type(within(dialogo).getByLabelText('O que foi feito'), 'Devolvido no painel do MP')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar aviso' }))
+
+    await waitFor(() =>
+      expect(pedidos.fechamentos).toEqual([{ id: 'v-2', observacao: 'Devolvido no painel do MP' }]),
+    )
+  })
+
+  it('"Já resolvidos" pede a outra lista ao servidor', async () => {
+    const pedidos = responder([], [], [])
+
+    renderizar(<ConferenciaPage />)
+
+    await abrirAba(/^A devolver/)
+    expect(await screen.findByText('Nada a devolver')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Já resolvidos' }))
+
+    await waitFor(() => expect(pedidos.resolvidos).toContain('true'))
   })
 
   it('sem avisos, diz que não há nada a conferir', async () => {

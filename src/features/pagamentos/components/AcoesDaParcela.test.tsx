@@ -13,12 +13,16 @@ import { AcoesDaParcela } from './AcoesDaParcela'
 const API = env.VITE_API_URL
 
 function responder() {
-  const pedidos = { baixas: [] as FormData[], estornos: [] as unknown[] }
+  const pedidos = { baixas: [] as FormData[], estornos: [] as unknown[], cancelamentos: [] as unknown[] }
   servidor.use(
     http.get(`${API}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status: 'Ativa' })),
     http.post(`${API}/api/v1/parcelas/:id/baixa-manual`, async ({ request }) => {
       pedidos.baixas.push(await request.formData())
       return HttpResponse.json(pagaDeTeste())
+    }),
+    http.post(`${API}/api/v1/parcelas/:id/cancelar`, async ({ request, params }) => {
+      pedidos.cancelamentos.push({ id: params.id, ...((await request.json()) as object) })
+      return HttpResponse.json(parcelaDeTeste({ status: 'Cancelada' }))
     }),
     http.post(`${API}/api/v1/parcelas/:id/estornar-baixa`, async ({ request }) => {
       pedidos.estornos.push(await request.json())
@@ -45,6 +49,33 @@ describe('AcoesDaParcela', () => {
 
     renderizar(<AcoesDaParcela parcela={pagaDeTeste()} />)
     expect(screen.getByRole('button')).toHaveAccessibleName('Recibo de Bruno Lima, parcela 1/24')
+  })
+
+  it('a tesouraria cancela a aberta com justificativa, e o que já entrou vai para a lista a devolver', async () => {
+    const pedidos = responder()
+    entrarComo('Tesoureiro')
+
+    renderizar(<AcoesDaParcela parcela={parcelaDeTeste({ valor_pago_em_centavos: 10_000 })} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar parcela' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    expect(dialogo).toHaveTextContent('"A devolver"')
+    await userEvent.type(within(dialogo).getByLabelText('Justificativa'), 'Acordo com a comissão')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar parcela' }))
+
+    await waitFor(() =>
+      expect(pedidos.cancelamentos).toEqual([{ id: 'pa-1', justificativa: 'Acordo com a comissão' }]),
+    )
+  })
+
+  it('o estorno de uma baixa do Mercado Pago avisa que o Kapa não devolve o dinheiro', async () => {
+    responder()
+    entrarComo('Presidente')
+
+    renderizar(<AcoesDaParcela parcela={pagaDeTeste({ pelo_mercado_pago: true })} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Estornar' }))
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent('devolva pelo painel do Mercado Pago')
   })
 
   it('a comissão, que só consulta, não vê ação de escrita — só o recibo', () => {

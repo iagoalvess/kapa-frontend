@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import {
   atualizarMesa,
   buscarMapaDeMesas,
@@ -22,7 +24,14 @@ export function useMapaDeMesas() {
 
 /** O mapa do salão para o formando, com as mesas dele marcadas. */
 export function useSalaoDoFormando() {
-  return useQuery({ queryKey: chavesDasMesas.salao, queryFn: ({ signal }) => buscarSalaoDoFormando(signal) })
+  const { inclui } = usePlanoDaTurma()
+
+  // As mesas são módulo próprio (Sprint 45): a tela da festa pode estar no plano sem elas.
+  return useQuery({
+    queryKey: chavesDasMesas.salao,
+    queryFn: ({ signal }) => buscarSalaoDoFormando(signal),
+    enabled: inclui(MODULOS.mesas),
+  })
 }
 
 /** Toda escrita muda a faixa e a conta dos compradores: derruba o prefixo inteiro. */

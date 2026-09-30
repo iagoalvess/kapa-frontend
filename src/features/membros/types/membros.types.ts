@@ -82,9 +82,6 @@ export type MotivoDeSaida = keyof typeof MOTIVOS_DE_SAIDA
  * contaria a mesma parcela vencida duas vezes.
  */
 export interface ResumoDaSaida {
-  nome: string
-  /** `false` quer dizer que a ação certa é Remover, não Desligar. */
-  tem_adesao: boolean
   ja_pago_em_centavos: number
   parcelas_em_aberto: number
   em_aberto_em_centavos: number

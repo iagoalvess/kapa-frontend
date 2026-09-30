@@ -58,7 +58,7 @@ export function useAssinaturaDoRetorno() {
  * Recarrega a assinatura e o status da formatura — o pagamento e o cancelamento mexem nos dois, e a
  * faixa de status lê o segundo em toda tela.
  */
-export function useInvalidarAssinatura() {
+function useInvalidarAssinatura() {
   const cliente = useQueryClient()
 
   return () =>

@@ -14,7 +14,6 @@ const turma = {
   nome: 'Odontologia 2027',
   curso: 'Odontologia',
   instituicao: 'UFPR',
-  criado_em: '2026-09-01T12:00:00Z',
   previsao_de_colacao: '2099-12-17',
   previsao_da_festa: '2099-12-19',
 }
@@ -36,9 +35,7 @@ function responderTurma(dados: object) {
 
 /** O resumo da agenda, que desde a Sprint 19 é a origem das próximas datas do Início. */
 function responderAgenda(proximos: object[]) {
-  servidor.use(
-    http.get(`${base}/api/v1/agenda/resumo`, () => HttpResponse.json({ proximos, total: proximos.length })),
-  )
+  servidor.use(http.get(`${base}/api/v1/agenda/resumo`, () => HttpResponse.json({ proximos })))
 }
 
 /** Cinco meses fechados e o próximo previsto, como a API devolve. */

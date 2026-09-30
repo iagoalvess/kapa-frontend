@@ -1,7 +1,6 @@
 import type { TipoDeDocumento } from '@/config/legal'
-import type { ConsentimentoDoUsuario } from '@/types/legal'
 
-export type { AceiteDeDocumento, ConsentimentoDoUsuario, DocumentoLegal } from '@/types/legal'
+export type { AceiteDeDocumento, DocumentoLegal } from '@/types/legal'
 
 /** Versão vigente ainda não aceita. Espelha `AceitePendenteDTO`. */
 export interface AceitePendente {
@@ -11,6 +10,5 @@ export interface AceitePendente {
 
 /** Resposta de `GET /api/v1/legal/meus-aceites`. */
 export interface MeusAceites {
-  historico: ConsentimentoDoUsuario[]
   pendencias: AceitePendente[]
 }

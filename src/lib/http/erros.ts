@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { ehCodigoDeUpgrade, upgrade } from '@/lib/upgrade'
 
 /**
  * Corpo de erro da API, no formato RFC 9457 (ProblemDetails).
@@ -80,7 +81,24 @@ export function mensagemDoErro(erro: unknown): string {
 }
 
 /**
- * Avisa a falha num toast de erro, com a mensagem de {@link mensagemDoErro}.
+ * Abre o diálogo de upgrade quando a falha é do plano da turma (Sprint 45).
+ *
+ * "Esta área não está no plano" e "a turma chegou ao limite" não são erro de quem clicou: são o momento
+ * de contratar, e o toast vermelho dizia só que algo deu errado.
+ *
+ * @param erro Erro capturado.
+ * @returns `true` se era falha de plano e o diálogo abriu — quem chama então não mostra mais nada.
+ */
+export function pedirUpgradeSeForDoPlano(erro: unknown): boolean {
+  if (!ehErroDaApi(erro) || !ehCodigoDeUpgrade(erro.codigo)) return false
+
+  upgrade.pedir({ codigo: erro.codigo, mensagem: erro.message })
+  return true
+}
+
+/**
+ * Avisa a falha num toast de erro, com a mensagem de {@link mensagemDoErro}. Falha de plano abre o
+ * diálogo de upgrade no lugar ({@link pedirUpgradeSeForDoPlano}).
  *
  * É o `onError` de toda mutação de ação que não tem formulário para mostrar o erro no lugar:
  * `mutate(dados, { onError: avisarErro })`.
@@ -88,5 +106,7 @@ export function mensagemDoErro(erro: unknown): string {
  * @param erro Erro capturado.
  */
 export function avisarErro(erro: unknown) {
+  if (pedirUpgradeSeForDoPlano(erro)) return
+
   toast.error(mensagemDoErro(erro))
 }

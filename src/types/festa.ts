@@ -9,7 +9,7 @@ import type { CategoriaDeDespesa } from './financeiro'
 export type EstadoDoItem = 'AContratar' | 'Contratado' | 'Pago' | 'Cancelado'
 
 /** Quem paga um item: a turma inteira, pelo plano de cobrança, ou só quem quiser. */
-export type TipoDeRateio = 'Turma' | 'PorFormando'
+type TipoDeRateio = 'Turma' | 'PorFormando'
 
 /** O nome de cada estado na tela. */
 export const ROTULOS_DE_ESTADO = {
@@ -25,7 +25,7 @@ export const ROTULOS_DE_ESTADO = {
  * O arquivo continua no acervo (Sprint 11) e é baixado pelo endpoint de lá — o que vem aqui é só o
  * necessário para desenhar o link e decidir entre abrir numa aba e baixar. Espelha `DocumentoDoItem`.
  */
-export interface DocumentoDoItem {
+interface DocumentoDoItem {
   id: string
   titulo: string
   nome_do_arquivo: string
@@ -168,7 +168,6 @@ export interface EventoDoConvite {
   completo: boolean
   fechamento_da_lista: string
   janela_abre_em: string
-  janela_fecha_em: string
 }
 
 /**

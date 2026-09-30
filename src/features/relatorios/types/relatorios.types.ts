@@ -1,6 +1,6 @@
 import type { StatusDaParcela } from '@/types/cobranca'
 import type { CategoriaDeDespesa, StatusDaDespesa } from '@/types/financeiro'
-import type { Caixa, GastoPorFornecedor, MesDoCaixa } from '@/types/financeiro'
+import type { GastoPorFornecedor } from '@/types/financeiro'
 
 /** Quanto do que já venceu entrou. Espelha `AdimplenciaDTO`. */
 export interface Adimplencia {
@@ -18,10 +18,8 @@ export interface Adimplencia {
  * para o front o que o usuário não pode ver.
  */
 export interface DashboardPublico {
-  caixa: Caixa
   adimplencia: Adimplencia
   por_fornecedor: GastoPorFornecedor[]
-  meses: MesDoCaixa[]
 }
 
 /** Uma linha agrupada do balancete. Espelha `LinhaDeBalanceteDTO`. */
@@ -32,7 +30,7 @@ export interface LinhaDeBalancete {
 }
 
 /** Um mês do período, no gráfico do balancete. Espelha `MesDoBalanceteDTO`. */
-export interface MesDoBalancete {
+interface MesDoBalancete {
   /** Primeiro dia do mês. */
   mes: string
   entradas_em_centavos: number
@@ -40,7 +38,7 @@ export interface MesDoBalancete {
 }
 
 /** Os totais do período anterior, de igual tamanho — a base da variação. Espelha `TotaisDoPeriodoDTO`. */
-export interface TotaisDoPeriodo {
+interface TotaisDoPeriodo {
   /** Parcelas mais receitas: tudo o que entrou no período. */
   entradas_em_centavos: number
   saidas_em_centavos: number
@@ -54,8 +52,6 @@ export interface Balancete {
   instituicao: string
   de: string
   ate: string
-  emitido_por: string
-  emitido_em: string
   /** Parcelas pagas no período, por tipo de cobrança. */
   entradas: LinhaDeBalancete[]
   /** O que entrou sem ser parcela — patrocínio, evento, doação —, por categoria (Sprint 28). */
@@ -119,7 +115,7 @@ export interface FiltroDoRelatorio extends PeriodoDoRelatorio {
 }
 
 /** Um recorte que a tela sabe oferecer. */
-export type CampoDeFiltro = Exclude<keyof FiltroDoRelatorio, 'de' | 'ate'>
+type CampoDeFiltro = Exclude<keyof FiltroDoRelatorio, 'de' | 'ate'>
 
 /**
  * Que recortes cada relatório aceita.
@@ -233,11 +229,6 @@ export interface Solicitacao {
   status: StatusDaSolicitacao
   /** Por que falhou, quando falhou. */
   motivo: string | null
-  /** Quando o arquivo deixa de estar disponível. Nulo enquanto não ficou pronto. */
-  expira_em: string | null
-  criado_em: string
-  /** Se o download responde agora — é o que habilita o botão. */
-  disponivel: boolean
 }
 
 /**

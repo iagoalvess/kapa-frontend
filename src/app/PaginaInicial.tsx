@@ -6,13 +6,16 @@ import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { Esqueleto, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { PAPEIS } from '@/config/perfis'
+import { MODULOS } from '@/config/planos'
 import { ROTAS } from '@/config/rotas'
 import { ICONE_DO_TIPO } from '@/features/agenda'
 import { useResumoDaAgenda } from '@/hooks/useAgenda'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel, useSessao } from '@/hooks/useSessao'
 import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
+import { CartaoDaAreaBloqueada } from './CartaoDaAreaBloqueada'
 import { CartaoDaFesta } from './CartaoDaFesta'
 import { CartaoDaProximaParcela } from './CartaoDaProximaParcela'
 import { CartaoDoMural } from './CartaoDoMural'
@@ -25,6 +28,7 @@ export function PaginaInicial() {
   const formatura = useFormaturaAtual()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const telaGrande = useTelaGrande()
+  const muralTrancado = usePlanoDaTurma().bloqueia(MODULOS.mural)
 
   if (formatura.isPending) return <Esqueleto className="h-80 rounded-3xl" />
   if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
@@ -155,11 +159,17 @@ export function PaginaInicial() {
           Acompanhe sua formatura
         </h2>
         <div className="grid items-stretch gap-5 md:grid-cols-2">
-          <CartaoDaFesta />
+          {/* A meta da festa e os recados são do módulo `mural`: fora do plano, os dois dão lugar a um
+              cartão só, e só para a Gestão, que é quem contrata (Sprint 45). */}
+          {!muralTrancado ? (
+            <CartaoDaFesta />
+          ) : ehGestao ? (
+            <CartaoDaAreaBloqueada modulo={MODULOS.mural} />
+          ) : null}
           <CartaoDaProximaParcela />
           {/* No celular o gráfico sai (P4 da Sprint 41), e sem montar: nem a consulta dele vai. */}
           {telaGrande ? <GraficoDaArrecadacao /> : null}
-          <CartaoDoMural />
+          {muralTrancado ? null : <CartaoDoMural />}
         </div>
       </section>
     </div>

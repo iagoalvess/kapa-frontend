@@ -269,7 +269,7 @@ export function ComoFunciona() {
       <div className="grid justify-items-center gap-3">
         <ChamadaPrincipal size="lg" className="h-11 rounded-xl text-sm shadow-lg" />
         <p className="text-texto-muted flex items-center justify-center gap-2 text-center text-xs leading-[18px]">
-          Grátis até a turma começar a pagar as parcelas.
+          Comece de graça com a sua comissão.
         </p>
       </div>
     </SecaoDaLanding>

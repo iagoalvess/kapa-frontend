@@ -21,8 +21,6 @@ const formatura = {
   previsao_de_colacao: '2099-07-15',
   previsao_da_festa: null,
   status: 'Ativa',
-  criado_em: '2026-09-12T15:00:00Z',
-  ativada_em: null,
   encerrada_em: null,
 }
 
@@ -76,7 +74,7 @@ describe('PaginaDaFormatura', () => {
 
     const faixa = await screen.findByRole('region', { name: 'Resumo da formatura' })
     expect(await within(faixa).findByText('12')).toBeInTheDocument()
-    expect(await screen.findByText('Nenhum plano contratado')).toBeInTheDocument()
+    expect(await screen.findByText('Plano gratuito')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Convites por e-mail' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Gerar link' })).toBeInTheDocument()
   })

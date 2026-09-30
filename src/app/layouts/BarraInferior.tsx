@@ -10,10 +10,13 @@ import {
 } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import { PAPEIS } from '@/config/perfis'
+import { MODULOS } from '@/config/planos'
 import { ROTAS } from '@/config/rotas'
 import { useParcelasVencidas, usePendentesDeConferencia } from '@/features/pagamentos'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { cn } from '@/lib/utils'
+import { MENU_DO_PAINEL, useNoPainel } from './menuDoPainel'
 
 interface Destino {
   rotulo: string
@@ -55,18 +58,26 @@ function Ponto({ rotulo }: { rotulo: string }) {
  *
  * "Mais" acende quando a tela aberta não é nenhum dos quatro: é por ele que se chegou lá.
  *
- * @param aoAbrirMais Abre a folha — ela é da moldura, que também a monta.
+ * No painel do Kapa (Sprint 44) os destinos são os três do painel, e não há "Mais": o menu inteiro cabe na barra.
+ *
+ * @param aoAbrirMais Abre a folha — ela é da moldura, que também a monta. Sem ele, não há "Mais".
  */
-export function BarraInferior({ aoAbrirMais }: { aoAbrirMais: () => void }) {
+export function BarraInferior({ aoAbrirMais }: { aoAbrirMais?: () => void }) {
   const { tem } = usePapel()
   const { desligadoEm } = useFormaturaAtiva()
   const { pathname } = useLocation()
+  const noPainel = useNoPainel()
   // O mesmo recorte da `BarraLateral`: a claim `papel` sobrevive à saída, a permissão não.
   const ehGestao = !desligadoEm && tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const ehTesouraria = !desligadoEm && tem(PAPEIS.tesoureiro)
   // As mesmas consultas da barra lateral: o React Query as divide, e nenhuma sai duas vezes.
-  const { data: parcelasVencidas } = useParcelasVencidas()
+  const { data: parcelasVencidas } = useParcelasVencidas(!noPainel)
   const { data: pendentesDeConferencia } = usePendentesDeConferencia(ehTesouraria)
+
+  // Atalho é o lugar mais caro da tela: não vai para área fora do plano (Sprint 45). No lugar do mural,
+  // a Gestão ganha a agenda; o formando, que já a tem, fica com um atalho a menos.
+  const muralTrancado = usePlanoDaTurma().bloqueia(MODULOS.mural)
+  const agenda: Destino = { rotulo: 'Agenda', para: ROTAS.agenda, icone: CalendarDays, secao: true }
 
   const inicio: Destino = { rotulo: 'Início', para: ROTAS.inicio, icone: House }
   const mural: Destino = { rotulo: 'Mural', para: ROTAS.mural, icone: Megaphone, secao: true }
@@ -78,28 +89,27 @@ export function BarraInferior({ aoAbrirMais }: { aoAbrirMais: () => void }) {
     pendente: parcelasVencidas ? 'vencidas' : undefined,
   }
 
-  const destinos: Destino[] = desligadoEm
-    ? [inicio, minhasParcelas]
-    : ehGestao
-      ? [
-          inicio,
-          ehTesouraria
-            ? {
-                rotulo: 'Conferir',
-                para: ROTAS.conferencia,
-                icone: BadgeCheck,
-                pendente: pendentesDeConferencia ? 'a conferir' : undefined,
-              }
-            : { rotulo: 'Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
-          { rotulo: 'Caixa', para: ROTAS.caixa, icone: PiggyBank },
-          mural,
-        ]
-      : [
-          inicio,
-          minhasParcelas,
-          mural,
-          { rotulo: 'Agenda', para: ROTAS.agenda, icone: CalendarDays, secao: true },
-        ]
+  const destinos: Destino[] = noPainel
+    ? [...MENU_DO_PAINEL]
+    : desligadoEm
+      ? [inicio, minhasParcelas]
+      : ehGestao
+        ? [
+            inicio,
+            ehTesouraria
+              ? {
+                  rotulo: 'Conferir',
+                  para: ROTAS.conferencia,
+                  icone: BadgeCheck,
+                  pendente: pendentesDeConferencia ? 'a conferir' : undefined,
+                }
+              : { rotulo: 'Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
+            { rotulo: 'Caixa', para: ROTAS.caixa, icone: PiggyBank },
+            muralTrancado ? agenda : mural,
+          ]
+        : muralTrancado
+          ? [inicio, minhasParcelas, agenda]
+          : [inicio, minhasParcelas, mural, agenda]
 
   const naBarra = destinos.some(
     ({ para, secao }) => pathname === para || (secao && pathname.startsWith(`${para}/`)),

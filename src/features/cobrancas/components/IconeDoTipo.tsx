@@ -1,6 +1,6 @@
 import { CORES_DE_TIPO, type TipoDeCobranca } from '@/types/cobranca'
 import { cn } from '@/lib/utils'
-import { ICONES_DE_TIPO } from './iconesDeTipo'
+import { ICONES_DE_TIPO } from '../lib/iconesDeTipo'
 
 /**
  * O círculo da parcela (`CORES_DE_TIPO`), esmaecido como as pílulas da agenda: mesmo tom, para o

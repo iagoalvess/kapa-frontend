@@ -6,7 +6,7 @@ import { usePerfil } from '@/hooks/useSessao'
 /**
  * Restringe um ramo de rotas a quem tem o perfil informado.
  *
- * O administrador passa em qualquer um, como na política do backend.
+ * Só o perfil pedido passa: o administrador não é coringa (D4 da Sprint 44).
  *
  * @param perfil Perfil exigido.
  */

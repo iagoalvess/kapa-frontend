@@ -19,9 +19,10 @@ import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
  * comissão que passa três anos cobrando os colegas num grupo de WhatsApp. A promessa da tela é a
  * dor dela, e não uma descrição de módulos.
  *
- * A linha do presente carrega a promessa do grátis, que é o CTA: a comissão monta a turma inteira
- * sem pagar nada, e só entra conta quando as parcelas começam. Ela vem antes de qualquer recurso
- * pelo mesmo motivo.
+ * A linha do presente carrega a promessa do grátis, que é o CTA: a comissão começa sem pagar nada.
+ * Ela vem antes de qualquer recurso pelo mesmo motivo. Não diz quando o grátis acaba (Sprint 45, P5):
+ * "até a turma começar a pagar as parcelas" prometia um gatilho que o produto não tem — o grátis
+ * acaba por capacidade, quando a comissão quer chamar os formandos.
  *
  * <b>O visual é de mural de formatura</b>: fotos em polaroid presas com percevejo, rabiscos de
  * caderno e recadinhos à mão em volta do card do produto. Tudo que é ornamento — percevejo,
@@ -81,7 +82,7 @@ export function Hero() {
           </div>
 
           <p className="text-texto-muted mt-3 flex items-center gap-2 text-xs leading-[18px] lg:[@media(max-height:700px)]:mt-2.5">
-            Grátis até a turma começar a pagar as parcelas.
+            Comece de graça com a sua comissão.
           </p>
         </div>
 

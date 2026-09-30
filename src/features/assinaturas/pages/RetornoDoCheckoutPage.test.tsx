@@ -34,7 +34,7 @@ function comStatus(...status: string[]) {
     http.get(ASSINATURA, () => {
       const atual = status[Math.min(pedidos, status.length - 1)]
       pedidos++
-      return HttpResponse.json({ id: 'a-1', status: atual, plano, criado_em: '2026-09-12T12:00:00Z' })
+      return HttpResponse.json({ id: 'a-1', status: atual, plano })
     }),
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
       HttpResponse.json({ id: 'f-1', status: 'Ativa' }),

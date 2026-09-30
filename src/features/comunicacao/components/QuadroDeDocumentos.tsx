@@ -10,8 +10,9 @@ import {
   formatarNumero,
   formatarTamanho,
 } from '@/lib/formato'
+import { useAbrirArquivoDoAcervo } from '@/hooks/useAcervoDaTurma'
 import { avisarErro } from '@/lib/http/erros'
-import { useAbrirDocumento, useExcluirDocumento } from '../hooks/useDocumentos'
+import { useExcluirDocumento } from '../hooks/useDocumentos'
 import { type CategoriaDeDocumento, type Documento, GRUPOS_DE_CATEGORIA } from '../types/comunicacao.types'
 
 interface Props {
@@ -120,14 +121,14 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
  *
  * @param acoes Editar e excluir, para a Gestão.
  */
-export function CartaoDeDocumento({
+function CartaoDeDocumento({
   documento,
   acoes,
 }: {
   documento: Documento
   acoes?: { editavel: boolean; aoEditar: () => void }
 }) {
-  const { abrir, abrindo } = useAbrirDocumento()
+  const { abrir, abrindo } = useAbrirArquivoDoAcervo()
   const remetente = documento.enviado_por ?? 'Comissão'
 
   const iconeDeAcao = 'text-muted-foreground hover:text-foreground hover:bg-muted size-7 rounded-full'

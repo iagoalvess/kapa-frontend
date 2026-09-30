@@ -53,3 +53,18 @@ export function descontoDoPlano(plano: Plano) {
 export function maiorDesconto(planos: readonly Plano[]) {
   return Math.max(0, ...planos.map((plano) => descontoDoPlano(plano) ?? 0))
 }
+
+/**
+ * O plano que vale para a turma agora. Espelha `PlanoDaTurmaDTO` (Sprint 45).
+ *
+ * Sempre há um: o contratado ou o gratuito. É com ele que a tela tranca a área fora do plano antes de
+ * chamar a API — quem recusa continua sendo a API.
+ */
+export interface PlanoDaTurma {
+  codigo: string
+  nome: string
+  /** Códigos dos módulos que o plano libera — ver `MODULOS` em `config/planos`. */
+  modulos: string[]
+  /** Plano contratado em dia. Falso no gratuito, e a turma vencida volta a ele. */
+  pago: boolean
+}

@@ -21,7 +21,7 @@ import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { usePapel } from '@/hooks/useSessao'
-import { abrirNaAba } from '@/lib/download'
+import { abrirEmNovaAba } from '@/lib/download'
 import { formatarCentavos, formatarData, formatarMesCurto, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { cn } from '@/lib/utils'
@@ -90,17 +90,7 @@ export default function DetalheDaDespesaPage() {
 
   const dados = despesa.data
 
-  /** A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. */
-  const abrirComprovante = () => {
-    const aba = window.open('', '_blank')
-    comprovante.mutate(dados.id, {
-      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
-      onError: (erro) => {
-        aba?.close()
-        avisarErro(erro)
-      },
-    })
-  }
+  const abrirComprovante = () => abrirEmNovaAba(comprovante, dados.id)
 
   const parcelada = dados.total_de_parcelas > 1
 

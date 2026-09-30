@@ -1,14 +1,16 @@
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
-import { ehErroDaApi, mensagemDoErro } from './erros'
+import { ehErroDaApi, mensagemDoErro, pedirUpgradeSeForDoPlano } from './erros'
 
 /**
  * Leva ao formulário qualquer falha da mutação: erros de campo embaixo de cada campo, o resto em
- * `root`, para o formulário exibir junto do botão.
+ * `root`, para o formulário exibir junto do botão. Falha de plano não é do formulário: abre o diálogo
+ * de upgrade ({@link pedirUpgradeSeForDoPlano}).
  *
  * @param erro Falha capturada na mutação.
  * @param setError `setError` do `useForm`.
  */
 export function exibirErroNoFormulario<T extends FieldValues>(erro: unknown, setError: UseFormSetError<T>) {
+  if (pedirUpgradeSeForDoPlano(erro)) return
   if (!aplicarErrosDaApi(erro, setError)) setError('root', { message: mensagemDoErro(erro) })
 }
 
@@ -23,10 +25,7 @@ export function exibirErroNoFormulario<T extends FieldValues>(erro: unknown, set
  * @param setError `setError` do `useForm`.
  * @returns `true` se algum erro foi aplicado — o chamador então não precisa exibir toast.
  */
-export function aplicarErrosDaApi<T extends FieldValues>(
-  erro: unknown,
-  setError: UseFormSetError<T>,
-): boolean {
+function aplicarErrosDaApi<T extends FieldValues>(erro: unknown, setError: UseFormSetError<T>): boolean {
   if (!ehErroDaApi(erro)) return false
 
   const entradas = Object.entries(erro.erros)

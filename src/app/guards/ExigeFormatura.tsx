@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { ROTAS } from '@/config/rotas'
-import { useFormaturaAtiva } from '@/hooks/useSessao'
+import { PERFIS } from '@/config/perfis'
+import { useFormaturaAtiva, usePerfil } from '@/hooks/useSessao'
 
 /**
  * O que quem foi desligado ainda abre: o extrato dele, o termo dele e o portal de privacidade.
@@ -24,12 +25,19 @@ const LEITURAS_DO_DESLIGADO: readonly string[] = [ROTAS.extrato, ROTAS.adesao, R
  *
  * O destino pretendido vai no `state` para a seleção devolver o usuário ao lugar certo.
  *
+ * Quem é da Kapa (`Administrador`) sem turma na sessão vai para o painel (Sprint 44, E1): é perfil de plataforma,
+ * e a tela de "você ainda não está em uma formatura" não é a porta dele. É por aqui que o login o leva ao painel —
+ * o destino padrão do login é o Início, que mora neste ramo.
+ *
  * O desligado é desviado para o extrato em vez de perder a sessão: ele mantém a turma na sessão só
  * para ler o próprio histórico, e sem o desvio colecionaria 403 clicando no menu.
  */
 export function ExigeFormatura() {
   const { selecionada, desligadoEm } = useFormaturaAtiva()
+  const ehDaKapa = usePerfil().tem(PERFIS.administrador)
   const local = useLocation()
+
+  if (!selecionada && ehDaKapa) return <Navigate to={ROTAS.painelVisaoGeral} replace />
 
   if (!selecionada) {
     return <Navigate to={ROTAS.selecionarFormatura} state={{ de: local.pathname + local.search }} replace />

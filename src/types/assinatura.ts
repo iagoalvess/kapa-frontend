@@ -18,7 +18,7 @@ export const APARENCIA_DA_ASSINATURA = {
 } as const satisfies Record<StatusDaAssinatura, { rotulo: string; tom: string }>
 
 /** Situação de um pagamento do plano. Espelha `SituacaoDaCobrancaDoPlano`. */
-export type SituacaoDaCobrancaDoPlano = 'Aberta' | 'Paga' | 'Cancelada' | 'Estornada'
+type SituacaoDaCobrancaDoPlano = 'Aberta' | 'Paga' | 'Cancelada' | 'Estornada'
 
 /**
  * Um pagamento do plano: o PIX de um ciclo, o débito do cartão ou a diferença da subida de plano. Espelha

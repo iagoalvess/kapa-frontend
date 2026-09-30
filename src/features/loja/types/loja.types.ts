@@ -59,7 +59,7 @@ export interface DadosDaCompra {
 }
 
 /** O documento para pagar. Espelha `CobrancaDaCompraDTO`. */
-export interface CobrancaDaCompra {
+interface CobrancaDaCompra {
   meio: MeioDePagamento
   copia_e_cola: string | null
   expira_em: string
@@ -103,10 +103,10 @@ export interface Compra {
 }
 
 /** Situação do pedido de cancelamento. Espelha `StatusDoPedidoDeCancelamento`. */
-export type StatusDoPedidoDeCancelamento = 'Aberto' | 'Aprovado' | 'Recusado'
+type StatusDoPedidoDeCancelamento = 'Aberto' | 'Aprovado' | 'Recusado'
 
 /** O pedido como o comprador o acompanha. Espelha `PedidoDoCompradorDTO`. */
-export interface PedidoDoComprador {
+interface PedidoDoComprador {
   status: StatusDoPedidoDeCancelamento
   pedido_em: string
   convites: number
@@ -144,7 +144,6 @@ export interface CompraNaGestao {
   convites_cancelados: number
   /** O que a comissão ainda devolve. */
   valor_a_devolver_em_centavos: number
-  devolvida_em: string | null
   /** O comprador pediu cancelamento e ninguém respondeu. */
   pedido_de_cancelamento_aberto: boolean
 }

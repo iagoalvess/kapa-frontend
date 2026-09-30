@@ -39,7 +39,7 @@ import {
  *
  * @param inicial Os valores do item em edição (o diálogo); ausente, o item novo em branco.
  */
-export function useFormularioDeItem(inicial?: ValoresDoItem) {
+function useFormularioDeItem(inicial?: ValoresDoItem) {
   const formulario = useForm<ValoresDoItem>({
     resolver: zodResolver(esquemaDeItem),
     defaultValues: inicial ?? itemEmBranco(),

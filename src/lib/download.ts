@@ -1,3 +1,5 @@
+import { avisarErro } from '@/lib/http/erros'
+
 /**
  * Entrega um arquivo ao navegador, com o nome certo na pasta de Downloads.
  *
@@ -68,4 +70,37 @@ export function abrirNaAba(arquivo: Blob, aba: Window | null) {
 export function abrirOuBaixar(arquivo: Blob, nome: string, aba: Window | null) {
   if (aba) abrirNaAba(arquivo, aba)
   else baixarArquivo(arquivo, nome)
+}
+
+/** A mutação que traz os bytes do arquivo — o `mutate` de um `useMutation` que devolve `Blob`. */
+interface BuscaDeArquivo<V> {
+  mutate: (
+    variavel: V,
+    retorno: { onSuccess: (arquivo: Blob) => void; onError: (erro: Error) => void },
+  ) => void
+}
+
+/**
+ * Abre a aba, busca o arquivo e o mostra nela; na falha, fecha a aba e avisa o erro.
+ *
+ * Com `baixarComo`, só PDF e imagem vão para a aba — o resto baixa com o nome original.
+ *
+ * @param busca A mutação que traz os bytes.
+ * @param variavel O que a mutação recebe (em geral, o id).
+ * @param baixarComo Nome e tipo do arquivo, quando ele pode não abrir no navegador.
+ */
+export function abrirEmNovaAba<V>(
+  busca: BuscaDeArquivo<V>,
+  variavel: V,
+  baixarComo?: { nome: string; contentType: string },
+) {
+  const aba = !baixarComo || abreNoNavegador(baixarComo.contentType) ? window.open('', '_blank') : null
+  busca.mutate(variavel, {
+    onSuccess: (arquivo) =>
+      baixarComo ? abrirOuBaixar(arquivo, baixarComo.nome, aba) : abrirNaAba(arquivo, aba),
+    onError: (erro) => {
+      aba?.close()
+      avisarErro(erro)
+    },
+  })
 }

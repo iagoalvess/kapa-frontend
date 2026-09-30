@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { faixasDePublicacao, faixasDeVencimento } from './FiltroDePeriodo'
+import { faixasDeAnalise, faixasDePublicacao, faixasDeVencimento } from './FiltroDePeriodo'
+
+describe('faixasDeAnalise', () => {
+  it('conta 7 e 30 dias terminando hoje, inclusive', () => {
+    const faixas = faixasDeAnalise(new Date(2027, 6, 10, 23, 30))
+    expect(faixas['7 dias']).toEqual(['2027-07-04', '2027-07-10'])
+    expect(faixas['30 dias']).toEqual(['2027-06-11', '2027-07-10'])
+  })
+
+  it('fecha o mês passado no último dia dele, e volta o ano em janeiro', () => {
+    expect(faixasDeAnalise(new Date(2028, 2, 15))['Mês passado']).toEqual(['2028-02-01', '2028-02-29'])
+    expect(faixasDeAnalise(new Date(2028, 0, 5))['Mês passado']).toEqual(['2027-12-01', '2027-12-31'])
+  })
+})
 
 describe('faixasDeVencimento', () => {
   it('fecha a semana de segunda a domingo, inclusive quando hoje é domingo', () => {

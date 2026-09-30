@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http/cliente'
 import type { ItemDaFesta, ItemDaFestaDetalhe, MetaDaFesta } from '@/types/festa'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from './usePlanoDaTurma'
 
 /**
  * As chaves de cache da festa.
@@ -32,10 +34,13 @@ export const chavesDaFesta = {
  *   do app não ter voltado a custar uma chamada a mais por página.
  */
 export function useItensDaFesta(habilitado = true) {
+  const { inclui } = usePlanoDaTurma()
+
   return useQuery({
     queryKey: chavesDaFesta.itens,
     queryFn: ({ signal }) => api.get<ItemDaFesta[]>('/api/v1/festa/itens', { signal }),
-    enabled: habilitado,
+    // O orçamento da festa é do módulo `mural`: fora do plano, a lista nem é pedida (Sprint 45).
+    enabled: habilitado && inclui(MODULOS.mural),
   })
 }
 
@@ -47,9 +52,12 @@ export function useItensDaFesta(habilitado = true) {
  * Página Inicial de discordar da tela do dinheiro.
  */
 export function useMetaDaFesta() {
+  const { inclui } = usePlanoDaTurma()
+
   return useQuery({
     queryKey: chavesDaFesta.meta,
     queryFn: ({ signal }) => api.get<MetaDaFesta>('/api/v1/festa/meta', { signal }),
+    enabled: inclui(MODULOS.mural),
   })
 }
 

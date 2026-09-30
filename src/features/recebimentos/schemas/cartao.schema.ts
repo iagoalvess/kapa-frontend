@@ -3,7 +3,7 @@ import { lerPercentual } from '@/lib/formato'
 import type { ConfiguracaoDoCartao } from '../types/recebimentos.types'
 
 /** O teto da taxa repassada, base 10.000 — o mesmo do backend: acima disso é engano de digitação. */
-export const TAXA_MAXIMA = 1500
+const TAXA_MAXIMA = 1500
 
 /** A taxa que o formulário sugere: a do Mercado Pago com o dinheiro na hora (P8), a mais cara. */
 export const TAXA_SUGERIDA = '4,98'

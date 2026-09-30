@@ -132,14 +132,17 @@ O backend sempre envia as duas extensões, inclusive em 401 e 403.
 separado para os status que o ASP.NET responde com corpo vazio. O `traceId` é o que liga a
 reclamação do usuário à linha de log.
 
-## 13. Uma imagem Docker por ambiente
+## 13. Um build por ambiente
 
 `VITE_API_URL` é embutido no bundle em tempo de build.
 
 **Por quê:** front estático não lê variável de ambiente em tempo de execução.
 
 **Reabrir se:** a matriz de ambientes crescer a ponto de o build por ambiente incomodar. O
-caminho é servir um `/config.js` gerado no entrypoint do container.
+caminho é servir um `/config.js` com os valores do ambiente.
+
+> 30/09/2026: era "uma imagem Docker por ambiente". A imagem (nginx + `dist/`) saiu — o deploy é o
+> Cloudflare Pages desde a Sprint 33, e os cabeçalhos dela viviam duplicados em `borda/_headers`.
 
 ---
 

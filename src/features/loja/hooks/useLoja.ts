@@ -16,10 +16,10 @@ import type { Compra } from '../types/loja.types'
 import { chaves } from './chaves'
 
 /** De quanto em quanto tempo a vitrine relê o contador de restantes — a resposta vale 2 s na borda. */
-export const INTERVALO_DA_VITRINE = 5_000
+const INTERVALO_DA_VITRINE = 5_000
 
 /** De quanto em quanto tempo a compra pendente relê a situação, esperando o pagamento cair. */
-export const INTERVALO_DA_COMPRA = 5_000
+const INTERVALO_DA_COMPRA = 5_000
 
 /** Quantas vezes a compra volta à fila cheia antes de desistir e mostrar o erro. */
 const TENTATIVAS_NA_FILA = 5

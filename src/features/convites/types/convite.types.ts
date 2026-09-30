@@ -23,7 +23,6 @@ export interface ConviteResumo {
   usos_maximos: number | null
   usos_feitos: number
   status: StatusDoConvite
-  criado_em: string
   /** Só no link da turma vigente: o endereço, para copiar de novo. */
   link: string | null
 }
@@ -39,7 +38,5 @@ export interface CriarConvite {
 
 /** Convite recém-criado. No nominal, é a única vez que o link aparece. */
 export interface ConviteCriado {
-  id: string
   link: string
-  expira_em: string
 }

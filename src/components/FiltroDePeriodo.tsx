@@ -43,6 +43,26 @@ export function faixasDePublicacao(hoje = new Date()) {
 }
 
 /**
+ * As faixas do analytics do painel do Kapa (Sprint 44, P3), como `[de, ate]` — olhando para trás, como a
+ * publicação, mas em janelas corridas e meses fechados: é o que se compara de uma semana para outra.
+ *
+ * @param hoje Referência; o padrão é agora.
+ */
+export function faixasDeAnalise(hoje = new Date()) {
+  const { 'Este mês': mes } = faixasDeVencimento(hoje)
+  const ano = hoje.getFullYear()
+  const indice = hoje.getMonth()
+
+  return {
+    '7 dias': [somarDias(hoje, -6), diaDeHoje(hoje)],
+    '30 dias': [somarDias(hoje, -29), diaDeHoje(hoje)],
+    'Mês atual': mes,
+    // Dia 0 deste mês é o último do anterior; janeiro volta o ano sozinho.
+    'Mês passado': [diaDeHoje(new Date(ano, indice - 1, 1)), diaDeHoje(new Date(ano, indice, 0))],
+  } satisfies Record<string, [string, string]>
+}
+
+/**
  * O filtro de período do painel de filtros, no mesmo vocabulário do resto da tela: faixas prontas
  * em pílulas, uma ligada por vez. Cada tela diz o que se filtra — vencimento nas de dinheiro,
  * publicação no mural.

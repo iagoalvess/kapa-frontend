@@ -288,11 +288,6 @@ const doisDigitos = (numero: number) => String(numero).padStart(2, '0')
 
 const meiaNoite = (data: Date) => new Date(data.getFullYear(), data.getMonth(), data.getDate()).getTime()
 
-/** Valor em reais, no formato `R$ 1.234,56`. */
-export function formatarMoeda(valor: number | null | undefined) {
-  return valor === null || valor === undefined ? VAZIO : MOEDA.format(valor)
-}
-
 /**
  * Valor em centavos, como a API de cobrança trafega, no formato `R$ 349,90`.
  *

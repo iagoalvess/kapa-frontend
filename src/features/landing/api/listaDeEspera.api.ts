@@ -2,7 +2,7 @@ import { api } from '@/lib/http/cliente'
 import type { FormularioDaInscricao } from '../schemas/listaDeEspera.schema'
 
 /** O corpo da inscrição: o formulário, o token do Turnstile e a origem (UTM da URL). */
-export interface DadosDaInscricao extends FormularioDaInscricao {
+interface DadosDaInscricao extends FormularioDaInscricao {
   token_do_turnstile: string
   origem: string | null
 }

@@ -3,7 +3,7 @@ import { type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS, rotaDaDespesa, rotaDoAviso, rotaDoFornecedor, rotaDoMembro } from '@/config/rotas'
 
 /** De onde saiu um acerto. Espelha `TipoDeResultado` do backend. */
-export type TipoDeResultado = 'Membro' | 'Despesa' | 'Fornecedor' | 'Aviso' | 'Documento'
+type TipoDeResultado = 'Membro' | 'Despesa' | 'Fornecedor' | 'Aviso' | 'Documento'
 
 /** Um acerto da busca. Espelha `ResultadoDaBuscaDTO`. */
 export interface ResultadoDaBusca {

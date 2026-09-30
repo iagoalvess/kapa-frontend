@@ -33,7 +33,7 @@ export interface ItemAceito {
 }
 
 /** Uma parcela da grade aceita. Espelha `ParcelaSimuladaDTO`. */
-export interface ParcelaAceita {
+interface ParcelaAceita {
   tipo: TipoDeCobranca
   descricao: string | null
   numero: number
@@ -132,5 +132,4 @@ export interface FiltroDeAdesoes extends PaginacaoRequest {
 export interface ResumoDeAdesoes {
   membros: number
   aderiram: number
-  versao_vigente: number | null
 }

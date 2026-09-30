@@ -4,7 +4,7 @@ import { rotaDoItemDaFesta } from '@/config/rotas'
 import { formatarCentavos } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import type { ItemDaFesta } from '@/types/festa'
-import { ICONE_DA_CATEGORIA } from './iconeDaCategoria'
+import { ICONE_DA_CATEGORIA } from '../lib/iconeDaCategoria'
 
 /**
  * Um item na lista da esquerda: ícone da categoria, título, fornecedor ou preço, e o que falta.

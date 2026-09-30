@@ -11,7 +11,7 @@ import {
   tampoDaMesa,
 } from '../lib/salao'
 import type { ElementoDoSalao, PlantaDoSalao } from '../types/mesas.types'
-import { CORES_DA_AREA, ELEMENTOS_DO_SALAO } from './catalogoDoSalao'
+import { CORES_DA_AREA, ELEMENTOS_DO_SALAO } from '../lib/catalogoDoSalao'
 
 /** O que está escolhido no mapa: uma mesa, pelo id, ou um elemento, pela posição na lista. */
 export type Selecao = { tipo: 'mesa'; id: string } | { tipo: 'elemento'; indice: number }
@@ -20,7 +20,7 @@ export type Selecao = { tipo: 'mesa'; id: string } | { tipo: 'elemento'; indice:
  * Como a mesa aparece: com dono (laranja), reservada (lilás), livre, e — no mapa do formando — a dele
  * (laranja) e as dos outros (neutras).
  */
-export type TomDaMesa = 'dono' | 'reservada' | 'livre'
+type TomDaMesa = 'dono' | 'reservada' | 'livre'
 
 export interface MesaNoMapa extends MesaDesenhavel {
   id: string

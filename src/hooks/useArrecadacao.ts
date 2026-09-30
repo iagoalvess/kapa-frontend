@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http/cliente'
 
 /** O total juntado ao fim de um mês. Espelha `MesDaArrecadacaoDTO`. */
-export interface MesDaArrecadacao {
+interface MesDaArrecadacao {
   /** Primeiro dia do mês, `aaaa-mm-dd`. */
   mes: string
   /** Tudo o que entrou até o fim do mês, acumulado. */

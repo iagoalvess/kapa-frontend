@@ -1,70 +1,54 @@
-import { CircleCheck, FileText, ListChecks, Scale, Wallet, X } from 'lucide-react'
+import { CircleCheck, ListChecks, Scale, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
-import { toast } from 'sonner'
-import mascoteChecklist from '@/assets/mascote/checklist.webp'
-import mascoteFeliz from '@/assets/mascote/feliz.webp'
-import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
-import { Avatar } from '@/components/Avatar'
+import { Navigate } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
-import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { Chip } from '@/components/Chip'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
-import { LinhaSelecionavel, PRIMEIRA_COLUNA_SELECIONAVEL } from '@/components/LinhaSelecionavel'
-import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
-import { Selo } from '@/components/Selo'
-import { Cartao } from '@/components/Cartao'
-import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
-import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import {
-  diaDeHoje,
-  diasAte,
-  ehDia,
-  formatarCentavos,
-  formatarData,
-  formatarDataHora,
-  formatarNumero,
-  somarDias,
-} from '@/lib/formato'
-import { abrirNaAba } from '@/lib/download'
-import { avisarErro } from '@/lib/http/erros'
+import { diaDeHoje, ehDia, formatarCentavos, somarDias } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
-import { cn } from '@/lib/utils'
-import { rotuloDoItem } from '@/types/cobranca'
-import { rotuloDoMeio } from '@/types/recebimento'
-import { DialogoDeTexto } from '../components/DialogoDeTexto'
-import {
-  useAbrirComprovante,
-  useConfirmarInformes,
-  useDivergencias,
-  useInformes,
-  useRecusarInforme,
-} from '../hooks/useInformes'
-import { esquemaDaRecusa, ROTULOS_DE_FORMA } from '../schemas/pagamento.schema'
-import type { Divergencia, Informe, Parcela } from '../types/pagamentos.types'
+import { AbaADevolver } from '../components/conferencia/AbaADevolver'
+import { AbaConferir } from '../components/conferencia/AbaConferir'
+import { AbaConfirmados } from '../components/conferencia/AbaConfirmados'
+import { AbaDivergencias } from '../components/conferencia/AbaDivergencias'
+import { ConfirmarLote } from '../components/conferencia/ConfirmarLote'
+import { LateralDaConferencia } from '../components/conferencia/LateralDaConferencia'
+import { useDivergencias, useInformes } from '../hooks/useInformes'
+import { useValoresADevolver } from '../hooks/useValoresADevolver'
+import type { Informe } from '../types/pagamentos.types'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
 /**
- * As três situações da conferência: a fila, e os dois registros do que já saiu dela.
+ * As situações da conferência: a fila, os dois registros do que já saiu dela e o dinheiro a devolver.
  *
  * Não são etapas que se arrastam — são recortes, e a ordem é a do tempo real: o aviso chega em
  * "A conferir", vira baixa em "Confirmados hoje" e, se o recebido não foi o devido, aparece também
  * em "Divergências". Divergência nasce **depois** da baixa e não tem o que marcar: é registro.
+ *
+ * "A devolver" (Sprint 42) é o dinheiro que entrou e não paga mais nada — crédito de pedido,
+ * parcela cancelada com pagamento, pago no Mercado Pago sem parcela. É da tesouraria, como a fila:
+ * fica aqui até a comissão resolver.
  */
 const ABAS = {
   conferir: 'A conferir',
   confirmados: 'Confirmados hoje',
   divergencias: 'Divergências',
+  devolver: 'A devolver',
 } as const
 
 type Aba = keyof typeof ABAS
+
+/** Como a contagem da lista chama o que ela mostra. */
+const UNIDADES: Record<Aba, string> = {
+  conferir: 'avisos',
+  confirmados: 'avisos',
+  divergencias: 'divergências',
+  devolver: 'valores',
+}
 
 const ehAba = (valor: string | null): valor is Aba => ehOpcao(valor, ABAS)
 
@@ -110,6 +94,7 @@ export default function ConferenciaPage() {
   const ateNaUrl = parametros.get('ate')
   const ate = ehDia(ateNaUrl) ? ateNaUrl : undefined
   const filtrando = Boolean(busca || de || ate)
+  const resolvidos = parametros.get('resolvidos') === 'sim'
 
   // Só a aba à vista navega; as outras duas ficam na página 1 — o que se quer delas é o total da
   // pílula, e `total` não depende da página pedida.
@@ -155,6 +140,14 @@ export default function ConferenciaPage() {
     busca: busca || undefined,
     ...ordenacaoDe('divergencias'),
   })
+  // A pílula conta os que esperam; os resolvidos são consulta à parte, só na aba.
+  const aDevolver = useValoresADevolver({
+    pagina: paginaDe('devolver'),
+    tamanho: tamanhoDaPagina,
+    busca: busca || undefined,
+    resolvidos: aba === 'devolver' && resolvidos ? true : undefined,
+    ...ordenacaoDe('devolver'),
+  })
 
   const pendentes = informes.data?.itens ?? []
   const recebido = (informe: Informe) => valores[informe.id] ?? informe.valor_em_centavos
@@ -162,9 +155,12 @@ export default function ConferenciaPage() {
   const totalSelecionado = selecionados.reduce((soma, informe) => soma + recebido(informe), 0)
   const somaDaPagina = pendentes.reduce((soma, informe) => soma + informe.devido_em_centavos, 0)
 
-  const consulta = { conferir: informes, confirmados, divergencias }[aba]
+  const consulta = { conferir: informes, confirmados, divergencias, devolver: aDevolver }[aba]
   const total = consulta.data?.total ?? 0
   const mostrando = consulta.data?.itens.length ?? 0
+
+  const mudarPagina = (qual: Aba) => (nova: number) =>
+    atualizar({ aba: qual, pagina: nova === 1 ? null : String(nova) })
 
   // Confirmou o último da última página: a página pedida deixou de existir, volta para a última.
   if (consulta.data && mostrando === 0 && pagina > 1) {
@@ -222,6 +218,13 @@ export default function ConferenciaPage() {
             >
               {ABAS.divergencias}
             </Chip>
+            <Chip
+              ativo={aba === 'devolver'}
+              contagem={resolvidos && aba === 'devolver' ? undefined : aDevolver.data?.total}
+              onClick={() => atualizar({ aba: 'devolver', resolvidos: null, ordenar: null, desc: null })}
+            >
+              {ABAS.devolver}
+            </Chip>
           </>
         }
         busca={{
@@ -263,7 +266,7 @@ export default function ConferenciaPage() {
             />
           </>
         }
-        contagem={{ mostrando, total, unidade: aba === 'divergencias' ? 'divergências' : 'avisos' }}
+        contagem={{ mostrando, total, unidade: UNIDADES[aba] }}
       />
 
       {/* A lateral só na tela bem larga (`2xl`, e não o `xl` de Meus pedidos): a fila tem o campo do
@@ -271,417 +274,56 @@ export default function ConferenciaPage() {
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0">
           {aba === 'conferir' ? (
-            <Planilha
-              rotulo="Fila da conferência"
+            <AbaConferir
               consulta={informes}
-              vazio={{
-                titulo: filtrando ? 'Nenhum aviso com esses filtros' : 'Nada a conferir',
-                dica: filtrando
-                  ? 'Tente outro nome ou outro período.'
-                  : 'Quando um formando avisar que pagou, o aviso aparece aqui.',
-                // Fila vazia sem filtro é trabalho em dia, não busca que falhou.
-                mascote: filtrando ? undefined : mascoteFeliz,
-              }}
               ordenacao={ordenacao}
-              cabecalho={
-                <>
-                  {/* "Formando" e "Devido" vêm da parcela, buscada depois por id: não ordenam. */}
-                  <th className={`${PRIMEIRA_COLUNA_SELECIONAVEL} py-3 pr-4 font-normal`}>Formando</th>
-                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-                  <th className="py-3 pr-4 text-right font-normal">Devido</th>
-                  <ColunaOrdenavel coluna="recebido" numerica>
-                    Recebido
-                  </ColunaOrdenavel>
-                </>
+              filtrando={filtrando}
+              marcados={marcados}
+              recebido={recebido}
+              aoMarcar={(id) =>
+                definirMarcados((atuais) =>
+                  atuais.includes(id) ? atuais.filter((outro) => outro !== id) : [...atuais, id],
+                )
               }
-              aoMudarPagina={(nova) =>
-                atualizar({ aba: 'conferir', pagina: nova === 1 ? null : String(nova) })
-              }
-            >
-              {pendentes.map((informe) => (
-                <LinhaDeAviso
-                  key={informe.id}
-                  informe={informe}
-                  marcado={marcados.includes(informe.id)}
-                  recebido={recebido(informe)}
-                  aoMarcar={() =>
-                    definirMarcados((atuais) =>
-                      atuais.includes(informe.id)
-                        ? atuais.filter((id) => id !== informe.id)
-                        : [...atuais, informe.id],
-                    )
-                  }
-                  aoEditarValor={(centavos) =>
-                    definirValores((atuais) => ({ ...atuais, [informe.id]: centavos }))
-                  }
-                  aoRecusar={() => definirMarcados((atuais) => atuais.filter((id) => id !== informe.id))}
-                />
-              ))}
-            </Planilha>
+              aoEditarValor={(id, centavos) => definirValores((atuais) => ({ ...atuais, [id]: centavos }))}
+              aoRecusar={(id) => definirMarcados((atuais) => atuais.filter((outro) => outro !== id))}
+              aoMudarPagina={mudarPagina('conferir')}
+            />
           ) : null}
 
           {aba === 'confirmados' ? (
-            <Planilha
-              rotulo="Confirmados hoje"
+            <AbaConfirmados
               consulta={confirmados}
-              vazio={{
-                titulo: 'Nada confirmado hoje ainda',
-                dica: 'Os pagamentos que você confirmar hoje aparecerão aqui, com o horário de cada confirmação.',
-                // Nenhuma busca aconteceu aqui: o dia é que ainda não começou.
-                mascote: mascoteChecklist,
-              }}
               ordenacao={ordenacao}
-              cabecalho={
-                <>
-                  <th className="py-3 pr-4 font-normal">Formando</th>
-                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="recebido" numerica>
-                    Recebido
-                  </ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="conferido">Conferido</ColunaOrdenavel>
-                </>
-              }
-              aoMudarPagina={(nova) =>
-                atualizar({ aba: 'confirmados', pagina: nova === 1 ? null : String(nova) })
-              }
-            >
-              {(confirmados.data?.itens ?? []).map((informe) => (
-                <LinhaDeConfirmado key={informe.id} informe={informe} />
-              ))}
-            </Planilha>
+              aoMudarPagina={mudarPagina('confirmados')}
+            />
           ) : null}
 
           {aba === 'divergencias' ? (
-            <Planilha
-              rotulo="Divergências"
+            <AbaDivergencias
               consulta={divergencias}
-              vazio={{
-                titulo: filtrando ? 'Nenhuma divergência com esses filtros' : 'Nenhuma divergência',
-                dica: filtrando
-                  ? 'Tente outro nome.'
-                  : 'Tudo certo: nenhum pagamento foi confirmado com valor diferente do esperado.',
-                // "Tudo bateu" é a melhor notícia da tela; não se anuncia com cara de procura.
-                mascote: filtrando ? undefined : mascoteFeliz,
-              }}
               ordenacao={ordenacao}
-              cabecalho={
-                <>
-                  <th className="py-3 pr-4 font-normal">Formando</th>
-                  <ColunaOrdenavel coluna="pago_em">Pagou em</ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="devido" numerica>
-                    Devido
-                  </ColunaOrdenavel>
-                  <ColunaOrdenavel coluna="recebido" numerica>
-                    Recebido
-                  </ColunaOrdenavel>
-                  {/* A diferença é a subtração das duas colunas, feita na projeção: não ordena. */}
-                  <th className="py-3 pr-4 font-normal">Diferença</th>
-                  <ColunaOrdenavel coluna="baixa">Registrado em</ColunaOrdenavel>
-                </>
+              filtrando={filtrando}
+              aoMudarPagina={mudarPagina('divergencias')}
+            />
+          ) : null}
+
+          {aba === 'devolver' ? (
+            <AbaADevolver
+              consulta={aDevolver}
+              ordenacao={ordenacao}
+              filtrando={filtrando}
+              resolvidos={resolvidos}
+              aoAlternarResolvidos={() =>
+                atualizar({ resolvidos: resolvidos ? null : 'sim', ordenar: null, desc: null })
               }
-              aoMudarPagina={(nova) =>
-                atualizar({ aba: 'divergencias', pagina: nova === 1 ? null : String(nova) })
-              }
-            >
-              {(divergencias.data?.itens ?? []).map((divergencia) => (
-                <LinhaDeDivergencia key={divergencia.recebimento_id} divergencia={divergencia} />
-              ))}
-            </Planilha>
+              aoMudarPagina={mudarPagina('devolver')}
+            />
           ) : null}
         </div>
 
         <LateralDaConferencia />
       </div>
     </>
-  )
-}
-
-/**
- * A coluna da direita: o passo a passo de quem confere — a tesouraria muda a cada turma, e quem
- * chega não sabe que o valor se corrige antes de confirmar — e o caminho do pagamento que ninguém
- * avisou, que antes era um botão laranja na barra, disputando com o lote.
- */
-function LateralDaConferencia() {
-  return (
-    <div className="grid min-w-0 gap-5">
-      <Cartao titulo="Como conferir">
-        <ol className="text-muted-foreground divide-y text-sm leading-relaxed">
-          <li className="pb-3">Abra o extrato do banco no período dos avisos.</li>
-          <li className="py-3">
-            Ache cada pagamento pelo dia e pelo valor. Se entrou outro valor, corrija na linha antes de
-            confirmar: depois, a diferença fica registrada para conferência.
-          </li>
-          <li className="pt-3">
-            Marque o que bateu e confirme em lote. O formando recebe o recibo por e-mail.
-          </li>
-        </ol>
-      </Cartao>
-
-      <Cartao
-        titulo="Pagou e não avisou?"
-        descricao="Encontrou um pagamento no extrato que o formando não avisou? Registre-o na página de Parcelas."
-      >
-        <Button asChild variant="outline" size="sm" className="justify-self-start">
-          <Link to={ROTAS.parcelas}>Ir para Parcelas</Link>
-        </Button>
-      </Cartao>
-    </div>
-  )
-}
-
-/**
- * Quem pagou e qual parcela — o cabeçalho de linha das três planilhas.
- *
- * É `th scope="row"`, como na lista de fornecedores: é o que o leitor de tela repete antes de cada
- * valor da linha.
- */
-function Formando({ parcela }: { parcela: Parcela }) {
-  return (
-    <th scope="row" className="py-3 pr-4 text-left font-normal">
-      <div className="flex items-center gap-3">
-        <Avatar nome={parcela.nome} semente={parcela.usuario_id} className="size-8 shrink-0 text-sm" />
-        <div className="grid min-w-0">
-          <span className="text-foreground truncate font-medium">{parcela.nome}</span>
-          <span className="text-texto-muted truncate text-xs font-normal">
-            {rotuloDoItem(parcela)} {parcela.numero}/{parcela.de} · vence {formatarData(parcela.vencimento)}
-          </span>
-        </div>
-      </div>
-    </th>
-  )
-}
-
-/** A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. */
-function useComprovanteEmNovaAba() {
-  const comprovante = useAbrirComprovante()
-
-  return (informe_id: string) => {
-    const aba = window.open('', '_blank')
-    comprovante.mutate(informe_id, {
-      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
-      onError: (erro) => {
-        aba?.close()
-        avisarErro(erro)
-      },
-    })
-  }
-}
-
-/**
- * O comprovante, na mesma pílula das outras ações da linha ("Recusar", "Estornar"). Quem não
- * anexou nada não ganha botão desabilitado: a coluna de ações fica só com o que há para fazer.
- */
-function Comprovante({ informe }: { informe: Informe }) {
-  const abrir = useComprovanteEmNovaAba()
-
-  if (!informe.tem_comprovante) return null
-
-  return (
-    <AcaoDaLinha
-      rotulo="Comprovante"
-      descricaoAcessivel={`Abrir o comprovante de ${informe.parcela.nome}`}
-      icone={FileText}
-      onClick={() => abrir(informe.id)}
-    />
-  )
-}
-
-interface PropsDoAviso {
-  informe: Informe
-  marcado: boolean
-  recebido: number
-  aoMarcar: () => void
-  aoEditarValor: (centavos: number) => void
-  aoRecusar: () => void
-}
-
-/**
- * Um aviso na fila: quem pagou, quanto devia, quanto entrou — e as duas saídas, confirmar no lote
- * ou recusar com motivo.
- *
- * O aviso do valor diferente aparece **aqui**, antes de confirmar: depois da baixa a diferença vira
- * divergência, que já não se desfaz por esta tela.
- */
-function LinhaDeAviso({ informe, marcado, recebido, aoMarcar, aoEditarValor, aoRecusar }: PropsDoAviso) {
-  const liberado = useEscritaLiberada()
-  const recusar = useRecusarInforme()
-  const difere = recebido !== informe.devido_em_centavos
-  const dias = Math.max(0, -(diasAte(informe.informado_em) ?? 0))
-
-  return (
-    <LinhaSelecionavel selecionada={marcado} aoAlternar={aoMarcar}>
-      <Formando parcela={informe.parcela} />
-
-      <td className="py-3 pr-4 whitespace-nowrap">
-        {formatarData(informe.pago_em)}
-        {/* O meio que o formando avisou fica aqui, e não em coluna própria: é o que a tesouraria
-            procura no extrato junto com o dia, e uma coluna a mais empurraria o campo do valor. */}
-        <span className="text-texto-muted block text-xs">
-          {rotuloDoMeio(informe.meio_escolhido)} ·{' '}
-          {dias === 0 ? 'avisou hoje' : `há ${formatarNumero(dias)}d`}
-        </span>
-      </td>
-
-      <td className="py-3 pr-4 text-right whitespace-nowrap">
-        {formatarCentavos(informe.devido_em_centavos)}
-      </td>
-
-      {/* Diferente do devido, o próprio campo fica âmbar — é a linha inteira que se lê de relance,
-          e um aviso escrito ao lado só faria a coluna crescer. O leitor de tela ouve o mesmo pelo
-          texto escondido, que a cor sozinha não alcança. */}
-      <td className="py-3 pr-4 text-right">
-        <CampoDeMoeda
-          value={recebido}
-          onChange={aoEditarValor}
-          aria-label={`Valor recebido de ${informe.parcela.nome}`}
-          // `ml-auto`: o `Input` é `flex`, e caixa de bloco ignora o `text-right` da célula — sem
-          // isso o campo encosta na coluna do devido em vez de alinhar com o cabeçalho "Recebido".
-          className={cn(
-            'ml-auto h-8 w-32 rounded-full px-4 text-right text-sm',
-            difere && 'border-warning bg-warning-bg text-warning-text',
-          )}
-        />
-        {difere ? <span className="sr-only">Valor diferente do devido.</span> : null}
-      </td>
-
-      <td className="py-3 text-right">
-        <AcoesDaLinha rotulo={`Ações do aviso de ${informe.parcela.nome}`}>
-          <Comprovante informe={informe} />
-          <DialogoDeTexto
-            gatilho="Recusar"
-            gatilhoIcone={{ icone: X, tom: 'perigo' }}
-            titulo="Recusar pagamento"
-            descricao={`${informe.parcela.nome} recebe o motivo por e-mail, e a parcela continua em aberto.`}
-            campo="motivo"
-            rotulo="Motivo"
-            esquema={esquemaDaRecusa}
-            confirmar="Recusar"
-            confirmarOcupado="Recusando…"
-            ocupado={recusar.isPending}
-            desabilitado={!liberado}
-            aoEnviar={(motivo, concluir, falhar) =>
-              recusar.mutate(
-                { informe_id: informe.id, motivo },
-                {
-                  onSuccess: () => {
-                    toast.info('Pagamento recusado. O formando foi avisado por e-mail.')
-                    aoRecusar()
-                    concluir()
-                  },
-                  onError: falhar,
-                },
-              )
-            }
-          />
-        </AcoesDaLinha>
-      </td>
-    </LinhaSelecionavel>
-  )
-}
-
-/** O que a tesouraria já fechou hoje. Sem o que marcar: já está baixado. */
-function LinhaDeConfirmado({ informe }: { informe: Informe }) {
-  return (
-    <tr className="border-b last:border-0">
-      <Formando parcela={informe.parcela} />
-      <td className="py-3 pr-4 whitespace-nowrap">{formatarData(informe.pago_em)}</td>
-      <td className="text-success-text py-3 pr-4 text-right font-medium whitespace-nowrap">
-        {formatarCentavos(informe.valor_em_centavos)}
-      </td>
-      <td className="py-3 pr-4 whitespace-nowrap">
-        {informe.conferido_em ? formatarDataHora(informe.conferido_em) : '—'}
-      </td>
-      <td className="py-3 text-right">
-        <AcoesDaLinha rotulo={`Ações do confirmado de ${informe.parcela.nome}`}>
-          <Comprovante informe={informe} />
-        </AcoesDaLinha>
-      </td>
-    </tr>
-  )
-}
-
-/** Uma baixa que não bateu com o devido. Registro: a diferença não vira saldo nem se resolve aqui. */
-function LinhaDeDivergencia({ divergencia }: { divergencia: Divergencia }) {
-  const diferenca = divergencia.recebido_em_centavos - divergencia.devido_em_centavos
-
-  return (
-    <tr className="border-b last:border-0">
-      <Formando parcela={divergencia.parcela} />
-      <td className="py-3 pr-4 whitespace-nowrap">{formatarData(divergencia.pago_em)}</td>
-      <td className="py-3 pr-4 text-right whitespace-nowrap">
-        {formatarCentavos(divergencia.devido_em_centavos)}
-      </td>
-      <td className="py-3 pr-4 text-right whitespace-nowrap">
-        {formatarCentavos(divergencia.recebido_em_centavos)}
-      </td>
-      <td className="py-3 pr-4">
-        <Selo tom="alerta">
-          {diferenca > 0 ? 'A mais' : 'A menos'} {formatarCentavos(Math.abs(diferenca))}
-        </Selo>
-      </td>
-      <td className="text-texto-muted py-3">
-        {ROTULOS_DE_FORMA[divergencia.forma]}
-        <span className="block text-xs">{divergencia.baixado_por}</span>
-      </td>
-    </tr>
-  )
-}
-
-interface PropsDoLote {
-  informes: Informe[]
-  total: number
-  recebido: (informe: Informe) => number
-  aoConcluir: () => void
-}
-
-/**
- * Quantos foram marcados e o botão que fecha o lote, à esquerda da contagem da lista.
- *
- * O botão leva só o essencial — "Confirmar · R$ 650,00"; quantos são fica no rótulo ao lado, na
- * mesma linha em que se lê quantos itens a lista tem. Nada marcado, nada disso aparece.
- */
-function ConfirmarLote({ informes, total, recebido, aoConcluir }: PropsDoLote) {
-  const confirmar = useConfirmarInformes()
-  const liberado = useEscritaLiberada()
-  const quantidade = informes.length
-
-  if (quantidade === 0) return null
-
-  return (
-    <div className="motion-safe:animate-entrar flex items-center gap-2">
-      <span className="text-muted-foreground text-sm">
-        {formatarNumero(quantidade)} {quantidade === 1 ? 'selecionado' : 'selecionados'}
-      </span>
-
-      <DialogoDeConfirmacao
-        gatilho={
-          <Button size="xs" disabled={!liberado || confirmar.isPending}>
-            Confirmar · {formatarCentavos(total)}
-          </Button>
-        }
-        titulo={`Confirmar ${formatarNumero(quantidade)} ${quantidade === 1 ? 'pagamento' : 'pagamentos'}, no total de ${formatarCentavos(total)}?`}
-        descricao="A confirmação fica registrada em seu nome. O valor informado será registrado em cada parcela selecionada, e o formando receberá um e-mail."
-        rotuloDeCancelar="Voltar"
-        rotulo="Confirmar"
-        aoConfirmar={() =>
-          confirmar.mutate(
-            informes.map((informe) => ({
-              informe_id: informe.id,
-              valor_recebido_em_centavos: recebido(informe),
-            })),
-            {
-              onSuccess: ({ confirmados, ignorados }) => {
-                toast.success(
-                  `${formatarNumero(confirmados)} ${confirmados === 1 ? 'pagamento confirmado' : 'pagamentos confirmados'}.` +
-                    (ignorados ? ` ${formatarNumero(ignorados)} já tinham sido conferidos.` : ''),
-                )
-                aoConcluir()
-              },
-              onError: avisarErro,
-            },
-          )
-        }
-      />
-    </div>
   )
 }

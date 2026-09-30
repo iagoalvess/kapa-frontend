@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import type { ItemDoCadastro, PerfilDoFormando } from '../types/formandos.types'
 
 /** Como cada item de `faltando` aparece na tela. */
-export const ROTULOS_DOS_ITENS: Record<ItemDoCadastro, string> = {
+const ROTULOS_DOS_ITENS: Record<ItemDoCadastro, string> = {
   nome_completo: 'Nome completo',
   nome_no_diploma: 'Nome no diploma',
   cpf: 'CPF',

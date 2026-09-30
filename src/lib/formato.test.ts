@@ -12,7 +12,6 @@ import {
   formatarDataRelativa,
   formatarDiaMes,
   formatarMesAno,
-  formatarMoeda,
   formatarMoedaCurta,
   formatarNumero,
   formatarPercentual,
@@ -61,12 +60,12 @@ describe('formato', () => {
     expect(formatarData(null)).toBe('—')
     expect(formatarData('')).toBe('—')
     expect(formatarData('nao-e-data')).toBe('—')
-    expect(formatarMoeda(undefined)).toBe('—')
+    expect(formatarCentavos(undefined)).toBe('—')
     expect(formatarNumero(null)).toBe('—')
   })
 
   it('formata moeda e número no padrão brasileiro', () => {
-    expect(formatarMoeda(1234.5)).toMatch(/^R\$\s?1\.234,50$/)
+    expect(formatarCentavos(123450)).toMatch(/^R\$\s?1\.234,50$/)
     expect(formatarNumero(1234567)).toBe('1.234.567')
     expect(formatarNumero(1.005, 2)).toBe('1,01')
   })

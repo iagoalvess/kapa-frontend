@@ -10,8 +10,11 @@ import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { CICLOS, type CicloDeCobranca, maiorDesconto } from '@/types/plano'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
-/** A legenda embaixo do botão, igual nos dois cards: é a promessa do grátis, não do plano. */
-const LEGENDA_DO_BOTAO = 'Grátis até a primeira parcela do formando'
+/**
+ * A legenda embaixo do botão, igual nos dois cards: é a promessa do grátis, não do plano. Sem prazo nem
+ * gatilho (Sprint 45, P5): o grátis acaba por capacidade, não pela primeira parcela.
+ */
+const LEGENDA_DO_BOTAO = 'Comece de graça com a sua comissão.'
 
 /**
  * A tabela de preços, lendo `GET /api/v1/planos`.
@@ -68,8 +71,7 @@ export function PlanosPublicos() {
       {planos.isError ? (
         <div className="mx-auto grid max-w-md justify-items-center gap-4 text-center">
           <p className="text-muted-foreground">
-            A tabela de preços não carregou agora. Criar a turma continua grátis até a primeira parcela do
-            formando.
+            A tabela de preços não carregou agora. Criar a turma continua de graça: comece com a sua comissão.
           </p>
           <Button asChild size="lg">
             <a href={urlDoApp(ROTAS.criarConta)}>

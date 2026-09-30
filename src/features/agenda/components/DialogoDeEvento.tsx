@@ -2,7 +2,9 @@ import { CalendarDays, Clock, MapPin, NotebookPen, Tag } from 'lucide-react'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Button } from '@/components/ui/button'
+import { MODULOS } from '@/config/planos'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { formatarData, formatarHora } from '@/lib/formato'
 import { type EventoDaTurma, ROTULOS_DE_TIPO } from '@/types/agenda'
 import { FormularioDoEvento } from './FormularioDoEvento'
@@ -33,6 +35,8 @@ interface Props {
  */
 export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFechar }: Props) {
   const editavel = useEscritaLiberada()
+  // A cota emite convites da colação: fora do módulo da festa, o painel nem aparece (Sprint 45).
+  const comCota = !usePlanoDaTurma().bloqueia(MODULOS.festa)
   const evento = aberto ? aberto.evento : undefined
   const mostrarFormulario = ehGestao && !somenteLeitura
 
@@ -80,7 +84,7 @@ export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFe
             ) : null}
           </ListaDeDados>
 
-          {ehGestao && evento?.tipo === 'Colacao' ? <PainelDaCota editavel={editavel} /> : null}
+          {ehGestao && comCota && evento?.tipo === 'Colacao' ? <PainelDaCota editavel={editavel} /> : null}
 
           <div className="ml-auto">
             <Button type="button" variant="outline" onClick={aoFechar}>

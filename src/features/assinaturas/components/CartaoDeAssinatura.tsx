@@ -50,9 +50,12 @@ export function CartaoDeAssinatura() {
     if (ehErroDaApi(assinatura.error) && assinatura.error.codigo === 'assinatura.nao_encontrada')
       return (
         <Cartao rotulo="Assinatura">
-          <h2 className="text-foreground text-lg font-medium">Nenhum plano contratado</h2>
+          <h2 className="text-foreground text-lg font-medium">Plano gratuito</h2>
+          {/* O que o grátis dá de verdade (Sprint 45): a frase antiga dizia que nada além do cadastro
+              funcionava, e a turma gratuita cobra, recebe e fecha o caixa. */}
           <p className="text-muted-foreground text-sm">
-            A turma ainda não contratou o Kapa. Até lá, os dados da turma podem ser editados, mas nada mais.
+            A comissão já usa cobranças, PIX, despesas e caixa. Para convidar formandos e liberar a festa,
+            contrate um plano.
           </p>
           {ehPresidente ? <IrParaPlanos>Ver planos</IrParaPlanos> : null}
         </Cartao>

@@ -82,6 +82,9 @@
   --ilustracao-envelope-aba: #ffb0b1;
   --ilustracao-envelope-lacre: #ff807e;
   --ilustracao-envelope-dobra: #fff0f0;
+  /* A moldura do celular das telas reais da landing (eram os zinc-900/700 do Tailwind). */
+  --ilustracao-celular: #18181b;
+  --ilustracao-celular-borda: #3f3f46;
 
   /* Neutros */
   --page: #f7f6f3;
@@ -204,6 +207,8 @@
   --color-ilustracao-envelope-aba: var(--ilustracao-envelope-aba);
   --color-ilustracao-envelope-lacre: var(--ilustracao-envelope-lacre);
   --color-ilustracao-envelope-dobra: var(--ilustracao-envelope-dobra);
+  --color-ilustracao-celular: var(--ilustracao-celular);
+  --color-ilustracao-celular-borda: var(--ilustracao-celular-borda);
   --color-sinal-positivo-bg: var(--sinal-positivo-bg);
   --color-sinal-positivo-text: var(--sinal-positivo-text);
   --color-sinal-negativo-bg: var(--sinal-negativo-bg);
@@ -227,6 +232,8 @@
   /* O que flutua sobre o laranja (o plano destacado, a maquete da régua): sombra quente, e não cinza. */
   --shadow-destaque: 0 18px 40px -24px rgb(166 73 100 / 0.55);
   --shadow-flutuante: 0 10px 25px -15px rgb(166 73 100 / 0.3);
+  /* O celular das telas reais da landing: a sombra longa no chão e o brilho da borda de cima. */
+  --shadow-celular: 0 28px 55px -18px rgb(39 31 27 / 0.48), inset 0 1px 1px rgb(255 255 255 / 0.32);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

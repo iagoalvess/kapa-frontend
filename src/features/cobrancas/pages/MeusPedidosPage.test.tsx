@@ -18,13 +18,11 @@ const pedido = (mudancas: Partial<Pedido> = {}): Pedido => ({
   nome: 'Ana Souza',
   quantidade: 1,
   parcelas: 1,
-  valor_unitario_em_centavos: 35_000,
   total_em_centavos: 35_000,
   pago_em_centavos: 0,
   quitado: false,
   status: 'Confirmado',
   pedido_em: '2026-09-05T12:00:00Z',
-  cancelado_em: null,
   ...mudancas,
 })
 

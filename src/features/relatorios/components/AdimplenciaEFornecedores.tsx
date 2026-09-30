@@ -17,10 +17,6 @@ import { MedidorDeAdimplencia } from './MedidorDeAdimplencia'
  * Erro não aparece: os cartões somem, e a tela do caixa continua inteira. O que eles mostram é
  * complemento — quem falha em silêncio aqui não esconde nada de ninguém, porque o número principal
  * está logo acima.
- *
- * `ponytail: uma requisição a mais na tela — /dashboard/publico repete o caixa que a página já
- * buscou. Se a rede pesar, o caminho é a adimplência e o gasto por fornecedor entrarem em
- * /financeiro/caixa e este componente sumir.`
  */
 export function AdimplenciaEFornecedores() {
   const painel = useDashboardPublico()

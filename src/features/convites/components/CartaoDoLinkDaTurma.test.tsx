@@ -6,7 +6,9 @@ import { env } from '@/config/env'
 import { PAPEIS, PERFIS } from '@/config/perfis'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
-import { renderizar } from '@/test/utils'
+import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
+import { upgrade } from '@/lib/upgrade'
+import { PLANO_GRATUITO, renderizar } from '@/test/utils'
 import { CartaoDoLinkDaTurma } from './CartaoDoLinkDaTurma'
 
 const ATUAL = `${env.VITE_API_URL}/api/v1/formaturas/atual`
@@ -29,7 +31,6 @@ const vigente = {
   usos_maximos: 80,
   usos_feitos: 3,
   status: 'Pendente',
-  criado_em: '2026-09-11T12:00:00Z',
   link: 'https://app.kapa/convite/tk-1',
 }
 
@@ -57,11 +58,7 @@ describe('CartaoDoLinkDaTurma', () => {
       http.post(CONVITES, async ({ request }) => {
         enviado = await request.json()
         convites = [{ ...vigente, id: 'c-9', usos_feitos: 0, link: 'https://app.kapa/convite/tk-9' }]
-        return HttpResponse.json({
-          id: 'c-9',
-          link: 'https://app.kapa/convite/tk-9',
-          expira_em: vigente.expira_em,
-        })
+        return HttpResponse.json({ link: 'https://app.kapa/convite/tk-9' })
       }),
     )
     entrarComo(PAPEIS.comissao)
@@ -98,11 +95,7 @@ describe('CartaoDoLinkDaTurma', () => {
     servidor.use(
       http.post(CONVITES, () => {
         gerou = true
-        return HttpResponse.json({
-          id: 'c-9',
-          link: 'https://app.kapa/convite/tk-9',
-          expira_em: vigente.expira_em,
-        })
+        return HttpResponse.json({ link: 'https://app.kapa/convite/tk-9' })
       }),
     )
     entrarComo(PAPEIS.comissao)
@@ -125,5 +118,35 @@ describe('CartaoDoLinkDaTurma', () => {
 
     await waitFor(() => expect(container).toBeEmptyDOMElement())
     expect(screen.queryByRole('region', { name: 'Link da turma' })).not.toBeInTheDocument()
+  })
+
+  /** Sem plano pago, quem entra pelo link entra como Formando: gerar abre o upgrade, sem pedir à API (Sprint 45). */
+  it('sem plano pago, gerar abre o diálogo de upgrade e não cria o link', async () => {
+    let criou = false
+    responder([])
+    servidor.use(
+      http.post(CONVITES, () => {
+        criou = true
+        return HttpResponse.json({})
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(
+      <>
+        <CartaoDoLinkDaTurma />
+        <DialogoDeUpgrade />
+      </>,
+      '/',
+      '*',
+      PLANO_GRATUITO,
+    )
+    await userEvent.click(await screen.findByRole('button', { name: 'Gerar link' }))
+
+    expect(
+      await screen.findByRole('alertdialog', { name: 'Formandos entram com um plano contratado' }),
+    ).toBeInTheDocument()
+    expect(criou).toBe(false)
+    upgrade.fechar()
   })
 })

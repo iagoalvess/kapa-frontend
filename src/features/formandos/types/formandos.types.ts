@@ -1,7 +1,7 @@
 import type { Papel } from '@/config/perfis'
 
 /** Seção de dados pessoais. Espelha `DadosPessoaisDTO`. */
-export interface DadosPessoais {
+interface DadosPessoais {
   nome_completo: string | null
   nome_no_diploma: string | null
   /** Só os 11 dígitos. */
@@ -16,7 +16,7 @@ export interface DadosPessoais {
 }
 
 /** Seção de endereço. Espelha `DadosDeEnderecoDTO`. */
-export interface DadosDeEndereco {
+interface DadosDeEndereco {
   /** Só os 8 dígitos. */
   cep: string | null
   logradouro: string | null
@@ -28,7 +28,7 @@ export interface DadosDeEndereco {
 }
 
 /** Seção de contato de emergência. Espelha `DadosDeEmergenciaDTO`. */
-export interface DadosDeEmergencia {
+interface DadosDeEmergencia {
   nome: string | null
   telefone: string | null
   parentesco: string | null

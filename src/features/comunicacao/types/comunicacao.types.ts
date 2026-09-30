@@ -148,7 +148,7 @@ export function tipoDoArquivo(content_type: string): TipoDeArquivo | undefined {
 }
 
 /** Um aviso no sino: o mínimo para reconhecê-lo e abri-lo. */
-export interface NovidadeDoMural {
+interface NovidadeDoMural {
   id: string
   titulo: string
   publicado_em: string

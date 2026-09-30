@@ -5,9 +5,17 @@ import { aderir, baixarPdf, obterMinhaAdesao, solicitarCodigo } from '../api/ade
 import { chaves } from './chaves'
 import { useConteudoParaAdesao } from './useTermo'
 
-/** A própria adesão mais recente e o que falta no cadastro para aderir. */
-export function useMinhaAdesao() {
-  return useQuery({ queryKey: chaves.minha(), queryFn: ({ signal }) => obterMinhaAdesao(signal) })
+/**
+ * A própria adesão mais recente e o que falta no cadastro para aderir.
+ *
+ * @param habilitado Falso sem turma na sessão.
+ */
+export function useMinhaAdesao(habilitado = true) {
+  return useQuery({
+    queryKey: chaves.minha(),
+    queryFn: ({ signal }) => obterMinhaAdesao(signal),
+    enabled: habilitado,
+  })
 }
 
 /**
@@ -25,7 +33,7 @@ export function useMinhaAdesao() {
  */
 export function useAdesaoPendente(habilitado = true) {
   const formatura = useFormaturaAtual()
-  const minha = useMinhaAdesao()
+  const minha = useMinhaAdesao(habilitado)
   const conteudo = useConteudoParaAdesao(
     habilitado && formatura.data?.status === 'Ativa' && minha.data !== undefined && !minha.data.adesao,
   )

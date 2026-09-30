@@ -23,7 +23,6 @@ const evento: EventoDoConvite = {
   completo: true,
   fechamento_da_lista: '2027-12-11T01:00:00Z',
   janela_abre_em: '2027-12-11T19:00:00Z',
-  janela_fecha_em: '2027-12-12T13:00:00Z',
 }
 
 const convite: ConvitePublico = {

@@ -2,7 +2,7 @@ import {
   BadgeCheck,
   CalendarDays,
   HandCoins,
-  LifeBuoy,
+  Lock,
   Coins,
   FileSignature,
   FileText,
@@ -28,17 +28,18 @@ import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { env } from '@/config/env'
-import { PAPEIS, type Papel, PERFIS, ROTULOS_DE_PAPEL } from '@/config/perfis'
+import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useAdesaoPendente } from '@/features/adesoes'
-import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO } from '@/config/planos'
-import { useAssinatura } from '@/features/assinaturas'
+import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO, MODULOS } from '@/config/planos'
 import { useSair } from '@/features/auth'
 import { useDespesasAtrasadas } from '@/features/financeiro'
 import { useParcelasVencidas, usePendentesDeConferencia } from '@/features/pagamentos'
-import { useFormaturaAtiva, usePapel, usePerfil } from '@/hooks/useSessao'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
+import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
+import { MENU_DO_PAINEL, useNoPainel } from './menuDoPainel'
 
 /**
  * A forma de um item do menu: 32px de altura, ícone de 18 e texto de 14.
@@ -96,6 +97,8 @@ function SinalDoItem({ sinal, ativo, rotulo }: { sinal?: number | boolean; ativo
  *   ele, só no caminho exato: `/formatura` não pode acender em `/formatura/membros`.
  * @param sinal A pendência daquele item; ver {@link SinalDoItem}.
  * @param rotuloDoSinal O que o sinal quer dizer, para quem não o vê ("a conferir").
+ * @param trancado A área está fora do plano da turma (Sprint 45): o item continua, com um cadeado no
+ *   lugar do sinal, e leva à vitrine da área. Esconder mataria a descoberta; desabilitar pareceria defeito.
  */
 function ItemDeMenu({
   to,
@@ -104,6 +107,7 @@ function ItemDeMenu({
   secao = false,
   sinal,
   rotuloDoSinal = 'pendente',
+  trancado = false,
   children,
 }: {
   to: string
@@ -112,6 +116,7 @@ function ItemDeMenu({
   secao?: boolean
   sinal?: number | boolean
   rotuloDoSinal?: string
+  trancado?: boolean
   children: ReactNode
 }) {
   return (
@@ -122,7 +127,14 @@ function ItemDeMenu({
           {/* `truncate`: nome que não couber vira reticências, e nunca uma segunda linha — o item
               tem altura fixa, e a linha extra vazaria por cima do vizinho. */}
           <span className="min-w-0 truncate">{children}</span>
-          <SinalDoItem sinal={sinal} ativo={isActive} rotulo={rotuloDoSinal} />
+          {trancado ? (
+            <span className={cn('ml-auto shrink-0', isActive ? 'text-on-brand' : 'text-texto-muted')}>
+              <Lock className="size-3.5!" strokeWidth={2} aria-hidden />
+              <span className="sr-only"> (fora do plano da turma)</span>
+            </span>
+          ) : (
+            <SinalDoItem sinal={sinal} ativo={isActive} rotulo={rotuloDoSinal} />
+          )}
         </>
       )}
     </NavLink>
@@ -161,22 +173,25 @@ const ICONES_DE_PAPEL: Record<Papel, LucideIcon> = {
 /**
  * O plano contratado pela turma, no rodapé: o nome do que está valendo e, num clique, a vitrine.
  *
- * Só quem é da Gestão monta este item — a rota dos planos e a API da assinatura têm esse mesmo
- * recorte. Sem assinatura (404 de quem ainda não contratou) o item convida a ver os planos.
+ * Só quem é da Gestão monta este item — a rota dos planos tem esse mesmo recorte. Sem plano pago (o
+ * gratuito, ou a assinatura que venceu) o item convida a ver os planos.
  *
  * O ícone é o do próprio plano (`ICONES_DE_PLANO`), o mesmo que o card mostra na vitrine: dois
  * desenhos diferentes para a mesma coisa fazem o menu parecer levar a outro lugar.
  */
 function PlanoDaTurma({ aoNavegar }: { aoNavegar?: () => void }) {
-  const plano = useAssinatura().data?.plano
+  // O plano vigente, e não a assinatura (Sprint 45): a mesma leitura que tranca o menu, e a turma
+  // vencida, que voltou ao gratuito, deixa de ver "Plano Essencial" aqui.
+  const { plano } = usePlanoDaTurma()
+  const pago = plano?.pago ? plano : undefined
 
   return (
     <ItemDeMenu
       to={ROTAS.planos}
-      icone={(plano ? ICONES_DE_PLANO[plano.codigo] : undefined) ?? ICONE_DE_PLANO_PADRAO}
+      icone={(pago ? ICONES_DE_PLANO[pago.codigo] : undefined) ?? ICONE_DE_PLANO_PADRAO}
       aoNavegar={aoNavegar}
     >
-      {plano ? `Plano ${plano.nome}` : 'Ver planos'}
+      {pago ? `Plano ${pago.nome}` : 'Ver planos'}
     </ItemDeMenu>
   )
 }
@@ -189,6 +204,7 @@ function Meu({
   mostrarParcelas = true,
   mostrarPedidos = true,
   mostrarConvites = true,
+  convitesTrancados = false,
 }: {
   aoNavegar?: () => void
   adesaoPendente: boolean
@@ -196,6 +212,7 @@ function Meu({
   mostrarParcelas?: boolean
   mostrarPedidos?: boolean
   mostrarConvites?: boolean
+  convitesTrancados?: boolean
 }) {
   return (
     <Secao titulo="Minhas coisas">
@@ -228,7 +245,7 @@ function Meu({
         </ItemDeMenu>
       ) : null}
       {mostrarConvites ? (
-        <ItemDeMenu to={ROTAS.meusConvites} icone={Ticket} aoNavegar={aoNavegar}>
+        <ItemDeMenu to={ROTAS.meusConvites} icone={Ticket} aoNavegar={aoNavegar} trancado={convitesTrancados}>
           Meus convites
         </ItemDeMenu>
       ) : null}
@@ -246,16 +263,19 @@ function Meu({
  * lados. Sozinho, sem seção, o item ficava boiando entre dois grupos.
  *
  * @param comRelatorios Balancete e exportações são da Gestão.
+ * @param relatoriosTrancados Os relatórios estão fora do plano da turma: o item leva o cadeado.
  * @param despesasAtrasadas Só a Tesouraria recebe o número: para quem não paga despesa, ele não é
  *   ação nenhuma — é a conta da turma exposta como se fosse cobrança.
  */
 function DinheiroDaTurma({
   aoNavegar,
   comRelatorios = false,
+  relatoriosTrancados = false,
   despesasAtrasadas,
 }: {
   aoNavegar?: () => void
   comRelatorios?: boolean
+  relatoriosTrancados?: boolean
   despesasAtrasadas?: number
 }) {
   return (
@@ -277,7 +297,12 @@ function DinheiroDaTurma({
         Outras receitas
       </ItemDeMenu>
       {comRelatorios ? (
-        <ItemDeMenu to={ROTAS.relatorios} icone={FileText} aoNavegar={aoNavegar}>
+        <ItemDeMenu
+          to={ROTAS.relatorios}
+          icone={FileText}
+          aoNavegar={aoNavegar}
+          trancado={relatoriosTrancados}
+        >
           Relatórios
         </ItemDeMenu>
       ) : null}
@@ -307,8 +332,8 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
 export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => void; comLogo?: boolean }) {
   const { papel, tem } = usePapel()
   const { selecionada, desligadoEm } = useFormaturaAtiva()
-  // Perfil de plataforma, e não papel de turma: é o que abre o painel de suporte.
-  const ehAdministrador = usePerfil().tem(PERFIS.administrador)
+  // Perfil de plataforma, e não papel de turma: no painel o menu é outro (Sprint 44).
+  const noPainel = useNoPainel()
   const sair = useSair()
   // Mesmo recorte das rotas em `router.tsx`: Tesoureiro e Comissão; o Presidente passa sempre.
   // Quem foi desligado cai fora dos dois: a claim `papel` sobrevive à saída — ela é a fotografia de
@@ -318,10 +343,15 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
   // As pendências que marcam a porta. Todas passam pelo mesmo critério: zero é o estado normal, e
   // o selo some quando o trabalho é feito. Por isso "Parcelas" e "Adesões" não têm nenhum — numa
   // turma de oitenta pessoas eles nunca zerariam, e número sempre aceso ninguém mais lê.
-  const adesaoPendente = useAdesaoPendente(!desligadoEm)
+  const adesaoPendente = useAdesaoPendente(selecionada && !desligadoEm)
   const { data: pendentesDeConferencia } = usePendentesDeConferencia(ehTesouraria)
-  const { data: parcelasVencidas } = useParcelasVencidas()
+  const { data: parcelasVencidas } = useParcelasVencidas(selecionada)
   const { data: despesasAtrasadas } = useDespesasAtrasadas(ehTesouraria)
+  // Fora do plano: a Gestão vê o item com cadeado, que leva à vitrine da área; o formando não vê o
+  // item — quem contrata é a comissão, e para ele seria só uma porta trancada (Sprint 45, P4).
+  const { bloqueia } = usePlanoDaTurma()
+  const festaTrancada = bloqueia(MODULOS.festa)
+  const muralTrancado = bloqueia(MODULOS.mural)
 
   return (
     // Três faixas: logo e rodapé presos, e só o miolo rola. `min-h-0` no miolo porque, sem ele, um
@@ -331,9 +361,9 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
       {/* A logo leva ao início, como em quase todo produto. Sem formatura na sessão não há para
           onde ir, e aí ela é só a marca. */}
       <div className={cn('shrink-0 px-3', !comLogo && 'hidden')}>
-        {selecionada ? (
+        {selecionada || noPainel ? (
           <Link
-            to={ROTAS.inicio}
+            to={selecionada ? ROTAS.inicio : ROTAS.painelVisaoGeral}
             onClick={aoNavegar}
             aria-label="Kapa — início"
             className="focus-visible:ring-ring inline-block rounded-md hover:opacity-85 focus-visible:ring-2 focus-visible:outline-none"
@@ -374,6 +404,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 parcelasVencidas={parcelasVencidas}
                 mostrarParcelas={false}
                 mostrarPedidos={false}
+                convitesTrancados={festaTrancada}
               />
 
               <Secao titulo="Cobrança">
@@ -405,7 +436,12 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.pedidos} icone={ShoppingBag} aoNavegar={aoNavegar} secao>
                   Pedidos
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.comprasDaLoja} icone={Store} aoNavegar={aoNavegar}>
+                <ItemDeMenu
+                  to={ROTAS.comprasDaLoja}
+                  icone={Store}
+                  aoNavegar={aoNavegar}
+                  trancado={festaTrancada}
+                >
                   Loja
                 </ItemDeMenu>
                 {ehTesouraria ? (
@@ -415,7 +451,12 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 ) : null}
               </Secao>
 
-              <DinheiroDaTurma aoNavegar={aoNavegar} comRelatorios despesasAtrasadas={despesasAtrasadas} />
+              <DinheiroDaTurma
+                aoNavegar={aoNavegar}
+                comRelatorios
+                relatoriosTrancados={bloqueia(MODULOS.relatorios)}
+                despesasAtrasadas={despesasAtrasadas}
+              />
 
               <Secao titulo="Turma">
                 <ItemDeMenu to={ROTAS.membros} icone={Users} aoNavegar={aoNavegar} secao>
@@ -424,16 +465,31 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
                   Agenda
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
+                <ItemDeMenu
+                  to={ROTAS.festa}
+                  icone={PartyPopper}
+                  aoNavegar={aoNavegar}
+                  trancado={muralTrancado}
+                >
                   A festa
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.portaria} icone={DoorOpen} aoNavegar={aoNavegar}>
+                <ItemDeMenu
+                  to={ROTAS.portaria}
+                  icone={DoorOpen}
+                  aoNavegar={aoNavegar}
+                  trancado={festaTrancada}
+                >
                   Portaria
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
+                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} trancado={muralTrancado}>
                   Mural
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
+                <ItemDeMenu
+                  to={ROTAS.documentos}
+                  icone={FolderOpen}
+                  aoNavegar={aoNavegar}
+                  trancado={muralTrancado}
+                >
                   Documentos
                 </ItemDeMenu>
               </Secao>
@@ -444,6 +500,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 aoNavegar={aoNavegar}
                 adesaoPendente={adesaoPendente}
                 parcelasVencidas={parcelasVencidas}
+                mostrarConvites={!festaTrancada}
               />
 
               {/* O que não pode se perder na rolagem do grupo, e a turma que ele lê sem administrar. */}
@@ -451,41 +508,44 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
                   Agenda
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
-                  A festa
-                </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
-                  Mural
-                </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
-                  Documentos
-                </ItemDeMenu>
+                {muralTrancado ? null : (
+                  <>
+                    <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
+                      A festa
+                    </ItemDeMenu>
+                    <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
+                      Mural
+                    </ItemDeMenu>
+                    <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
+                      Documentos
+                    </ItemDeMenu>
+                  </>
+                )}
               </Secao>
 
               <DinheiroDaTurma aoNavegar={aoNavegar} />
             </>
           )}
         </nav>
+      ) : noPainel ? (
+        /* O menu do painel do Kapa (Sprint 44): quem é da Kapa não vê a gestão das turmas (D4) — entra
+           numa turma pelo painel, e só para ler. Exibição só; quem recusa é a API. */
+        <nav aria-label="Painel do Kapa" className="grid content-start gap-4">
+          <Secao titulo="Painel do Kapa">
+            {MENU_DO_PAINEL.map(({ rotulo, para, icone, secao }) => (
+              <ItemDeMenu key={para} to={para} icone={icone} aoNavegar={aoNavegar} secao={secao}>
+                {rotulo}
+              </ItemDeMenu>
+            ))}
+          </Secao>
+        </nav>
       ) : null}
 
       {/* O rodapé é a zona presa embaixo, fora da lista que se percorre todo dia: o plano
-          contratado, o suporte de quem atende e a porta de sair — que nunca pode depender de
-          rolagem.
-
-          O suporte fica fora do `selecionada`, e é o único item que fica: quem atende tem perfil de
-          plataforma e normalmente não é membro de turma nenhuma — dentro da condição, ele nunca
-          apareceria para a única pessoa que precisa dele. Exibição só; quem recusa é a API. */}
+          contratado e a porta de sair — que nunca pode depender de rolagem. */}
       <div className="mt-auto grid shrink-0 gap-px">
         {papel ? <PapelNaTurma papel={papel} /> : null}
         {selecionada && ehGestao ? <PlanoDaTurma aoNavegar={aoNavegar} /> : null}
-
-        {ehAdministrador ? (
-          <nav aria-label="Plataforma">
-            <ItemDeMenu to={ROTAS.suporte} icone={LifeBuoy} aoNavegar={aoNavegar} secao>
-              Suporte
-            </ItemDeMenu>
-          </nav>
-        ) : null}
 
         <button
           type="button"

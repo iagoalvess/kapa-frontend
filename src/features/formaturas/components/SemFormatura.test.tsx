@@ -26,28 +26,4 @@ describe('SemFormatura', () => {
     expect(screen.getByRole('link', { name: 'Criar uma formatura' })).toBeInTheDocument()
     expect(screen.getByLabelText('Link do convite')).toBeInTheDocument()
   })
-
-  /**
-   * Sprint 16: `Administrador` é perfil de plataforma e não vira membro de formatura nenhuma —
-   * ele nunca sai desta tela pelos dois caminhos de cima, e sem esta porta a única forma de chegar
-   * ao painel de suporte é digitar a URL.
-   */
-  it('mostra a porta do painel de suporte para o Administrador', () => {
-    entrarCom([PERFIS.administrador])
-
-    renderizar(<SemFormatura />)
-
-    expect(screen.getByRole('link', { name: 'Abrir o painel de suporte' })).toHaveAttribute(
-      'href',
-      '/suporte',
-    )
-  })
-
-  it('não mostra a porta do painel a quem não é Administrador', () => {
-    entrarCom([PERFIS.usuario])
-
-    renderizar(<SemFormatura />)
-
-    expect(screen.queryByRole('link', { name: 'Abrir o painel de suporte' })).not.toBeInTheDocument()
-  })
 })

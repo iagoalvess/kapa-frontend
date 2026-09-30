@@ -1,9 +1,11 @@
-import { Navigate, Outlet, ScrollRestoration, createBrowserRouter } from 'react-router'
+import { Navigate, Outlet, ScrollRestoration, createBrowserRouter, useParams } from 'react-router'
 import { PAPEIS, PERFIS } from '@/config/perfis'
-import { ROTAS } from '@/config/rotas'
+import { MODULOS } from '@/config/planos'
+import { ROTAS, rotaDaContaNoPainel, rotaDaTurmaNoPainel } from '@/config/rotas'
 import { ExigeAceites } from './guards/ExigeAceites'
 import { ExigeAutenticacao } from './guards/ExigeAutenticacao'
 import { ExigeFormatura } from './guards/ExigeFormatura'
+import { ExigeModulo } from './guards/ExigeModulo'
 import { ExigePapel } from './guards/ExigePapel'
 import { ExigePerfil } from './guards/ExigePerfil'
 import { SomenteVisitante } from './guards/SomenteVisitante'
@@ -22,6 +24,13 @@ import { PaginaNaoEncontrada } from '@/components/layout/PaginaNaoEncontrada'
 const pagina = (importar: () => Promise<{ default: React.ComponentType }>) => async () => ({
   Component: (await importar()).default,
 })
+
+/** Leva um endereço antigo com `:id` ao novo, com o mesmo id. */
+function RedirecionarComId({ para }: { para: (id: string) => string }) {
+  const { id = '' } = useParams()
+
+  return <Navigate to={para(id)} replace />
+}
 
 export const router = createBrowserRouter([
   {
@@ -141,26 +150,48 @@ export const router = createBrowserRouter([
                     handle: { titulo: 'Privacidade' },
                     lazy: pagina(() => import('@/features/privacidade/pages/MinhaPrivacidadePage')),
                   },
-                  // O painel de suporte (Sprint 16), também fora de `ExigeFormatura`: quem atende
-                  // tem perfil de plataforma e não é membro de turma nenhuma — exigir uma formatura
-                  // selecionada trancaria o painel para a única pessoa que precisa dele.
+                  // O painel do Kapa (Sprint 44), também fora de `ExigeFormatura`: quem é da Kapa tem
+                  // perfil de plataforma e não é membro de turma nenhuma — exigir uma formatura
+                  // selecionada trancaria o painel para a única pessoa que precisa dele. O menu é o do
+                  // painel (`BarraLateral`), e o das turmas não aparece (D4).
                   {
                     element: <ExigePerfil perfil={PERFIS.administrador} />,
                     children: [
+                      { path: ROTAS.painel, element: <Navigate to={ROTAS.painelVisaoGeral} replace /> },
                       {
-                        path: ROTAS.suporte,
-                        handle: { titulo: 'Suporte' },
-                        lazy: pagina(() => import('@/features/suporte/pages/BuscaDoSuportePage')),
+                        path: ROTAS.painelVisaoGeral,
+                        handle: { titulo: 'Visão geral' },
+                        lazy: pagina(() => import('@/features/painel/pages/VisaoGeralPage')),
                       },
                       {
-                        path: `${ROTAS.suporte}/formaturas/:id`,
+                        path: ROTAS.painelTurmas,
+                        handle: { titulo: 'Turmas' },
+                        lazy: pagina(() => import('@/features/painel/pages/TurmasDoPainelPage')),
+                      },
+                      {
+                        path: `${ROTAS.painelTurmas}/:id`,
                         handle: { titulo: 'Turma' },
-                        lazy: pagina(() => import('@/features/suporte/pages/TurmaNoSuportePage')),
+                        lazy: pagina(() => import('@/features/painel/pages/TurmaNoPainelPage')),
                       },
                       {
-                        path: `${ROTAS.suporte}/usuarios/:id`,
+                        path: ROTAS.painelContas,
+                        handle: { titulo: 'Contas' },
+                        lazy: pagina(() => import('@/features/painel/pages/ContasDoPainelPage')),
+                      },
+                      {
+                        path: `${ROTAS.painelContas}/:id`,
                         handle: { titulo: 'Conta' },
-                        lazy: pagina(() => import('@/features/suporte/pages/ContaNoSuportePage')),
+                        lazy: pagina(() => import('@/features/painel/pages/ContaNoPainelPage')),
+                      },
+                      // Os endereços do painel até a Sprint 44 — favorito e link antigo não morrem.
+                      { path: ROTAS.suporteAntigo, element: <Navigate to={ROTAS.painelTurmas} replace /> },
+                      {
+                        path: `${ROTAS.suporteAntigo}/formaturas/:id`,
+                        element: <RedirecionarComId para={rotaDaTurmaNoPainel} />,
+                      },
+                      {
+                        path: `${ROTAS.suporteAntigo}/usuarios/:id`,
+                        element: <RedirecionarComId para={rotaDaContaNoPainel} />,
                       },
                     ],
                   },
@@ -205,9 +236,14 @@ export const router = createBrowserRouter([
                       },
                       // Todo membro compra convite — a comissão também leva a família. Um convite por convidado.
                       {
-                        path: ROTAS.meusConvites,
-                        handle: { titulo: 'Meus convites' },
-                        lazy: pagina(() => import('@/features/festa/pages/MeusConvitesPage')),
+                        element: <ExigeModulo modulo={MODULOS.festa} />,
+                        children: [
+                          {
+                            path: ROTAS.meusConvites,
+                            handle: { titulo: 'Meus convites' },
+                            lazy: pagina(() => import('@/features/festa/pages/MeusConvitesPage')),
+                          },
+                        ],
                       },
                       {
                         path: `${ROTAS.extrato}/parcelas/:id/pagar`,
@@ -254,38 +290,45 @@ export const router = createBrowserRouter([
                         handle: { titulo: 'Agenda' },
                         lazy: pagina(() => import('@/features/agenda/pages/AgendaPage')),
                       },
-                      // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
-                      // escrita do formando, e o cartão nem oferece as ações a ele.
+                      // Orçamento da festa, mural e acervo: o módulo `mural`, que o gratuito e o
+                      // Essencial não têm — a rota abre a vitrine da área em vez do 403 (Sprint 45).
                       {
-                        path: ROTAS.festa,
-                        handle: { titulo: 'A festa' },
-                        lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
-                      },
-                      // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
-                      // rota é a seleção: o link de um item continua sendo um link.
-                      {
-                        path: `${ROTAS.festa}/:id`,
-                        handle: { titulo: 'A festa' },
-                        lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
-                      },
-                      // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao
-                      // formando; publicar, enviar e excluir são da Gestão, na própria API.
-                      {
-                        path: ROTAS.mural,
-                        handle: { titulo: 'Mural' },
-                        lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
-                      },
-                      // O aviso aberto é o mesmo mural, com ele selecionado na lista: o link de um
-                      // aviso continua sendo um link, e não há duas telas desenhando o mesmo texto.
-                      {
-                        path: `${ROTAS.mural}/:id`,
-                        handle: { titulo: 'Mural' },
-                        lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
-                      },
-                      {
-                        path: ROTAS.documentos,
-                        handle: { titulo: 'Documentos' },
-                        lazy: pagina(() => import('@/features/comunicacao/pages/DocumentosPage')),
+                        element: <ExigeModulo modulo={MODULOS.mural} />,
+                        children: [
+                          // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
+                          // escrita do formando, e o cartão nem oferece as ações a ele.
+                          {
+                            path: ROTAS.festa,
+                            handle: { titulo: 'A festa' },
+                            lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                          },
+                          // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
+                          // rota é a seleção: o link de um item continua sendo um link.
+                          {
+                            path: `${ROTAS.festa}/:id`,
+                            handle: { titulo: 'A festa' },
+                            lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                          },
+                          // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao
+                          // formando; publicar, enviar e excluir são da Gestão, na própria API.
+                          {
+                            path: ROTAS.mural,
+                            handle: { titulo: 'Mural' },
+                            lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                          },
+                          // O aviso aberto é o mesmo mural, com ele selecionado na lista: o link de um
+                          // aviso continua sendo um link, e não há duas telas desenhando o mesmo texto.
+                          {
+                            path: `${ROTAS.mural}/:id`,
+                            handle: { titulo: 'Mural' },
+                            lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                          },
+                          {
+                            path: ROTAS.documentos,
+                            handle: { titulo: 'Documentos' },
+                            lazy: pagina(() => import('@/features/comunicacao/pages/DocumentosPage')),
+                          },
+                        ],
                       },
                       // A despesa se corrige, paga e cancela na tela dela, como o cadastro do membro.
                       {
@@ -297,17 +340,36 @@ export const router = createBrowserRouter([
                       {
                         element: <ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />,
                         children: [
-                          // A porta da festa: qualquer membro da Gestão opera (P4 da Sprint 21).
+                          // As mesas do jantar: a comissão monta o mapa (P1 da Sprint 27). Módulo próprio, só do
+                          // Premium (29/09/2026).
                           {
-                            path: ROTAS.portaria,
-                            handle: { titulo: 'Portaria' },
-                            lazy: pagina(() => import('@/features/festa/pages/PortariaPage')),
+                            element: <ExigeModulo modulo={MODULOS.mesas} />,
+                            children: [
+                              {
+                                path: ROTAS.mesas,
+                                handle: { titulo: 'Mesas' },
+                                lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
+                              },
+                            ],
                           },
-                          // As mesas do jantar: a comissão monta o mapa (P1 da Sprint 27).
+                          // A festa em si — portaria e loja — é o módulo `festa` (Sprint 45, P1).
                           {
-                            path: ROTAS.mesas,
-                            handle: { titulo: 'Mesas' },
-                            lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
+                            element: <ExigeModulo modulo={MODULOS.festa} />,
+                            children: [
+                              // A porta da festa: qualquer membro da Gestão opera (P4 da Sprint 21).
+                              {
+                                path: ROTAS.portaria,
+                                handle: { titulo: 'Portaria' },
+                                lazy: pagina(() => import('@/features/festa/pages/PortariaPage')),
+                              },
+                              // As compras da loja pública (Sprint 26): a lista da devolução é da comissão
+                              // inteira, como os pedidos.
+                              {
+                                path: ROTAS.comprasDaLoja,
+                                handle: { titulo: 'Loja' },
+                                lazy: pagina(() => import('@/features/loja/pages/ComprasDaLojaPage')),
+                              },
+                            ],
                           },
                           {
                             path: ROTAS.membros,
@@ -339,9 +401,14 @@ export const router = createBrowserRouter([
                           },
                           // Balancete, exportações e a fila de PDFs — é aqui que se fecha a prestação de contas.
                           {
-                            path: ROTAS.relatorios,
-                            handle: { titulo: 'Relatórios' },
-                            lazy: pagina(() => import('@/features/relatorios/pages/RelatoriosPage')),
+                            element: <ExigeModulo modulo={MODULOS.relatorios} />,
+                            children: [
+                              {
+                                path: ROTAS.relatorios,
+                                handle: { titulo: 'Relatórios' },
+                                lazy: pagina(() => import('@/features/relatorios/pages/RelatoriosPage')),
+                              },
+                            ],
                           },
                           {
                             path: ROTAS.parcelas,
@@ -361,27 +428,32 @@ export const router = createBrowserRouter([
                             handle: { titulo: 'Pedidos por item' },
                             lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPorItemPage')),
                           },
-                          // As compras da loja pública (Sprint 26): a lista da devolução é da comissão
-                          // inteira, como os pedidos.
-                          {
-                            path: ROTAS.comprasDaLoja,
-                            handle: { titulo: 'Loja' },
-                            lazy: pagina(() => import('@/features/loja/pages/ComprasDaLojaPage')),
-                          },
                           // O que a régua já enviou — é o que a comissão mostra quando alguém diz
                           // que nunca foi avisado. Escrever a régua é da Tesouraria, abaixo.
                           {
-                            path: ROTAS.avisosEnviados,
-                            handle: { titulo: 'Avisos enviados' },
-                            lazy: pagina(() => import('@/features/notificacoes/pages/HistoricoDeAvisosPage')),
+                            element: <ExigeModulo modulo={MODULOS.avisos} />,
+                            children: [
+                              {
+                                path: ROTAS.avisosEnviados,
+                                handle: { titulo: 'Avisos enviados' },
+                                lazy: pagina(
+                                  () => import('@/features/notificacoes/pages/HistoricoDeAvisosPage'),
+                                ),
+                              },
+                            ],
                           },
                           // Quem fez o quê com o dinheiro da turma. Gestão, e não todo membro: a
                           // trilha nomeia as pessoas, e o que é público é o dashboard, onde tudo é
                           // soma. Só leitura — não há ação nenhuma na tela.
                           {
-                            path: ROTAS.auditoria,
-                            handle: { titulo: 'Histórico da turma' },
-                            lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
+                            element: <ExigeModulo modulo={MODULOS.auditoria} />,
+                            children: [
+                              {
+                                path: ROTAS.auditoria,
+                                handle: { titulo: 'Histórico da turma' },
+                                lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
+                              },
+                            ],
                           },
                         ],
                       },
@@ -402,9 +474,14 @@ export const router = createBrowserRouter([
                           },
                           // Quem escreve o que a turma recebe é quem responde pelo caixa.
                           {
-                            path: ROTAS.regua,
-                            handle: { titulo: 'Lembretes automáticos' },
-                            lazy: pagina(() => import('@/features/notificacoes/pages/ReguaPage')),
+                            element: <ExigeModulo modulo={MODULOS.avisos} />,
+                            children: [
+                              {
+                                path: ROTAS.regua,
+                                handle: { titulo: 'Lembretes automáticos' },
+                                lazy: pagina(() => import('@/features/notificacoes/pages/ReguaPage')),
+                              },
+                            ],
                           },
                           {
                             path: ROTAS.fornecedores,

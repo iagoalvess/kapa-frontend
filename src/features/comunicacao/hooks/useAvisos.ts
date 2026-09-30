@@ -11,12 +11,18 @@ import {
 } from '../api/comunicacao.api'
 import type { FiltroDeAvisos } from '../types/comunicacao.types'
 import { chaves } from './chaves'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 
 /** Uma página do mural. A anterior fica na tela enquanto a próxima chega. */
 export function useAvisos(filtro: FiltroDeAvisos) {
+  const { inclui } = usePlanoDaTurma()
+
   return useQuery({
     queryKey: chaves.avisos(filtro),
     queryFn: ({ signal }) => listarAvisos(filtro, signal),
+    // O cartão do Início monta antes de o plano chegar: sem esperar, ele pedia e levava 403 (Sprint 45).
+    enabled: inclui(MODULOS.mural),
     placeholderData: (anterior) => anterior,
   })
 }
@@ -66,8 +72,11 @@ export const useExcluirAviso = () => useEscritaDoMural(excluirAviso)
  * aparecer para quem está com a tela aberta, e é isso que um sino promete.
  */
 export function useNovidadesDoMural() {
+  const { inclui } = usePlanoDaTurma()
+
   return useQuery({
     queryKey: chaves.novidades,
+    enabled: inclui(MODULOS.mural),
     queryFn: ({ signal }) => obterNovidades(signal),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,

@@ -18,13 +18,11 @@ const pedido: Pedido = {
   nome: 'Ana',
   quantidade: 1,
   parcelas: 2,
-  valor_unitario_em_centavos: 18000,
   total_em_centavos: 18000,
   pago_em_centavos: 0,
   quitado: false,
   status: 'Confirmado',
   pedido_em: '2026-09-05T12:00:00Z',
-  cancelado_em: null,
 }
 
 function servir(parcelas: Parcela[]) {

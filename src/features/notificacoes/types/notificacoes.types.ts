@@ -1,13 +1,13 @@
 import type { PaginacaoRequest } from '@/types/paginacao'
 
 /** O que faz um degrau da régua disparar. Espelha `GatilhoDaRegua` do backend. */
-export type GatilhoDaRegua = 'Vencimento' | 'InformePendente'
+type GatilhoDaRegua = 'Vencimento' | 'InformePendente'
 
 /** O desfecho de um envio. Espelha `StatusDaNotificacao`. */
 export type StatusDaNotificacao = 'Enfileirada' | 'Entregue' | 'Falhou'
 
 /** O assunto de uma mensagem automática. Espelha `TipoDeNotificacao`. */
-export type TipoDeNotificacao = 'Cobranca' | 'Aviso' | 'Adesao' | 'Sistema'
+type TipoDeNotificacao = 'Cobranca' | 'Aviso' | 'Adesao' | 'Sistema'
 
 /** Como cada resultado aparece no histórico. */
 export const ROTULOS_DE_STATUS = {

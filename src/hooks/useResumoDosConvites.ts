@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/http/cliente'
 import type { EventoDoConvite, ResumoDosConvites } from '@/types/festa'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from './usePlanoDaTurma'
 
 /** As chaves de cache do convite da festa — a portaria e a agenda invalidam o mesmo prefixo. */
 export const chavesDosConvites = {
@@ -21,9 +23,12 @@ export const chavesDosConvites = {
  * @param habilitado Falso não consulta: o formando não tem acesso, e a agenda só pergunta pela Gestão.
  */
 export function useResumoDosConvites(habilitado = true) {
+  const { inclui } = usePlanoDaTurma()
+
   return useQuery({
     queryKey: chavesDosConvites.resumo,
     queryFn: ({ signal }) => api.get<ResumoDosConvites>('/api/v1/festa/convites/resumo', { signal }),
-    enabled: habilitado,
+    // Os convites são do módulo `festa`, que o gratuito não tem (Sprint 45, P1).
+    enabled: habilitado && inclui(MODULOS.festa),
   })
 }

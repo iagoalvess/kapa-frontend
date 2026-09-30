@@ -21,7 +21,6 @@ const evento = (tipo: EventoDoConvite['tipo'], titulo: string, data: string): Ev
   completo: true,
   fechamento_da_lista: '2099-01-01T00:00:00Z',
   janela_abre_em: '2099-01-01T00:00:00Z',
-  janela_fecha_em: '2099-01-02T00:00:00Z',
 })
 
 const convite = (id: string, nome: string | null): MeuConvite => ({

@@ -1,17 +1,21 @@
 import { X } from 'lucide-react'
 import { useRef } from 'react'
 import { Outlet, useMatches } from 'react-router'
+import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { useMeuPerfil } from '@/features/formandos'
 import { BuscaGlobal } from '@/features/busca'
 import { SinoDeNovidades } from '@/features/comunicacao'
 import { FaixaDeStatus } from '@/features/formaturas'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, useSessao } from '@/hooks/useSessao'
 import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { BarraInferior } from './BarraInferior'
 import { BarraLateral } from './BarraLateral'
 import { MenuDaConta } from './MenuDaConta'
+import { useNoPainel } from './menuDoPainel'
 
 /** Título da tela, declarado na rota: `{ handle: { titulo: 'Membros' } }` em `router.tsx`. */
 function useTituloDaRota() {
@@ -36,12 +40,14 @@ export function LayoutApp() {
   const { usuario } = useSessao()
   const { selecionada, desligadoEm } = useFormaturaAtiva()
   const titulo = useTituloDaRota()
+  const noPainel = useNoPainel()
   const telaGrande = useTelaGrande()
+  const muralForaDoPlano = usePlanoDaTurma().bloqueia(MODULOS.mural)
   const folha = useRef<HTMLDialogElement>(null)
   const fecharFolha = () => folha.current?.close()
   // O cadastro incompleto marca a porta dele, que é o avatar — e não um aviso no meio do Início.
   // Quem foi desligado não tem cadastro na turma para completar: o ponto some, e a consulta também.
-  const perfil = useMeuPerfil(!desligadoEm).data
+  const perfil = useMeuPerfil(selecionada && !desligadoEm).data
   const cadastroPendente = perfil?.essencial_pendente === true
 
   return (
@@ -111,8 +117,8 @@ export function LayoutApp() {
                 existe com uma turma na sessão. */}
             {/* No celular ela mora na folha "Mais" (P2), e só uma existe por vez: o painel tem id fixo. */}
             {selecionada && telaGrande ? <BuscaGlobal /> : null}
-            {/* O sino é do mural, e por isso só existe com uma turma na sessão. */}
-            {selecionada ? <SinoDeNovidades /> : null}
+            {/* O sino é do mural, e por isso só existe com uma turma na sessão — e com o mural no plano. */}
+            {selecionada && !muralForaDoPlano ? <SinoDeNovidades /> : null}
             {/* O avatar abre o que é da conta — cadastro, privacidade, papel, plano e "Sair" —, e é
                 por isso que nada disso ocupa linha no menu da esquerda, que é o menu da turma. */}
             {usuario ? (
@@ -138,9 +144,13 @@ export function LayoutApp() {
           <FaixaDeStatus />
           <Outlet />
         </main>
+        {/* Um só, para qualquer tela: é aonde vai toda falha de plano que a API devolver (Sprint 45). */}
+        <DialogoDeUpgrade />
       </div>
 
       {selecionada ? <BarraInferior aoAbrirMais={() => folha.current?.showModal()} /> : null}
+      {/* O painel do Kapa (Sprint 44) tem três destinos e nenhuma folha: cabem todos na barra. */}
+      {noPainel ? <BarraInferior /> : null}
     </div>
   )
 }

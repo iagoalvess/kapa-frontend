@@ -19,7 +19,7 @@ export interface LinhaDeAuditoria {
 }
 
 /** Um autor que aparece na trilha da turma. */
-export interface AutorDeAuditoria {
+interface AutorDeAuditoria {
   usuario_id: string
   nome: string
 }
@@ -36,7 +36,6 @@ export interface FiltroDeAuditoria {
   ate?: string
   autor?: string
   nome?: string
-  entidade?: string
   /** Nome de pessoa — de quem fez ou de quem sofreu — ou texto escrito no corpo do evento. */
   busca?: string
 }
@@ -47,9 +46,13 @@ export interface FiltroDeAuditoria {
  * Espelha `NomesDeAuditoria` do backend. Nome que a API devolver e não estiver aqui cai no próprio
  * código — melhor um `cobranca.item_alterado` cru do que uma linha em branco na assembleia.
  */
-export const ROTULOS_DE_EVENTO: Record<string, string> = {
+const ROTULOS_DE_EVENTO: Record<string, string> = {
   'pagamento.baixado': 'Baixa de parcela',
   'pagamento.estornado': 'Estorno de baixa',
+  'pagamento.parcela_cancelada': 'Parcela cancelada',
+  'pagamento.valor_devolvido': 'Devolução registrada',
+  'pagamento.pago_sem_parcela_resolvido': 'Pagamento sem parcela resolvido',
+  'formatura.encerrada_por_abandono': 'Turma encerrada por abandono',
   'recebimento.conta_cadastrada': 'Conta PIX cadastrada',
   'recebimento.conta_alterada': 'Conta PIX alterada',
   'comunicacao.aviso_excluido': 'Aviso excluído',
@@ -87,7 +90,7 @@ export const ROTULOS_DE_EVENTO: Record<string, string> = {
 export const rotuloDoEvento = (nome: string) => ROTULOS_DE_EVENTO[nome] ?? nome
 
 /** Um item contado da trilha: o rótulo e quantas vezes ele aparece. */
-export interface ContagemDaAuditoria {
+interface ContagemDaAuditoria {
   rotulo: string
   quantidade: number
 }

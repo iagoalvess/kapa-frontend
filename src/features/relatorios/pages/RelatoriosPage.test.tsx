@@ -17,8 +17,6 @@ const BALANCETE: Balancete = {
   instituicao: 'Medicina — UFPR',
   de: '2026-01-01',
   ate: '2026-09-15',
-  emitido_por: 'Rafael Costa Lima',
-  emitido_em: '2026-09-15T15:00:00Z',
   entradas: [{ rotulo: 'Mensalidade', quantidade: 42, valor_em_centavos: 8_400_000 }],
   outras_receitas: [],
   saidas_por_categoria: [
@@ -54,9 +52,6 @@ const NA_FILA: Solicitacao = {
   ate: '2026-09-15',
   status: 'NaFila',
   motivo: null,
-  expira_em: null,
-  criado_em: '2026-09-15T15:00:00Z',
-  disponivel: false,
 }
 
 const OPCOES: OpcoesDeFiltro = {
@@ -186,7 +181,7 @@ describe('RelatoriosPage', () => {
     servidor.use(
       http.get(`${RELATORIOS}/balancete`, () => HttpResponse.json(BALANCETE)),
       http.get(`${RELATORIOS}/solicitacoes`, () =>
-        HttpResponse.json(pedido ? [{ ...NA_FILA, status: 'Pronta', disponivel: true }] : []),
+        HttpResponse.json(pedido ? [{ ...NA_FILA, status: 'Pronta' }] : []),
       ),
       http.post(`${RELATORIOS}/solicitacoes`, () => {
         pedido = true

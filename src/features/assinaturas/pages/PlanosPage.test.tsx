@@ -63,7 +63,6 @@ function comFormatura(status: string, assinatura?: { status: string; plano: type
       assinatura
         ? HttpResponse.json({
             id: 'a-1',
-            criado_em: '2026-09-01T00:00:00Z',
             meio: 'Cartao',
             proximo_plano: null,
             cartao_aguardando_autorizacao: false,
@@ -146,7 +145,7 @@ describe('PlanosPage', () => {
         `${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/trocar-plano`,
         async ({ request }) => {
           pedido = await request.json()
-          return HttpResponse.json({ url: null, assinatura: {} })
+          return HttpResponse.json({ url: null })
         },
       ),
     )

@@ -14,7 +14,7 @@ export interface ChavePix {
 }
 
 /** Com quem o formando fala para pagar em espécie. Espelha `DinheiroDTO`. */
-export interface DinheiroCom {
+interface DinheiroCom {
   nome: string
   onde: string | null
 }

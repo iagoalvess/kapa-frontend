@@ -11,8 +11,8 @@ export function useSessao(): EstadoDaSessao {
 /**
  * Verificação de perfil para **exibição** — esconder menu, desabilitar botão.
  *
- * O administrador passa em qualquer checagem, como na política do backend. Isto não protege
- * nada: a autorização real é a da API.
+ * Confere só o perfil pedido: o administrador não passa em checagem de outro perfil (D4 da Sprint 44), como
+ * na política do backend. Isto não protege nada: a autorização real é a da API.
  */
 export function usePerfil() {
   const { usuario } = useSessao()
@@ -23,7 +23,7 @@ export function usePerfil() {
   return {
     perfis,
     ehAdministrador,
-    tem: (perfil: Perfil) => ehAdministrador || perfis.includes(perfil),
+    tem: (perfil: Perfil) => perfis.includes(perfil),
   }
 }
 

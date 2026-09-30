@@ -99,17 +99,6 @@ export function excluirDocumento(id: string) {
   return api.delete<void>(`${DOCUMENTOS}/${id}`)
 }
 
-/**
- * O arquivo de um documento.
- *
- * A API confere formatura e visibilidade e responde 302 para uma URL assinada de minutos; o `fetch`
- * segue o redirecionamento sozinho e entrega os bytes. Vem como blob porque o endpoint exige o
- * bearer, e uma aba aberta por `href` não o manda.
- */
-export function baixarDocumento(id: string) {
-  return api.get<Blob>(`${DOCUMENTOS}/${id}/download`, { resposta: 'blob' })
-}
-
 /** O que entrou no mural desde a última visita — o sino do cabeçalho. */
 export function obterNovidades(signal?: AbortSignal) {
   return api.get<NovidadesDoMural>(`${AVISOS}/novidades`, { signal })

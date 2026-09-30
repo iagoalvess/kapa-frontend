@@ -37,7 +37,6 @@ const lista: ListaDaPortaria = {
     completo: true,
     fechamento_da_lista: '2027-12-11T01:00:00Z',
     janela_abre_em: '2020-01-01T00:00:00Z',
-    janela_fecha_em: '2099-01-01T00:00:00Z',
   },
   total: 3,
   validados: 1,

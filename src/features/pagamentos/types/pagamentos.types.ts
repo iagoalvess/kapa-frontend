@@ -1,4 +1,4 @@
-import type { Parcela } from '@/types/cobranca'
+import type { Parcela, TipoDeCobranca } from '@/types/cobranca'
 import type { PaginacaoRequest } from '@/types/paginacao'
 import type { CartaoParaPagar, MeioDePagamento } from '@/types/pagamento'
 import type { DadosBancarios, MeioDeRecebimento } from '@/types/recebimento'
@@ -11,7 +11,7 @@ export type { Parcela, StatusDaParcela, ValorDoDia } from '@/types/cobranca'
 export type FormaDePagamento = 'Pix' | 'Dinheiro' | 'Transferencia' | 'Outro' | 'Cartao'
 
 /** Situação do aviso de pagamento. Espelha `StatusDoInforme`. */
-export type StatusDoInforme = 'Pendente' | 'Confirmado' | 'Recusado'
+type StatusDoInforme = 'Pendente' | 'Confirmado' | 'Recusado'
 
 /** O extrato do próprio formando. Espelha `ExtratoDTO`. */
 export interface Extrato {
@@ -73,7 +73,7 @@ export interface PeloMercadoPago {
 export type SituacaoDoCartao = 'Pago' | 'EmAnalise'
 
 /** O PIX do Mercado Pago da turma. Espelha `PixDinamicoParaPagarDTO`. */
-export interface PixDoMercadoPago {
+interface PixDoMercadoPago {
   copia_e_cola: string
   /** Até quando aceita pagamento (UTC) — o fim do dia. */
   expira_em: string
@@ -131,6 +131,45 @@ export interface ResultadoDaConferencia {
   confirmados: number
   /** Já conferidos antes — o clique duplo. */
   ignorados: number
+}
+
+/** De onde veio o dinheiro que a comissão tem de resolver. Espelha `OrigemDoValorADevolver`. */
+export type OrigemDoValorADevolver = 'CreditoDePedido' | 'ParcelaCancelada' | 'PagoSemParcela'
+
+/** Espelha `StatusDoValorADevolver`. */
+export type StatusDoValorADevolver = 'ADevolver' | 'Devolvido' | 'Fechado'
+
+/**
+ * Um item da lista "a devolver" da tesouraria (Sprint 42). Espelha `ValorADevolverDTO`.
+ *
+ * O Kapa não devolve dinheiro: a comissão faz o PIX de volta (ou devolve no painel do Mercado Pago) e
+ * registra aqui.
+ */
+export interface ValorADevolver {
+  id: string
+  usuario_id: string
+  nome: string
+  origem: OrigemDoValorADevolver
+  status: StatusDoValorADevolver
+  /** Quanto falta devolver. */
+  valor_em_centavos: number
+  tipo: TipoDeCobranca
+  descricao: string | null
+  /** A parcela de origem; nula no crédito de pedido. */
+  numero_da_parcela: number | null
+  vencimento: string | null
+  criado_em: string
+  resolvido_em: string | null
+  /** O que a comissão fez com o pago sem parcela, ou por que ele fechou sozinho. */
+  observacao: string | null
+  tem_comprovante: boolean
+}
+
+/** Filtros da lista "a devolver". */
+export interface FiltroDeValoresADevolver extends PaginacaoRequest {
+  /** Os já devolvidos ou fechados, em vez dos que esperam. */
+  resolvidos?: boolean
+  busca?: string
 }
 
 /** Uma baixa com recebido diferente do devido. Espelha `DivergenciaDTO`. */

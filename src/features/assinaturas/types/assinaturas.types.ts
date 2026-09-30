@@ -17,7 +17,6 @@ export interface Assinatura {
   /** Nula sem renovação automática por vir. */
   proxima_cobranca_em: string | null
   cancelada_em: string | null
-  criado_em: string
   /** Cartão recorrente ou um PIX avulso por ciclo (Sprint 37). */
   meio: MeioDePagamento
   /** O plano que vale a partir da próxima renovação — a descida agendada. */
@@ -26,11 +25,10 @@ export interface Assinatura {
   cartao_aguardando_autorizacao: boolean
 }
 
-/** O que a troca de plano ou de meio deu. Espelha `TrocaDTO`. */
+/** O que a troca de plano ou de meio deu. Espelha `TrocaDTO`; a assinatura nova se relê da API. */
 export interface Troca {
   /** A página para pagar a diferença ou autorizar o cartão; nula quando nada precisa ser pago agora. */
   url: string | null
-  assinatura: Assinatura
 }
 
 /** Sessão de pagamento criada no provedor. Espelha `CheckoutDTO`. */

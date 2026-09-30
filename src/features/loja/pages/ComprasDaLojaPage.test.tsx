@@ -38,7 +38,6 @@ const compra = (dados: Partial<CompraNaGestao> = {}): CompraNaGestao => ({
   pagador_diferente: false,
   convites_cancelados: 0,
   valor_a_devolver_em_centavos: 0,
-  devolvida_em: null,
   pedido_de_cancelamento_aberto: false,
   ...dados,
 })

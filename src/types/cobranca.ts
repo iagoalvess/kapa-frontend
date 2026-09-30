@@ -138,6 +138,11 @@ export interface Parcela {
    * quitada em partes, os recibos anteriores chegam pelo e-mail de cada confirmação.
    */
   recebimento_id: string | null
+  /**
+   * Alguma baixa que vale veio do Mercado Pago (Sprint 42): o estorno à mão só desfaz o registro — a
+   * devolução pelo painel do Mercado Pago é da comissão.
+   */
+  pelo_mercado_pago: boolean
 }
 
 /** Aberta ou vencida: ainda se deve. */
@@ -165,7 +170,7 @@ export const pagaEmParte = (parcela: Parcela) =>
  * Ela abate o que a pessoa deve — é para isso que existe — e por isso entra na soma em aberto. O
  * que ela não é é algo a pagar: "pague −R$ 350,00" não é uma frase.
  */
-export const ehCredito = (parcela: Parcela) => parcela.valor_original_em_centavos < 0
+const ehCredito = (parcela: Parcela) => parcela.valor_original_em_centavos < 0
 
 /** A parcela que o botão "Pagar" aceita: devida, sem aviso na fila e com valor a pagar. */
 export const aPagar = (parcela: Parcela) =>

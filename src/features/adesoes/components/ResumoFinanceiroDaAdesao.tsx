@@ -7,7 +7,7 @@ import { rotuloDoItem } from '@/types/cobranca'
 import type { ItemAceito, PlanoAceito } from '../types/adesoes.types'
 
 /** As regras de atraso numa frase — a mesma ideia do texto que vai no PDF e no e-mail. */
-export function regrasDeAtraso(plano: PlanoAceito) {
+function regrasDeAtraso(plano: PlanoAceito) {
   const atraso =
     plano.percentual_de_multa === 0 && plano.percentual_de_juros_ao_mes === 0
       ? 'Sem multa nem juros em caso de atraso.'

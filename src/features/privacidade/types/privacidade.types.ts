@@ -1,6 +1,30 @@
 import type { ComunicacaoDoKapa } from '@/types/comunicacaoDoKapa'
 import type { ConsentimentoDoUsuario } from '@/types/legal'
-import type { EmergenciaDoTitular, EnderecoDoTitular } from '@/types/perfil'
+
+/*
+  As seções do cadastro como o portal de privacidade as recebe: anuláveis, e não opcionais —
+  a API escreve o nulo (ver `backend/docs/contrato.md`).
+*/
+
+/** Endereço do formando, como o portal de privacidade o lê. */
+interface EnderecoDoTitular {
+  /** Só os 8 dígitos. */
+  cep: string | null
+  logradouro: string | null
+  numero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
+}
+
+/** Contato de emergência, como o portal de privacidade o lê. */
+interface EmergenciaDoTitular {
+  nome: string | null
+  /** Em E.164: `+5541998765432`. */
+  telefone: string | null
+  parentesco: string | null
+}
 
 /** O que o titular pediu. */
 export type TipoDeSolicitacao = 'Exportacao' | 'Exclusao'
@@ -9,7 +33,7 @@ export type TipoDeSolicitacao = 'Exportacao' | 'Exclusao'
 export type StatusDaSolicitacao = 'Pendente' | 'Concluida' | 'Cancelada' | 'Falhou'
 
 /** A conta: o que existe uma vez por pessoa, e não por turma. */
-export interface DadosDaConta {
+interface DadosDaConta {
   id: string
   nome: string
   email: string
@@ -21,7 +45,7 @@ export interface DadosDaConta {
 }
 
 /** O cadastro de uma turma, campo a campo. */
-export interface PerfilExportado {
+interface PerfilExportado {
   nome_completo: string | null
   nome_no_diploma: string | null
   cpf: string | null
@@ -37,7 +61,7 @@ export interface PerfilExportado {
 }
 
 /** Uma parcela do titular. */
-export interface MinhaParcela {
+interface MinhaParcela {
   id: string
   item: string
   numero: number
@@ -49,7 +73,7 @@ export interface MinhaParcela {
 }
 
 /** O financeiro do titular numa turma. */
-export interface MeuFinanceiro {
+interface MeuFinanceiro {
   total_em_centavos: number
   pago_em_centavos: number
   parcelas: MinhaParcela[]
@@ -75,14 +99,14 @@ export interface MeusDadosDaTurma {
 }
 
 /** Uma preferência de notificação do titular. */
-export interface MinhaPreferencia {
+interface MinhaPreferencia {
   formatura_id: string
   tipo: string
   ativa: boolean
 }
 
 /** Preferências de comunicação e o que já foi mandado. */
-export interface MinhasComunicacoes {
+interface MinhasComunicacoes {
   preferencias: MinhaPreferencia[]
   notificacoes_enviadas: number
   ultima_enviada_em: string | null

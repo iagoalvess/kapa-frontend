@@ -142,7 +142,7 @@ export interface FiltroDeDespesas {
 }
 
 /** Quantos lançamentos — despesas ou receitas — e quanto somam. Espelha `SomaDeLancamentosDTO`. */
-export interface SomaDeLancamentos {
+interface SomaDeLancamentos {
   quantidade: number
   valor_em_centavos: number
 }
@@ -157,7 +157,7 @@ export interface ResumoDeDespesas {
 }
 
 /** O documento do acervo ligado a uma receita — o comprovante. Abre para qualquer membro. */
-export interface DocumentoDaOutraReceita {
+interface DocumentoDaOutraReceita {
   id: string
   titulo: string
   nome_do_arquivo: string

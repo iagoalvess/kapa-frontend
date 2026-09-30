@@ -1,5 +1,5 @@
 /** Endereço que o ViaCEP devolve, já nos nomes do formulário. */
-export interface EnderecoDoCep {
+interface EnderecoDoCep {
   logradouro: string
   bairro: string
   cidade: string

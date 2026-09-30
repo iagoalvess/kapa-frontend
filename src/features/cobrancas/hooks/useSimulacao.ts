@@ -5,7 +5,7 @@ import { chaves } from './chaves'
 import { useComAtraso } from './useComAtraso'
 
 /** O tempo parado depois da última tecla antes de simular de novo. */
-export const ATRASO_DA_SIMULACAO = 400
+const ATRASO_DA_SIMULACAO = 400
 
 /**
  * A grade de um formando, calculada pela API — nunca aqui.

@@ -14,12 +14,14 @@ import type {
   CobrancaDaParcela,
   ResultadoDaConferencia,
   SituacaoDoCartao,
+  FiltroDeValoresADevolver,
+  ValorADevolver,
 } from '../types/pagamentos.types'
 
 const BASE = '/api/v1'
 
 /** O dia, o valor e o comprovante opcional — o corpo multipart do "já paguei" e da baixa manual. */
-export interface DadosDoPagamento {
+interface DadosDoPagamento {
   /** `aaaa-mm-dd`. */
   pago_em: string
   valor_em_centavos: number
@@ -167,6 +169,34 @@ export function baixarManualmente({
 /** Desfaz a baixa, com justificativa. Só o Presidente. */
 export function estornarBaixa({ parcelaId, justificativa }: { parcelaId: string; justificativa: string }) {
   return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/estornar-baixa`, { body: { justificativa } })
+}
+
+/**
+ * Cancela a parcela, com justificativa (Sprint 42). Só a tesouraria; o que já tinha entrado nela vai
+ * para a lista "a devolver".
+ */
+export function cancelarParcela({ parcelaId, justificativa }: { parcelaId: string; justificativa: string }) {
+  return api.post<Parcela>(`${BASE}/parcelas/${parcelaId}/cancelar`, { body: { justificativa } })
+}
+
+/** A lista "a devolver": os que esperam a comissão, ou os já resolvidos. */
+export function listarValoresADevolver(filtro: FiltroDeValoresADevolver, signal?: AbortSignal) {
+  return api.get<Pagina<ValorADevolver>>(`${BASE}/valores-a-devolver`, {
+    query: { ...paginacaoNaQuery(filtro), resolvidos: filtro.resolvidos, busca: filtro.busca },
+    signal,
+  })
+}
+
+/** A comissão fez o PIX de volta: com o comprovante, sai da lista e a saída entra no caixa. */
+export function registrarDevolucao({ id, comprovante }: { id: string; comprovante: File }) {
+  const corpo = new FormData()
+  corpo.set('comprovante', comprovante)
+  return api.post<ValorADevolver>(`${BASE}/valores-a-devolver/${id}/devolucao`, { body: corpo })
+}
+
+/** A comissão resolveu o pago sem parcela e diz o que fez. */
+export function fecharValorADevolver({ id, observacao }: { id: string; observacao: string }) {
+  return api.post<ValorADevolver>(`${BASE}/valores-a-devolver/${id}/fechar`, { body: { observacao } })
 }
 
 /**

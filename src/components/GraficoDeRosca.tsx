@@ -1,4 +1,4 @@
-import { formatarCentavos, formatarMoedaCurta } from '@/lib/formato'
+import { formatarCentavos, formatarMoedaCurta, formatarNumero } from '@/lib/formato'
 
 /** Geometria da rosca, em unidades do `viewBox`. */
 const RAIO = 50
@@ -24,12 +24,12 @@ const COR_DE_OUTRAS = 'var(--grafico-outras)'
 const FATIAS = CORES.length
 
 /** Uma fatia, já reduzida a nome e valor por quem chama. */
-export interface Fatia {
+interface Fatia {
   /** Chave estável da fatia — a categoria, o id do fornecedor. */
   chave: string
   /** O nome que aparece na legenda. */
   rotulo: string
-  /** Quanto, em centavos. */
+  /** Quanto, em centavos — ou a quantidade, com `contagem`. */
   valor: number
 }
 
@@ -46,13 +46,16 @@ export interface Fatia {
  *
  * @param fatias Já ordenadas, da maior para a menor — a rosca não reordena.
  * @param rotuloDoTotal A palavra embaixo do número do meio ("total", "pago").
+ * @param contagem Os valores são quantidades, não dinheiro: o número sai sem "R$" (as turmas por licença do painel).
  */
 export function GraficoDeRosca({
   fatias: recebidas,
   rotuloDoTotal = 'total',
+  contagem = false,
 }: {
   fatias: Fatia[]
   rotuloDoTotal?: string
+  contagem?: boolean
 }) {
   // Fatia que não vale nada não é fatia: o fornecedor contratado e ainda não pago apareceria como
   // "R$ 0,00 · 0%" na legenda de uma rosca que só mostra o que já saiu.
@@ -117,7 +120,7 @@ export function GraficoDeRosca({
           fontWeight="500"
           fill="var(--text-primary)"
         >
-          {formatarMoedaCurta(soma, 1)}
+          {contagem ? formatarNumero(soma) : formatarMoedaCurta(soma, 1)}
         </text>
         <text x={CENTRO} y={CENTRO + 13} textAnchor="middle" fontSize="10" fill="var(--text-muted)">
           {rotuloDoTotal}
@@ -133,7 +136,9 @@ export function GraficoDeRosca({
               aria-hidden
             />
             <dt className="text-foreground min-w-0 flex-1 truncate">{fatia.rotulo}</dt>
-            <dd className="text-foreground shrink-0 tabular-nums">{formatarCentavos(fatia.valor)}</dd>
+            <dd className="text-foreground shrink-0 tabular-nums">
+              {contagem ? formatarNumero(fatia.valor) : formatarCentavos(fatia.valor)}
+            </dd>
             <span className="text-muted-foreground w-9 shrink-0 text-right tabular-nums">
               {soma > 0 ? Math.round((fatia.valor / soma) * 100) : 0}%
             </span>

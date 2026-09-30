@@ -25,7 +25,6 @@ const ativa = {
   },
   vigente_ate: '2026-10-12T15:00:00Z',
   proxima_cobranca_em: '2026-10-12T15:00:00Z',
-  criado_em: '2026-09-12T15:00:00Z',
   meio: 'Cartao',
   proximo_plano: null,
   cartao_aguardando_autorizacao: false,
@@ -98,7 +97,7 @@ describe('CartaoDeAssinatura', () => {
 
     renderizar(<CartaoDeAssinatura />)
 
-    expect(await screen.findByText('Nenhum plano contratado')).toBeInTheDocument()
+    expect(await screen.findByText('Plano gratuito')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
   })
   /** P5: sair do cartão confirma antes, e a troca vale na hora — sem página do provedor. */
@@ -109,7 +108,7 @@ describe('CartaoDeAssinatura', () => {
       http.get(ASSINATURA, () => HttpResponse.json(ativa)),
       http.post(`${ASSINATURA}/trocar-meio`, async ({ request }) => {
         pedido = await request.json()
-        return HttpResponse.json({ url: null, assinatura: { ...ativa, meio: 'Pix' } })
+        return HttpResponse.json({ url: null })
       }),
     )
     const usuario = userEvent.setup()

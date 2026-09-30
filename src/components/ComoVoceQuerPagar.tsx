@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Chip } from '@/components/Chip'
 
 /** Uma opção de pagamento, como a tela a oferece. */
-export interface OpcaoDePagamento {
+interface OpcaoDePagamento {
   /** O que identifica a opção entre as irmãs. */
   chave: string
   rotulo: string

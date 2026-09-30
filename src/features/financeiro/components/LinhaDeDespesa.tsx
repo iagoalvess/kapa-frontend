@@ -6,7 +6,7 @@ import { Selo } from '@/components/Selo'
 import { PAPEIS } from '@/config/perfis'
 import { rotaDaDespesa } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
-import { abrirNaAba } from '@/lib/download'
+import { abrirEmNovaAba } from '@/lib/download'
 import { formatarCentavos, formatarData, formatarMesCurto } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { useAbrirComprovante, useCancelarDespesa } from '../hooks/useDespesas'
@@ -41,17 +41,7 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
   const cancelar = useCancelarDespesa()
   const comprovante = useAbrirComprovante()
 
-  /** A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up. */
-  const abrirComprovante = () => {
-    const aba = window.open('', '_blank')
-    comprovante.mutate(despesa.id, {
-      onSuccess: (arquivo) => abrirNaAba(arquivo, aba),
-      onError: (erro) => {
-        aba?.close()
-        avisarErro(erro)
-      },
-    })
-  }
+  const abrirComprovante = () => abrirEmNovaAba(comprovante, despesa.id)
 
   return (
     <tr className="border-b last:border-0">

@@ -47,25 +47,25 @@ export function TelasReais() {
           </figcaption>
           <div className="relative mx-auto w-full max-w-[330px] lg:my-auto lg:-rotate-[3deg]">
             <span
-              className="absolute top-28 -left-1 h-11 w-1.5 rounded-l-md bg-zinc-700 shadow-sm"
+              className="bg-ilustracao-celular-borda absolute top-28 -left-1 h-11 w-1.5 rounded-l-md shadow-sm"
               aria-hidden
             />
             <span
-              className="absolute top-44 -left-1 h-16 w-1.5 rounded-l-md bg-zinc-700 shadow-sm"
+              className="bg-ilustracao-celular-borda absolute top-44 -left-1 h-16 w-1.5 rounded-l-md shadow-sm"
               aria-hidden
             />
             <span
-              className="absolute top-36 -right-1 h-16 w-1.5 rounded-r-md bg-zinc-700 shadow-sm"
+              className="bg-ilustracao-celular-borda absolute top-36 -right-1 h-16 w-1.5 rounded-r-md shadow-sm"
               aria-hidden
             />
-            <div className="rounded-[3.1rem] border border-zinc-700 bg-zinc-900 p-[7px] shadow-[0_28px_55px_-18px_rgba(39,31,27,0.48),inset_0_1px_1px_rgba(255,255,255,0.32)]">
+            <div className="border-ilustracao-celular-borda bg-ilustracao-celular shadow-celular rounded-[3.1rem] border p-[7px]">
               <div className="bg-card overflow-hidden rounded-[2.65rem]">
                 <div
                   className="relative flex h-10 items-center justify-between px-7 text-[10px] font-semibold"
                   aria-hidden
                 >
                   <span>9:41</span>
-                  <span className="absolute top-1.5 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-zinc-900" />
+                  <span className="bg-ilustracao-celular absolute top-1.5 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full" />
                   <span className="flex items-center gap-1">
                     <Signal className="size-3" strokeWidth={2.5} />
                     <Wifi className="size-3" strokeWidth={2.5} />
@@ -80,7 +80,7 @@ export function TelasReais() {
                   className="block h-auto w-full"
                 />
                 <div className="grid h-8 place-items-center" aria-hidden>
-                  <span className="h-1 w-24 rounded-full bg-zinc-900" />
+                  <span className="bg-ilustracao-celular h-1 w-24 rounded-full" />
                 </div>
               </div>
             </div>

@@ -81,7 +81,7 @@ export function cadeirasDaMesa(mesa: MesaDesenhavel): Ponto[] {
 }
 
 /** O valor no passo da grade mais próximo. */
-export const encaixar = (valor: number) => Math.round(valor / GRADE) * GRADE
+const encaixar = (valor: number) => Math.round(valor / GRADE) * GRADE
 
 /** O valor dentro da faixa; faixa invertida (coisa maior que o salão) fica no mínimo. */
 export const limitar = (valor: number, minimo: number, maximo: number) =>

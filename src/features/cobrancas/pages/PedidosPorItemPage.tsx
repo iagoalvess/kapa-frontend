@@ -15,7 +15,7 @@ import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { cn } from '@/lib/utils'
 import { CORES_DE_TIPO } from '@/types/cobranca'
-import { ICONES_DE_TIPO } from '../components/iconesDeTipo'
+import { ICONES_DE_TIPO } from '../lib/iconesDeTipo'
 import { useResumoDosPedidos } from '../hooks/usePedidos'
 import { rotuloDoItem, type ResumoDoItemPedido } from '../types/cobrancas.types'
 

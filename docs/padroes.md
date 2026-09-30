@@ -243,6 +243,24 @@ Restrita a um perfil? Envolva num ramo com guarda:
 }
 ```
 
+### Área que o plano da turma pode não incluir
+
+A área que a API guarda com `[ExigeModulo]` ganha três coisas no front (Sprint 45):
+
+- **A rota**, num ramo com `<ExigeModulo modulo={MODULOS.x} />`. Fora do plano, ele desenha a
+  `AreaBloqueada` — maquete desfocada e o convite a contratar — no lugar da página, que nem monta.
+- **As consultas** que outras telas fazem dela esperam o plano: `enabled: inclui(MODULOS.x)`, de
+  `usePlanoDaTurma`. Sem isso, a tela da turma gratuita dispara o pedido e leva 403.
+- **O item de menu** leva `trancado={bloqueia(MODULOS.x)}` para a Gestão, e some para o formando.
+
+A vitrine da área mora em `AREAS_DO_PLANO` (`config/planos.ts`). **A maquete é revisada junto com a tela
+real**: maquete que mostra o que a área não faz é propaganda enganosa. Mudar o que um plano libera é
+editar `planos.modulos` no banco; o front lê de lá.
+
+Qualquer código de plano que ainda chegue (`plano.modulo_nao_incluido`, `convite.formatura_nao_contratada`,
+`plano.limite_de_formandos`) vira o `DialogoDeUpgrade` por dentro de `avisarErro` e
+`exibirErroNoFormulario`: a tela não trata nenhum deles à mão.
+
 ---
 
 ## Estado de tela vive na URL
@@ -280,6 +298,20 @@ const { ehAdministrador, tem } = usePerfil()
 Serve para **mostrar ou esconder**. Não é controle de acesso: a API decide. Nunca traga para o
 front um dado que só administrador pode ver e o esconda com `if` — ele já viajou pela rede.
 
+`tem` confere **só** o perfil pedido: o administrador não é coringa (Sprint 44, D4), como em
+`Politicas.ExigirPerfil`. Ele é perfil de plataforma, mora no painel (`/painel`, menu próprio via
+`useNoPainel`) e não vê a gestão das turmas; o login o leva para lá pela guarda `ExigeFormatura`.
+
+---
+
+## Coluna lateral
+
+Tela de detalhe com uma ação principal — o cadastro de um lado, o estado e o que se faz com ele do outro —
+usa a grade `grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]`: conteúdo à
+esquerda (cartão principal com ícone, listas em `Tabela emLista`), e à direita o cartão lateral sem ícone,
+com as ações em `Button size="sm"` (no cabeçalho do `Cartao` quando é uma, embaixo da `ListaDeDados` quando
+são várias). Exemplos: `PaginaDaFormatura`, `PlanoDeCobrancaPage`, e a turma e a conta do painel.
+
 ---
 
 ## Estilo
@@ -306,12 +338,12 @@ na classe (`text-[#1d4ed8]`) é a forma de ter sete azuis diferentes em seis mes
 Nunca monte o texto na mão. Tudo passa por `@/lib/formato`:
 
 ```tsx
-import { formatarData, formatarDataHora, formatarMoeda, formatarNumero } from '@/lib/formato'
+import { formatarCentavos, formatarData, formatarDataHora, formatarNumero } from '@/lib/formato'
 
-<td>{formatarData(produto.criadoEm)}</td>      {/* 31/12/2026 */}
-<td>{formatarDataHora(produto.criadoEm)}</td>  {/* 31/12/2026 14:05 */}
-<td>{formatarMoeda(produto.preco)}</td>        {/* R$ 1.234,56 */}
-<td>{formatarNumero(produto.estoque)}</td>     {/* 1.234 */}
+<td>{formatarData(produto.criado_em)}</td>                 {/* 31/12/2026 */}
+<td>{formatarDataHora(produto.criado_em)}</td>             {/* 31/12/2026 14:05 */}
+<td>{formatarCentavos(produto.preco_em_centavos)}</td>     {/* R$ 1.234,56 */}
+<td>{formatarNumero(produto.estoque)}</td>                 {/* 1.234 */}
 ```
 
 Valor ausente ou ilegível vira `—`, sem `?.` e sem `??` na tela.

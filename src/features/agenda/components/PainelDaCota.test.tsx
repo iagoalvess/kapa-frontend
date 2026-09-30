@@ -22,7 +22,6 @@ const painel = (partes: Partial<Painel> = {}): Painel => ({
     completo: true,
     fechamento_da_lista: '2027-12-09T22:00:00Z',
     janela_abre_em: '2027-12-10T16:00:00Z',
-    janela_fecha_em: '2027-12-11T10:00:00Z',
   },
   cota_por_formando: 2,
   capacidade: 100,

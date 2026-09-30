@@ -54,8 +54,6 @@ export interface EventoDaTurma {
 export interface ResumoDaAgenda {
   /** Até três datas, da mais perto para a mais longe. */
   proximos: EventoDaTurma[]
-  /** Quantas datas ainda vêm, contando as que não couberam. */
-  total: number
 }
 
 /** Um evento como a tela o envia. Espelha `EventoRequestDTO`. */

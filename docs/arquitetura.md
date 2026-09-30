@@ -33,7 +33,7 @@ dali a infraestrutura não pode mais ser lida sem conhecer o domínio inteiro.
 
 ## 1. SPA com Vite, não Next.js
 
-**Decisão:** Vite + React, entregue como arquivos estáticos atrás do nginx.
+**Decisão:** Vite + React, entregue como arquivos estáticos no Cloudflare Pages.
 
 **O que foi descartado:** Next.js, Remix e qualquer framework com servidor próprio.
 
@@ -108,27 +108,15 @@ a mensagem específica, `message` é o texto que se exibe quando não há nada e
 
 ---
 
-## 5. Access token em memória, refresh token no `localStorage`
+## 5. Access token em memória, refresh token em cookie `HttpOnly`
 
 **Decisão:** o access token vive apenas em variável de módulo (`lib/http/sessao.ts`) e morre ao
-recarregar a aba. O refresh token vai para o `localStorage`, e no boot a aplicação o troca por um
-par novo antes do primeiro render.
+recarregar a aba. O refresh token é um cookie `HttpOnly` que o navegador guarda e envia sozinho; no
+boot, `sessao.restaurar()` chama `/auth/refresh` para obter um access token novo. Nenhum token vai
+para o `localStorage`, e `sessao.test.ts` falha se alguém gravar.
 
-**O que foi descartado:** guardar o access token também no `localStorage`.
-
-**Por quê, e o que isso custa:** a API entrega os dois tokens no **corpo** da resposta, então o
-JavaScript necessariamente os enxerga — não existe, com este contrato, opção imune a XSS. O que
-dá para fazer é reduzir a janela: com o access token só em memória, um script injetado precisa
-executar _enquanto a aba está aberta_ para pegar credencial de uso imediato.
-
-A proteção real contra XSS continua sendo não ter XSS: o React escapa por padrão,
-`dangerouslySetInnerHTML` não aparece neste projeto e conteúdo de terceiro não é injetado na
-página.
-
-**Quando reabrir:** quando o backend passar a emitir o refresh token como cookie `HttpOnly`,
-`Secure`, `SameSite=Strict`. Aí o `localStorage` sai da jogada, o `sessao.ts` perde o
-armazenamento e o `fetch` passa a mandar `credentials: 'include'`. É uma mudança dos dois lados,
-combinada — não uma gambiarra do front.
+O porquê, o que isso não resolve (o XSS em si), o CSRF que o cookie trouxe de volta e o cliente que
+não é navegador estão em [`decisoes.md`](decisoes.md), §1, §1b e "CSRF".
 
 ---
 
@@ -160,7 +148,8 @@ das claims do access token, lidas sem conferir assinatura.
 assinatura do token a cada requisição. A leitura das claims no front serve para a tela mostrar o
 que o usuário de fato conseguirá fazer — evitando o 403 como forma de descobrir o menu.
 
-Segue a mesma regra do backend: o administrador passa em qualquer verificação de perfil.
+Segue a mesma regra do backend: o administrador não é coringa (Sprint 44, D4). `ExigePerfil` confere
+só o perfil pedido, e ele mora no painel (`padroes.md`).
 
 **Corolário:** nunca esconda no front uma informação que a API devolveria de qualquer jeito.
 Filtrar lista no cliente é vazamento com CSS por cima.
@@ -261,16 +250,15 @@ devolver `undefined` silencioso e falhar três asserções adiante.
 
 ## 13. O bundle é estático e o endereço da API é de build
 
-**Decisão:** `VITE_API_URL` entra no bundle em tempo de build, via `ARG` do Dockerfile. Uma
-imagem por ambiente.
+**Decisão:** `VITE_API_URL` entra no bundle em tempo de build, pela variável de ambiente do
+projeto no Pages. Um build por ambiente.
 
 **Por quê:** é a forma mais simples que funciona, e o custo — um build por ambiente, que leva
 segundos — é menor que o de manter um mecanismo de configuração em tempo de execução.
 
-**Quando reabrir:** se a mesma imagem tiver de rodar em vários ambientes (exigência comum de
-esteira com promoção de artefato). O caminho então é o entrypoint do container gerar um
-`/config.js` com os valores e o `config/env.ts` ler de `window`. Não é difícil; só não é
-necessário hoje.
+**Quando reabrir:** se o mesmo build tiver de rodar em vários ambientes (exigência comum de
+esteira com promoção de artefato). O caminho então é servir um `/config.js` com os valores e o
+`config/env.ts` ler de `window`. Não é difícil; só não é necessário hoje.
 
 **Regra que não muda:** tudo com prefixo `VITE_` é público. Está no JavaScript que qualquer
 usuário baixa. Segredo é assunto do backend, sempre.

@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { abreNoNavegador, abrirOuBaixar } from '@/lib/download'
-import { avisarErro } from '@/lib/http/erros'
 import {
   atualizarDocumento,
-  baixarDocumento,
   enviarDocumento,
   excluirDocumento,
   listarDocumentos,
@@ -50,34 +47,6 @@ function useEscritaDoAcervo<T, R>(escrever: (variaveis: T) => Promise<R>) {
 export const useEnviarDocumento = () => useEscritaDoAcervo(enviarDocumento)
 export const useAtualizarDocumento = () => useEscritaDoAcervo(atualizarDocumento)
 export const useExcluirDocumento = () => useEscritaDoAcervo(excluirDocumento)
-
-/** O arquivo de um documento, pela URL assinada. Mutação: é ação do clique, não dado de tela. */
-export function useBaixarDocumento() {
-  return useMutation({ mutationFn: baixarDocumento })
-}
-
-/**
- * Abre um documento: PDF e imagem numa aba — sem visualizador embutido, o navegador já tem um —, Word
- * e Excel baixando com o nome original.
- *
- * A aba nasce antes da ida ao servidor: aberta depois dela, o navegador a trataria como pop-up.
- */
-export function useAbrirDocumento() {
-  const baixar = useBaixarDocumento()
-
-  const abrir = (documento: Documento) => {
-    const aba = abreNoNavegador(documento.content_type) ? window.open('', '_blank') : null
-    baixar.mutate(documento.id, {
-      onSuccess: (arquivo) => abrirOuBaixar(arquivo, documento.nome_do_arquivo, aba),
-      onError: (erro) => {
-        aba?.close()
-        avisarErro(erro)
-      },
-    })
-  }
-
-  return { abrir, abrindo: baixar.isPending }
-}
 
 /** Os filtros do quadro que não vão à API: vivem na URL e se aplicam ao acervo já carregado. */
 export interface FiltroDoQuadro {

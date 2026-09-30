@@ -1,4 +1,4 @@
-import type { FiltroDeInformes } from '../types/pagamentos.types'
+import type { FiltroDeInformes, FiltroDeValoresADevolver } from '../types/pagamentos.types'
 
 // A formatura não entra na chave: trocar de formatura limpa o cache inteiro.
 export const chaves = {
@@ -12,4 +12,5 @@ export const chaves = {
   informes: (filtro: FiltroDeInformes) => ['pagamentos', 'informes', filtro] as const,
   divergencias: (filtro: FiltroDeInformes) => ['pagamentos', 'divergencias', filtro] as const,
   recibo: (recebimentoId: string) => ['pagamentos', 'recibo', recebimentoId] as const,
+  valoresADevolver: (filtro: FiltroDeValoresADevolver) => ['pagamentos', 'a-devolver', filtro] as const,
 }

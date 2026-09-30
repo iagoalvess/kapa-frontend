@@ -106,15 +106,20 @@ export const ROTAS = {
   avisoDaListaDeEspera: '/lista-de-espera/privacidade',
   // Quem fez o quê com o dinheiro da turma (Gestão).
   auditoria: '/auditoria',
-  // O painel de suporte: perfil `Administrador` da plataforma, fora de qualquer formatura.
-  suporte: '/suporte',
+  // O painel do Kapa (Sprint 44): perfil `Administrador` da plataforma, fora de qualquer formatura.
+  painel: '/painel',
+  painelVisaoGeral: '/painel/visao-geral',
+  painelTurmas: '/painel/turmas',
+  painelContas: '/painel/contas',
+  // O endereço do painel até a Sprint 44: redireciona para `/painel`, para não deixar link morto.
+  suporteAntigo: '/suporte',
 } as const
 
-/** A turma no painel de suporte: `/suporte/formaturas/:id`. */
-export const rotaDaTurmaNoSuporte = (id: string) => `${ROTAS.suporte}/formaturas/${id}`
+/** A turma no painel do Kapa: `/painel/turmas/:id`. */
+export const rotaDaTurmaNoPainel = (id: string) => `${ROTAS.painelTurmas}/${id}`
 
-/** A conta no painel de suporte: `/suporte/usuarios/:id`. */
-export const rotaDaContaNoSuporte = (id: string) => `${ROTAS.suporte}/usuarios/${id}`
+/** A conta no painel do Kapa: `/painel/contas/:id`. */
+export const rotaDaContaNoPainel = (id: string) => `${ROTAS.painelContas}/${id}`
 
 /** O cadastro de um membro da turma: `/formatura/membros/:usuario_id`. */
 export const rotaDoMembro = (usuarioId: string) => `${ROTAS.membros}/${usuarioId}`
@@ -139,9 +144,6 @@ export const rotaDoAviso = (id: string) => `${ROTAS.mural}/${id}`
 
 /** O cadastro de um fornecedor, com o que já saiu para ele: `/financeiro/fornecedores/:id`. */
 export const rotaDoFornecedor = (id: string) => `${ROTAS.fornecedores}/${id}`
-
-/** O recibo de uma baixa: `/recibos/:id` — o mesmo caminho de `RotasDoFront.Recibo` no backend. */
-export const rotaDoRecibo = (recebimentoId: string) => `${ROTAS.recibos}/${recebimentoId}`
 
 /** O PIX de uma parcela, com o "Já paguei": `/minhas-parcelas/parcelas/:id/pagar`. */
 export const rotaDoPagamento = (parcelaId: string) => `${ROTAS.extrato}/parcelas/${parcelaId}/pagar`

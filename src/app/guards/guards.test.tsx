@@ -75,6 +75,7 @@ function renderizarGuarda(guarda: React.ReactElement, rotaInicial = '/protegida'
       { path: ROTAS.inicio, element: <p>tela inicial</p> },
       { path: ROTAS.selecionarFormatura, element: <p>escolha a formatura</p> },
       { path: ROTAS.extrato, element: <p>meu extrato</p> },
+      { path: ROTAS.painelVisaoGeral, element: <p>painel do Kapa</p> },
     ],
     { initialEntries: [rotaInicial] },
   )
@@ -183,15 +184,16 @@ describe('ExigePerfil', () => {
   })
 
   /**
-   * O administrador passa em qualquer política, espelhando `Politicas.ExigirPerfil` no backend.
-   * Se as duas pontas divergirem, a tela some para quem a API deixaria entrar.
+   * D4 da Sprint 44: o administrador não é coringa, espelhando `Politicas.ExigirPerfil` no backend. Se as
+   * duas pontas divergirem, a tela abre para quem a API recusaria.
    */
-  it('deixa o administrador passar em perfil que ele não tem', () => {
+  it('não deixa o administrador passar em perfil que ele não tem', () => {
     entrar([PERFIS.administrador])
 
     renderizarGuarda(<ExigePerfil perfil={PERFIS.usuario} />)
 
-    expect(screen.getByText('conteúdo protegido')).toBeInTheDocument()
+    expect(screen.getByText('tela inicial')).toBeInTheDocument()
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
   })
 })
 
@@ -207,6 +209,20 @@ describe('ExigeFormatura', () => {
 
     expect(screen.getByText('escolha a formatura')).toBeInTheDocument()
     expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+  })
+
+  /**
+   * Sprint 44 (E1, D4): quem é da Kapa não entra em rota de turma e não é "conta sem formatura" — vai
+   * para o painel. É por aqui que o login o leva para lá.
+   */
+  it('manda o administrador sem turma para o painel, e não para a seleção', () => {
+    entrar([PERFIS.administrador])
+
+    renderizarGuarda(<ExigeFormatura />)
+
+    expect(screen.getByText('painel do Kapa')).toBeInTheDocument()
+    expect(screen.queryByText('conteúdo protegido')).not.toBeInTheDocument()
+    expect(screen.queryByText('escolha a formatura')).not.toBeInTheDocument()
   })
 
   it('deixa passar quem tem formatura selecionada', () => {
@@ -311,9 +327,7 @@ function renderizarComAceites(
 describe('ExigeAceites', () => {
   it('leva ao re-aceite quem tem versão nova pendente, guardando o destino', async () => {
     servidor.use(
-      http.get(MEUS_ACEITES, () =>
-        HttpResponse.json({ historico: [], pendencias: [{ tipo: 'TermosDeUso', versao: '2' }] }),
-      ),
+      http.get(MEUS_ACEITES, () => HttpResponse.json({ pendencias: [{ tipo: 'TermosDeUso', versao: '2' }] })),
     )
     entrar([PERFIS.usuario])
     renderizarComAceites()
@@ -322,7 +336,7 @@ describe('ExigeAceites', () => {
   })
 
   it('deixa passar quem está em dia', async () => {
-    servidor.use(http.get(MEUS_ACEITES, () => HttpResponse.json({ historico: [], pendencias: [] })))
+    servidor.use(http.get(MEUS_ACEITES, () => HttpResponse.json({ pendencias: [] })))
     entrar([PERFIS.usuario])
     renderizarComAceites()
 
@@ -348,7 +362,7 @@ describe('ExigeAceites', () => {
     servidor.use(
       http.get(MEUS_ACEITES, () => {
         consultas++
-        return HttpResponse.json({ historico: [], pendencias: [] })
+        return HttpResponse.json({ pendencias: [] })
       }),
     )
     entrar([PERFIS.usuario])

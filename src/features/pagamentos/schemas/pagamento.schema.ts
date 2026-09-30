@@ -56,3 +56,13 @@ export const esquemaDaRecusa = z.object({
 export const esquemaDoEstorno = z.object({
   justificativa: textoObrigatorio('Explique por que este pagamento está sendo estornado.'),
 })
+
+/** O cancelamento avulso também fica na auditoria (Sprint 42). */
+export const esquemaDoCancelamento = z.object({
+  justificativa: textoObrigatorio('Explique por que a parcela está sendo cancelada.'),
+})
+
+/** O que a comissão fez com o pagamento que entrou sem parcela — fica no registro. */
+export const esquemaDoFechamento = z.object({
+  observacao: textoObrigatorio('Diga o que foi feito com este pagamento.'),
+})

@@ -24,11 +24,14 @@ export function useExtrato(acompanhar = false) {
  * API — a regra ("vencida, e ninguém avisou") vive uma vez, lá.
  *
  * A chave mora sob a do extrato: a invalidação que já existe depois de um aviso apaga o selo junto.
+ *
+ * @param habilitado Falso sem turma na sessão — o painel do Kapa não tem parcela a contar.
  */
-export function useParcelasVencidas() {
+export function useParcelasVencidas(habilitado = true) {
   return useQuery({
     queryKey: chaves.pendencias(),
     queryFn: ({ signal }) => obterPendenciasDoExtrato(signal),
+    enabled: habilitado,
     select: (pendencias) => pendencias.vencidas_sem_aviso,
   })
 }
@@ -50,4 +53,4 @@ export function useParcela(parcelaId: string, habilitado = true, acompanhar = fa
 }
 
 /** De quanto em quanto tempo a tela do PIX automático relê a parcela. */
-export const INTERVALO_DE_ACOMPANHAMENTO = 5000
+const INTERVALO_DE_ACOMPANHAMENTO = 5000

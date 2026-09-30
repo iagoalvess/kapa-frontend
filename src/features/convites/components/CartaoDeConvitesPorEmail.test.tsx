@@ -1,12 +1,14 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
+import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
 import { env } from '@/config/env'
 import { PAPEIS, PERFIS } from '@/config/perfis'
 import { sessao } from '@/lib/http/sessao'
+import { upgrade } from '@/lib/upgrade'
 import { servidor } from '@/test/msw/server'
-import { renderizar } from '@/test/utils'
+import { PLANO_GRATUITO, renderizar } from '@/test/utils'
 import { CartaoDeConvitesPorEmail } from './CartaoDeConvitesPorEmail'
 
 const ATUAL = `${env.VITE_API_URL}/api/v1/formaturas/atual`
@@ -28,7 +30,6 @@ const aceito = {
   usos_maximos: 1,
   usos_feitos: 1,
   status: 'Aceito',
-  criado_em: '2026-09-11T12:00:00Z',
 }
 
 const pendente = { ...aceito, id: 'c-3', email: 'carla@exemplo.com', usos_feitos: 0, status: 'Pendente' }
@@ -62,10 +63,10 @@ describe('CartaoDeConvitesPorEmail', () => {
 
   /** No gratuito a comissão se monta por e-mail; formando espera a contratação. */
   it('no plano gratuito, o Presidente convida só a comissão', async () => {
-    responder([], 'Ativa', { ja_contratou: false })
+    responder([], 'Ativa')
     entrarComo(PAPEIS.presidente)
 
-    renderizar(<CartaoDeConvitesPorEmail />)
+    renderizar(<CartaoDeConvitesPorEmail />, '/', '*', PLANO_GRATUITO)
 
     await screen.findByText(/Para convidar formandos, contrate um plano/)
     await waitFor(() => {
@@ -81,11 +82,7 @@ describe('CartaoDeConvitesPorEmail', () => {
     servidor.use(
       http.post(CONVITES, async ({ request }) => {
         enviado = await request.json()
-        return HttpResponse.json({
-          id: 'c-9',
-          link: 'https://app.kapa/convite/tk-9',
-          expira_em: aceito.expira_em,
-        })
+        return HttpResponse.json({ link: 'https://app.kapa/convite/tk-9' })
       }),
     )
     entrarComo(PAPEIS.presidente)
@@ -96,6 +93,42 @@ describe('CartaoDeConvitesPorEmail', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enviar convite' }))
 
     await waitFor(() => expect(enviado).toEqual({ email: 'carla@exemplo.com', papel: 'Tesoureiro' }))
+  })
+
+  /** Sprint 45: a turma gratuita no limite de pessoas recebe o diálogo de upgrade, e não um erro no formulário. */
+  it('no limite do gratuito, convidar mais alguém da comissão abre o diálogo de upgrade', async () => {
+    responder()
+    servidor.use(
+      http.post(CONVITES, () =>
+        HttpResponse.json(
+          {
+            status: 409,
+            codigo: 'plano.limite_de_formandos',
+            detail:
+              'O plano Gratuito comporta 5 pessoas e a turma já tem 5. Troque de plano para incluir mais gente.',
+          },
+          { status: 409 },
+        ),
+      ),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    renderizar(
+      <>
+        <CartaoDeConvitesPorEmail />
+        <DialogoDeUpgrade />
+      </>,
+      '/',
+      '*',
+      PLANO_GRATUITO,
+    )
+    await userEvent.type(await screen.findByLabelText('E-mail do convidado'), 'carla@exemplo.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar convite' }))
+
+    const dialogo = await screen.findByRole('alertdialog', { name: 'A turma chegou ao limite do plano' })
+    expect(dialogo).toHaveTextContent('O plano Gratuito comporta 5 pessoas')
+    expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
+    act(() => upgrade.fechar())
   })
 
   it('lista só os convites por e-mail, com a situação, e revoga o pendente', async () => {

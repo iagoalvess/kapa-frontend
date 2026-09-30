@@ -49,7 +49,7 @@ describe('ReaceitePage', () => {
     let pendencias = [{ tipo: 'TermosDeUso', versao: '2' }]
     let aceito: unknown
     servidor.use(
-      http.get(MEUS_ACEITES, () => HttpResponse.json({ historico: [], pendencias })),
+      http.get(MEUS_ACEITES, () => HttpResponse.json({ pendencias })),
       http.post(ACEITES, async ({ request }) => {
         aceito = await request.json()
         pendencias = []
@@ -70,7 +70,7 @@ describe('ReaceitePage', () => {
   it('não envia sem marcar o aceite', async () => {
     servidor.use(
       http.get(MEUS_ACEITES, () =>
-        HttpResponse.json({ historico: [], pendencias: [{ tipo: 'PoliticaDePrivacidade', versao: '3' }] }),
+        HttpResponse.json({ pendencias: [{ tipo: 'PoliticaDePrivacidade', versao: '3' }] }),
       ),
     )
 

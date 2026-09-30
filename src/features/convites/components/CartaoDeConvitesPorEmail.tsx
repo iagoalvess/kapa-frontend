@@ -9,7 +9,8 @@ import { Paginacao } from '@/components/Paginacao'
 import { Tabela } from '@/components/Planilha'
 import { Selo, type TomDoSelo } from '@/components/Selo'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
-import { useEscritaLiberada, useFormaturaAtual } from '@/hooks/useFormaturaAtual'
+import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
@@ -30,7 +31,8 @@ const SITUACOES: Record<StatusDoConvite, { texto: string; tom: TomDoSelo }> = {
  * O que quem está logado pode oferecer por e-mail agora.
  *
  * @param ehPresidente Só o Presidente convida para a comissão.
- * @param contratada Com a turma paga, formando também entra — no gratuito só a comissão, dentro das vagas do plano.
+ * @param contratada Com plano pago em dia, formando também entra — no gratuito (e na turma que venceu) só a
+ *   comissão, dentro das vagas do plano.
  */
 function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
   const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao, PAPEIS.presidente]
@@ -44,15 +46,17 @@ function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
  *
  * Gestão (Comissão e Tesouraria) convida formandos; só o Presidente escolhe outro papel — a tela
  * esconde a escolha, e a API recusa com `convite.papel_restrito` de qualquer forma. No plano
- * gratuito a comissão se monta por aqui, dentro das poucas vagas do plano; formando só entra depois
- * de contratar. Passar das vagas, de qualquer papel, a API recusa com `plano.limite_de_formandos`.
+ * gratuito a comissão se monta por aqui, dentro das poucas vagas do plano; formando só entra com plano
+ * pago em dia (Sprint 45, P3). Passar das vagas, de qualquer papel, abre o diálogo de upgrade: a API
+ * recusa com `plano.limite_de_formandos`, e o formulário o entrega a `exibirErroNoFormulario`.
  */
 export function CartaoDeConvitesPorEmail() {
   const { ehPresidente } = usePapel()
-  const { data } = useFormaturaAtual()
+  const { plano } = usePlanoDaTurma()
   // Enquanto carrega, assume contratada — pelo mesmo motivo de `useEscritaLiberada`, e porque
-  // trocar a lista de papéis depois remonta o formulário e apaga o que já foi digitado.
-  const contratada = data?.ja_contratou ?? true
+  // trocar a lista de papéis depois remonta o formulário e apaga o que já foi digitado. O plano pago
+  // de hoje, e não "já contratou um dia": a turma que venceu volta a só montar a comissão (P3).
+  const contratada = plano?.pago ?? true
   const montavel = useEscritaLiberada()
   const papeis = papeisOferecidos(ehPresidente, contratada)
   const convites = useConvites()
@@ -64,7 +68,7 @@ export function CartaoDeConvitesPorEmail() {
       descricao={
         contratada
           ? 'O link vai para o e-mail da pessoa e só funciona numa conta com esse e-mail. Vale por 7 dias.'
-          : 'No plano gratuito você monta a comissão. Para convidar formandos, contrate um plano. O link vai para o e-mail da pessoa e vale por 7 dias.'
+          : 'Sem plano contratado, você monta a comissão. Para convidar formandos, contrate um plano. O link vai para o e-mail da pessoa e vale por 7 dias.'
       }
     >
       {/* Chave pelos papéis: a escolha padrão muda quando o status da turma termina de carregar. */}

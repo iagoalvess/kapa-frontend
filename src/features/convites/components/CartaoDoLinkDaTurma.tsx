@@ -6,9 +6,11 @@ import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { copiar } from '@/lib/copiar'
+import { upgrade } from '@/lib/upgrade'
 import { useConvites, useCriarConvite } from '../hooks/useConvites'
 
 /** Copia o link vigente; negado, mostra o endereço no aviso para copiar à mão. */
@@ -23,11 +25,15 @@ async function copiarVigente(endereco: string) {
  * A validade (30 dias) é fixa no backend; a tela só informa. Entradas não têm teto no link — quem
  * barra é o limite do plano, no aceite. Sem histórico: um link por turma, e gerar outro desativa o atual — é assim que se
  * desliga um link vazado. Só com a turma ativa, que é quando formando pode entrar.
+ *
+ * Sem plano pago em dia, gerar abre o diálogo de upgrade em vez de chamar a API (Sprint 45): quem entra
+ * pelo link entra como Formando, e a resposta seria o mesmo `convite.formatura_nao_contratada`.
  */
 export function CartaoDoLinkDaTurma() {
   const ativa = useEscritaLiberada()
   const convites = useConvites()
   const criar = useCriarConvite()
+  const semPlanoPago = usePlanoDaTurma().plano?.pago === false
 
   if (!ativa) return null
 
@@ -40,17 +46,23 @@ export function CartaoDoLinkDaTurma() {
 
   // Copiar logo depois de gerar funciona no Chrome; o Safari exige o clique, e aí fica o botão.
   const gerar = (substitui: boolean) =>
-    criar.mutate(
-      {},
-      {
-        onSuccess: async (criado) => {
-          const antes = substitui ? 'Link novo gerado; o anterior parou de funcionar.' : 'Link gerado.'
-          if (await copiar(criado.link)) toast.success(`${antes} Já está copiado.`)
-          else toast.success(`${antes} Use "Copiar link" para copiá-lo.`)
-        },
-        onError: avisarErro,
-      },
-    )
+    semPlanoPago
+      ? upgrade.pedir({
+          codigo: 'convite.formatura_nao_contratada',
+          mensagem:
+            'Quem entra pelo link da turma entra como Formando, e formandos entram só com um plano contratado em dia.',
+        })
+      : criar.mutate(
+          {},
+          {
+            onSuccess: async (criado) => {
+              const antes = substitui ? 'Link novo gerado; o anterior parou de funcionar.' : 'Link gerado.'
+              if (await copiar(criado.link)) toast.success(`${antes} Já está copiado.`)
+              else toast.success(`${antes} Use "Copiar link" para copiá-lo.`)
+            },
+            onError: avisarErro,
+          },
+        )
 
   return (
     <Cartao titulo="Link da turma">

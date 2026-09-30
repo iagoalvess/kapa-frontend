@@ -1,9 +1,9 @@
 import { ErroDeRede, ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
-import { formatarHorario } from '@/lib/formato'
+import { formatarHorario, instanteDe } from '@/lib/formato'
 import type { EntradaNaPortaria } from '../types/convites.types'
 
 /** Verde entra; vermelho não entra; âmbar é informação que a pessoa na porta precisa decidir. */
-export type TomDoResultado = 'entrou' | 'barrado' | 'aviso'
+type TomDoResultado = 'entrou' | 'barrado' | 'aviso'
 
 /** O que a portaria mostra, grande, depois de tocar em "Validar entrada". */
 export interface ResultadoDaValidacao {
@@ -72,7 +72,7 @@ export function resultadoDaValidacao(
       const anterior = erro.dados
       const minha =
         anterior.validado_por_usuario_id === usuarioId &&
-        agora.getTime() - new Date(anterior.validado_em).getTime() < TOQUE_DUPLO_MS
+        agora.getTime() - instanteDe(anterior.validado_em) < TOQUE_DUPLO_MS
 
       return minha
         ? {

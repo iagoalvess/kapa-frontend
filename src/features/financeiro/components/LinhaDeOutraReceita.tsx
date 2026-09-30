@@ -19,7 +19,7 @@ import { esquemaDeRecebimento, type FormularioDeRecebimento } from '../schemas/f
 import { ROTULOS_DE_CATEGORIA_DE_OUTRA_RECEITA, type OutraReceita } from '../types/financeiro.types'
 
 /** A situação da receita: a receber cinza, recebida verde, atrasada vermelha. */
-export function SituacaoDaOutraReceita({ outraReceita }: { outraReceita: OutraReceita }) {
+function SituacaoDaOutraReceita({ outraReceita }: { outraReceita: OutraReceita }) {
   if (outraReceita.status === 'Recebida') return <Selo tom="sucesso">Recebida</Selo>
   if (outraReceita.status === 'Cancelada') return <Selo tom="neutro">Cancelada</Selo>
 

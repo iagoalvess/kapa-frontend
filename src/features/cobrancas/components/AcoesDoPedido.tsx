@@ -17,8 +17,8 @@ import { rotuloDoItem, type Pedido } from '../types/cobrancas.types'
  * Cancelar um pedido da turma — e é por aqui que o estoque volta (decisão 9).
  *
  * Só a tesouraria: a comissão lê a lista para responder ao formando, mas quem mexe em dívida é quem
- * responde pelo caixa. Com dinheiro já pago, o diálogo pede o crédito a devolver (P5): ele vira uma
- * parcela negativa do próprio pedido, que abate o que a pessoa ainda deve.
+ * responde pelo caixa. Com dinheiro já pago, o diálogo pede o crédito a devolver (P5): ele vai para a
+ * lista "A devolver" da Conferência (Sprint 42), até a comissão registrar o PIX de volta.
  *
  * Sem crédito e com parte paga, o pedido não some — ele encolhe para o que o pagamento já cobria
  * (P9), e só o excedente volta ao estoque. É a única saída que não escolhe entre travar o estoque
@@ -60,7 +60,7 @@ export function AcoesDoPedido({ pedido }: { pedido: Pedido }) {
         titulo={`Cancelar ${rotuloDoItem(pedido).toLowerCase()} de ${pedido.nome}?`}
         descricao={
           pago
-            ? `Já entraram ${formatarCentavos(pedido.pago_em_centavos)} por este pedido. Sem crédito, ele encolhe para o que o pagamento cobriu; com crédito, cai inteiro e o valor abate o que a pessoa ainda deve.`
+            ? `Já entraram ${formatarCentavos(pedido.pago_em_centavos)} por este pedido. Sem crédito, ele encolhe para o que o pagamento cobriu; com crédito, cai inteiro e o valor vai para a lista "A devolver".`
             : 'As parcelas em aberto são canceladas e as unidades voltam ao estoque.'
         }
         largura="estreito"
@@ -73,8 +73,9 @@ export function AcoesDoPedido({ pedido }: { pedido: Pedido }) {
               </label>
               <CampoDeMoeda id={campoDoCredito} value={credito} onChange={definirCredito} />
               <p className="text-texto-muted text-xs">
-                Vira uma parcela negativa no nome dele. O PIX de volta é lançado como despesa no caixa, quando
-                você fizer — reter parte é lançar um crédito menor que o pago.
+                Vai para a lista &ldquo;A devolver&rdquo; da Conferência. Quando a comissão fizer o PIX de
+                volta, registre lá com o comprovante e a saída entra no caixa — reter parte é lançar um
+                crédito menor que o pago.
               </p>
             </div>
           ) : null}
