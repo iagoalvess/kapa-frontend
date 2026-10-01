@@ -155,16 +155,47 @@ export function resumirOutrasReceitas(
 }
 
 /**
- * Lança uma receita. JSON, e não multipart como a despesa: o comprovante já está no acervo, e vai
- * só o id dele.
+ * Lança uma receita. Multipart, como a despesa: o comprovante pode ser enviado aqui — vira documento
+ * do acervo, visível para a turma —, ou escolhido no acervo pelo `documento_id`.
  */
-export function lancarOutraReceita(dados: NovaOutraReceita) {
-  return api.post<OutraReceita>(OUTRAS_RECEITAS, { body: dados })
+export function lancarOutraReceita({ dados, comprovante }: { dados: NovaOutraReceita; comprovante?: File }) {
+  return api.post<OutraReceita>(OUTRAS_RECEITAS, {
+    body: formularioDaReceita(dados, dados.recebida ?? false, comprovante),
+  })
 }
 
-/** Corrige uma receita lançada — prevista ou recebida. */
-export function atualizarOutraReceita({ id, dados }: { id: string; dados: DadosDaOutraReceita }) {
-  return api.put<OutraReceita>(`${OUTRAS_RECEITAS}/${id}`, { body: dados })
+/** Corrige uma receita lançada — prevista ou recebida. O comprovante, se vier, nasce no acervo. */
+export function atualizarOutraReceita({
+  id,
+  dados,
+  comprovante,
+}: {
+  id: string
+  dados: DadosDaOutraReceita
+  comprovante?: File
+}) {
+  return api.put<OutraReceita>(`${OUTRAS_RECEITAS}/${id}`, {
+    body: formularioDaReceita(dados, false, comprovante),
+  })
+}
+
+/** A receita como multipart — campos em `snake_case`, como a API os lê no formulário. */
+function formularioDaReceita(
+  dados: DadosDaOutraReceita | NovaOutraReceita,
+  recebida: boolean,
+  comprovante?: File,
+) {
+  const corpo = new FormData()
+  corpo.append('descricao', dados.descricao)
+  corpo.append('categoria', dados.categoria)
+  corpo.append('valor_em_centavos', String(dados.valor_em_centavos))
+  corpo.append('data', dados.data)
+  if (dados.origem) corpo.append('origem', dados.origem)
+  if (dados.documento_id) corpo.append('documento_id', dados.documento_id)
+  if ('recebida' in dados) corpo.append('recebida', String(recebida))
+  if (comprovante) corpo.append('comprovante', comprovante)
+
+  return corpo
 }
 
 /** Marca a prevista como recebida: é aqui que ela passa a contar no arrecadado e na meta. */

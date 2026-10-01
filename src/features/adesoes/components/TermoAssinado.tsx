@@ -1,6 +1,7 @@
 import { CalendarClock, Download, FileCheck2, Fingerprint, IdCard, MailCheck, UserRound } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
@@ -76,7 +77,7 @@ export function TermoAssinado({
             acao={
               <>
                 <Button asChild variant="outline" size="sm">
-                  <Link to={ROTAS.extrato}>Ver minhas parcelas</Link>
+                  <LinkDaPagina to={ROTAS.extrato}>Ver minhas parcelas</LinkDaPagina>
                 </Button>
                 <Button variant="outline" size="sm" onClick={baixar} disabled={pdf.isPending}>
                   <Download aria-hidden />
@@ -114,9 +115,9 @@ export function TermoAssinado({
                 </Dado>
               ) : null}
               <Dado icone={Fingerprint} rotulo="Código de verificação">
-                <span title={adesao.hash_do_conteudo} className="font-mono text-xs break-all">
-                  {adesao.hash_do_conteudo}
-                </span>
+                <Dica dica={adesao.hash_do_conteudo} className="max-w-xs break-all">
+                  <span className="font-mono text-xs break-all">{adesao.hash_do_conteudo}</span>
+                </Dica>
               </Dado>
             </ListaDeDados>
           </Cartao>

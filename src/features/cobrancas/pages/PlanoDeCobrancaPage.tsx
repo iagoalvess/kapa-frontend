@@ -1,6 +1,6 @@
 import { BellRing, Coins, OctagonX, Pencil, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
@@ -156,7 +156,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
 
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao
-            titulo="Prévia da grade"
+            titulo="Prévia das parcelas"
             descricao="Veja as parcelas e os valores que serão cobrados de um formando."
           >
             <PreviaDaGrade simulacao={gravado.data} atualizando={gravado.isFetching} erro={gravado.error} />
@@ -174,10 +174,10 @@ function CartaoDeLembretes() {
       descricao="Acompanhe os avisos de vencimento e os alertas para a tesouraria."
     >
       <Button asChild>
-        <Link to={ROTAS.regua}>
+        <LinkDaPagina to={ROTAS.regua}>
           <BellRing aria-hidden />
           Ver lembretes
-        </Link>
+        </LinkDaPagina>
       </Button>
     </Cartao>
   )

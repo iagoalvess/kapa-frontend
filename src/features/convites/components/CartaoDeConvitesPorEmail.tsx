@@ -2,7 +2,7 @@ import { Ban, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Paginacao } from '@/components/Paginacao'
@@ -91,11 +91,7 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
   const pagina = paginar(convites, paginaPedida, tamanhoDaPagina)
 
   if (convites.length === 0)
-    return (
-      <p className="text-muted-foreground motion-safe:animate-entrar text-sm">
-        Nenhum convite enviado ainda.
-      </p>
-    )
+    return <TextoDoCartao className="motion-safe:animate-entrar">Nenhum convite enviado ainda.</TextoDoCartao>
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import { FileText, X } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Selo } from '@/components/Selo'
@@ -49,9 +49,12 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
           tela repete antes de cada valor. */}
       <th scope="row" className="grid min-w-52 py-3 pr-4 text-left font-normal">
         {/* A despesa se corrige na tela dela, como o cadastro do membro: aqui só se abre. */}
-        <Link to={rotaDaDespesa(despesa.id)} className="text-foreground truncate font-medium hover:underline">
+        <LinkDaPagina
+          to={rotaDaDespesa(despesa.id)}
+          className="text-foreground truncate font-medium hover:underline"
+        >
           {rotuloDaDespesa(despesa)}
-        </Link>
+        </LinkDaPagina>
         <span className="text-muted-foreground truncate text-xs font-normal">
           {despesa.fornecedor ?? 'Sem fornecedor'} · {ROTULOS_DE_CATEGORIA[despesa.categoria]}
         </span>

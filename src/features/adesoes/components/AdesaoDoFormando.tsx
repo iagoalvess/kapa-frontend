@@ -1,6 +1,7 @@
 import { PenLine } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
@@ -34,6 +35,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
   const conteudo = useConteudoParaAdesao()
   const minha = useMinhaAdesao()
   const [parametros, definirParametros] = useSearchParams()
+  const { state } = useLocation()
 
   if (conteudo.isPending || minha.isPending)
     return (
@@ -62,7 +64,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
         resumo={resumo}
         versaoDoResumo={termo?.versao}
         novaVersao={novaVersao}
-        aoLerNova={() => definirParametros({ ler: 'nova' })}
+        aoLerNova={() => definirParametros({ ler: 'nova' }, { state })}
       />
     )
 
@@ -82,7 +84,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       pendencias={pendencias}
       formularioDoTitular={<FormularioDoTitular aoSalvar={() => void minha.refetch()} />}
       aoRecarregar={() => void conteudo.refetch()}
-      aoAderir={() => definirParametros({})}
+      aoAderir={() => definirParametros({}, { state })}
     />
   )
 }
@@ -99,9 +101,9 @@ function AdesaoComAComissao() {
             O termo é um contrato com valores, e quem tem menos de 18 anos o assina junto com o responsável
             legal. Por isso a adesão não é feita pela plataforma: procure a comissão da turma. Se a data de
             nascimento do seu cadastro estiver errada, corrija em{' '}
-            <Link to={ROTAS.meuCadastro} className="text-foreground font-medium underline">
+            <LinkDaPagina to={ROTAS.meuCadastro} className="text-foreground font-medium underline">
               Meu cadastro
-            </Link>
+            </LinkDaPagina>
             .
           </p>
         </div>

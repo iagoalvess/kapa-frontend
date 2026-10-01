@@ -1,6 +1,7 @@
 import { Pin } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
+import { Dica } from '@/components/Dica'
 import { COR_ESCOLHIDA, COR_NAO_ESCOLHIDA } from '@/components/LinhaSelecionavel'
 import { Selo } from '@/components/Selo'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
@@ -32,13 +33,11 @@ export function LinhaDoMural({ aviso, aberto }: { aviso: Aviso; aberto: boolean 
         <div className="flex items-start gap-2">
           {aviso.fixado ? <Pin className="text-brand-text mt-0.5 size-3.5 shrink-0" aria-hidden /> : null}
           <h3 className="text-foreground min-w-0 flex-1 text-sm leading-snug font-medium">{aviso.titulo}</h3>
-          <time
-            dateTime={aviso.publicado_em}
-            title={formatarDataHora(aviso.publicado_em)}
-            className="text-muted-foreground shrink-0 text-[11px]"
-          >
-            {formatarDataRelativa(aviso.publicado_em)}
-          </time>
+          <Dica dica={formatarDataHora(aviso.publicado_em)}>
+            <time dateTime={aviso.publicado_em} className="text-muted-foreground shrink-0 text-[11px]">
+              {formatarDataRelativa(aviso.publicado_em)}
+            </time>
+          </Dica>
         </div>
 
         <TextoEmMarkdown conteudo={aviso.conteudo} variante="resumo" className="line-clamp-2 text-xs" />

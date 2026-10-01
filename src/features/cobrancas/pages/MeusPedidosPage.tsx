@@ -1,39 +1,34 @@
 import { CircleCheck, Package, ShoppingBag, Wallet } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
 import { EsqueletoDeCartao, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
-import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
-import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
-import { paginar } from '@/lib/paginar'
-import { cn } from '@/lib/utils'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
-import { IconeDoTipo } from '../components/IconeDoTipo'
-import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
 import { FiltrosDaVitrine, VitrineDeItens } from '../components/VitrineDeItens'
 import { useMeusPedidos } from '../hooks/usePedidos'
-import { type Pedido, rotuloDoItem } from '../types/cobrancas.types'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { type Pedido } from '../types/cobrancas.types'
 
-/** Vitrine e acompanhamento lado a lado; o pagamento é composto por app, que conhece o extrato. */
+/**
+ * A vitrine do formando à esquerda — o que ele pode pedir, e quanto já pediu de cada item — e o
+ * pagamento à direita.
+ *
+ * A lista de "Seus pedidos" saiu: a vitrine já diz, item a item, o que foi pedido ("Você pediu 2
+ * unidades") e deixa ajustar. O resumo do que falta pagar, esse não se repete na vitrine, e por isso
+ * continua aqui ao lado.
+ */
 export default function MeusPedidosPage({
-  AcoesDaLinha,
   AcoesDoResumo,
   aoPedir,
 }: {
-  AcoesDaLinha?: ComponentType<{ pedido: Pedido }>
   AcoesDoResumo?: ComponentType<{ pedidos: Pedido[] }>
   aoPedir?: (pedido: Pedido) => void
 }) {
-  const tamanhoDaPagina = useTamanhoDaPagina()
   const meus = useMeusPedidos()
-  const filtros = useFiltrosDaUrl()
-  const pagina = paginar(meus.data ?? [], filtros.pagina, tamanhoDaPagina)
   const confirmados = (meus.data ?? []).filter((pedido) => pedido.status === 'Confirmado')
   const soma = (campo: (pedido: Pedido) => number) =>
     meus.data ? confirmados.reduce((total, pedido) => total + campo(pedido), 0) : null
@@ -67,6 +62,7 @@ export default function MeusPedidosPage({
         <div className="min-w-0">
           <VitrineDeItens aoPedir={aoPedir} />
         </div>
+
         <div className="grid min-w-0 gap-5">
           {meus.isPending ? (
             <EsqueletoDeCartao>
@@ -91,79 +87,13 @@ export default function MeusPedidosPage({
             />
           ) : null}
 
-          {meus.data && meus.data.length > 0 ? (
-            <Cartao
-              titulo="Seus pedidos"
-              descricao={`${formatarNumero(meus.data.length)} ${meus.data.length === 1 ? 'pedido' : 'pedidos'}`}
-            >
-              <ul className="grid gap-4" aria-label="Pedidos realizados">
-                {pagina.visiveis.map((pedido) => (
-                  <LinhaDoPedido key={pedido.id} pedido={pedido} AcoesDaLinha={AcoesDaLinha} />
-                ))}
-              </ul>
-              <Paginacao
-                pagina={pagina.pagina}
-                totalPaginas={pagina.totalPaginas}
-                total={pagina.total}
-                aoMudar={(numero) => filtros.atualizar({ pagina: String(numero) })}
-              />
-              <dl className="grid gap-2 border-t pt-4 text-sm">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Total pedido</dt>
-                  <dd className="tabular-nums">{formatarCentavos(total ?? 0)}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Já pago</dt>
-                  <dd className="tabular-nums">{formatarCentavos(pago ?? 0)}</dd>
-                </div>
-              </dl>
-            </Cartao>
-          ) : null}
-
           <Cartao titulo="Minhas parcelas" descricao="Acompanhe vencimentos, pagamentos e comprovantes.">
             <Button asChild variant="outline" size="sm" className="justify-self-start">
-              <Link to={ROTAS.extrato}>Ver minhas parcelas</Link>
+              <LinkDaPagina to={ROTAS.extrato}>Ver minhas parcelas</LinkDaPagina>
             </Button>
           </Cartao>
         </div>
       </div>
     </>
-  )
-}
-
-/** O pedido mantém situação e valores individuais, inclusive quando foi cancelado. */
-function LinhaDoPedido({
-  pedido,
-  AcoesDaLinha,
-}: {
-  pedido: Pedido
-  AcoesDaLinha?: ComponentType<{ pedido: Pedido }>
-}) {
-  return (
-    <li
-      className={cn(
-        'grid gap-3 border-b pb-4 last:border-0 last:pb-0',
-        pedido.status === 'Cancelado' && 'opacity-60',
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <IconeDoTipo tipo={pedido.tipo} />
-        <div className="grid min-w-0 gap-1">
-          <h3 className="text-foreground text-sm font-medium break-words">{rotuloDoItem(pedido)}</h3>
-          <p className="text-muted-foreground text-xs">
-            {formatarNumero(pedido.quantidade)} {pedido.quantidade === 1 ? 'unidade' : 'unidades'} ·{' '}
-            <span>{pedido.parcelas === 1 ? 'À vista' : `Em ${formatarNumero(pedido.parcelas)}×`}</span>
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <SituacaoDoPedido pedido={pedido} />
-        {AcoesDaLinha ? <AcoesDaLinha pedido={pedido} /> : null}
-      </div>
-      <p className="text-muted-foreground flex flex-wrap justify-between gap-2 text-xs">
-        <span>Total {formatarCentavos(pedido.total_em_centavos)}</span>
-        <span>Pago {formatarCentavos(pedido.pago_em_centavos)}</span>
-      </p>
-    </li>
   )
 }

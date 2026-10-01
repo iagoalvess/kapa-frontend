@@ -222,7 +222,7 @@ export const ROTAS = {
 ```
 
 ```tsx
-<Link to={ROTAS.produto(produto.id)}>{produto.nome}</Link>
+<LinkDaPagina to={ROTAS.produto(produto.id)}>{produto.nome}</LinkDaPagina>
 ```
 
 E a rota, em `app/router.tsx`:
@@ -233,6 +233,13 @@ E a rota, em `app/router.tsx`:
   lazy: pagina(() => import('@/features/produtos/pages/ProdutosPage')),
 }
 ```
+
+Atalhos no conteúdo usam `LinkDaPagina`, de `components/`: ele guarda a URL e o título da origem
+(`handle.titulo`) e o `LayoutApp` mostra a seta abaixo do título da próxima tela. Para navegação
+imperativa, leia `useEstadoComOrigem()` no topo do componente e passe o resultado como `state` ao `navigate`.
+`LinkDeVolta` continua como saída fixa para acesso direto; a moldura evita duplicá-lo quando há origem.
+Filtros preservam o `state` da localização, inclusive no `Navigate` que corrige uma página fora da faixa.
+Os links do menu continuam usando `Link`/`NavLink`, pois escolhem uma seção sem criar um caminho de volta.
 
 Restrita a um perfil? Envolva num ramo com guarda:
 
@@ -311,6 +318,10 @@ usa a grade `grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26r
 esquerda (cartão principal com ícone, listas em `Tabela emLista`), e à direita o cartão lateral sem ícone,
 com as ações em `Button size="sm"` (no cabeçalho do `Cartao` quando é uma, embaixo da `ListaDeDados` quando
 são várias). Exemplos: `PaginaDaFormatura`, `PlanoDeCobrancaPage`, e a turma e a conta do painel.
+
+Textos de apoio e orientações usam `TextoDoCartao`, de `components/Cartao`: 15 px e a mesma entrelinha
+das descrições. Ele aceita `as="div"`, `as="ul"` e `as="ol"` para notas compostas e listas de instruções.
+Descrições com vários parágrafos passam os elementos `<p>` em `descricao`, com `mt-3` entre eles.
 
 ---
 

@@ -66,7 +66,7 @@ describe('resultadoDaValidacao', () => {
     expect(resultadoDaValidacao(conflito('festa.convite_revogado'), ANA).tom).toBe('barrado')
   })
 
-  it('sem rede, oferece a lista sem rede', () => {
+  it('sem internet, oferece registrar a entrada no celular', () => {
     expect(resultadoDaValidacao({ erro: new ErroDeRede() }, ANA).semRede).toBe(true)
   })
 })

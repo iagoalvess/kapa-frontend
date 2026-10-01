@@ -1,6 +1,7 @@
 import { ClipboardCheck, UserMinus } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
@@ -77,6 +78,7 @@ const ehPapel = (valor: string | null): valor is Papel =>
 export default function MembrosPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const { ehPresidente } = usePapel()
   const resumo = useResumoDeMembros()
 
@@ -108,7 +110,7 @@ export default function MembrosPage() {
   if (membros.data && membros.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, membros.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -162,10 +164,10 @@ export default function MembrosPage() {
                 ângulo — quem já assinou o termo —, e quem vai atrás disso chegou por esta lista.
                 O recorte é o mesmo da rota, então quem lê Membros lê Adesões. */}
             <Button asChild size="xs">
-              <Link to={ROTAS.adesoes}>
+              <LinkDaPagina to={ROTAS.adesoes}>
                 <ClipboardCheck aria-hidden />
                 Adesões
-              </Link>
+              </LinkDaPagina>
             </Button>
           </>
         }
@@ -323,12 +325,12 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
           <div className="grid min-w-0">
             {/* Removido não tem cadastro para abrir: a API só mostra o de quem ainda está na turma. */}
             {membro.ativo ? (
-              <Link
+              <LinkDaPagina
                 to={`${ROTAS.membros}/${membro.usuario_id}`}
                 className="text-foreground truncate font-medium hover:underline"
               >
                 {nome}
-              </Link>
+              </LinkDaPagina>
             ) : (
               <span className="text-foreground truncate font-medium">{nome}</span>
             )}

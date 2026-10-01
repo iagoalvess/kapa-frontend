@@ -71,7 +71,7 @@ export function FormularioDeCartao({ cartao, aoPagar }: Props) {
       {cartao.acrescimo_em_centavos > 0 ? <ValoresDoCartao cartao={cartao} /> : null}
 
       {estado === 'falhou' ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-danger-text text-sm">
           Não deu para abrir o formulário do cartão. Recarregue a página ou pague pelo PIX.
         </p>
       ) : null}

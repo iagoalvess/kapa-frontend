@@ -83,7 +83,7 @@ export const rotuloDoItem = ({
 }) => descricao ?? ROTULOS_DE_TIPO[tipo]
 
 /** `Vencida` é calculado pela API: aberta com vencimento passado. */
-export type StatusDaParcela = 'Aberta' | 'Paga' | 'Vencida' | 'Cancelada' | 'Renegociada'
+export type StatusDaParcela = 'Aberta' | 'Paga' | 'Vencida' | 'Cancelada'
 
 /**
  * O valor de uma parcela hoje, com a conta aberta. Espelha `ValorDoDiaDTO`.

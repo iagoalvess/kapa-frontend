@@ -8,7 +8,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeGrafico } from '@/components/Esqueleto'
@@ -163,7 +163,7 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
           descricao="Valores recebidos de outras fontes, como doações e eventos. Os valores previstos entram aqui só depois do recebimento."
           acao={
             <Button asChild variant="outline" size="sm">
-              <Link to={ROTAS.outrasReceitas}>Ver outras receitas</Link>
+              <LinkDaPagina to={ROTAS.outrasReceitas}>Ver outras receitas</LinkDaPagina>
             </Button>
           }
         >
@@ -206,11 +206,11 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
                   Despesas, não — ela diz no que a turma gastou, e isso todo membro lê. */}
               {tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? (
                 <Button asChild variant="outline" size="sm">
-                  <Link to={ROTAS.parcelas}>Ver parcelas</Link>
+                  <LinkDaPagina to={ROTAS.parcelas}>Ver parcelas</LinkDaPagina>
                 </Button>
               ) : null}
               <Button asChild variant="outline" size="sm">
-                <Link to={ROTAS.despesas}>Ver despesas</Link>
+                <LinkDaPagina to={ROTAS.despesas}>Ver despesas</LinkDaPagina>
               </Button>
             </>
           }

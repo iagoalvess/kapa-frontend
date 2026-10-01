@@ -63,7 +63,6 @@ export interface AnalyticsDaPlataforma {
   kapa: DinheiroDoKapa
   turmas: DinheiroDasTurmas
   uso: UsoDoRecurso[]
-  gerado_em: string
 }
 
 /** Um mês da série. Espelha `MesDaPlataformaDTO`. */
@@ -122,7 +121,6 @@ export interface FiltroDeContas extends PaginacaoRequest {
 export interface AssinaturaNoSuporte {
   id: string
   plano_nome: string
-  plano_codigo: string
   limite_de_formandos: number
   status: string
   vigente_ate: string | null

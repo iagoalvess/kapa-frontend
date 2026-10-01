@@ -26,7 +26,8 @@ export default function ReaceitePage() {
   const aceites = useMeusAceites()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
 
-  if (aceites.isPending) return <EsqueletoDeCartoes quantidade={2} altura="h-14" className="md:grid-cols-1" />
+  if (aceites.isPending)
+    return <EsqueletoDeCartoes quantidade={2} altura="h-14" forma="linha" className="md:grid-cols-1" />
 
   if (aceites.isError) {
     return <ErroDaConsulta erro={aceites.error} />

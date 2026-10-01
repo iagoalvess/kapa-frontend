@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -50,13 +51,13 @@ export function CartaoDeAssinatura() {
     if (ehErroDaApi(assinatura.error) && assinatura.error.codigo === 'assinatura.nao_encontrada')
       return (
         <Cartao rotulo="Assinatura">
-          <h2 className="text-foreground text-lg font-medium">Plano gratuito</h2>
+          <h2 className="text-foreground text-xl leading-snug font-medium">Plano gratuito</h2>
           {/* O que o grátis dá de verdade (Sprint 45): a frase antiga dizia que nada além do cadastro
               funcionava, e a turma gratuita cobra, recebe e fecha o caixa. */}
-          <p className="text-muted-foreground text-sm">
+          <TextoDoCartao>
             A comissão já usa cobranças, PIX, despesas e caixa. Para convidar formandos e liberar a festa,
             contrate um plano.
-          </p>
+          </TextoDoCartao>
           {ehPresidente ? <IrParaPlanos>Ver planos</IrParaPlanos> : null}
         </Cartao>
       )
@@ -73,7 +74,7 @@ export function CartaoDeAssinatura() {
   return (
     <Cartao rotulo="Assinatura">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-foreground text-lg font-medium">Plano {dados.plano.nome}</h2>
+        <h2 className="text-foreground text-xl leading-snug font-medium">Plano {dados.plano.nome}</h2>
         <div className="flex items-center gap-1">
           <SeloDeStatus status={dados.status} />
           <AtalhoParaPlanos />
@@ -177,10 +178,10 @@ function Andamento({ assinatura, presidente }: { assinatura: Assinatura; preside
       {presidente && assinatura.meio === 'Pix' ? (
         <div className="border-border grid gap-2 border-t pt-5">
           <h3 className="text-foreground text-sm font-medium">Renovação pelo PIX</h3>
-          <p className="text-muted-foreground text-sm">
+          <TextoDoCartao>
             O PIX da renovação fica disponível sete dias antes de {vencimento}. Você paga na página do Mercado
             Pago, e a vigência se estende sozinha.
-          </p>
+          </TextoDoCartao>
           <Button
             className="w-1/2"
             disabled={pagarCiclo.isPending || pagarCiclo.isSuccess}
@@ -194,11 +195,11 @@ function Andamento({ assinatura, presidente }: { assinatura: Assinatura; preside
       {presidente && !assinatura.cartao_aguardando_autorizacao ? (
         <div className="border-border grid gap-2 border-t pt-5">
           <h3 className="text-foreground text-sm font-medium">Meio de pagamento</h3>
-          <p className="text-muted-foreground text-sm">
+          <TextoDoCartao>
             {paraOPix
-              ? 'Prefere pagar um PIX a cada ciclo? O débito automático no cartão para, e nada é cobrado em dobro.'
+              ? 'Prefere pagar um PIX a cada ciclo? O débito automático no cartão para de ser usado.'
               : 'Prefere o débito automático? Cadastre o cartão, e a primeira cobrança sai no vencimento.'}
-          </p>
+          </TextoDoCartao>
           <DialogoDeConfirmacao
             titulo={paraOPix ? 'Trocar para o PIX?' : 'Trocar para o cartão?'}
             descricao={
@@ -242,9 +243,9 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
   return (
     <div className="border-border grid gap-2 border-t pt-5">
       <h3 className="text-foreground text-sm font-medium">Cancelar renovação</h3>
-      <p className="text-muted-foreground text-sm">
+      <TextoDoCartao>
         Não haverá nova cobrança, e a turma continua funcionando até o fim do período já pago.
-      </p>
+      </TextoDoCartao>
 
       <AlertDialog onOpenChange={(aberto) => (aberto ? null : definirConfirmando(false))}>
         <AlertDialogTrigger asChild>
@@ -312,7 +313,9 @@ function Item({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 
 function Recado({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-muted text-muted-foreground grid gap-3 rounded-xl px-4 py-3 text-sm">{children}</div>
+    <TextoDoCartao as="div" className="bg-muted grid gap-3 rounded-xl px-4 py-3">
+      {children}
+    </TextoDoCartao>
   )
 }
 
@@ -322,18 +325,20 @@ function Recado({ children }: { children: ReactNode }) {
  */
 function AtalhoParaPlanos() {
   return (
-    <Button asChild variant="ghost" size="icon" className="text-muted-foreground -my-1 size-8">
-      <Link to={ROTAS.planos} title="Ver planos" aria-label="Ver planos">
-        <ArrowUpRight aria-hidden />
-      </Link>
-    </Button>
+    <Dica dica="Ver planos">
+      <Button asChild variant="ghost" size="icon" className="text-muted-foreground -my-1 size-8">
+        <LinkDaPagina to={ROTAS.planos} aria-label="Ver planos">
+          <ArrowUpRight aria-hidden />
+        </LinkDaPagina>
+      </Button>
+    </Dica>
   )
 }
 
 function IrParaPlanos({ children }: { children: ReactNode }) {
   return (
     <Button asChild className="w-1/2">
-      <Link to={ROTAS.planos}>{children}</Link>
+      <LinkDaPagina to={ROTAS.planos}>{children}</LinkDaPagina>
     </Button>
   )
 }

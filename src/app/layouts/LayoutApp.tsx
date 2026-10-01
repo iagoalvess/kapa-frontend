@@ -1,7 +1,8 @@
 import { X } from 'lucide-react'
 import { useRef } from 'react'
-import { Outlet, useMatches } from 'react-router'
+import { Outlet } from 'react-router'
 import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
+import { VoltaDaPagina } from '@/components/VoltaDaPagina'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { useMeuPerfil } from '@/features/formandos'
@@ -12,20 +13,11 @@ import { MODULOS } from '@/config/planos'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, useSessao } from '@/hooks/useSessao'
 import { useTelaGrande } from '@/hooks/useTelaGrande'
+import { useTituloDaRota } from '@/hooks/useNavegacaoDaPagina'
 import { BarraInferior } from './BarraInferior'
 import { BarraLateral } from './BarraLateral'
 import { MenuDaConta } from './MenuDaConta'
 import { useNoPainel } from './menuDoPainel'
-
-/** Título da tela, declarado na rota: `{ handle: { titulo: 'Membros' } }` em `router.tsx`. */
-function useTituloDaRota() {
-  return useMatches()
-    .map((rota) => rota.handle)
-    .findLast(
-      (handle): handle is { titulo: string } =>
-        typeof handle === 'object' && handle !== null && 'titulo' in handle,
-    )?.titulo
-}
 
 /**
  * Moldura das telas autenticadas: barra lateral à esquerda; no topo, o título da tela, a
@@ -141,8 +133,10 @@ export function LayoutApp() {
           className="*:motion-safe:animate-entrar grid flex-1 content-start gap-5 outline-none"
         >
           {/* Aqui, e não em cada página: formatura inativa tem de estar dita em toda tela. */}
-          <FaixaDeStatus />
-          <Outlet />
+          <VoltaDaPagina>
+            <FaixaDeStatus />
+            <Outlet />
+          </VoltaDaPagina>
         </main>
         {/* Um só, para qualquer tela: é aonde vai toda falha de plano que a API devolver (Sprint 45). */}
         <DialogoDeUpgrade />

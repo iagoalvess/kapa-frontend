@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router'
 import { AreaBloqueada } from '@/components/AreaBloqueada'
-import { Esqueleto } from '@/components/Esqueleto'
+import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import type { Modulo } from '@/config/planos'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 
@@ -17,7 +17,7 @@ import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 export function ExigeModulo({ modulo }: { modulo: Modulo }) {
   const { carregando, bloqueia } = usePlanoDaTurma()
 
-  if (carregando) return <Esqueleto className="h-80 rounded-3xl" />
+  if (carregando) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
   if (bloqueia(modulo)) return <AreaBloqueada modulo={modulo} />
 
   return <Outlet />

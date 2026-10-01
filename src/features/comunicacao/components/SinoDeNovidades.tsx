@@ -1,5 +1,5 @@
 import { Bell, Megaphone } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Selo } from '@/components/Selo'
 import { ROTAS, rotaDoAviso } from '@/config/rotas'
 import { formatarDataRelativa, formatarNumero } from '@/lib/formato'
@@ -68,7 +68,7 @@ export function SinoDeNovidades() {
           <ul className="grid gap-0.5">
             {itens.map((aviso) => (
               <li key={aviso.id}>
-                <Link
+                <LinkDaPagina
                   to={rotaDoAviso(aviso.id)}
                   popoverTarget={PAINEL}
                   popoverTargetAction="hide"
@@ -86,21 +86,21 @@ export function SinoDeNovidades() {
                   <span className="text-texto-muted pl-6 text-xs">
                     {formatarDataRelativa(aviso.publicado_em)}
                   </span>
-                </Link>
+                </LinkDaPagina>
               </li>
             ))}
           </ul>
         )}
 
         {/* O link fecha o balão e leva ao mural — que é o que marca tudo como visto. */}
-        <Link
+        <LinkDaPagina
           to={ROTAS.mural}
           popoverTarget={PAINEL}
           popoverTargetAction="hide"
           className="text-brand-text hover:bg-muted focus-visible:ring-ring border-border mt-1 block rounded-xl border-t px-3 py-2 pt-3 text-center text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
         >
           {quantidade > itens.length ? `Ver o mural (mais ${quantidade - itens.length})` : 'Ver o mural'}
-        </Link>
+        </LinkDaPagina>
       </div>
     </>
   )

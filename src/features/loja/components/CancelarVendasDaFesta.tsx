@@ -1,7 +1,7 @@
-import { CalendarX } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
+import { Cartao } from '@/components/Cartao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -14,10 +14,13 @@ import { CampoDoMotivo } from './EscolhaDeConvites'
  * Festa cancelada (Sprint 38, P6): uma ação do Presidente cancela todas as compras pagas da loja e as
  * põe na lista a devolver — 300 compradores não se cancelam um a um.
  *
+ * Mora na coluna lateral da tela, e não na barra: é ação de contexto, com explicação que a barra não
+ * cabe, como o "Pagou e não avisou?" da Conferência.
+ *
  * A confirmação é dupla, porque não tem volta: o motivo, e a caixa marcada dizendo que entendeu. Só a
  * loja: os convites de formando seguem o cancelamento de pedido da tesouraria.
  *
- * @param festaId A festa da agenda; sem festa, o botão não aparece.
+ * @param festaId A festa da agenda; sem festa, o cartão não aparece.
  */
 export function CancelarVendasDaFesta({ festaId }: { festaId: string | null }) {
   const { ehPresidente } = usePapel()
@@ -55,10 +58,14 @@ export function CancelarVendasDaFesta({ festaId }: { festaId: string | null }) {
 
   return (
     <>
-      <Button size="xs" variant="outline" className="text-destructive" onClick={abrir}>
-        <CalendarX aria-hidden />
-        Cancelar as vendas da festa
-      </Button>
+      <Cartao
+        titulo="Vendas da festa"
+        descricao="Encerra as vendas da loja de uma vez: as compras pagas vão para a lista a devolver e as que aguardam PIX vencem sozinhas."
+      >
+        <Button size="sm" variant="outline" className="text-danger-text justify-self-start" onClick={abrir}>
+          Cancelar as vendas da festa
+        </Button>
+      </Cartao>
 
       <DialogoDeFormulario
         aberto={aberto}

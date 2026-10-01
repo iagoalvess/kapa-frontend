@@ -1,8 +1,10 @@
 import { MailCheck, UserPlus, UserRoundX, Users } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Avatar } from '@/components/Avatar'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
@@ -96,6 +98,17 @@ export default function ContasDoPainelPage() {
           rotulo: 'Buscar por nome ou e-mail',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-contas" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'nome', rotulo: 'Conta' },
+                { por: 'criado_em', rotulo: 'Criada em' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
         contagem={{ mostrando: itens.length, total: contas.data?.total ?? 0, unidade: 'contas' }}
       />
 
@@ -125,12 +138,12 @@ export default function ContasDoPainelPage() {
               <div className="flex min-w-52 items-center gap-3">
                 <Avatar nome={conta.nome} semente={conta.id} className="size-8 text-sm" />
                 <div className="grid min-w-0">
-                  <Link
+                  <LinkDaPagina
                     to={rotaDaContaNoPainel(conta.id)}
                     className="text-foreground truncate font-medium hover:underline"
                   >
                     {conta.nome}
-                  </Link>
+                  </LinkDaPagina>
                   <span className="text-texto-muted truncate text-xs">{conta.email}</span>
                 </div>
               </div>

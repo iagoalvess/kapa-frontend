@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
@@ -71,16 +71,15 @@ describe('VitrineDeItens', () => {
       </>,
     )
     await usuario.click(await screen.findByRole('button', { name: 'Vestuário' }))
-    const lista = screen.getByRole('list', { name: 'Itens disponíveis' })
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(2)
+    expect(await screen.findAllByRole('button', { name: 'Pedir' })).toHaveLength(2)
     await usuario.type(screen.getByRole('searchbox', { name: 'Buscar item' }), 'colacao{Enter}')
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(1)
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Pedir' })).toHaveLength(1))
     expect(router.state.location.search).toContain('tipo=Vestuario')
     expect(router.state.location.search).toContain('busca=colacao')
     await usuario.click(screen.getByRole('button', { name: 'Convite extra' }))
-    expect(screen.getByText('Nenhum item encontrado com esses filtros.')).toBeInTheDocument()
+    expect(await screen.findByText('Nenhum item com esses filtros')).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Limpar filtros' }))
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(3)
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Pedir' })).toHaveLength(3))
     expect(router.state.location.search).toBe('')
   })
 
@@ -93,8 +92,7 @@ describe('VitrineDeItens', () => {
       </>,
       '/meus-pedidos?tipo=invalido&busca=kit',
     )
-    const lista = await screen.findByRole('list', { name: 'Itens disponíveis' })
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(1)
+    expect(await screen.findAllByRole('button', { name: 'Pedir' })).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Todos' })).toHaveAttribute('aria-pressed', 'true')
   })
 

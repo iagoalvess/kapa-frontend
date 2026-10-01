@@ -1,4 +1,5 @@
 import { Copy, Trash2 } from 'lucide-react'
+import { Dica } from '@/components/Dica'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -48,20 +49,20 @@ export function PainelDoElemento({
           <legend className="mb-1.5 text-sm font-medium">Cor</legend>
           <div className="flex gap-2">
             {(Object.keys(CORES_DA_AREA) as CorDaArea[]).map((cor) => (
-              <button
-                key={cor}
-                type="button"
-                aria-pressed={elemento.cor === cor}
-                aria-label={CORES_DA_AREA[cor].rotulo}
-                title={CORES_DA_AREA[cor].rotulo}
-                disabled={!editavel}
-                onClick={() => aoMudar({ cor })}
-                className={cn(
-                  'size-9 cursor-pointer rounded-xl border-2 border-transparent',
-                  CORES_DA_AREA[cor].amostra,
-                  elemento.cor === cor && 'border-brand',
-                )}
-              />
+              <Dica key={cor} dica={CORES_DA_AREA[cor].rotulo}>
+                <button
+                  type="button"
+                  aria-pressed={elemento.cor === cor}
+                  aria-label={CORES_DA_AREA[cor].rotulo}
+                  disabled={!editavel}
+                  onClick={() => aoMudar({ cor })}
+                  className={cn(
+                    'size-9 cursor-pointer rounded-xl border-2 border-transparent',
+                    CORES_DA_AREA[cor].amostra,
+                    elemento.cor === cor && 'border-brand',
+                  )}
+                />
+              </Dica>
             ))}
           </div>
         </fieldset>
@@ -78,9 +79,9 @@ export function PainelDoElemento({
             <Copy aria-hidden />
             Duplicar
           </Button>
-          <Button variant="outline" size="sm" onClick={aoRemover}>
+          <Button variant="outline" size="sm" className="text-danger-text" onClick={aoRemover}>
             <Trash2 aria-hidden />
-            Remover
+            Excluir
           </Button>
         </div>
       ) : null}

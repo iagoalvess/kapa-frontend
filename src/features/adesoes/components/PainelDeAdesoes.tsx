@@ -1,11 +1,13 @@
 import { Bell, Download } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
@@ -38,8 +40,8 @@ interface Props {
   resumo?: ResumoDeAdesoes
   /** Versão vigente do termo: quem aderiu a uma anterior aparece "na v1" — e pode ser lembrado. */
   versaoVigente?: number
-  /** Botões da tela, ao lado da busca — é onde moram as ações do termo. */
-  acoes?: ReactNode
+  /** A ação que é a razão da tela, ao lado da busca — publicar uma nova versão do termo. */
+  acaoPrincipal?: ReactNode
 }
 
 /**
@@ -49,9 +51,10 @@ interface Props {
  * O lembrete é manual e um por vez; na Sprint 13 vira régua automática. Situação, busca e página
  * vivem na URL.
  */
-export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
+export function PainelDeAdesoes({ resumo, versaoVigente, acaoPrincipal }: Props) {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
 
   const situacaoNaUrl = parametros.get('situacao')
   const situacao: Situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : 'todos'
@@ -75,7 +78,7 @@ export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
   if (situacoes.data && situacoes.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, situacoes.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -108,7 +111,19 @@ export function PainelDeAdesoes({ resumo, versaoVigente, acoes }: Props) {
           rotulo: 'Buscar membro',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={acoes}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-adesoes" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'membro', rotulo: 'Membro' },
+                { por: 'papel', rotulo: 'Papel' },
+                { por: 'aceito_em', rotulo: 'Aceito em' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
+        acaoPrincipal={acaoPrincipal}
         contagem={{
           mostrando: situacoes.data?.itens.length ?? 0,
           total: situacoes.data?.total ?? 0,

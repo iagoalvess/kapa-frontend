@@ -5,6 +5,7 @@ import { Cartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
@@ -75,35 +76,45 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
   const vigorar = useVigorarPlano()
   const semItens = !simulacao || simulacao.parcelas.length === 0
 
+  const botaoDeVigorar = (
+    <Button size="sm" disabled={semItens || vigorar.isPending}>
+      Colocar em vigor
+    </Button>
+  )
+
   return (
-    <DialogoDeConfirmacao
-      gatilho={
-        <Button
-          size="sm"
-          disabled={semItens || vigorar.isPending}
-          title={semItens ? 'Inclua ao menos uma cobrança para colocar em vigor.' : undefined}
-        >
-          Colocar em vigor
-        </Button>
-      }
-      titulo={`Colocar “${plano.nome}” em vigor?`}
-      descricao={
-        simulacao
-          ? `Cada formando que aderir passa a dever ${formatarCentavos(simulacao.total_por_formando)}, em ${formatarNumero(simulacao.parcelas.length)} parcelas. Hoje são ${formatarNumero(simulacao.formandos)} na turma: ${formatarCentavos(simulacao.total_da_turma)} no total.`
-          : null
-      }
-      rotuloDeCancelar="Revisar"
-      rotulo="Colocar em vigor"
-      aoConfirmar={() =>
-        vigorar.mutate(plano.id, {
-          onSuccess: () => toast.success('Plano em vigor.'),
-          onError: avisarErro,
-        })
-      }
-    >
-      <p className="text-muted-foreground text-sm">
-        Depois de em vigor, o valor de uma cobrança ainda pode mudar — só para as parcelas que não venceram.
-      </p>
-    </DialogoDeConfirmacao>
+    <Tooltip>
+      <DialogoDeConfirmacao
+        gatilho={
+          semItens ? (
+            <TooltipTrigger asChild>
+              {/* Botão desabilitado não recebe hover: o vão mostra o tooltip por ele. */}
+              <span className="inline-flex">{botaoDeVigorar}</span>
+            </TooltipTrigger>
+          ) : (
+            botaoDeVigorar
+          )
+        }
+        titulo={`Colocar “${plano.nome}” em vigor?`}
+        descricao={
+          simulacao
+            ? `Cada formando que aderir passa a dever ${formatarCentavos(simulacao.total_por_formando)}, em ${formatarNumero(simulacao.parcelas.length)} parcelas. Hoje são ${formatarNumero(simulacao.formandos)} na turma: ${formatarCentavos(simulacao.total_da_turma)} no total.`
+            : null
+        }
+        rotuloDeCancelar="Revisar"
+        rotulo="Colocar em vigor"
+        aoConfirmar={() =>
+          vigorar.mutate(plano.id, {
+            onSuccess: () => toast.success('Plano em vigor.'),
+            onError: avisarErro,
+          })
+        }
+      >
+        <p className="text-muted-foreground text-sm">
+          Depois de em vigor, o valor de uma cobrança ainda pode mudar — só para as parcelas que não venceram.
+        </p>
+      </DialogoDeConfirmacao>
+      {semItens ? <TooltipContent>Inclua ao menos uma cobrança para colocar em vigor.</TooltipContent> : null}
+    </Tooltip>
   )
 }

@@ -1,6 +1,7 @@
 import { RotateCw, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
+import { Dica } from '@/components/Dica'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { formatarNumero } from '@/lib/formato'
@@ -58,16 +59,12 @@ export function PainelDaMesa({
           <Button variant="outline" size="sm" onClick={aoEditar}>
             Editar
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={aoGirar}
-            disabled={mesa.formato === 'Redonda'}
-            title={mesa.formato === 'Redonda' ? 'Mesa redonda não gira' : undefined}
-          >
-            <RotateCw aria-hidden />
-            Girar
-          </Button>
+          <Dica dica={mesa.formato === 'Redonda' ? 'Mesa redonda não gira' : undefined}>
+            <Button variant="outline" size="sm" onClick={aoGirar} disabled={mesa.formato === 'Redonda'}>
+              <RotateCw aria-hidden />
+              Girar
+            </Button>
+          </Dica>
           <Button variant="outline" size="sm" onClick={aoTirarDoMapa} disabled={mesa.x === null}>
             Tirar do mapa
           </Button>

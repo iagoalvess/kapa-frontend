@@ -1,10 +1,11 @@
 import { CalendarClock, CircleCheck, ReceiptText, TriangleAlert } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { ChipDeStatus, ROTULOS_DE_STATUS } from '@/components/ChipDeStatus'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDePeriodo } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -14,6 +15,7 @@ import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { ehDia, formatarCentavos, formatarData } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { useParcelas, useResumoDeParcelas } from '../hooks/useParcelas'
+import { LateralDeParcelas } from '../components/LateralDeParcelas'
 import {
   type Parcela,
   type ResumoDeParcelas,
@@ -26,7 +28,7 @@ const TAMANHO_DA_PAGINA = 20
 
 /**
  * Os filtros de situação no plural, como os de Membros ("Ativos", "Removidos"), com a chave do
- * resumo que conta cada um. Renegociada fica de fora: nada a produz antes do pós-lançamento.
+ * resumo que conta cada um.
  */
 const FILTROS = {
   Aberta: { rotulo: 'A vencer', soma: 'aberta' },
@@ -58,6 +60,7 @@ interface Props {
 export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
 
   const statusNaUrl = parametros.get('status')
   const status = ehStatus(statusNaUrl) ? statusNaUrl : undefined
@@ -84,7 +87,7 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
   if (parcelas.data && parcelas.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, parcelas.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -156,66 +159,78 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
         }}
       />
 
-      <Planilha
-        rotulo="Lista de parcelas"
-        consulta={parcelas}
-        vazio={{
-          titulo: filtrando ? 'Nenhuma parcela com esses filtros' : 'Nenhuma parcela ainda',
-          dica: filtrando
-            ? 'Tente outra situação, outro período ou outro nome.'
-            : 'As parcelas aparecerão aqui quando os formandos aderirem ao plano de cobrança.',
-        }}
-        ordenacao={ordenacao}
-        cabecalho={
-          <>
-            <ColunaOrdenavel coluna="formando">Formando</ColunaOrdenavel>
-            <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
-            <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
-            <ColunaOrdenavel coluna="valor" numerica>
-              Valor
-            </ColunaOrdenavel>
-            {/* "Vencida" sai do vencimento contra hoje, depois da consulta: não ordena. */}
-            <th className="py-3 pr-4 font-normal">Situação</th>
-            {AcoesDaLinha ? (
-              <th className="py-3 font-normal">
-                <span className="sr-only">Ações</span>
-              </th>
-            ) : null}
-          </>
-        }
-        aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
-      >
-        {(parcelas.data?.itens ?? []).map((parcela) => (
-          <tr key={parcela.id} className="border-b last:border-0">
-            {/* O formando nomeia a linha: cabeçalho de linha, como nas outras planilhas — é o que
+      {/* A lateral só na tela bem larga (`2xl`, como a Conferência): a lista tem o valor com a
+          segunda linha e as ações de cada linha, e 22rem a menos a espremeria. Abaixo, ela desce. */}
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0">
+          <Planilha
+            rotulo="Lista de parcelas"
+            consulta={parcelas}
+            vazio={{
+              titulo: filtrando ? 'Nenhuma parcela com esses filtros' : 'Nenhuma parcela ainda',
+              dica: filtrando
+                ? 'Tente outra situação, outro período ou outro nome.'
+                : 'As parcelas aparecerão aqui quando os formandos aderirem ao plano de cobrança.',
+            }}
+            ordenacao={ordenacao}
+            cabecalho={
+              <>
+                <ColunaOrdenavel coluna="formando">Formando</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="parcela">Parcela</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="valor" numerica>
+                  Valor
+                </ColunaOrdenavel>
+                {/* "Vencida" sai do vencimento contra hoje, depois da consulta: não ordena. */}
+                <th className="py-3 pr-4 font-normal">Situação</th>
+                {AcoesDaLinha ? (
+                  <th className="py-3 font-normal">
+                    <span className="sr-only">Ações</span>
+                  </th>
+                ) : null}
+              </>
+            }
+            aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
+          >
+            {(parcelas.data?.itens ?? []).map((parcela) => (
+              <tr key={parcela.id} className="border-b last:border-0">
+                {/* O formando nomeia a linha: cabeçalho de linha, como nas outras planilhas — é o que
                 o leitor de tela repete antes de cada valor. */}
-            <th scope="row" className="py-3 pr-4 text-left font-normal">
-              <div className="flex items-center gap-3">
-                <Avatar nome={parcela.nome} semente={parcela.usuario_id} className="size-8 text-sm" />
-                <span className="text-foreground truncate font-medium">{parcela.nome}</span>
-              </div>
-            </th>
-            <td className="py-3 pr-4">
-              {rotuloDoItem(parcela)}{' '}
-              <span className="text-texto-muted text-xs">
-                {parcela.numero}/{parcela.de}
-              </span>
-            </td>
-            <td className="py-3 pr-4">{formatarData(parcela.vencimento)}</td>
-            <td className="py-3 pr-4 text-right">
-              <ValorDaLinha parcela={parcela} />
-            </td>
-            <td className="py-3 pr-4">
-              <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
-            </td>
-            {AcoesDaLinha ? (
-              <td className="py-3 text-right">
-                <AcoesDaLinha parcela={parcela} />
-              </td>
-            ) : null}
-          </tr>
-        ))}
-      </Planilha>
+                <th scope="row" className="py-3 pr-4 text-left font-normal">
+                  <div className="flex items-center gap-3">
+                    <Avatar nome={parcela.nome} semente={parcela.usuario_id} className="size-8 text-sm" />
+                    <span className="text-foreground truncate font-medium">{parcela.nome}</span>
+                  </div>
+                </th>
+                <td className="py-3 pr-4">
+                  {rotuloDoItem(parcela)}{' '}
+                  <span className="text-texto-muted text-xs">
+                    {parcela.numero}/{parcela.de}
+                  </span>
+                </td>
+                <td className="py-3 pr-4">{formatarData(parcela.vencimento)}</td>
+                <td className="py-3 pr-4 text-right">
+                  <ValorDaLinha parcela={parcela} />
+                </td>
+                <td className="py-3 pr-4">
+                  <ChipDeStatus status={parcela.status} em_conferencia={parcela.em_conferencia} />
+                </td>
+                {AcoesDaLinha ? (
+                  <td className="py-3 text-right">
+                    <AcoesDaLinha parcela={parcela} />
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+          </Planilha>
+        </div>
+
+        {parcelas.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
+        ) : (
+          <LateralDeParcelas />
+        )}
+      </div>
     </>
   )
 }

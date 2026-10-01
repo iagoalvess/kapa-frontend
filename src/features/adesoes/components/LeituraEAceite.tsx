@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Cartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -127,17 +128,16 @@ export function LeituraEAceite({
             icone={PenLine}
             acao={
               // Versão e data de publicação num identificador só, como um número de build: `v2.20260914`.
-              <span
-                title={`Versão ${termo.versao}, publicada em ${formatarData(termo.vigente_desde)}`}
-                className="text-muted-foreground font-mono text-xs"
-              >
-                <span className="sr-only">
-                  Versão {termo.versao}, publicada em {formatarData(termo.vigente_desde)}
+              <Dica dica={`Versão ${termo.versao}, publicada em ${formatarData(termo.vigente_desde)}`}>
+                <span className="text-muted-foreground font-mono text-xs">
+                  <span className="sr-only">
+                    Versão {termo.versao}, publicada em {formatarData(termo.vigente_desde)}
+                  </span>
+                  <span aria-hidden>
+                    v{termo.versao}.{formatarDataCompacta(termo.vigente_desde)}
+                  </span>
                 </span>
-                <span aria-hidden>
-                  v{termo.versao}.{formatarDataCompacta(termo.vigente_desde)}
-                </span>
-              </span>
+              </Dica>
             }
           >
             <LeitorDeTermo conteudo={termo.conteudo} aoChegarAoFim={() => definirLeuAteOFim(true)} />
@@ -229,7 +229,7 @@ export function LeituraEAceite({
                                 Vale por cerca de {codigo.data?.valido_por_minutos} minutos. Não chegou?{' '}
                                 <button
                                   type="button"
-                                  onClick={() => pedirCodigo(() => toast.info('Enviamos um código novo.'))}
+                                  onClick={() => pedirCodigo(() => toast.success('Enviamos um código novo.'))}
                                   disabled={codigo.isPending}
                                   className="text-foreground cursor-pointer font-medium underline"
                                 >

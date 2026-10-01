@@ -9,11 +9,12 @@ import {
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeDados, EsqueletoDeTabela } from '@/components/Esqueleto'
@@ -199,10 +200,10 @@ function LicencaDaTurma({ turma }: { turma: TurmaNoSuporte }) {
           ) : null}
         </ListaDeDados>
       ) : (
-        <p className="text-muted-foreground text-sm text-pretty">
+        <TextoDoCartao className="text-pretty">
           Nunca contratou um plano. O painel não contrata por ninguém — quem decide quanto a turma paga é a
           comissão, na tela de planos.
-        </p>
+        </TextoDoCartao>
       )}
     </Cartao>
   )
@@ -251,12 +252,12 @@ function MembrosDaTurma({ turmaId }: { turmaId: string }) {
                 <div className="flex min-w-52 items-center gap-3">
                   <Avatar nome={membro.nome} semente={membro.usuario_id} className="size-8 text-sm" />
                   <div className="grid min-w-0">
-                    <Link
+                    <LinkDaPagina
                       to={rotaDaContaNoPainel(membro.usuario_id)}
                       className="text-foreground truncate font-medium hover:underline"
                     >
                       {membro.nome}
-                    </Link>
+                    </LinkDaPagina>
                     <span className="text-texto-muted truncate text-xs">{membro.email}</span>
                   </div>
                 </div>

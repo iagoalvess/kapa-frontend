@@ -1,6 +1,6 @@
 import { Loader2, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { cn } from '@/lib/utils'
 import { detalheDe, GRUPOS, TAMANHO_MINIMO, type BuscaNaTurma } from '../types/busca.types'
 import { useBusca } from '../hooks/useBusca'
@@ -186,7 +186,7 @@ export function BuscaGlobal({ larga = false, aoEscolher }: { larga?: boolean; ao
             <section key={chave} className="grid gap-0.5 py-1">
               <h2 className="text-texto-muted px-3 pt-2 pb-1 text-xs">{rotulo}</h2>
               {busca.data?.[chave].map((resultado) => (
-                <Link
+                <LinkDaPagina
                   key={resultado.id}
                   to={para(resultado)}
                   data-resultado=""
@@ -204,7 +204,7 @@ export function BuscaGlobal({ larga = false, aoEscolher }: { larga?: boolean; ao
                       {detalheDe(resultado)}
                     </span>
                   ) : null}
-                </Link>
+                </LinkDaPagina>
               ))}
             </section>
           ))}

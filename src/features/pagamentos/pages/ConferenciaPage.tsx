@@ -1,8 +1,9 @@
 import { CircleCheck, ListChecks, Scale, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
@@ -87,6 +88,7 @@ function faixasDoPagamento(hoje = new Date()): Record<string, [string, string]> 
 export default function ConferenciaPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar: gravarFiltro } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const abaNaUrl = parametros.get('aba')
   const aba: Aba = ehAba(abaNaUrl) ? abaNaUrl : 'conferir'
   const deNaUrl = parametros.get('de')
@@ -166,7 +168,7 @@ export default function ConferenciaPage() {
   if (consulta.data && mostrando === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, consulta.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -322,7 +324,11 @@ export default function ConferenciaPage() {
           ) : null}
         </div>
 
-        <LateralDaConferencia />
+        {consulta.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
+        ) : (
+          <LateralDaConferencia />
+        )}
       </div>
     </>
   )

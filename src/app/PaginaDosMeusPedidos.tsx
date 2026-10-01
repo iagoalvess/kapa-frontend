@@ -1,10 +1,13 @@
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
+import { Esqueleto } from '@/components/Esqueleto'
 import { IconePix } from '@/components/IconePix'
 import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoPagamentoEmLote } from '@/config/rotas'
 import type { Pedido } from '@/features/cobrancas'
 import MeusPedidosPage from '@/features/cobrancas/pages/MeusPedidosPage'
 import { useExtrato } from '@/features/pagamentos'
+import { useEstadoComOrigem } from '@/hooks/useNavegacaoDaPagina'
 import { aPagar, type Parcela } from '@/types/cobranca'
 
 /** As parcelas de um pedido que o PIX aceita hoje: as dele, em aberto, sem aviso na fila. */
@@ -23,6 +26,7 @@ const paraPagar = (parcelas: Parcela[] | undefined, pedido: Pedido) =>
 export default function PaginaDosMeusPedidos() {
   const extrato = useExtrato()
   const navegar = useNavigate()
+  const estadoComOrigem = useEstadoComOrigem()
 
   /**
    * Depois de pedir, cai no PIX das parcelas novas.
@@ -35,10 +39,10 @@ export default function PaginaDosMeusPedidos() {
     const { data } = await extrato.refetch()
     const ids = paraPagar(data?.parcelas, pedido)
 
-    if (ids.length > 0) navegar(rotaDoPagamentoEmLote(ids))
+    if (ids.length > 0) navegar(rotaDoPagamentoEmLote(ids), { state: estadoComOrigem })
   }
 
-  return <MeusPedidosPage aoPedir={aoPedir} AcoesDaLinha={AcoesDaLinha} AcoesDoResumo={AcoesDoResumo} />
+  return <MeusPedidosPage aoPedir={aoPedir} AcoesDoResumo={AcoesDoResumo} />
 }
 
 /** O lote inclui só parcelas dos pedidos confirmados, disponíveis para pagamento no extrato. */
@@ -52,7 +56,7 @@ function AcoesDoResumo({ pedidos }: { pedidos: Pedido[] }) {
     ),
   ]
 
-  if (extrato.isPending) return <Button disabled>Carregando pagamento…</Button>
+  if (extrato.isPending) return <Esqueleto className="h-11 w-44 rounded-lg" />
   if (extrato.isError)
     return (
       <Button variant="outline" onClick={() => void extrato.refetch()}>
@@ -63,36 +67,19 @@ function AcoesDoResumo({ pedidos }: { pedidos: Pedido[] }) {
     return (
       <p className="text-muted-foreground text-sm">
         Nenhuma parcela disponível para pagar agora. Confira a situação em{' '}
-        <Link to={ROTAS.extrato} className="text-foreground underline">
+        <LinkDaPagina to={ROTAS.extrato} className="text-foreground underline">
           Minhas parcelas
-        </Link>
+        </LinkDaPagina>
         .
       </p>
     )
 
   return (
     <Button asChild>
-      <Link to={rotaDoPagamentoEmLote(ids)}>
+      <LinkDaPagina to={rotaDoPagamentoEmLote(ids)}>
         <IconePix />
         Pagar com PIX
-      </Link>
-    </Button>
-  )
-}
-
-/**
- * "Pagar" leva ao PIX de tudo o que falta do pedido — à vista ou o restante do parcelado, num QR
- * só. Some quando não há o que pagar: quitado, cancelado, ou com o aviso de pagamento na fila.
- */
-function AcoesDaLinha({ pedido }: { pedido: Pedido }) {
-  const extrato = useExtrato()
-  const ids = pedido.status === 'Confirmado' ? paraPagar(extrato.data?.parcelas, pedido) : []
-
-  if (ids.length === 0) return null
-
-  return (
-    <Button asChild variant="outline" size="sm">
-      <Link to={rotaDoPagamentoEmLote(ids)}>Pagar</Link>
+      </LinkDaPagina>
     </Button>
   )
 }

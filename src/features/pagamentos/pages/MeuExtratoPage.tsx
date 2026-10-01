@@ -1,10 +1,12 @@
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { ROTULOS_DE_STATUS } from '@/components/ChipDeStatus'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { FiltroDePeriodo } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
@@ -20,6 +22,7 @@ import { ResumoDoExtrato } from '../components/ResumoDoExtrato'
 import { useExtrato } from '../hooks/useExtrato'
 import { ehOpcao } from '@/lib/opcao'
 import { contemBusca } from '@/lib/busca'
+import { ehDia } from '@/lib/formato'
 import { paginar } from '@/lib/paginar'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
@@ -95,11 +98,20 @@ export default function MeuExtratoPage() {
     : situacaoNaUrl === 'todas'
       ? undefined
       : 'a-vencer'
+  const deNaUrl = parametros.get('de')
+  const de = ehDia(deNaUrl) ? deNaUrl : undefined
+  const ateNaUrl = parametros.get('ate')
+  const ate = ehDia(ateNaUrl) ? ateNaUrl : undefined
+  const noPeriodo = (parcela: Parcela) =>
+    (!de || parcela.vencimento >= de) && (!ate || parcela.vencimento <= ate)
   const ordenacao = useOrdenacao(atualizar)
   const todas = extrato.data?.parcelas ?? []
   const parcelas = ordenar(
     todas.filter(
-      (parcela) => (situacao ? FILTROS[situacao].combina(parcela) : true) && combina(parcela, busca),
+      (parcela) =>
+        (situacao ? FILTROS[situacao].combina(parcela) : true) &&
+        noPeriodo(parcela) &&
+        combina(parcela, busca),
     ),
     ordenacao.por,
     ordenacao.descendente,
@@ -108,6 +120,7 @@ export default function MeuExtratoPage() {
   // Quem não tem parcela nenhuma vê uma coisa; quem recortou a lista, outra. Como a tela já abre
   // filtrada, ter parcela e não ver nenhuma é sempre recorte.
   const recortando = todas.length > 0
+  const periodoAtivo = Boolean(de || ate)
   const contar = (filtro: Situacao) =>
     extrato.data ? todas.filter(FILTROS[filtro].combina).length : undefined
 
@@ -123,6 +136,11 @@ export default function MeuExtratoPage() {
             rotulo: 'Buscar parcela',
             aoBuscar: (termo) => atualizar({ busca: termo }),
           }}
+          filtrosAvancados={
+            <BotaoDeFiltros id="filtros-do-extrato" ligados={de || ate ? 1 : 0}>
+              <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
+            </BotaoDeFiltros>
+          }
           principal={
             <Chip
               tom="claro"
@@ -165,20 +183,29 @@ export default function MeuExtratoPage() {
                 busca
                   ? `Nada encontrado para “${busca}”`
                   : recortando
-                    ? 'Nenhuma parcela nesta situação'
+                    ? periodoAtivo
+                      ? 'Nenhuma parcela neste período'
+                      : 'Nenhuma parcela nesta situação'
                     : 'Nenhuma parcela ainda'
               }
               dica={
                 busca ? (
                   'Procure pelo nome da cobrança — "mensalidade", "rifa" — ou limpe a busca.'
                 ) : recortando ? (
-                  'Toque em "Todas" para ver a grade inteira.'
+                  periodoAtivo ? (
+                    'Tire o período no botão Filtros para ver a grade inteira.'
+                  ) : (
+                    'Toque em "Todas" para ver a grade inteira.'
+                  )
                 ) : (
                   <>
                     Suas parcelas aparecem aqui quando você aderir ao{' '}
-                    <Link to={ROTAS.adesao} className="text-brand-text underline-offset-4 hover:underline">
+                    <LinkDaPagina
+                      to={ROTAS.adesao}
+                      className="text-brand-text underline-offset-4 hover:underline"
+                    >
                       termo da turma
-                    </Link>
+                    </LinkDaPagina>
                     .
                   </>
                 )

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { CampoDeBusca } from '@/components/CampoDeBusca'
 import { Chip } from '@/components/Chip'
@@ -18,6 +19,7 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { contemBusca } from '@/lib/busca'
 import { formatarNumero } from '@/lib/formato'
+import { ehOpcao } from '@/lib/opcao'
 import { avisarErro } from '@/lib/http/erros'
 import { paginar } from '@/lib/paginar'
 import { DialogoDeMesa } from '../components/DialogoDeMesa'
@@ -26,6 +28,18 @@ import { SeletorDeDono } from '../components/SeletorDeDono'
 import { useExcluirMesa, useMapaDeMesas } from '../hooks/useMesas'
 import type { Mesa } from '../types/mesas.types'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+
+/**
+ * A situação da mesa no filtro: com dono, sem dono ou reservada. "Sem dono" exclui a reservada, que
+ * também não tem vínculo — ela é da turma, e não está à venda (P3).
+ */
+const SITUACOES = {
+  comDono: { rotulo: 'Com dono', passa: (mesa: Mesa) => mesa.vinculo_id !== null },
+  semDono: { rotulo: 'Sem dono', passa: (mesa: Mesa) => mesa.vinculo_id === null && !mesa.reservada },
+  reservada: { rotulo: 'Reservadas', passa: (mesa: Mesa) => mesa.reservada },
+} as const
+
+const ehSituacao = (valor: string | null): valor is keyof typeof SITUACOES => ehOpcao(valor, SITUACOES)
 
 /**
  * As mesas do jantar, na Gestão (Sprint 27): o mapa do salão e a lista.
@@ -58,7 +72,12 @@ export default function MesasPage() {
   if (mapa.isError) return <ErroDaConsulta erro={mapa.error} aoTentarDeNovo={() => void mapa.refetch()} />
 
   const { lista, compradores } = mapa.data
-  const visiveis = lista.filter((mesa) => contemBusca(busca, mesa.identificacao, mesa.dono))
+  const situacaoNaUrl = parametros.get('situacao')
+  const situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : undefined
+  const visiveis = lista.filter(
+    (mesa) =>
+      contemBusca(busca, mesa.identificacao, mesa.dono) && (!situacao || SITUACOES[situacao].passa(mesa)),
+  )
   const pagina = paginar(visiveis, paginaNaUrl, tamanhoDaPagina)
   const paginaDeCompradores = paginar(compradores, paginaDosCompradores, tamanhoDaPagina)
 
@@ -126,14 +145,35 @@ export default function MesasPage() {
             />
           ) : (
             <div className="grid gap-3">
-              <CampoDeBusca
-                valor={busca}
-                rotulo="Mesa ou dono"
-                aoBuscar={(termo) => atualizar({ busca: termo })}
-                className="max-w-xs"
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <CampoDeBusca
+                  valor={busca}
+                  rotulo="Mesa ou dono"
+                  aoBuscar={(termo) => atualizar({ busca: termo })}
+                  className="min-w-0 sm:max-w-xs"
+                />
+                <BotaoDeFiltros id="filtros-de-mesas" ligados={situacao ? 1 : 0}>
+                  <fieldset className="grid gap-2">
+                    <legend className="text-muted-foreground mb-2 text-sm">Situação</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(SITUACOES).map(([valor, { rotulo, passa }]) => (
+                        <Chip
+                          key={valor}
+                          ativo={situacao === valor}
+                          contagem={lista.filter(passa).length}
+                          onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+                        >
+                          {rotulo}
+                        </Chip>
+                      ))}
+                    </div>
+                  </fieldset>
+                </BotaoDeFiltros>
+              </div>
               {visiveis.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Nenhuma mesa com esse nome ou dono.</p>
+                <p className="text-muted-foreground text-sm">
+                  Nenhuma mesa com {situacao ? 'esse filtro' : 'esse nome ou dono'}.
+                </p>
               ) : (
                 <Tabela
                   emLista

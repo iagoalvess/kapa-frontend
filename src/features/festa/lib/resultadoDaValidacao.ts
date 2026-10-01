@@ -12,7 +12,7 @@ export interface ResultadoDaValidacao {
   detalhe: string | null
   /** A entrada que acabou de ser gravada — é o que o "Desfazer" desfaz. */
   entrada: EntradaNaPortaria | null
-  /** Se a falha foi de rede — aí a portaria oferece marcar na lista sem rede (decisão 7). */
+  /** Se a falha foi de internet — aí a portaria oferece registrar a entrada no celular (decisão 7). */
   semRede: boolean
 }
 
@@ -56,8 +56,8 @@ export function resultadoDaValidacao(
     return {
       ...base,
       tom: 'aviso',
-      titulo: 'Sem conexão',
-      detalhe: 'Confira o nome na lista e marque a entrada sem rede.',
+      titulo: 'Sem internet',
+      detalhe: 'Confira o nome na lista e registre a entrada no celular.',
       semRede: true,
     }
 

@@ -40,7 +40,6 @@ const DADOS = {
     a_receber_em_centavos: 9_000_000,
   },
   uso: [{ recurso: 'pagamento', eventos: 1751, turmas: 8, usuarios: 90 }],
-  gerado_em: '2026-09-29T12:00:00Z',
 }
 
 /** Registra o analytics e a série, e devolve o período de cada pedido do analytics. */

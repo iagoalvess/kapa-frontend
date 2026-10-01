@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
@@ -17,7 +17,7 @@ export function AcaoDeUpgrade() {
   if (ehPresidente)
     return (
       <Button asChild>
-        <Link to={ROTAS.planos}>Ver planos</Link>
+        <LinkDaPagina to={ROTAS.planos}>Ver planos</LinkDaPagina>
       </Button>
     )
 

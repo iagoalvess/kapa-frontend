@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
+import { CampoDeComprovante } from '@/components/CampoDeComprovante'
 import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
@@ -87,6 +89,7 @@ function FormularioDeOutraReceita({
   const atualizar = useAtualizarOutraReceita()
   const salvando = lancar.isPending || atualizar.isPending
   const documentos = useDocumentosDaTurma()
+  const [comprovante, definirComprovante] = useState<File | undefined>(undefined)
 
   const formulario = useForm<ValoresDaOutraReceita>({
     resolver: zodResolver(esquemaDeOutraReceita),
@@ -104,8 +107,9 @@ function FormularioDeOutraReceita({
       onError: (erro: unknown) => exibirErroNoFormulario(erro, formulario.setError),
     }
 
-    if (editando) atualizar.mutate({ id: editando.id, dados: paraDadosDaOutraReceita(valores) }, aoTerminar)
-    else lancar.mutate(paraNovaOutraReceita(valores), aoTerminar)
+    if (editando)
+      atualizar.mutate({ id: editando.id, dados: paraDadosDaOutraReceita(valores), comprovante }, aoTerminar)
+    else lancar.mutate({ dados: paraNovaOutraReceita(valores), comprovante }, aoTerminar)
   })
 
   return (
@@ -221,6 +225,10 @@ function FormularioDeOutraReceita({
             </FormItem>
           )}
         />
+
+        {/* Anexar aqui evita a ida ao acervo: o comprovante nasce lá, visível para a turma, e a receita
+            já aponta para ele. Escolher um existente acima continua valendo. */}
+        <CampoDeComprovante valor={comprovante} aoEscolher={definirComprovante} desabilitado={!editavel} />
 
         {editando ? null : (
           <div className="border-border grid gap-1 rounded-xl border p-4">

@@ -88,7 +88,7 @@ export function desfazerEntrada(checkInId: string) {
   return api.post<void>(`/api/v1/festa/check-ins/${checkInId}/desfazer`)
 }
 
-/** Sobe as entradas marcadas sem rede (decisão 16). */
+/** Sobe as entradas registradas no celular sem internet (decisão 16). */
 export function sincronizarEntradas(entradas: EntradaSemRede[]) {
   return api.post<ResultadoDaSincronizacao>('/api/v1/festa/check-ins/sincronizar', { body: { entradas } })
 }

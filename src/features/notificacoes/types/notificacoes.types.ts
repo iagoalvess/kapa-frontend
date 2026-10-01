@@ -67,6 +67,9 @@ export interface Notificacao {
 /** Filtros do histórico. */
 export interface FiltroDeNotificacoes extends PaginacaoRequest {
   status?: StatusDaNotificacao
+  /** Dia de referência (quando a régua rodou), de/até inclusive — `aaaa-mm-dd`. */
+  de?: string
+  ate?: string
   busca?: string
 }
 

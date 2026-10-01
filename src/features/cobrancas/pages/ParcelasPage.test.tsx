@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
+import { ROTAS } from '@/config/rotas'
 import { servidor } from '@/test/msw/server'
 import { pagina, reais, renderizar } from '@/test/utils'
 import type { Parcela, ResumoDeParcelas } from '../types/cobrancas.types'
@@ -77,6 +78,29 @@ function registrarPedidos(itens: Parcela[] = [vencida], resumo: ResumoDeParcelas
 }
 
 describe('ParcelasPage', () => {
+  it('preserva a origem ao corrigir uma página fora da faixa', async () => {
+    registrarPedidos()
+    servidor.use(
+      http.get(PARCELAS, ({ request }) =>
+        HttpResponse.json(
+          new URL(request.url).searchParams.get('pagina') === '99'
+            ? { ...pagina([]), pagina: 99, total_paginas: 1 }
+            : pagina([vencida]),
+        ),
+      ),
+    )
+    const state = { origemDaPagina: { caminho: ROTAS.caixa, titulo: 'Caixa', estado: null } }
+    const { router } = renderizar(<ParcelasPage />, {
+      pathname: ROTAS.parcelas,
+      search: '?pagina=99',
+      state,
+    })
+
+    expect(await screen.findByText('Bruno Lima')).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?pagina=1')
+    expect(router.state.location.state).toEqual(state)
+  })
+
   it('lista com o item, a posição, o valor de hoje sobre o original e a situação', async () => {
     registrarPedidos()
 

@@ -27,7 +27,15 @@ describe('PaginaDeParcelas', () => {
 
     renderizar(<PaginaDeParcelas />)
 
-    expect(screen.getByRole('link', { name: 'Minhas parcelas' })).toHaveAttribute('href', '/minhas-parcelas')
     expect(await screen.findByText('Nenhuma parcela ainda')).toBeInTheDocument()
+    // A lateral só aparece depois do carregamento, junto com a lista.
+    expect(screen.getByRole('link', { name: 'Ver minhas parcelas' })).toHaveAttribute(
+      'href',
+      '/minhas-parcelas',
+    )
+    expect(screen.getByRole('link', { name: 'Avisos enviados' })).toHaveAttribute(
+      'href',
+      '/notificacoes/enviados?origem=parcelas',
+    )
   })
 })

@@ -1,5 +1,5 @@
-import { Send, WalletMinimal } from 'lucide-react'
-import { Link } from 'react-router'
+import { Send } from 'lucide-react'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
@@ -21,23 +21,15 @@ export default function PaginaDeParcelas() {
   return <ParcelasPage AcoesDaLinha={AcoesDaParcelaDaTurma} AcoesDaBarra={AcoesDaBarra} />
 }
 
-/** Da lista da turma, a Gestão abre as próprias parcelas e o histórico de avisos. */
+/** Da lista da turma, a Gestão abre o histórico de avisos. As próprias parcelas ficam no card lateral. */
 function AcoesDaBarra() {
   return (
-    <>
-      <Button asChild size="xs">
-        <Link to={ROTAS.extrato}>
-          <WalletMinimal aria-hidden />
-          Minhas parcelas
-        </Link>
-      </Button>
-      <Button asChild size="xs">
-        <Link to={ROTAS.avisosEnviados}>
-          <Send aria-hidden />
-          Avisos enviados
-        </Link>
-      </Button>
-    </>
+    <Button asChild size="xs">
+      <LinkDaPagina to={`${ROTAS.avisosEnviados}?origem=parcelas`}>
+        <Send aria-hidden />
+        Avisos enviados
+      </LinkDaPagina>
+    </Button>
   )
 }
 

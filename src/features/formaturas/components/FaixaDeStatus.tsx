@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ROTAS } from '@/config/rotas'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
@@ -67,9 +67,9 @@ export function FaixaDeStatus() {
     >
       {conteudo.texto}
       {ehPresidente && 'acao' in conteudo && conteudo.acao ? (
-        <Link to={ROTAS.planos} className="underline underline-offset-4">
+        <LinkDaPagina to={ROTAS.planos} className="underline underline-offset-4">
           {conteudo.acao}
-        </Link>
+        </LinkDaPagina>
       ) : null}
     </output>
   )

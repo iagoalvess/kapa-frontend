@@ -22,7 +22,6 @@ const PENDENTE = {
   assinatura: {
     id: 'a-1',
     plano_nome: 'Premium',
-    plano_codigo: 'premium',
     limite_de_formandos: 400,
     status: 'Pendente',
     vigente_ate: null,

@@ -1,7 +1,8 @@
 import { WalletMinimal } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import { Cartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Button } from '@/components/ui/button'
@@ -66,12 +67,11 @@ export function CartaoDaProximaParcela() {
       {proxima ? (
         <>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <p
-              className="text-2xl font-bold tracking-tight tabular-nums"
-              title={`${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}
-            >
-              {formatarCentavos(valorNaLista(proxima))}
-            </p>
+            <Dica dica={`${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}>
+              <p className="text-2xl font-bold tracking-tight tabular-nums">
+                {formatarCentavos(valorNaLista(proxima))}
+              </p>
+            </Dica>
             <p className="text-muted-foreground text-sm">
               {primeiraMaiuscula(prazo(proxima.vencimento))}
               <span className="text-brand mx-1.5" aria-hidden>
@@ -81,11 +81,11 @@ export function CartaoDaProximaParcela() {
             </p>
           </div>
 
-          <Button asChild size="sm" className="h-10 w-full rounded-xl">
-            <Link to={rotaDoPagamento(proxima.id)}>
+          <Button asChild className="w-full">
+            <LinkDaPagina to={rotaDoPagamento(proxima.id)}>
               <IconePix />
               Pagar com PIX
-            </Link>
+            </LinkDaPagina>
           </Button>
         </>
       ) : null}

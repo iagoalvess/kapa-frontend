@@ -1,5 +1,5 @@
 import { Ban, FileCheck, Undo2 } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { PAPEIS } from '@/config/perfis'
@@ -50,9 +50,9 @@ function Acao({ parcela }: { parcela: Parcela }) {
   if (emAberto(parcela) && tem(PAPEIS.tesoureiro)) {
     return parcela.em_conferencia ? (
       <AcaoDaLinha asChild rotulo="Conferir">
-        <Link to={ROTAS.conferencia} aria-label="Conferir">
+        <LinkDaPagina to={ROTAS.conferencia} aria-label="Conferir">
           <FileCheck aria-hidden className="size-4" />
-        </Link>
+        </LinkDaPagina>
       </AcaoDaLinha>
     ) : (
       <>

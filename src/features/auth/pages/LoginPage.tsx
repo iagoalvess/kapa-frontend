@@ -130,7 +130,7 @@ export default function LoginPage() {
           )}
 
           {formulario.formState.errors.root ? (
-            <div role="alert" className="text-destructive text-sm">
+            <div role="alert" className="text-danger-text text-sm">
               {formulario.formState.errors.root.message}
               {precisaConfirmarEmail && emailConfirmado ? (
                 <div className="mt-2">

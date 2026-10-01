@@ -1,5 +1,5 @@
 import { PenLine } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import { Cartao } from '@/components/Cartao'
 import { Selo } from '@/components/Selo'
@@ -26,9 +26,9 @@ export function FaltaParaAderir({ conteudo }: { conteudo: ConteudoParaAdesao }) 
               <li className="flex flex-wrap items-center gap-2">
                 <Selo tom="alerta">Falta</Selo> A comissão ainda não publicou o termo da turma.
                 {ehPresidente ? (
-                  <Link to={ROTAS.adesoes} className="text-foreground font-medium underline">
+                  <LinkDaPagina to={ROTAS.adesoes} className="text-foreground font-medium underline">
                     Publicar o termo
-                  </Link>
+                  </LinkDaPagina>
                 ) : null}
               </li>
             )}
@@ -36,9 +36,9 @@ export function FaltaParaAderir({ conteudo }: { conteudo: ConteudoParaAdesao }) 
               <li className="flex flex-wrap items-center gap-2">
                 <Selo tom="alerta">Falta</Selo> A turma ainda não tem plano de cobrança em vigor.
                 {tem(PAPEIS.tesoureiro) ? (
-                  <Link to={ROTAS.cobrancas} className="text-foreground font-medium underline">
+                  <LinkDaPagina to={ROTAS.cobrancas} className="text-foreground font-medium underline">
                     Montar o plano
-                  </Link>
+                  </LinkDaPagina>
                 ) : null}
               </li>
             )}

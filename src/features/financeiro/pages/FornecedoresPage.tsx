@@ -1,8 +1,10 @@
 import { Handshake, Plus, Wallet, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -15,13 +17,22 @@ import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { ehOpcao } from '@/lib/opcao'
 import { cn } from '@/lib/utils'
 import { DialogoDeFornecedor } from '../components/DialogoDeFornecedor'
 import { useContagemDeFornecedores, useExcluirFornecedor, useFornecedores } from '../hooks/useFornecedores'
-import { formatarDocumento, type Fornecedor, ROTULOS_DE_CATEGORIA } from '../types/financeiro.types'
+import {
+  type CategoriaDeDespesa,
+  formatarDocumento,
+  type Fornecedor,
+  ROTULOS_DE_CATEGORIA,
+} from '../types/financeiro.types'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
+
+const ehCategoria = (valor: string | null): valor is CategoriaDeDespesa =>
+  ehOpcao(valor, ROTULOS_DE_CATEGORIA)
 
 /**
  * Quem a turma contrata: buffet, banda, fotógrafo, gráfica — com o que já saiu e o que ainda vai
@@ -36,13 +47,16 @@ const TAMANHO_DA_PAGINA = 20
 export default function FornecedoresPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const contagem = useContagemDeFornecedores()
   const [cadastro, definirCadastro] = useState<false | { fornecedor?: Fornecedor }>(false)
   const editavel = useEscritaLiberada()
 
   const situacao = parametros.get('situacao')
   const ativo = situacao === 'ativos' ? true : situacao === 'inativos' ? false : undefined
-  const filtrando = Boolean(situacao || busca)
+  const categoriaNaUrl = parametros.get('categoria')
+  const categoria = ehCategoria(categoriaNaUrl) ? categoriaNaUrl : undefined
+  const filtrando = Boolean(situacao || categoria || busca)
 
   /** Grava mudanças na URL; vazio remove o parâmetro. Filtro novo sempre volta à página 1. */
   const ordenacao = useOrdenacao(atualizar)
@@ -50,6 +64,7 @@ export default function FornecedoresPage() {
     pagina,
     tamanho: tamanhoDaPagina,
     ativo,
+    categoria,
     busca: busca || undefined,
     ...ordenacao.filtro,
   })
@@ -59,7 +74,7 @@ export default function FornecedoresPage() {
   if (fornecedores.data && itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, fornecedores.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -118,6 +133,24 @@ export default function FornecedoresPage() {
           rotulo: 'Buscar fornecedor',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-fornecedores" ligados={categoria ? 1 : 0}>
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Categoria</legend>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(ROTULOS_DE_CATEGORIA).map(([valor, rotulo]) => (
+                  <Chip
+                    key={valor}
+                    ativo={categoria === valor}
+                    onClick={() => atualizar({ categoria: categoria === valor ? null : valor })}
+                  >
+                    {rotulo}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+          </BotaoDeFiltros>
+        }
         acaoPrincipal={
           <Button size="xs" disabled={!editavel} onClick={() => definirCadastro({})}>
             <Plus aria-hidden />
@@ -137,7 +170,7 @@ export default function FornecedoresPage() {
         vazio={{
           titulo: filtrando ? 'Nenhum fornecedor com esses filtros' : 'Nenhum fornecedor cadastrado',
           dica: filtrando
-            ? 'Tente outro nome ou outra situação.'
+            ? 'Tente outro nome, outra situação ou outra categoria.'
             : 'Cadastre quem a turma contrata — o cadastro só precisa do nome e da categoria.',
         }}
         ordenacao={ordenacao}
@@ -181,12 +214,12 @@ function LinhaDeFornecedor({ fornecedor, editavel }: { fornecedor: Fornecedor; e
         scope="row"
         className={cn('grid min-w-52 py-3 pr-4 text-left font-normal', !fornecedor.ativo && 'opacity-70')}
       >
-        <Link
+        <LinkDaPagina
           to={rotaDoFornecedor(fornecedor.id)}
           className="text-foreground truncate font-medium hover:underline"
         >
           {fornecedor.nome}
-        </Link>
+        </LinkDaPagina>
         <span className="text-texto-muted truncate text-xs font-normal">
           {fornecedor.documento ? formatarDocumento(fornecedor.documento) : 'Sem documento'}
           {fornecedor.email ? ` · ${fornecedor.email}` : ''}

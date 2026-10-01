@@ -1,5 +1,5 @@
-import { Link } from 'react-router'
-import { Cartao } from '@/components/Cartao'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
 import { IconePix } from '@/components/IconePix'
 import { Button } from '@/components/ui/button'
@@ -34,10 +34,10 @@ export function LateralDoExtrato({ extrato }: { extrato: Extrato }) {
           acao={
             aPagar(proxima) ? (
               <Button asChild>
-                <Link to={rotaDoPagamento(proxima.id)}>
+                <LinkDaPagina to={rotaDoPagamento(proxima.id)}>
                   <IconePix />
                   Pagar com PIX
-                </Link>
+                </LinkDaPagina>
               </Button>
             ) : null
           }
@@ -57,7 +57,7 @@ export function LateralDoExtrato({ extrato }: { extrato: Extrato }) {
           titulo="Em conferência"
           descricao="A tesouraria confere com o extrato do banco. Confirmado, o recibo chega por e-mail."
         >
-          <ul className="divide-y text-sm" aria-label="Parcelas em conferência">
+          <TextoDoCartao as="ul" className="text-foreground divide-y" aria-label="Parcelas em conferência">
             {emConferencia.map((parcela) => (
               <li key={parcela.id} className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                 <span className="min-w-0 truncate">
@@ -66,13 +66,13 @@ export function LateralDoExtrato({ extrato }: { extrato: Extrato }) {
                 <span className="tabular-nums">{formatarCentavos(valorNaLista(parcela))}</span>
               </li>
             ))}
-          </ul>
+          </TextoDoCartao>
         </Cartao>
       ) : null}
 
       <Cartao titulo="Meus pedidos" descricao="Convite extra, foto, kit: o que você pede vira parcela aqui.">
         <Button asChild variant="outline" size="sm" className="justify-self-start">
-          <Link to={ROTAS.meusPedidos}>Ver meus pedidos</Link>
+          <LinkDaPagina to={ROTAS.meusPedidos}>Ver meus pedidos</LinkDaPagina>
         </Button>
       </Cartao>
     </div>

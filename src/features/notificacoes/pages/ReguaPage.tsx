@@ -1,9 +1,10 @@
 import { Bell, CalendarClock, History, Inbox, Mail } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
-import { Cartao } from '@/components/Cartao'
-import { EsqueletoDeCartao } from '@/components/Esqueleto'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
+import { EsqueletoDeCartao, EsqueletoDeTabela, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { Interruptor } from '@/components/Interruptor'
@@ -74,7 +75,16 @@ export default function ReguaPage() {
         ]}
       />
 
-      {regua.isPending ? <EsqueletoDeCartao /> : null}
+      {regua.isPending ? (
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+          <EsqueletoDeCartao>
+            <EsqueletoDeTabela linhas={4} colunas={5} />
+          </EsqueletoDeCartao>
+          <EsqueletoDeCartao>
+            <EsqueletoDeTexto linhas={5} />
+          </EsqueletoDeCartao>
+        </div>
+      ) : null}
       {regua.isError ? <ErroDaConsulta erro={regua.error} /> : null}
 
       {regua.data ? (
@@ -85,10 +95,10 @@ export default function ReguaPage() {
             descricao="Veja quando cada lembrete é enviado. Cada formando recebe no máximo uma mensagem por dia."
             acao={
               <Button asChild variant="outline" size="sm">
-                <Link to={ROTAS.avisosEnviados}>
+                <LinkDaPagina to={ROTAS.avisosEnviados}>
                   <History aria-hidden />
                   Avisos enviados
-                </Link>
+                </LinkDaPagina>
               </Button>
             }
           >
@@ -146,7 +156,7 @@ export default function ReguaPage() {
  */
 function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
   if (degraus.length === 0) {
-    return <p className="text-muted-foreground text-sm">Nenhum lembrete configurado.</p>
+    return <TextoDoCartao>Nenhum lembrete configurado.</TextoDoCartao>
   }
 
   return (
@@ -168,14 +178,14 @@ function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
           <span className="bg-brand-tint text-brand-text inline-flex size-10 shrink-0 items-center justify-center rounded-full">
             <Mail className="size-4" aria-hidden />
           </span>
-          <div className="grid min-w-0 flex-1 gap-0.5 text-sm">
+          <TextoDoCartao as="div" className="grid min-w-0 flex-1 gap-0.5">
             <span className="text-foreground font-medium tabular-nums">{marcoDoDegrau(regra)}</span>
             <span className="text-muted-foreground">{tomDoDegrau(regra)}</span>
             <span className="text-muted-foreground">Para o {destinoDoDegrau(regra).toLowerCase()}</span>
-          </div>
-          <p className="bg-brand-tint text-foreground w-36 shrink-0 rounded-xl px-3 py-2 text-sm">
+          </TextoDoCartao>
+          <TextoDoCartao className="bg-brand-tint text-foreground w-36 shrink-0 rounded-xl px-3 py-2">
             {regra.assunto}
-          </p>
+          </TextoDoCartao>
         </li>
       ))}
     </ol>
@@ -225,9 +235,9 @@ function LinhaDoDegrau({ regra }: { regra: Regra }) {
       <td className="text-foreground py-3 pr-4 font-medium tabular-nums">{marcoDoDegrau(regra)}</td>
       <td className="py-3 pr-4 whitespace-nowrap">{tomDoDegrau(regra)}</td>
       <td className="py-3 pr-4 whitespace-nowrap">{destinoDoDegrau(regra)}</td>
-      <td className="max-w-64 truncate py-3 pr-4" title={regra.assunto}>
-        {regra.assunto}
-      </td>
+      <Dica dica={regra.assunto} className="max-w-xs">
+        <td className="max-w-64 truncate py-3 pr-4">{regra.assunto}</td>
+      </Dica>
       <td className="py-3 whitespace-nowrap">
         <span className="inline-flex items-center gap-2">
           <Interruptor

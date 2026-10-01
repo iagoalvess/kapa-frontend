@@ -157,7 +157,7 @@ export function DialogoDeBaixaManual({
         <AcoesDoFormulario
           aoCancelar={() => definirAberto(false)}
           ocupado={baixar.isPending}
-          rotulo="Registrar pagamento"
+          rotulo="Registrar"
           rotuloOcupado="Registrando…"
           form={`baixa-${parcela.id}`}
         />

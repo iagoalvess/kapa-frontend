@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
@@ -34,8 +34,8 @@ function servir(meus: Pedido[]) {
 }
 
 describe('MeusPedidosPage', () => {
-  /** O cancelado aparece na lista, mas não soma: ele não é mais dívida de ninguém. */
-  it('soma só os pedidos confirmados e mostra o parcelamento de cada um', async () => {
+  /** O cancelado não soma: ele não é mais dívida de ninguém. */
+  it('soma só os pedidos confirmados na faixa', async () => {
     servir([
       pedido({ pago_em_centavos: 10_000 }),
       pedido({ id: 'pe-2', descricao: 'Mesa', tipo: 'Mesa', parcelas: 3, total_em_centavos: 90_000 }),
@@ -44,23 +44,17 @@ describe('MeusPedidosPage', () => {
 
     renderizar(<MeusPedidosPage />)
 
-    const lista = await screen.findByRole('region', { name: 'Seus pedidos' })
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(3)
-    expect(within(lista).getAllByText('À vista')).toHaveLength(2)
-    expect(within(lista).getByText('Em 3×')).toBeInTheDocument()
-
-    const faixa = screen.getByRole('region', { name: 'Resumo dos meus pedidos' })
-    expect(faixa).toHaveTextContent(reais(125_000))
+    const faixa = await screen.findByRole('region', { name: 'Resumo dos meus pedidos' })
+    await waitFor(() => expect(faixa).toHaveTextContent(reais(125_000)))
     expect(faixa).toHaveTextContent(reais(115_000))
   })
 
-  /** Sem pedido, a vitrine já é o convite a pedir: uma lista vazia acima dela diria o mesmo duas vezes. */
-  it('não mostra a lista para quem ainda não pediu nada', async () => {
+  /** Sem opcional aberto, a vitrine já é o convite a pedir: é o conteúdo da tela. */
+  it('convida a pedir quando a turma ainda não abriu opcional', async () => {
     servir([])
 
     renderizar(<MeusPedidosPage />)
 
     expect(await screen.findByText(/ainda não abriu nenhum opcional/)).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Seus pedidos' })).not.toBeInTheDocument()
   })
 })

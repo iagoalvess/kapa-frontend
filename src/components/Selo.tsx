@@ -19,12 +19,21 @@ export type TomDoSelo = keyof typeof TONS
  *
  * @param tom Família de cor. `neutro` para o que não pede atenção.
  */
-export function Selo({ tom = 'neutro', children }: { tom?: TomDoSelo; children: ReactNode }) {
+export function Selo({
+  tom = 'neutro',
+  className,
+  children,
+}: {
+  tom?: TomDoSelo
+  className?: string
+  children: ReactNode
+}) {
   return (
     <span
       className={cn(
         'inline-flex h-6 items-center rounded-md px-2 text-xs font-medium whitespace-nowrap',
         TONS[tom],
+        className,
       )}
     >
       {children}

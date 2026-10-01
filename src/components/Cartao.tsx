@@ -1,6 +1,7 @@
 import { ArrowUpRight, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import type { HTMLAttributes, ReactNode } from 'react'
+import { Dica } from '@/components/Dica'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,15 @@ interface Props {
  * ou uma longa ficar, vira prop.
  */
 const ehAjudaLonga = (descricao: ReactNode) => typeof descricao === 'string' && descricao.length > 80
+
+/** Texto de apoio dos cartões: a mesma tipografia para descrições, orientações e listas laterais. */
+export function TextoDoCartao({
+  as: Elemento = 'p',
+  className,
+  ...props
+}: HTMLAttributes<HTMLElement> & { as?: 'p' | 'div' | 'ul' | 'ol' }) {
+  return <Elemento {...props} className={cn('text-muted-foreground text-[15px] leading-normal', className)} />
+}
 
 /**
  * O cartão branco das telas do app: fundo, sombra e respiro de sempre.
@@ -88,29 +98,25 @@ export function Cartao({
               {selo}
             </h2>
             {descricao ? (
-              <p
-                className={cn(
-                  'text-muted-foreground text-[15px]',
-                  ehAjudaLonga(descricao) && 'max-lg:hidden',
-                )}
+              <TextoDoCartao
+                as={typeof descricao === 'string' ? 'p' : 'div'}
+                className={cn(ehAjudaLonga(descricao) && 'max-lg:hidden')}
               >
                 {descricao}
-              </p>
+              </TextoDoCartao>
             ) : null}
           </div>
           {acao || para ? (
             <div className="flex flex-wrap items-center gap-2">
               {acao}
               {para ? (
-                <Button asChild variant="ghost" size="icon" className="text-muted-foreground -my-1 size-8">
-                  <Link
-                    to={para}
-                    title={rotuloDoAtalho ?? `Abrir ${titulo}`}
-                    aria-label={rotuloDoAtalho ?? `Abrir ${titulo}`}
-                  >
-                    <ArrowUpRight aria-hidden />
-                  </Link>
-                </Button>
+                <Dica dica={rotuloDoAtalho ?? `Abrir ${titulo}`}>
+                  <Button asChild variant="ghost" size="icon" className="text-muted-foreground -my-1 size-8">
+                    <LinkDaPagina to={para} aria-label={rotuloDoAtalho ?? `Abrir ${titulo}`}>
+                      <ArrowUpRight aria-hidden />
+                    </LinkDaPagina>
+                  </Button>
+                </Dica>
               ) : null}
             </div>
           ) : null}

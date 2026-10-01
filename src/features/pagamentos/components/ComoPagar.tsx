@@ -56,7 +56,7 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos, 
       ) : null}
 
       {cobranca.isError ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-danger-text text-sm">
           {semConta
             ? 'A comissão ainda está configurando como a turma receberá pagamentos. Tente novamente mais tarde.'
             : mensagemDoErro(cobranca.error)}

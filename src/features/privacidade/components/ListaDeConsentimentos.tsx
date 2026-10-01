@@ -1,3 +1,4 @@
+import { TextoDoCartao } from '@/components/Cartao'
 import { Undo2 } from 'lucide-react'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { Selo } from '@/components/Selo'
@@ -40,8 +41,7 @@ export function ListaDeConsentimentos({
       .map((consentimento) => consentimento.id),
   )
 
-  if (consentimentos.length === 0)
-    return <p className="text-muted-foreground text-sm">Nenhum registro de consentimento.</p>
+  if (consentimentos.length === 0) return <TextoDoCartao>Nenhum registro de consentimento.</TextoDoCartao>
 
   return (
     <ul className="grid gap-4 text-[15px]">

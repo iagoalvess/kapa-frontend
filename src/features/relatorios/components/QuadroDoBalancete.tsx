@@ -39,10 +39,10 @@ export function QuadroDoBalancete({
         <Tabela
           cabecalho={
             <>
-              <th className="py-2 pr-3 font-normal">{rotuloDaColuna}</th>
-              <th className="py-2 pr-3 text-right font-normal">Lanç.</th>
-              <th className="py-2 pr-3 text-right font-normal">Valor</th>
-              <th className="w-24 py-2 text-right font-normal">%</th>
+              <th className="py-3 pr-4 font-normal">{rotuloDaColuna}</th>
+              <th className="py-3 pr-4 text-right font-normal">Lanç.</th>
+              <th className="py-3 pr-4 text-right font-normal">Valor</th>
+              <th className="w-24 py-3 text-right font-normal">%</th>
             </>
           }
         >

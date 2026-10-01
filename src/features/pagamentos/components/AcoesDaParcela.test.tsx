@@ -101,7 +101,7 @@ describe('AcoesDaParcela', () => {
     expect(dialogo).toHaveTextContent('Esta ação fica registrada em seu nome.')
     expect(within(dialogo).getByLabelText('Valor recebido')).toHaveValue(formatarCentavos(36_120))
     await userEvent.selectOptions(within(dialogo).getByLabelText('Como o dinheiro chegou'), 'Dinheiro')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Registrar pagamento' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Registrar' }))
 
     await waitFor(() => expect(pedidos.baixas).toHaveLength(1))
     expect(pedidos.baixas[0]?.get('forma')).toBe('Dinheiro')

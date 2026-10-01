@@ -1,6 +1,6 @@
 import { contemBusca } from '@/lib/busca'
 import { diasAte, formatarMesLongo, formatarNumero } from '@/lib/formato'
-import { type EventoDaTurma, jaPassou, type TipoDeEvento } from '@/types/agenda'
+import { type EventoDaTurma, jaPassou, type SituacaoDoEvento, type TipoDeEvento } from '@/types/agenda'
 
 /**
  * Filtro e busca acontecem aqui, e não na API.
@@ -12,11 +12,18 @@ import { type EventoDaTurma, jaPassou, type TipoDeEvento } from '@/types/agenda'
  * @param eventos Todos os eventos da turma.
  * @param tipo Tipo escolhido, ou nulo para todos.
  * @param busca O que foi digitado, comparado sem acento no título, no local e na descrição.
+ * @param situacao Situação escolhida, ou nulo para todas.
  */
-export function filtrar(eventos: readonly EventoDaTurma[], tipo: TipoDeEvento | null, busca: string) {
+export function filtrar(
+  eventos: readonly EventoDaTurma[],
+  tipo: TipoDeEvento | null,
+  busca: string,
+  situacao: SituacaoDoEvento | null = null,
+) {
   return eventos.filter(
     (evento) =>
       (tipo === null || evento.tipo === tipo) &&
+      (situacao === null || evento.situacao === situacao) &&
       contemBusca(busca, evento.titulo, evento.local, evento.descricao),
   )
 }

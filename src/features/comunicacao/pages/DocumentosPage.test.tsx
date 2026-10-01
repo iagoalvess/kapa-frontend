@@ -77,7 +77,9 @@ describe('DocumentosPage', () => {
       'Só comissão',
     )
     expect(within(atas).getByRole('heading', { name: 'Atas' }).nextSibling).toHaveTextContent('1')
-    expect(within(atas).getByTitle(/Último adicionado em/)).toHaveTextContent('12/09')
+    const ultimo = within(atas).getByText('12/09')
+    await userEvent.hover(ultimo)
+    expect(await screen.findByRole('tooltip', { name: /Último adicionado em/ })).toBeInTheDocument()
 
     const contratos = screen.getByRole('region', { name: 'Contratos' })
     const cartao = within(contratos).getByRole('article', { name: 'Contrato do buffet' })

@@ -1,4 +1,4 @@
-import { Clock, FolderOpen, HardDrive, Layers, Upload } from 'lucide-react'
+import { Clock, FolderOpen, HardDrive, Layers, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
@@ -6,10 +6,12 @@ import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ListaVazia } from '@/components/ListaVazia'
 import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
+import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
@@ -106,6 +108,8 @@ export default function DocumentosPage() {
   /** Grava mudanças na URL; vazio remove o parâmetro. Filtro novo sempre volta à página 1. */
   return (
     <>
+      <LinkDeVolta para={ROTAS.mural}>Mural</LinkDeVolta>
+
       <FaixaDeIndicadores
         rotulo="Resumo do acervo"
         indicadores={[
@@ -190,7 +194,7 @@ export default function DocumentosPage() {
         filtrosAvancados={
           <BotaoDeFiltros id="filtros-do-acervo" ligados={ordem === 'recentes' ? 0 : 1}>
             <fieldset className="grid gap-2">
-              <legend className="text-muted-foreground mb-2 text-sm">Ordem nas colunas</legend>
+              <legend className="text-muted-foreground mb-2 text-sm">Ordenar por</legend>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(ORDENS).map(([valor, { rotulo }]) => (
                   <Chip
@@ -208,7 +212,7 @@ export default function DocumentosPage() {
         acaoPrincipal={
           gestao ? (
             <Button size="xs" disabled={!editavel} onClick={() => definirDialogo({})}>
-              <Upload aria-hidden />
+              <Plus aria-hidden />
               Novo documento
             </Button>
           ) : null

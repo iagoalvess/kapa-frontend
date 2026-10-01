@@ -2,6 +2,7 @@ import { Heart, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
+import { Dica } from '@/components/Dica'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
 import { Button } from '@/components/ui/button'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
@@ -96,14 +97,8 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
               ) : null}
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  variant={proposta.meu_voto ? 'default' : 'outline'}
-                  disabled={!aberta || votando}
-                  onClick={() => alternar(proposta)}
-                  aria-pressed={proposta.meu_voto}
-                  aria-label={`${proposta.votos} ${proposta.votos === 1 ? 'voto' : 'votos'} em ${proposta.titulo}`}
-                  title={
+                <Dica
+                  dica={
                     aberta
                       ? proposta.meu_voto
                         ? 'Tirar meu voto'
@@ -111,9 +106,18 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
                       : 'A escolha da turma já aconteceu'
                   }
                 >
-                  <Heart className={cn('size-4', proposta.meu_voto && 'fill-current')} aria-hidden />
-                  {formatarNumero(proposta.votos)}
-                </Button>
+                  <Button
+                    size="sm"
+                    variant={proposta.meu_voto ? 'default' : 'outline'}
+                    disabled={!aberta || votando}
+                    onClick={() => alternar(proposta)}
+                    aria-pressed={proposta.meu_voto}
+                    aria-label={`${proposta.votos} ${proposta.votos === 1 ? 'voto' : 'votos'} em ${proposta.titulo}`}
+                  >
+                    <Heart className={cn('size-4', proposta.meu_voto && 'fill-current')} aria-hidden />
+                    {formatarNumero(proposta.votos)}
+                  </Button>
+                </Dica>
 
                 {aberta && ehGestao && editavel ? (
                   <span className="ml-auto flex gap-1">

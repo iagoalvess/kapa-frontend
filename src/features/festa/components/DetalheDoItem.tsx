@@ -1,5 +1,5 @@
 import { CircleCheck, Coins, ShoppingBag, Users } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
@@ -105,11 +105,11 @@ export function DetalheDoItem({
                   Editar
                 </Button>
                 {item.quantidade_de_despesas === 0 ? (
-                  <Button size="sm" variant="outline" onClick={aoExcluir}>
+                  <Button size="sm" variant="outline" className="text-danger-text" onClick={aoExcluir}>
                     Excluir
                   </Button>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={aoCancelar}>
+                  <Button size="sm" variant="outline" className="text-danger-text" onClick={aoCancelar}>
                     Cancelar
                   </Button>
                 )}
@@ -162,9 +162,9 @@ export function DetalheDoItem({
             Dois lugares para clicar "Pedir" é um lugar a mais para manter. */}
         {porFormando && item.preco_de_venda_em_centavos !== null && !ehGestao ? (
           <Dado icone={ShoppingBag} rotulo="Quer o seu?">
-            <Link to={ROTAS.extrato} className="text-brand-text underline-offset-4 hover:underline">
+            <LinkDaPagina to={ROTAS.extrato} className="text-brand-text underline-offset-4 hover:underline">
               Pedir em Minhas parcelas
-            </Link>
+            </LinkDaPagina>
           </Dado>
         ) : null}
 

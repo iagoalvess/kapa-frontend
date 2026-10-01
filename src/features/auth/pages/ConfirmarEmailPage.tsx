@@ -77,7 +77,7 @@ export default function ConfirmarEmailPage() {
       </p>
 
       {confirmar.isError ? (
-        <p role="alert" className="text-destructive mb-4 text-sm">
+        <p role="alert" className="text-danger-text mb-4 text-sm">
           {mensagemDoErro(confirmar.error)}
         </p>
       ) : null}

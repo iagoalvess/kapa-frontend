@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useContext } from 'react'
 import { Link } from 'react-router'
+import { ContextoDeVoltaDaPagina, useOrigemDaNavegacao } from '@/hooks/useNavegacaoDaPagina'
 import { cn } from '@/lib/utils'
 
 /**
@@ -15,8 +16,10 @@ import { cn } from '@/lib/utils'
  *
  * Não é migalha de pão: o app tem no máximo dois níveis, e a barra lateral já diz onde se está.
  *
- * @param para A rota de onde se veio, de `config/rotas`.
- * @param children O nome daquela tela — "Despesas", "Membros".
+ * A origem de `LinkDaPagina` tem prioridade; quando a moldura já a mostra, esta saída não se repete.
+ *
+ * @param para A saída para acesso direto, de `config/rotas`.
+ * @param children O nome da saída fixa — "Despesas", "Membros".
  */
 export function LinkDeVolta({
   para,
@@ -27,16 +30,22 @@ export function LinkDeVolta({
   className?: string
   children: ReactNode
 }) {
+  const voltaNoLayout = useContext(ContextoDeVoltaDaPagina)
+  const origem = useOrigemDaNavegacao()
+  // A moldura já oferece a origem real; a saída fixa continua para acessos diretos.
+  if (voltaNoLayout) return null
+
   return (
     <Link
-      to={para}
+      to={origem?.caminho ?? para}
+      state={origem?.estado}
       className={cn(
         'text-brand-text inline-flex w-fit items-center gap-1 text-sm hover:underline',
         className,
       )}
     >
       <ArrowLeft className="size-4" aria-hidden />
-      {children}
+      {origem?.titulo ?? children}
     </Link>
   )
 }

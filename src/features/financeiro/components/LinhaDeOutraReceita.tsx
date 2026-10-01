@@ -39,8 +39,9 @@ interface Props {
 /**
  * Uma linha da lista de receitas: o que é, de quem, quando, quanto e em que situação.
  *
- * O valor vem no verde de entrada — é o que separa esta tela da de despesas de relance. Receber e
- * cancelar só aparecem na prevista; a recebida se corrige em "Editar", como a despesa paga.
+ * O valor é neutro, como o da despesa: quem diz a situação é o selo, e pintar o número a mais era
+ * um dialeto só desta tela. Receber e cancelar só aparecem na prevista; a recebida se corrige em
+ * "Editar", como a despesa paga.
  */
 export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEditar }: Props) {
   const cancelar = useCancelarOutraReceita()
@@ -57,7 +58,7 @@ export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEdit
         </span>
       </th>
       <td className="py-3 pr-4 whitespace-nowrap">{formatarData(outraReceita.data)}</td>
-      <td className="text-success-text py-3 pr-4 text-right whitespace-nowrap tabular-nums">
+      <td className="py-3 pr-4 text-right whitespace-nowrap tabular-nums">
         {formatarCentavos(outraReceita.valor_em_centavos)}
       </td>
       <td className="py-3 pr-4">

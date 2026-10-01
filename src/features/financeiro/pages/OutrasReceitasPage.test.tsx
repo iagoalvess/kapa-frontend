@@ -102,10 +102,11 @@ describe('ReceitasPage', () => {
   it('lança uma receita já recebida com o que o formulário pediu', async () => {
     entrarComo('Tesoureiro')
     comApi([])
-    let corpo: unknown
+    let corpo: Record<string, string> | undefined
     servidor.use(
       http.post(OUTRAS_RECEITAS, async ({ request }) => {
-        corpo = await request.json()
+        const formulario = await request.formData()
+        corpo = Object.fromEntries(formulario) as Record<string, string>
         return HttpResponse.json(recebida, { status: 201 })
       }),
     )
@@ -123,8 +124,8 @@ describe('ReceitasPage', () => {
       expect(corpo).toMatchObject({
         descricao: 'Festa junina',
         categoria: 'Evento',
-        valor_em_centavos: 250_000,
-        recebida: true,
+        valor_em_centavos: '250000',
+        recebida: 'true',
       }),
     )
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())

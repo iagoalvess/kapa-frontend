@@ -102,7 +102,7 @@ describe('ComprasDaLojaPage', () => {
     renderizar(<ComprasDaLojaPage />)
 
     await screen.findByText('Maria Souza')
-    await usuario.selectOptions(screen.getByLabelText('Situação'), 'ADevolver')
+    await usuario.click(screen.getByRole('button', { name: 'A devolver' }))
 
     await waitFor(() => expect(pedidos).toContain('ADevolver'))
   })

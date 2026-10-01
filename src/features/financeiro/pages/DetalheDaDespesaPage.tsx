@@ -1,6 +1,7 @@
 import { CalendarClock, CircleCheck, FileText, Handshake, Layers, Receipt, Tag, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
@@ -148,9 +149,9 @@ export default function DetalheDaDespesaPage() {
                 cairia na guarda de rota. Sem link, o nome continua dizendo a quem a turma pagou. */}
             {dados.fornecedor_id && dados.fornecedor ? (
               tesouraria ? (
-                <Link to={rotaDoFornecedor(dados.fornecedor_id)} className="hover:underline">
+                <LinkDaPagina to={rotaDoFornecedor(dados.fornecedor_id)} className="hover:underline">
                   {dados.fornecedor}
-                </Link>
+                </LinkDaPagina>
               ) : (
                 dados.fornecedor
               )
@@ -305,9 +306,9 @@ function ParcelasDoLancamento({ despesa }: { despesa: Despesa }) {
                     <span className="text-texto-muted text-xs">nesta tela</span>
                   </>
                 ) : (
-                  <Link to={rotaDaDespesa(linha.id)} className="hover:underline">
+                  <LinkDaPagina to={rotaDaDespesa(linha.id)} className="hover:underline">
                     {formatarNumero(linha.numero)} de {formatarNumero(linha.total_de_parcelas)}
-                  </Link>
+                  </LinkDaPagina>
                 )}
               </th>
               <td className="text-muted-foreground py-3 pr-4 whitespace-nowrap">

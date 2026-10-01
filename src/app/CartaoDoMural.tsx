@@ -1,5 +1,5 @@
 import { ChevronRight, Megaphone, Pin } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -46,7 +46,7 @@ export function CartaoDoMural() {
         <ol aria-label="Avisos fixados" className="grid">
           {itens.map((aviso) => (
             <li key={aviso.id} className="border-border border-b last:border-0">
-              <Link
+              <LinkDaPagina
                 to={rotaDoAviso(aviso.id)}
                 className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5 outline-none focus-visible:ring-2"
               >
@@ -61,7 +61,7 @@ export function CartaoDoMural() {
                   </span>
                 </span>
                 <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
-              </Link>
+              </LinkDaPagina>
             </li>
           ))}
         </ol>

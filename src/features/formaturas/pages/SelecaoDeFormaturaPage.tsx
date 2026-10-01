@@ -41,7 +41,7 @@ export default function SelecaoDeFormaturaPage() {
 
       <div className="grid gap-2">
         {formaturas.isPending ? (
-          <EsqueletoDeCartoes quantidade={2} altura="h-14" className="md:grid-cols-1" />
+          <EsqueletoDeCartoes quantidade={2} altura="h-14" forma="linha" className="md:grid-cols-1" />
         ) : null}
 
         {formaturas.isError ? <ErroDaConsulta erro={formaturas.error} /> : null}

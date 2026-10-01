@@ -10,7 +10,7 @@ export interface OpcaoDeFiltro {
 /**
  * Um seletor de recorte da barra de filtros.
  *
- * É o `components/Select` vestido de `Chip`: pílula de 28px, e as cores são as de lá, não as do
+ * É o `components/Select` vestido de `Chip`: pílula de 32px, e as cores são as de lá, não as do
  * formulário — na barra, o `bg-card` com sombra do `Select` fazia três caixas claras destoarem das
  * pílulas vizinhas. Desligado é a pílula vazada; com filtro escolhido, a preenchida de cinza, como
  * o `Chip` de tom claro.
@@ -52,7 +52,7 @@ export function SeletorDeFiltro({
       // contra o próprio invólucro, que já é do tamanho do conteúdo. 14rem é o teto na barra: razão
       // social comprida é cortada pelo próprio campo, e não empurra o resto da linha.
       className={cn(
-        'border-border h-7 w-auto max-w-56 rounded-full text-sm shadow-none md:text-sm',
+        'border-border h-8 w-auto max-w-56 rounded-full text-sm shadow-none md:text-sm',
         // `!` no cinza: o `[data-select]:has(option[value='']:checked)` do CSS base pinta o campo
         // vazio de `--text-muted`, que é a cor de placeholder de formulário — dois tons mais claro
         // que o `Chip` apagado ao lado, e à distância lia-se como "desabilitado".

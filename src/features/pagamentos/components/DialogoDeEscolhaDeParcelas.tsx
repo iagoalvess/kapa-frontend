@@ -8,6 +8,7 @@ import { LinhaSelecionavel, PRIMEIRA_COLUNA_SELECIONAVEL } from '@/components/Li
 import { Button } from '@/components/ui/button'
 import { rotaDoPagamentoEmLote } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useEstadoComOrigem } from '@/hooks/useNavegacaoDaPagina'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 
@@ -30,6 +31,7 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
   const [escolhidas, definirEscolhidas] = useState<string[]>([])
   const liberado = useEscritaLiberada()
   const navegar = useNavigate()
+  const estadoComOrigem = useEstadoComOrigem()
 
   // O tipo só entra na coluna quando a grade mistura cobranças: com 24 mensalidades, repetir
   // "Mensalidade" em toda linha é ruído — é o que a grade do termo de adesão faz.
@@ -49,7 +51,7 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
   const continuar = (evento: FormEvent) => {
     evento.preventDefault()
     const ids = parcelas.filter((parcela) => escolhidas.includes(parcela.id)).map((parcela) => parcela.id)
-    navegar(rotaDoPagamentoEmLote(ids))
+    navegar(rotaDoPagamentoEmLote(ids), { state: estadoComOrigem })
   }
 
   if (parcelas.length < 2) return null
@@ -124,6 +126,7 @@ export function DialogoDeEscolhaDeParcelas({ parcelas }: Props) {
             aoCancelar={() => definirAberto(false)}
             desabilitado={!liberado || escolhidas.length === 0}
             rotulo="Continuar"
+            rotuloOcupado="Continuando…"
           />
         </form>
       </DialogoDeFormulario>

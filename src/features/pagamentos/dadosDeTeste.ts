@@ -143,7 +143,6 @@ export const cobrancaDeTeste = (
   peloMercadoPago: PeloMercadoPago[] = [],
 ): CobrancaDaParcela => ({
   valor_em_centavos: 35_000,
-  identificador: 'KAPA0123456789ABCDEF01234',
   pelo_mercado_pago: peloMercadoPago,
   meios,
 })

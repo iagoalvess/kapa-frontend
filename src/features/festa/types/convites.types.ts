@@ -94,7 +94,7 @@ export interface ListaDaPortaria {
   convites: ConviteNaPortaria[]
 }
 
-/** Uma entrada marcada sem rede, esperando para subir (decisão 16). */
+/** Uma entrada registrada no celular sem internet, esperando para subir (decisão 16). */
 export interface EntradaSemRede {
   codigo: string
   validado_em: string

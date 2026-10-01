@@ -1,6 +1,7 @@
-import { Clock, Megaphone, Pin, Plus, Star } from 'lucide-react'
+import { Clock, FolderOpen, Megaphone, Pin, Plus, Star } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteLendo from '@/assets/mascote/lendo.webp'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Cartao } from '@/components/Cartao'
@@ -197,6 +198,14 @@ export default function MuralPage() {
                 aoMudar={atualizar}
               />
             </BotaoDeFiltros>
+          }
+          acoes={
+            <Button asChild size="xs">
+              <LinkDaPagina to={ROTAS.documentos}>
+                <FolderOpen aria-hidden />
+                Documentos
+              </LinkDaPagina>
+            </Button>
           }
           acaoPrincipal={
             gestao ? (

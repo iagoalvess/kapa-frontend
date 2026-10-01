@@ -1,4 +1,5 @@
 import { Select } from '@/components/Select'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { avisarErro } from '@/lib/http/erros'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
@@ -42,20 +43,24 @@ export function SeletorDeFormatura({ habilitado = true }: { habilitado?: boolean
   return (
     <div className="border-border grid gap-1 border-t px-3 py-3">
       <span className="text-texto-muted text-xs">Trocar de turma</span>
-      <Select
-        aria-label="Formatura selecionada"
-        title={descreverTurma(atual)}
-        className="h-9 w-full truncate text-sm font-medium"
-        value={atual.id}
-        disabled={selecionar.isPending}
-        onChange={(evento) => selecionar.mutate(evento.target.value, { onError: avisarErro })}
-      >
-        {formaturas.data.map((formatura) => (
-          <option key={formatura.id} value={formatura.id}>
-            {descreverTurma(formatura) || formatura.nome}
-          </option>
-        ))}
-      </Select>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Select
+            aria-label="Formatura selecionada"
+            className="h-9 w-full truncate text-sm font-medium"
+            value={atual.id}
+            disabled={selecionar.isPending}
+            onChange={(evento) => selecionar.mutate(evento.target.value, { onError: avisarErro })}
+          >
+            {formaturas.data.map((formatura) => (
+              <option key={formatura.id} value={formatura.id}>
+                {descreverTurma(formatura) || formatura.nome}
+              </option>
+            ))}
+          </Select>
+        </TooltipTrigger>
+        <TooltipContent>{descreverTurma(atual)}</TooltipContent>
+      </Tooltip>
     </div>
   )
 }

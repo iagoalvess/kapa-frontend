@@ -42,7 +42,7 @@ const RECURSOS = {
   comunicacao: 'Mural e documentos',
   conta: 'Conta',
   convite: 'Convites',
-  festa: 'A festa',
+  festa: 'Festa',
   financeiro: 'Despesas e fornecedores',
   formatura: 'Dados da turma',
   legal: 'Termos legais',

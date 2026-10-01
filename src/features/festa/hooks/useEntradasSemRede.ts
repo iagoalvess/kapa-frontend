@@ -22,7 +22,7 @@ function gravar(entradas: EntradaSemRede[]) {
 }
 
 /**
- * As entradas marcadas sem rede, esperando para subir (decisões 7 e 16).
+ * As entradas registradas no celular, esperando para subir (decisões 7 e 16).
  *
  * Não é modo offline de verdade — é a lista impressa, na tela: sem service worker e sem fila
  * automática. A portaria marca, e quando a rede volta alguém toca em "Sincronizar". Cada marca leva

@@ -9,10 +9,10 @@ import {
   UserRound,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteCelular from '@/assets/mascote/celular.webp'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -86,8 +86,9 @@ export default function MeusConvitesPage() {
               titulo="Nenhum convite ainda"
               dica={
                 <>
-                  Convites extras da festa se pedem em <Link to={ROTAS.meusPedidos}>Meus pedidos</Link>. Os da
-                  colação aparecem aqui quando a comissão abrir a cota.
+                  Convites extras da festa se pedem em{' '}
+                  <LinkDaPagina to={ROTAS.meusPedidos}>Meus pedidos</LinkDaPagina>. Os da colação aparecem
+                  aqui quando a comissão abrir a cota.
                 </>
               }
             />
@@ -126,14 +127,14 @@ function LateralDosConvites({ aguardando }: { aguardando: number }) {
           nota={`${aguardando === 1 ? 'Ainda está sendo pago' : 'Ainda estão sendo pagos'}. O convite sai quando a última parcela do pedido for confirmada.`}
           acao={
             <Button asChild variant="outline">
-              <Link to={ROTAS.meusPedidos}>Ver meus pedidos</Link>
+              <LinkDaPagina to={ROTAS.meusPedidos}>Ver meus pedidos</LinkDaPagina>
             </Button>
           }
         />
       ) : null}
 
       <Cartao titulo="Nomear e enviar">
-        <ul className="text-muted-foreground divide-y text-sm leading-relaxed">
+        <TextoDoCartao as="ul" className="divide-y">
           <li className="pb-3">
             Cada convite é de uma pessoa: o link aparece quando você dá o nome, e aí vai pelo WhatsApp.
           </li>
@@ -141,12 +142,12 @@ function LateralDosConvites({ aguardando }: { aguardando: number }) {
           <li className="pt-3">
             Dá para trocar o nome até 24 horas antes do evento. Depois, só com a comissão.
           </li>
-        </ul>
+        </TextoDoCartao>
       </Cartao>
 
       <Cartao titulo="Mais convites" descricao="Convites extras da festa se pedem como os outros opcionais.">
         <Button asChild variant="outline" size="sm" className="justify-self-start">
-          <Link to={ROTAS.meusPedidos}>Ir para Meus pedidos</Link>
+          <LinkDaPagina to={ROTAS.meusPedidos}>Ir para Meus pedidos</LinkDaPagina>
         </Button>
       </Cartao>
     </div>

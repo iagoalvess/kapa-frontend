@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -104,14 +104,12 @@ export function CartaoDoMercadoPago() {
         </>
       ) : (
         <>
-          <p className="text-muted-foreground text-sm">
+          <TextoDoCartao>
             Conectando a conta Mercado Pago da turma e ligando a cobrança por ele, o formando paga por um PIX
             gerado na hora e a parcela muda para paga sozinha — sem aviso e sem conferência da tesouraria. O
             dinheiro cai direto na conta da turma; o Kapa não toca nele.
-          </p>
-          {escreve ? null : (
-            <p className="text-muted-foreground text-sm">Quem conecta é o Presidente da turma.</p>
-          )}
+          </TextoDoCartao>
+          {escreve ? null : <TextoDoCartao>Quem conecta é o Presidente da turma.</TextoDoCartao>}
         </>
       )}
 
@@ -184,7 +182,7 @@ function PassoAPasso() {
       </summary>
       <div className="flex flex-wrap items-start gap-4 px-4 pb-4">
         <img src={mascoteChecklist} alt="" className="w-20 shrink-0 drop-shadow-lg" />
-        <div className="grid min-w-0 flex-1 basis-64 gap-3 text-sm">
+        <TextoDoCartao as="div" className="grid min-w-0 flex-1 basis-64 gap-3">
           <ol className="text-foreground grid list-inside list-decimal gap-1.5">
             <li>Tenha uma conta no Mercado Pago para a turma — a de quem cuida do dinheiro serve.</li>
             <li>
@@ -202,10 +200,10 @@ function PassoAPasso() {
           </p>
           <p className="text-muted-foreground">
             <strong className="text-foreground">Atenção:</strong> o dinheiro fica na conta Mercado Pago até
-            vocês transferirem para o banco, e conta de pessoa física com movimento alto pode ter o saldo
-            retido pelo Mercado Pago para análise. Transfira com frequência.
+            você transferir para o banco, e conta de pessoa física com movimento alto pode ter o saldo retido
+            pelo Mercado Pago para análise. Transfira com frequência.
           </p>
-        </div>
+        </TextoDoCartao>
       </div>
     </details>
   )

@@ -1,4 +1,5 @@
 import { Clock3, MapPin, Pencil, Trash2 } from 'lucide-react'
+import { Dica } from '@/components/Dica'
 import { Button } from '@/components/ui/button'
 import { formatarData, formatarDiaDaSemana, formatarHora, formatarMesDoDia } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -105,30 +106,32 @@ export function CartaoDoEvento({ evento, passado = false, aoAbrir, aoExcluir, ao
 
       <span className="absolute right-2 bottom-2 flex">
         {aoEditar ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={iconeDeAcao}
-            aria-label={`Editar ${evento.titulo}`}
-            title="Editar"
-            onClick={aoEditar}
-          >
-            <Pencil className="size-4" aria-hidden />
-          </Button>
+          <Dica dica="Editar">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={iconeDeAcao}
+              aria-label={`Editar ${evento.titulo}`}
+              onClick={aoEditar}
+            >
+              <Pencil className="size-4" aria-hidden />
+            </Button>
+          </Dica>
         ) : null}
         {aoExcluir ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={iconeDeAcao}
-            aria-label={`Excluir ${evento.titulo}`}
-            title="Excluir"
-            onClick={aoExcluir}
-          >
-            <Trash2 className="size-4" aria-hidden />
-          </Button>
+          <Dica dica="Excluir">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={iconeDeAcao}
+              aria-label={`Excluir ${evento.titulo}`}
+              onClick={aoExcluir}
+            >
+              <Trash2 className="size-4" aria-hidden />
+            </Button>
+          </Dica>
         ) : null}
       </span>
     </li>

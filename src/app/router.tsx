@@ -299,14 +299,14 @@ export const router = createBrowserRouter([
                           // escrita do formando, e o cartão nem oferece as ações a ele.
                           {
                             path: ROTAS.festa,
-                            handle: { titulo: 'A festa' },
+                            handle: { titulo: 'Festa' },
                             lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
                           },
                           // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
                           // rota é a seleção: o link de um item continua sendo um link.
                           {
                             path: `${ROTAS.festa}/:id`,
-                            handle: { titulo: 'A festa' },
+                            handle: { titulo: 'Festa' },
                             lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
                           },
                           // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao

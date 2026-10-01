@@ -202,6 +202,7 @@ outra. O catálogo:
 | Cartão de valor + ação numa lateral      | `CartaoDeValor`                                      |
 | Etiqueta de estado                       | `Selo` (e `ChipDeStatus` para parcela)               |
 | Filtro em pílula                         | `Chip`                                               |
+| Ordenação da lista no painel de filtros  | `FiltroDeOrdenacao`                                  |
 | Par rótulo/valor de um cadastro          | `ListaDeDados` + `Dado`                              |
 | Data, moeda, número, `ehDia`             | `lib/formato`                                        |
 | Página/busca/filtro na URL               | `hooks/useFiltrosDaUrl`                              |
@@ -233,9 +234,15 @@ Fixados em 22/09/2026, depois de uma auditoria que achou cada tela num dialeto:
 - **Editar cadastro existente** é leitura (`ListaDeDados`/`Dado`) + "Editar" (`outline`, `sm`, sem
   ícone) no cabeçalho do `Cartao`, abrindo `DialogoDeFormulario`. Nunca campos abertos direto na
   tela, nem campos travados para quem só lê. Exceção: editor de markdown com prévia (aviso, termo).
-- **Rodapé** é sempre `AcoesDoFormulario`: "Salvar"/"Salvando…", sem ícone. Verbo próprio só quando a
-  ação tem nome (Publicar, Registrar, Baixar), sempre com o `rotuloOcupado` que combina. Se a ação
-  principal é cancelar algo, o desistir vira "Voltar" (`rotuloDeCancelar`).
+- **Rodapé** é sempre `AcoesDoFormulario`: "Salvar"/"Salvando…", sem ícone, tanto para criar quanto
+  para editar — o diálogo é o mesmo nos dois modos, e um "Criar X" repetiria o título sem dizer nada
+  novo. Verbo próprio só quando a ação tem nome e **não** é gravar cadastro: enviar um arquivo
+  ("Enviar"), publicar ("Publicar"), emitir ("Emitir"), ligar ("Ligar cartão"), liberar ("Liberar"),
+  registrar dinheiro ("Registrar" — e só isso: o título já diz o que se registra). Ação destrutiva ou
+  de dinheiro põe o verbo no botão ("Cancelar pedido", "Desligar", "Recusar", "Estornar"), sempre com
+  o `rotuloOcupado` que combina com o rótulo. O desistir é "Cancelar"; vira "Voltar" quando o
+  principal já é cancelar ou estornar, e "Revisar" quando o diálogo é a pré-visualização de algo que
+  só vale depois (`rotuloDeCancelar`).
 - **Verbos:** "Editar" (nunca Alterar/Corrigir — "Alterar senha" é a exceção), "Excluir" ("Remover"
   só para membro), "Novo X"/"Nova X" para criar.
 - **Confirmação:** toda ação destrutiva ou irreversível passa por `DialogoDeConfirmacao`, com título

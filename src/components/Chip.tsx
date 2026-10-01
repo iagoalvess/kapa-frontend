@@ -25,7 +25,7 @@ export function Chip({ ativo, contagem, tom = 'escuro', className, children, ...
       type="button"
       aria-pressed={ativo}
       className={cn(
-        'focus-visible:ring-ring inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50',
+        'focus-visible:ring-ring inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50',
         !ativo && 'text-muted-foreground hover:bg-card border-border bg-transparent',
         ativo && tom === 'escuro' && 'bg-primary text-primary-foreground border-primary',
         ativo && tom === 'claro' && 'bg-border text-foreground border-transparent',

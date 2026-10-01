@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import {
   AlertDialog,
@@ -53,7 +53,7 @@ export function DialogoDeUpgrade() {
                 <>
                   <AlertDialogCancel>Agora não</AlertDialogCancel>
                   <AlertDialogAction asChild>
-                    <Link to={ROTAS.planos}>Ver planos</Link>
+                    <LinkDaPagina to={ROTAS.planos}>Ver planos</LinkDaPagina>
                   </AlertDialogAction>
                 </>
               ) : (

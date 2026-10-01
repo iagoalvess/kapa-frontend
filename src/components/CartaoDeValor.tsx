@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 
 interface Props {
   titulo: string
@@ -24,14 +24,12 @@ export function CartaoDeValor({ titulo, destaque, rotulo, valor, nota, acao, rod
   return (
     <Cartao titulo={titulo} className={destaque ? 'bg-brand-wash' : undefined}>
       <div className="grid gap-1">
-        <p className="text-muted-foreground text-sm">{rotulo}</p>
+        <TextoDoCartao>{rotulo}</TextoDoCartao>
         <p className="text-foreground text-3xl font-medium tabular-nums">{valor}</p>
-        {nota ? <div className="text-muted-foreground text-sm">{nota}</div> : null}
+        {nota ? <TextoDoCartao as="div">{nota}</TextoDoCartao> : null}
       </div>
       {acao}
-      {rodape ? (
-        <p className="text-muted-foreground border-t pt-4 text-sm leading-relaxed">{rodape}</p>
-      ) : null}
+      {rodape ? <TextoDoCartao className="border-t pt-4">{rodape}</TextoDoCartao> : null}
     </Cartao>
   )
 }

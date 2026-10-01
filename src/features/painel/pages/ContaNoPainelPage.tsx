@@ -1,7 +1,8 @@
 import { CalendarDays, GraduationCap, Lock, Mail, Megaphone, ShieldCheck, UserRound } from 'lucide-react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -206,9 +207,9 @@ function AcessoDaConta({ conta }: { conta: UsuarioNoSuporte }) {
         })}
       </div>
 
-      <p className="text-texto-muted text-xs text-pretty">
+      <TextoDoCartao className="text-texto-muted text-pretty">
         Cada ação fica registrada na auditoria com o seu nome, o horário e a conta afetada.
-      </p>
+      </TextoDoCartao>
     </Cartao>
   )
 }
@@ -241,12 +242,12 @@ function TurmasDaConta({ conta }: { conta: UsuarioNoSuporte }) {
           {conta.vinculos.map((vinculo) => (
             <tr key={vinculo.formatura_id} className="border-b last:border-0">
               <th scope="row" className="grid min-w-52 py-3 pr-4 text-left font-normal">
-                <Link
+                <LinkDaPagina
                   to={rotaDaTurmaNoPainel(vinculo.formatura_id)}
                   className="text-foreground truncate font-medium hover:underline"
                 >
                   {vinculo.nome}
-                </Link>
+                </LinkDaPagina>
                 <span className="text-texto-muted truncate text-xs">{vinculo.instituicao}</span>
               </th>
               <td className="py-3 pr-4">

@@ -1,7 +1,9 @@
 import { CalendarPlus, GraduationCap, Repeat, Sparkles } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { rotaDaTurmaNoPainel } from '@/config/rotas'
@@ -93,6 +95,17 @@ export default function TurmasDoPainelPage() {
           rotulo: 'Buscar turma, instituição ou curso',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-turmas" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'nome', rotulo: 'Turma' },
+                { por: 'criada_em', rotulo: 'Criada em' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
         acoes={<NotaFiscalDosPlanos />}
         contagem={{ mostrando: itens.length, total: turmas.data?.total ?? 0, unidade: 'turmas' }}
       />
@@ -121,12 +134,12 @@ export default function TurmasDoPainelPage() {
         {itens.map((turma) => (
           <tr key={turma.id} className="border-b last:border-0">
             <th scope="row" className="grid min-w-52 py-3 pr-4 text-left font-normal">
-              <Link
+              <LinkDaPagina
                 to={rotaDaTurmaNoPainel(turma.id)}
                 className="text-foreground truncate font-medium hover:underline"
               >
                 {turma.nome}
-              </Link>
+              </LinkDaPagina>
               <span className="text-texto-muted truncate text-xs">
                 {turma.curso} · {turma.instituicao}
               </span>

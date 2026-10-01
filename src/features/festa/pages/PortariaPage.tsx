@@ -3,23 +3,25 @@ import {
   CircleCheck,
   Clock,
   DoorOpen,
-  FileDown,
-  Gift,
+  Download,
   MapPin,
+  Plus,
   Ticket,
   UserRound,
   WifiOff,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ListaDeDados, Dado } from '@/components/ListaDeDados'
 import { ListaVazia } from '@/components/ListaVazia'
@@ -27,15 +29,18 @@ import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
+import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { useResumoDosConvites } from '@/hooks/useResumoDosConvites'
 import { useSessao } from '@/hooks/useSessao'
 import { contemBusca } from '@/lib/busca'
 import { formatarData, formatarDataHora, formatarHorario } from '@/lib/formato'
 import { avisarErro, ErroDeRede, ehErroDaApi } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
+import { ordenarPor } from '@/lib/ordenar'
 import { DialogoDoConvidado } from '../components/DialogoDoConvidado'
+import { DetalheDoConvite } from '../components/DetalheDoConvite'
+import { DialogoDaValidacao } from '../components/DialogoDaValidacao'
 import { ListaDaPortaria } from '../components/ListaDaPortaria'
-import { ValidacaoNaPortaria } from '../components/ValidacaoNaPortaria'
 import {
   useBaixarListaDaPortaria,
   useEmitirPendentes,
@@ -56,26 +61,35 @@ import {
 } from '../types/convites.types'
 
 /**
- * A portaria da festa: o código, a lista e a contagem (P4).
+ * O que cada coluna do painel de ordenação compara. Sem escolha vale a ordem da API — o sequencial.
+ */
+const CHAVES: Record<string, (convite: ConviteNaPortaria) => string> = {
+  nome: (convite) => convite.nome_do_convidado ?? '',
+  codigo: (convite) => convite.codigo,
+}
+
+/**
+ * A portaria da festa: a lista e a contagem (P4).
  *
- * O caminho principal é a câmera do celular abrindo a página do convite (decisão 3); aqui fica o
- * fallback — o código ditado pelo convidado com o print apagado — e a lista, que é a redundância de
- * papel quando o QR ou a rede falham (P5). A busca filtra a lista **já carregada**: sem rede, ela
- * continua funcionando, e a entrada pode ser marcada no aparelho para subir depois (decisões 7 e
- * 16). O cartão lateral diz de quando é a lista, porque sem rede ela envelhece.
+ * O caminho principal é a câmera do celular abrindo a página do convite (decisão 3); a lista é a
+ * redundância quando o QR ou a internet falham (P5). A busca filtra a lista **já carregada**: sem
+ * internet, ela continua funcionando, e a entrada pode ser registrada no celular para subir depois
+ * (decisões 7 e 16). O cartão lateral diz de quando é a lista, porque sem internet ela envelhece.
  *
- * Fonte grande e alvo de toque grande no código: quem usa isto está em pé, no escuro, com fila na
- * frente. A lista segue o desenho das planilhas da gestão — filtros, busca e ações à direita.
+ * A validação sai da linha da lista, e o resultado — grande — abre num diálogo: quem usa isto está
+ * em pé, no escuro, com fila na frente. A lista segue o desenho das planilhas da gestão — filtros,
+ * busca e ações à direita.
  */
 export default function PortariaPage() {
-  const [codigo, definirCodigo] = useState('')
   const [resultado, definirResultado] = useState<(Resultado & { codigo: string }) | null>(null)
   const [cortesia, definirCortesia] = useState(false)
   const [editando, definirEditando] = useState<false | { convite: MeuConvite }>(false)
   const [reemitindo, definirReemitindo] = useState<ConviteNaPortaria | null>(null)
+  const [detalhe, definirDetalhe] = useState<ConviteNaPortaria | null>(null)
   const editavel = useEscritaLiberada()
   const { usuario } = useSessao()
   const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
+  const ordenacao = useOrdenacao(atualizar)
   const eventoNaUrl = parametros.get('evento')
   const tipo: TipoDoEventoDoConvite = ehOpcao(eventoNaUrl, ROTULOS_DO_EVENTO) ? eventoNaUrl : 'Festa'
   const situacaoNaUrl = parametros.get('situacao')
@@ -103,11 +117,21 @@ export default function PortariaPage() {
       },
     )
 
+  /** Marca a entrada neste celular e fecha o resultado — a linha passa a mostrar a marca. */
+  const marcarSemRede = (alvo: string) => {
+    semRede.marcar(alvo, aparelho)
+    definirResultado(null)
+  }
+
   /** Troca de evento limpa o resultado e o filtro de situação: o lote era daquela lista. */
   const trocarEvento = (valor: TipoDoEventoDoConvite) => {
     definirResultado(null)
     atualizar({ evento: valor === 'Festa' ? null : valor, situacao: null })
   }
+
+  /** Clique na linha: abre o detalhe do convite, ou fecha o que já estava aberto. */
+  const alternarDetalhe = (convite: ConviteNaPortaria) =>
+    definirDetalhe((atual) => (atual?.id === convite.id ? null : convite))
 
   const seletorDeEvento = (
     <>
@@ -145,8 +169,8 @@ export default function PortariaPage() {
             titulo={`A ${nome} ainda não está na agenda`}
             dica={
               <>
-                A portaria abre com a {nome} marcada em <Link to={ROTAS.agenda}>Agenda</Link>, com data, hora
-                e local.
+                A portaria abre com a {nome} marcada em <LinkDaPagina to={ROTAS.agenda}>Agenda</LinkDaPagina>,
+                com data, hora e local.
               </>
             }
           />
@@ -171,10 +195,15 @@ export default function PortariaPage() {
       convites.filter((c) => c.situacao === valor).length,
     ]),
   ) as Record<SituacaoNaPortaria, number>
-  const visiveis = convites.filter(
-    (c) =>
-      (situacao === null || c.situacao === situacao) &&
-      (!busca || contemBusca(busca, c.nome_do_convidado, c.convidado_de, c.codigo)),
+  const visiveis = ordenarPor(
+    convites.filter(
+      (c) =>
+        (situacao === null || c.situacao === situacao) &&
+        (!busca || contemBusca(busca, c.nome_do_convidado, c.convidado_de, c.codigo)),
+    ),
+    CHAVES,
+    ordenacao.por,
+    ordenacao.descendente,
   )
   const pendentes = tipo === 'Festa' ? (resumo.data?.pedidos_quitados_sem_convite ?? 0) : 0
 
@@ -196,16 +225,16 @@ export default function PortariaPage() {
           className="bg-warning-bg text-warning-text flex items-start gap-2 rounded-xl p-4 text-sm"
         >
           <WifiOff className="mt-0.5 size-4 shrink-0" aria-hidden />
-          Sem conexão. A lista é de {formatarHorario(lista.data.gerada_em)} — um convite revogado depois disso
-          ainda aparece válido aqui. Confira nome e documento e marque a entrada no aparelho.
+          Sem internet. A lista é de {formatarHorario(lista.data.gerada_em)} — um convite revogado depois
+          disso ainda aparece válido aqui. Confira nome e documento e registre a entrada no celular.
         </p>
       ) : null}
 
       {semRede.entradas.length > 0 ? (
         <div className="bg-warning-bg text-warning-text flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 text-sm">
           <span>
-            {semRede.entradas.length} entrada{semRede.entradas.length === 1 ? '' : 's'} marcada
-            {semRede.entradas.length === 1 ? '' : 's'} sem rede neste aparelho.
+            {semRede.entradas.length} entrada{semRede.entradas.length === 1 ? '' : 's'} registrada
+            {semRede.entradas.length === 1 ? '' : 's'} neste celular, aguardando internet.
           </span>
           <Button
             size="sm"
@@ -237,8 +266,13 @@ export default function PortariaPage() {
         legenda="Situação"
         filtros={
           <>
-            <Chip tom="claro" ativo={situacao === null} onClick={() => atualizar({ situacao: null })}>
-              Todas
+            <Chip
+              tom="claro"
+              ativo={situacao === null}
+              contagem={convites.length}
+              onClick={() => atualizar({ situacao: null })}
+            >
+              Todos
             </Chip>
             {(Object.keys(ROTULOS_DE_SITUACAO) as SituacaoNaPortaria[]).map((valor) => (
               <Chip
@@ -257,16 +291,19 @@ export default function PortariaPage() {
           rotulo: 'Procurar convidado',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
-        acoes={
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-da-portaria" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'nome', rotulo: 'Convidado' },
+                { por: 'codigo', rotulo: 'Convite' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
+        antesDaContagem={
           <>
-            <Button
-              size="xs"
-              disabled={baixarLista.isPending}
-              onClick={() => baixarLista.mutate(tipo, { onError: avisarErro })}
-            >
-              <FileDown aria-hidden />
-              Lista em PDF
-            </Button>
             {editavel && pendentes > 0 ? (
               <Button
                 size="xs"
@@ -289,7 +326,7 @@ export default function PortariaPage() {
         acaoPrincipal={
           editavel ? (
             <Button size="xs" onClick={() => definirCortesia(true)}>
-              <Gift aria-hidden />
+              <Plus aria-hidden />
               Nova cortesia
             </Button>
           ) : null
@@ -306,27 +343,16 @@ export default function PortariaPage() {
           offline={offline}
           editavel={editavel}
           marcadoSemRede={semRede.marcado}
+          conviteAberto={detalhe}
+          aoDetalhar={alternarDetalhe}
           aoValidar={(convite) => validarCodigo(convite.codigo)}
-          aoMarcarSemRede={(convite) => semRede.marcar(convite.codigo, aparelho)}
+          aoMarcarSemRede={(convite) => marcarSemRede(convite.codigo)}
           aoEditar={(convite) => definirEditando({ convite: paraEdicao(convite) })}
           aoReemitir={definirReemitindo}
           aoMudarPagina={(numero) => atualizar({ pagina: String(numero) })}
         />
 
         <div className="grid min-w-0 content-start gap-5">
-          <ValidacaoNaPortaria
-            codigo={codigo}
-            aoDigitar={definirCodigo}
-            janelaAberta={lista.data.janela_aberta}
-            janelaAbreEm={evento.janela_abre_em}
-            prefixoDoCodigo={convites[0]?.codigo.split('-')[0] ?? 'MED27'}
-            resultado={resultado}
-            validando={validar.isPending}
-            aoValidar={validarCodigo}
-            aoMarcarSemRede={(alvo) => semRede.marcar(alvo, aparelho)}
-            aoDesfazer={() => definirResultado(null)}
-          />
-
           <Cartao titulo={evento.titulo}>
             <ListaDeDados>
               <Dado icone={CalendarDays} rotulo="Quando">
@@ -341,6 +367,20 @@ export default function PortariaPage() {
               </Dado>
             </ListaDeDados>
           </Cartao>
+
+          {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
+          <Cartao
+            titulo="Exportar lista"
+            descricao="Baixe a lista em PDF e leve para a porta — papel não fica sem bateria nem sem sinal."
+          >
+            <Button
+              disabled={baixarLista.isPending}
+              onClick={() => baixarLista.mutate(tipo, { onError: avisarErro })}
+            >
+              <Download aria-hidden />
+              {baixarLista.isPending ? 'Baixando…' : 'Baixar lista em PDF'}
+            </Button>
+          </Cartao>
         </div>
       </div>
 
@@ -348,6 +388,19 @@ export default function PortariaPage() {
         aberto={cortesia ? 'cortesia' : editando}
         eventoId={evento.id}
         aoFechar={() => (definirCortesia(false), definirEditando(false))}
+      />
+
+      <DetalheDoConvite
+        convite={detalhe}
+        marcadoSemRede={detalhe ? semRede.marcado(detalhe.codigo) : false}
+        aoFechar={() => definirDetalhe(null)}
+      />
+
+      <DialogoDaValidacao
+        resultado={resultado}
+        aoFechar={() => definirResultado(null)}
+        aoMarcarSemRede={marcarSemRede}
+        aoDesfazer={() => definirResultado(null)}
       />
 
       <DialogoDeConfirmacao

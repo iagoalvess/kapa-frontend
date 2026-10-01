@@ -1,4 +1,4 @@
-import { FileSpreadsheet } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { FiltroDePeriodo } from '@/components/FiltroDePeriodo'
@@ -48,8 +48,8 @@ export function NotaFiscalDosPlanos() {
         if (ano && mes) baixar.mutate({ ano, mes }, { onError: avisarErro })
       }}
       gatilho={
-        <Button size="xs" variant="outline" disabled={baixar.isPending}>
-          <FileSpreadsheet aria-hidden />
+        <Button size="xs" disabled={baixar.isPending}>
+          <Download aria-hidden />
           {baixar.isPending ? 'Baixando…' : 'Nota fiscal'}
         </Button>
       }

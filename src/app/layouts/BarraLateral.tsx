@@ -7,7 +7,6 @@ import {
   FileSignature,
   FileText,
   Crown,
-  FolderOpen,
   LogOut,
   GraduationCap,
   ShieldCheck,
@@ -471,7 +470,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                   aoNavegar={aoNavegar}
                   trancado={muralTrancado}
                 >
-                  A festa
+                  Festa
                 </ItemDeMenu>
                 <ItemDeMenu
                   to={ROTAS.portaria}
@@ -483,14 +482,6 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} trancado={muralTrancado}>
                   Mural
-                </ItemDeMenu>
-                <ItemDeMenu
-                  to={ROTAS.documentos}
-                  icone={FolderOpen}
-                  aoNavegar={aoNavegar}
-                  trancado={muralTrancado}
-                >
-                  Documentos
                 </ItemDeMenu>
               </Secao>
             </>
@@ -511,13 +502,10 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 {muralTrancado ? null : (
                   <>
                     <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
-                      A festa
+                      Festa
                     </ItemDeMenu>
                     <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
                       Mural
-                    </ItemDeMenu>
-                    <ItemDeMenu to={ROTAS.documentos} icone={FolderOpen} aoNavegar={aoNavegar}>
-                      Documentos
                     </ItemDeMenu>
                   </>
                 )}

@@ -1,9 +1,13 @@
-import { ChartColumn, CircleCheck, Package, ShoppingBag, ShoppingBasket, Wallet } from 'lucide-react'
-import { Link, Navigate } from 'react-router'
+import { ChartColumn, CircleCheck, Package, ShoppingBag, Wallet } from 'lucide-react'
+import { Navigate, useLocation } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { SeletorDeFiltro } from '@/components/SeletorDeFiltro'
@@ -16,6 +20,7 @@ import { usePedidos, useResumoDosPedidos } from '../hooks/usePedidos'
 import { ehOpcao } from '@/lib/opcao'
 import { rotuloDoItem, type FiltroDePedidos } from '../types/cobrancas.types'
 import { AcoesDoPedido } from '../components/AcoesDoPedido'
+import { LateralDePedidos } from '../components/LateralDePedidos'
 import { LiberarConvites } from '../components/LiberarConvites'
 import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
@@ -42,6 +47,7 @@ const SITUACOES = {
 export default function PedidosPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const resumo = useResumoDosPedidos()
 
   const situacaoNaUrl = parametros.get('situacao')
@@ -64,7 +70,7 @@ export default function PedidosPage() {
   if (pedidos.data && pedidos.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, pedidos.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   const linhas = resumo.data ?? []
@@ -145,21 +151,25 @@ export default function PedidosPage() {
           rotulo: 'Buscar formando',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-de-pedidos" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'formando', rotulo: 'Formando' },
+                { por: 'quantidade', rotulo: 'Unidades' },
+                { por: 'pedido_em', rotulo: 'Pedido em' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
         acoes={
-          <>
-            <Button asChild size="xs">
-              <Link to={ROTAS.meusPedidos}>
-                <ShoppingBasket aria-hidden />
-                Meus pedidos
-              </Link>
-            </Button>
-            <Button asChild size="xs">
-              <Link to={ROTAS.pedidosPorItem}>
-                <ChartColumn aria-hidden />
-                Itens
-              </Link>
-            </Button>
-          </>
+          <Button asChild size="xs">
+            <LinkDaPagina to={ROTAS.pedidosPorItem}>
+              <ChartColumn aria-hidden />
+              Itens
+            </LinkDaPagina>
+          </Button>
         }
         contagem={{
           mostrando: pedidos.data?.itens.length ?? 0,
@@ -168,56 +178,66 @@ export default function PedidosPage() {
         }}
       />
 
-      <Planilha
-        rotulo="Lista de pedidos"
-        consulta={pedidos}
-        vazio={{
-          titulo: filtrando ? 'Nenhum pedido com esses filtros' : 'Nenhum pedido ainda',
-          dica: filtrando
-            ? 'Tente outro item, outra situação ou outro nome.'
-            : 'Os pedidos aparecem aqui quando a tesouraria cria um opcional no plano e alguém pede.',
-        }}
-        ordenacao={ordenacao}
-        cabecalho={
-          <>
-            <ColunaOrdenavel coluna="formando">Formando</ColunaOrdenavel>
-            <th className="py-3 pr-4 font-normal">Item</th>
-            <ColunaOrdenavel coluna="quantidade" numerica>
-              Unidades
-            </ColunaOrdenavel>
-            <th className="py-3 pr-4 text-right font-normal">Total</th>
-            <ColunaOrdenavel coluna="pedido_em">Pedido em</ColunaOrdenavel>
-            <th className="py-3 pr-4 font-normal">Situação</th>
-          </>
-        }
-        aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
-      >
-        {(pedidos.data?.itens ?? []).map((pedido) => (
-          <tr key={pedido.id} className="border-b last:border-0">
-            <th scope="row" className="py-3 pr-4 text-left font-normal">
-              <div className="flex items-center gap-3">
-                <Avatar nome={pedido.nome} semente={pedido.usuario_id} className="size-8 text-sm" />
-                <span className="text-foreground truncate font-medium">{pedido.nome}</span>
-              </div>
-            </th>
-            <td className="py-3 pr-4">{rotuloDoItem(pedido)}</td>
-            <td className="py-3 pr-4 text-right tabular-nums">{formatarNumero(pedido.quantidade)}</td>
-            <td className="py-3 pr-4 text-right tabular-nums">
-              {formatarCentavos(pedido.total_em_centavos)}
-            </td>
-            <td className="py-3 pr-4 whitespace-nowrap">{formatarData(pedido.pedido_em)}</td>
-            <td className="py-3 pr-4">
-              <SituacaoDoPedido pedido={pedido} />
-            </td>
-            <td className="py-3 text-right">
-              <AcoesDaLinha rotulo={`Ações do pedido de ${pedido.nome}`}>
-                <LiberarConvites pedido={pedido} />
-                <AcoesDoPedido pedido={pedido} />
-              </AcoesDaLinha>
-            </td>
-          </tr>
-        ))}
-      </Planilha>
+      {/* A lateral só na tela bem larga (`2xl`, como a Conferência e Parcelas): a lista tem as ações
+          de cada linha e 22rem a menos a espremeria. Abaixo, ela desce. */}
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0">
+          <Planilha
+            rotulo="Lista de pedidos"
+            consulta={pedidos}
+            vazio={{
+              titulo: filtrando ? 'Nenhum pedido com esses filtros' : 'Nenhum pedido ainda',
+              dica: filtrando
+                ? 'Tente outro item, outra situação ou outro nome.'
+                : 'Os pedidos aparecem aqui quando a tesouraria cria um opcional no plano e alguém pede.',
+            }}
+            ordenacao={ordenacao}
+            cabecalho={
+              <>
+                <ColunaOrdenavel coluna="formando">Formando</ColunaOrdenavel>
+                <th className="py-3 pr-4 font-normal">Item</th>
+                <th className="py-3 pr-4 text-right font-normal">Total</th>
+                <ColunaOrdenavel coluna="pedido_em">Pedido em</ColunaOrdenavel>
+                <th className="py-3 pr-4 font-normal">Situação</th>
+              </>
+            }
+            aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
+          >
+            {(pedidos.data?.itens ?? []).map((pedido) => (
+              <tr key={pedido.id} className="border-b last:border-0">
+                <th scope="row" className="py-3 pr-4 text-left font-normal">
+                  <div className="flex items-center gap-3">
+                    <Avatar nome={pedido.nome} semente={pedido.usuario_id} className="size-8 text-sm" />
+                    <span className="text-foreground truncate font-medium">{pedido.nome}</span>
+                  </div>
+                </th>
+                <td className="py-3 pr-4">
+                  {formatarNumero(pedido.quantidade)}× {rotuloDoItem(pedido)}
+                </td>
+                <td className="py-3 pr-4 text-right tabular-nums">
+                  {formatarCentavos(pedido.total_em_centavos)}
+                </td>
+                <td className="py-3 pr-4 whitespace-nowrap">{formatarData(pedido.pedido_em)}</td>
+                <td className="py-3 pr-4">
+                  <SituacaoDoPedido pedido={pedido} />
+                </td>
+                <td className="py-3 text-right">
+                  <AcoesDaLinha rotulo={`Ações do pedido de ${pedido.nome}`}>
+                    <LiberarConvites pedido={pedido} />
+                    <AcoesDoPedido pedido={pedido} />
+                  </AcoesDaLinha>
+                </td>
+              </tr>
+            ))}
+          </Planilha>
+        </div>
+
+        {pedidos.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
+        ) : (
+          <LateralDePedidos />
+        )}
+      </div>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
 
 /**
  * O filtro da tela lido e gravado na query string — página, busca e o que mais a lista filtrar.
@@ -14,6 +14,7 @@ import { useSearchParams } from 'react-router'
  */
 export function useFiltrosDaUrl() {
   const [parametros, definirParametros] = useSearchParams()
+  const { state } = useLocation()
 
   // `preventScrollReset`: filtrar é continuar na mesma tela, e a lista não pode pular para o topo a
   // cada pílula — quem volta ao topo na troca de tela é o `ScrollRestoration` do `router`.
@@ -27,7 +28,7 @@ export function useFiltrosDaUrl() {
         }
         return proximos
       },
-      { preventScrollReset: true },
+      { preventScrollReset: true, state },
     )
 
   return {

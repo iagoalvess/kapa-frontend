@@ -50,7 +50,7 @@ describe('CartaoDoMercadoPago', () => {
     // A URL é só um âncora aqui: o jsdom navega por hash, e é assim que dá para ver a ida ao Mercado Pago.
     await expect.poll(() => globalThis.location.hash).toBe('#autorizacao-do-mercado-pago')
     await userEvent.click(screen.getByText('Como conectar? O Kapinha explica'))
-    expect(screen.getByText(/o dinheiro fica na conta Mercado Pago até vocês/)).toBeVisible()
+    expect(screen.getByText(/o dinheiro fica na conta Mercado Pago até você/)).toBeVisible()
   })
 
   /** P3: a tesouraria vê, mas quem conecta é o Presidente. */

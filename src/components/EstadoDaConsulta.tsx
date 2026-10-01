@@ -23,7 +23,7 @@ export function ErroDaConsulta({
 }) {
   if (!aoTentarDeNovo) {
     return (
-      <p role="alert" className={cn('text-destructive text-sm', className)}>
+      <p role="alert" className={cn('text-danger-text text-sm', className)}>
         {mensagemDoErro(erro)}
       </p>
     )
@@ -31,7 +31,7 @@ export function ErroDaConsulta({
 
   return (
     <div className={cn('grid justify-items-start gap-3', className)}>
-      <p role="alert" className="text-destructive text-sm">
+      <p role="alert" className="text-danger-text text-sm">
         {mensagemDoErro(erro)}
       </p>
       <Button variant="outline" size="sm" onClick={aoTentarDeNovo}>

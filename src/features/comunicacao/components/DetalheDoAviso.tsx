@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { Selo } from '@/components/Selo'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
@@ -62,25 +63,25 @@ export function DetalheDoAviso({
       {/* Autor, data e para quem ficam acima do texto, e não num cartão ao lado: a coluna da
           esquerda já é a lista, e um terceiro cartão espremeria a leitura. */}
       <dl className="flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
-        <Dado icone={UserRound} rotulo="Publicado por">
+        <MetaDoAviso icone={UserRound} rotulo="Publicado por">
           {aviso.autor ?? 'Comissão'}
-        </Dado>
-        <Dado icone={CalendarClock} rotulo="Publicado em">
-          <time dateTime={aviso.publicado_em} title={formatarDataHora(aviso.publicado_em)}>
-            {formatarDataRelativa(aviso.publicado_em)}
-          </time>
-        </Dado>
+        </MetaDoAviso>
+        <MetaDoAviso icone={CalendarClock} rotulo="Publicado em">
+          <Dica dica={formatarDataHora(aviso.publicado_em)}>
+            <time dateTime={aviso.publicado_em}>{formatarDataRelativa(aviso.publicado_em)}</time>
+          </Dica>
+        </MetaDoAviso>
         {editado ? (
-          <Dado icone={Pencil} rotulo="Editado em">
+          <MetaDoAviso icone={Pencil} rotulo="Editado em">
             <time dateTime={aviso.atualizado_em}>{formatarDataHora(aviso.atualizado_em)}</time>
-          </Dado>
+          </MetaDoAviso>
         ) : null}
-        <Dado icone={Eye} rotulo="Para quem">
+        <MetaDoAviso icone={Eye} rotulo="Para quem">
           {ROTULOS_DE_VISIBILIDADE[aviso.visibilidade]}
-        </Dado>
-        <Dado icone={Pin} rotulo="No mural">
+        </MetaDoAviso>
+        <MetaDoAviso icone={Pin} rotulo="No mural">
           {aviso.fixado ? 'Fixado no topo' : 'Na ordem de publicação'}
-        </Dado>
+        </MetaDoAviso>
       </dl>
 
       <TextoEmMarkdown conteudo={aviso.conteudo} className="max-w-prose" />
@@ -89,7 +90,7 @@ export function DetalheDoAviso({
 }
 
 /** Um par ícone · rótulo · valor da faixa de cima, em coluna para o rótulo não roubar a linha. */
-function Dado({
+function MetaDoAviso({
   icone: Icone,
   rotulo,
   children,

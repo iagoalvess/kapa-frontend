@@ -16,7 +16,7 @@ export function ErroDoFormulario({ className }: { className?: string } = {}) {
   if (!mensagem) return null
 
   return (
-    <p role="alert" className={cn('text-destructive text-sm', className)}>
+    <p role="alert" className={cn('text-danger-text text-sm', className)}>
       {mensagem}
     </p>
   )

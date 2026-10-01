@@ -1,6 +1,7 @@
 import { CircleSlash, Handshake, IdCard, Mail, NotebookPen, Receipt, Phone, Tag, Wallet } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Cartao } from '@/components/Cartao'
 import {
@@ -153,7 +154,9 @@ function DespesasDoFornecedor({ fornecedor }: { fornecedor: Fornecedor }) {
       }
       acao={
         <Button asChild variant="outline" size="sm">
-          <Link to={`${ROTAS.despesas}?busca=${encodeURIComponent(fornecedor.nome)}`}>Ver em Despesas</Link>
+          <LinkDaPagina to={`${ROTAS.despesas}?busca=${encodeURIComponent(fornecedor.nome)}`}>
+            Ver em Despesas
+          </LinkDaPagina>
         </Button>
       }
     >

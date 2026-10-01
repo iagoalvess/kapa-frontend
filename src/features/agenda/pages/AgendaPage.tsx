@@ -10,9 +10,10 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import mascoteAcenando from '@/assets/mascote/acenando.webp'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EsqueletoDeQuadro } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -27,7 +28,14 @@ import { usePapel } from '@/hooks/useSessao'
 import { formatarData, formatarMesLongo, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
-import { type EventoDaTurma, jaPassou, ROTULOS_DE_TIPO, type TipoDeEvento } from '@/types/agenda'
+import {
+  type EventoDaTurma,
+  jaPassou,
+  ROTULOS_DE_SITUACAO,
+  ROTULOS_DE_TIPO,
+  type SituacaoDoEvento,
+  type TipoDeEvento,
+} from '@/types/agenda'
 import { IndicadorDoEvento } from '../components/IndicadorDoEvento'
 import { CartaoDoEvento } from '../components/CartaoDoEvento'
 import { DialogoDeEvento } from '../components/DialogoDeEvento'
@@ -55,6 +63,7 @@ const COLUNAS = 4
 const TIPOS = ['Colacao', 'Festa', 'Reuniao', 'Prazo', 'Outro'] as const satisfies readonly TipoDeEvento[]
 
 const ehTipo = (valor: string | null): valor is TipoDeEvento => ehOpcao(valor, ROTULOS_DE_TIPO)
+const ehSituacao = (valor: string | null): valor is SituacaoDoEvento => ehOpcao(valor, ROTULOS_DE_SITUACAO)
 
 /**
  * A agenda da turma: colação, festa, reunião, prazo — todas as datas num lugar só.
@@ -86,7 +95,9 @@ export default function AgendaPage() {
   const todos = agenda.data ?? []
   const tipoNaUrl = parametros.get('tipo')
   const tipo = ehTipo(tipoNaUrl) ? tipoNaUrl : null
-  const visiveis = filtrar(todos, tipo, busca)
+  const situacaoNaUrl = parametros.get('situacao')
+  const situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : null
+  const visiveis = filtrar(todos, tipo, busca, situacao)
   const meses = agruparPorMes(visiveis)
 
   // A posição é presa no render que a usa, e não corrigida por efeito: o filtro pode encolher o
@@ -221,6 +232,25 @@ export default function AgendaPage() {
           rotulo: 'Buscar evento',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-da-agenda" ligados={situacao ? 1 : 0}>
+            <fieldset className="grid gap-2">
+              <legend className="text-muted-foreground mb-2 text-sm">Situação</legend>
+              <div className="flex flex-wrap gap-2">
+                {(Object.keys(ROTULOS_DE_SITUACAO) as SituacaoDoEvento[]).map((valor) => (
+                  <Chip
+                    key={valor}
+                    ativo={situacao === valor}
+                    contagem={todos.filter((evento) => evento.situacao === valor).length}
+                    onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+                  >
+                    {ROTULOS_DE_SITUACAO[valor]}
+                  </Chip>
+                ))}
+              </div>
+            </fieldset>
+          </BotaoDeFiltros>
+        }
         acaoPrincipal={
           editavel ? (
             <Button size="xs" onClick={() => definirCadastro({})}>
@@ -255,7 +285,7 @@ export default function AgendaPage() {
         contagem={{ mostrando: visiveis.length, total: todos.length, unidade: 'datas' }}
       />
 
-      {agenda.isPending ? <EsqueletoDeTexto linhas={6} /> : null}
+      {agenda.isPending ? <EsqueletoDeQuadro /> : null}
 
       {agenda.data && visiveis.length === 0 ? (
         <ListaVazia

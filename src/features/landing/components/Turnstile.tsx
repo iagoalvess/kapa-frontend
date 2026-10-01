@@ -88,7 +88,7 @@ export function Turnstile({ aoVerificar }: { aoVerificar: (token: string) => voi
     <div className="grid gap-1">
       <div ref={caixa} />
       {falhou ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-danger-text text-sm">
           A verificação de segurança não carregou. Desative o bloqueador de anúncios nesta página ou
           recarregue.
         </p>

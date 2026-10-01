@@ -92,7 +92,7 @@ export default function ConvitePage() {
 
     return (
       <Moldura>
-        <p role="alert" className="text-destructive text-center text-sm">
+        <p role="alert" className="text-danger-text text-center text-sm">
           {mensagemDoErro(aceitar.error)}
         </p>
         {SEM_NOVA_TENTATIVA.has(codigo) ? (

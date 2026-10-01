@@ -4,7 +4,7 @@ import type { PaginacaoRequest } from '@/types/paginacao'
 export type Visibilidade = 'Turma' | 'SomenteComissao'
 
 /** A gaveta do acervo. Espelha `CategoriaDeDocumento`. */
-export type CategoriaDeDocumento = 'Ata' | 'Contrato' | 'Orcamento' | 'Regulamento' | 'Outros'
+export type CategoriaDeDocumento = 'Ata' | 'Contrato' | 'Orcamento' | 'Comprovante' | 'Regulamento' | 'Outros'
 
 /** Máximo de avisos fixados ao mesmo tempo — o quarto a API recusa com `comunicacao.limite_de_fixados`. */
 export const LIMITE_DE_FIXADOS = 3
@@ -27,6 +27,7 @@ export const ROTULOS_DE_CATEGORIA = {
   Ata: 'Ata',
   Contrato: 'Contrato',
   Orcamento: 'Orçamento',
+  Comprovante: 'Comprovante',
   Regulamento: 'Regulamento',
   Outros: 'Outros',
 } as const satisfies Record<CategoriaDeDocumento, string>
@@ -36,6 +37,7 @@ export const GRUPOS_DE_CATEGORIA = {
   Ata: 'Atas',
   Contrato: 'Contratos',
   Orcamento: 'Orçamentos',
+  Comprovante: 'Comprovantes',
   Regulamento: 'Regulamentos',
   Outros: 'Outros',
 } as const satisfies Record<CategoriaDeDocumento, string>

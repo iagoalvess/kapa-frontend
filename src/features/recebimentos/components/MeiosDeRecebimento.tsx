@@ -13,9 +13,9 @@ import {
   UserRound,
   Wallet,
 } from 'lucide-react'
-import { useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
 import mascoteCelular from '@/assets/mascote/celular.webp'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
@@ -45,6 +45,7 @@ export function MeiosDeRecebimento() {
   const { ehPresidente } = usePapel()
   const liberado = useEscritaLiberada()
   const [parametros, definirParametros] = useSearchParams()
+  const { state } = useLocation()
 
   if (consulta.isPending)
     return (
@@ -59,7 +60,7 @@ export function MeiosDeRecebimento() {
   const escreve = ehPresidente && liberado
   const editando = escreve && (!conta || parametros.get('trocar') === 'meios')
   const testando = Boolean(conta?.meios.pix) && !conta?.conferida_em && ehPresidente && !editando
-  const trocar = (aberto: boolean) => definirParametros(aberto ? { trocar: 'meios' } : {})
+  const trocar = (aberto: boolean) => definirParametros(aberto ? { trocar: 'meios' } : {}, { state })
 
   const principal = editando ? (
     <Cartao
@@ -234,10 +235,10 @@ export function ComoODinheiroChega() {
             <span className="bg-muted text-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-lg">
               <Icone className="size-4.5" strokeWidth={1.75} aria-hidden />
             </span>
-            <div className="grid gap-0.5 text-sm">
+            <TextoDoCartao as="div" className="grid gap-0.5">
               <p className="text-foreground font-medium">{titulo}</p>
               <p className="text-muted-foreground">{texto}</p>
-            </div>
+            </TextoDoCartao>
           </li>
         ))}
       </ul>

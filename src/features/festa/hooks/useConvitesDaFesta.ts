@@ -121,7 +121,7 @@ export function useDesfazerEntrada() {
   return useEscritaDeConvite(desfazerEntrada)
 }
 
-/** Sobe as entradas marcadas sem rede. */
+/** Sobe as entradas registradas no celular. */
 export function useSincronizarEntradas() {
   return useEscritaDeConvite(sincronizarEntradas)
 }

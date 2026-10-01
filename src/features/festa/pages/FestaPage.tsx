@@ -1,13 +1,16 @@
 import { Armchair, CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ListaVazia } from '@/components/ListaVazia'
@@ -17,14 +20,16 @@ import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useDetalheDoItem, useItensDaFesta, useMetaDaFesta } from '@/hooks/useItensDaFesta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useOrdenacao } from '@/hooks/useOrdenacao'
+import { useEstadoComOrigem } from '@/hooks/useNavegacaoDaPagina'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { ordenarPor } from '@/lib/ordenar'
 import { cn } from '@/lib/utils'
 import { ehOpcao } from '@/lib/opcao'
 import { contemBusca } from '@/lib/busca'
 import { type EstadoDoItem, type ItemDaFesta, percentualDaMeta, ROTULOS_DE_ESTADO } from '@/types/festa'
-import { MapaDaMinhaMesa } from '../components/MapaDaMinhaMesa'
 import { DetalheDoItem } from '../components/DetalheDoItem'
 import { DialogoDeItem } from '../components/DialogoDeItem'
 import { LinhaDoItem } from '../components/LinhaDoItem'
@@ -58,6 +63,12 @@ function filtrar(itens: readonly ItemDaFesta[], estado: EstadoDoItem | null, bus
   )
 }
 
+/** O que cada coluna do painel compara. Sem ordenação escolhida vale a ordem da API (`ordem`). */
+const CHAVES: Record<string, (item: ItemDaFesta) => string | number> = {
+  item: (item) => item.titulo,
+  custo: (item) => item.custo_em_centavos,
+}
+
 /**
  * O que a turma está comprando, e quanto falta para pagar por isso.
  *
@@ -67,7 +78,7 @@ function filtrar(itens: readonly ItemDaFesta[], estado: EstadoDoItem | null, bus
  * **Lista à esquerda, item aberto à direita**, como o mural: a rota é a seleção (`/festa/:id`), e
  * sem id abre o primeiro da lista. Era uma grade de cartões, e o cartão não tinha onde caber o que
  * a tela precisa mostrar — a descrição inteira e as propostas com preço e voto. No celular não há
- * as duas colunas: sem id é a lista, com id é o item, com um "A festa" para voltar.
+ * as duas colunas: sem id é a lista, com id é o item, com um "Festa" para voltar.
  *
  * Nenhum número desta tela é digitado duas vezes: o selo de cada item e o custo da festa saem das
  * despesas da Sprint 10, e o arrecadado é o mesmo número da tela do Caixa.
@@ -79,6 +90,7 @@ export default function FestaPage() {
     false | { item: ItemDaFesta; acao: 'excluir' | 'cancelar' }
   >(false)
   const navegar = useNavigate()
+  const estadoComOrigem = useEstadoComOrigem()
   const { parametros, busca, atualizar } = useFiltrosDaUrl()
   const { tem } = usePapel()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
@@ -89,8 +101,9 @@ export default function FestaPage() {
   const meta = useMetaDaFesta().data
   const estadoNaUrl = parametros.get('estado')
   const estado = ehEstado(estadoNaUrl) ? estadoNaUrl : null
+  const ordenacao = useOrdenacao(atualizar)
   const todos = itens.data ?? []
-  const visiveis = filtrar(todos, estado, busca)
+  const visiveis = ordenarPor(filtrar(todos, estado, busca), CHAVES, ordenacao.por, ordenacao.descendente)
 
   // Sem id na rota, o primeiro da lista é o que abre — a direita nunca fica vazia.
   const escolhido = id ?? visiveis[0]?.id
@@ -123,7 +136,7 @@ export default function FestaPage() {
   return (
     <>
       <FaixaDeIndicadores
-        rotulo="A festa em números"
+        rotulo="Festa em números"
         indicadores={[
           {
             rotulo: 'Custo da festa',
@@ -161,8 +174,6 @@ export default function FestaPage() {
         ]}
       />
 
-      <MapaDaMinhaMesa />
-
       {/* A escadinha e a busca ficam acima das duas colunas, como no mural: é a lista inteira que
           elas recortam, e não o painel da direita. No celular somem junto com a lista.
 
@@ -193,14 +204,25 @@ export default function FestaPage() {
             </Chip>
           ))}
           busca={{ valor: busca, rotulo: 'Buscar item', aoBuscar: (termo) => atualizar({ busca: termo }) }}
+          filtrosAvancados={
+            <BotaoDeFiltros id="filtros-da-festa" ligados={ordenacao.por ? 1 : 0}>
+              <FiltroDeOrdenacao
+                ordenacao={ordenacao}
+                opcoes={[
+                  { por: 'item', rotulo: 'Item' },
+                  { por: 'custo', rotulo: 'Custo' },
+                ]}
+              />
+            </BotaoDeFiltros>
+          }
           acoes={
             <>
               {ehGestao ? (
                 <Button asChild size="xs">
-                  <Link to={ROTAS.mesas}>
+                  <LinkDaPagina to={ROTAS.mesas}>
                     <Armchair aria-hidden />
-                    Gerenciar mesas
-                  </Link>
+                    Mesas
+                  </LinkDaPagina>
                 </Button>
               ) : null}
             </>
@@ -264,7 +286,7 @@ export default function FestaPage() {
         <div className={cn('grid min-w-0 gap-3', !id && 'max-lg:hidden')}>
           {/* Só no celular: no desktop a lista está ao lado, e não há de onde voltar. */}
           <LinkDeVolta para={ROTAS.festa} className="lg:hidden">
-            A festa
+            Festa
           </LinkDeVolta>
 
           {aberto ? (
@@ -275,7 +297,9 @@ export default function FestaPage() {
               editavel={editavel}
               podeContratar={podeContratar}
               aoEditar={() => definirCadastro({ item: aberto.item })}
-              aoContratar={() => void navegar(`${ROTAS.despesas}?item=${aberto.item.id}`)}
+              aoContratar={() =>
+                void navegar(`${ROTAS.despesas}?item=${aberto.item.id}`, { state: estadoComOrigem })
+              }
               aoCancelar={() => definirConfirmando({ item: aberto.item, acao: 'cancelar' })}
               aoReativar={() =>
                 reativar.mutate(aberto.item.id, {

@@ -83,7 +83,6 @@ interface PixDoMercadoPago {
 export interface CobrancaDaParcela {
   /** O valor de hoje, somado quando são várias parcelas. */
   valor_em_centavos: number
-  identificador: string
   /** Os meios do Mercado Pago da turma, primeiro na tela; vazio sem a conta conectada. */
   pelo_mercado_pago: PeloMercadoPago[]
   /** Os meios da conta da comissão. Com um meio só, somando as duas listas, a tela não desenha seletor. */

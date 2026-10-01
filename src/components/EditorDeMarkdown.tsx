@@ -1,5 +1,6 @@
 import { Bold, Heading2, Link2, List, type LucideIcon } from 'lucide-react'
 import { type ComponentProps, type Ref, useRef, useState } from 'react'
+import { Dica } from '@/components/Dica'
 import { TextoEmMarkdown } from '@/components/TextoEmMarkdown'
 import { cn } from '@/lib/utils'
 
@@ -156,17 +157,17 @@ export function EditorDeMarkdown({
         <div className={cn('min-w-0 gap-2', aba === 'escrever' ? 'grid' : 'hidden lg:grid')}>
           <div role="toolbar" aria-label="Formatação" className="flex gap-1">
             {BOTOES.map(({ formato, rotulo, icone: Icone }) => (
-              <button
-                key={formato}
-                type="button"
-                title={rotulo}
-                aria-label={rotulo}
-                disabled={disabled}
-                onClick={() => formatar(formato)}
-                className="hover:bg-muted text-foreground/80 focus-visible:ring-ring inline-flex size-9 items-center justify-center rounded-lg focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
-              >
-                <Icone className="size-4" aria-hidden />
-              </button>
+              <Dica key={formato} dica={rotulo}>
+                <button
+                  type="button"
+                  aria-label={rotulo}
+                  disabled={disabled}
+                  onClick={() => formatar(formato)}
+                  className="hover:bg-muted text-foreground/80 focus-visible:ring-ring inline-flex size-9 items-center justify-center rounded-lg focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+                >
+                  <Icone className="size-4" aria-hidden />
+                </button>
+              </Dica>
             ))}
           </div>
           <textarea
@@ -177,7 +178,7 @@ export function EditorDeMarkdown({
             onChange={(evento) => onChange(evento.target.value)}
             spellCheck
             className={cn(
-              'border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full resize-y rounded-xl border bg-transparent px-3 py-2 font-mono text-sm leading-relaxed shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
+              'border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full resize-y rounded-lg border bg-transparent px-3 py-2 font-mono text-sm leading-relaxed shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
               folha,
               className,
             )}

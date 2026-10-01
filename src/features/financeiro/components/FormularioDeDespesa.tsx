@@ -189,7 +189,7 @@ export function FormularioDeDespesa({
                   </Select>
                 </FormControl>
                 <p className="text-texto-muted text-xs">
-                  Vinculada a um item, esta despesa passa a contar no cartão dele em "A festa".
+                  Vinculada a um item, esta despesa passa a contar no cartão dele em "Festa".
                 </p>
                 <FormMessage />
               </FormItem>

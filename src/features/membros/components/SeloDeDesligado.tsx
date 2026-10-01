@@ -1,3 +1,4 @@
+import { Dica } from '@/components/Dica'
 import { Selo } from '@/components/Selo'
 import { formatarData } from '@/lib/formato'
 import { MOTIVOS_DE_SAIDA, type MembroDaFormatura } from '../types/membros.types'
@@ -21,10 +22,10 @@ export function SeloDeDesligado({ membro }: { membro: MembroDaFormatura }) {
   const detalhe = membro.detalhe_do_desligamento ? `: ${membro.detalhe_do_desligamento}` : ''
 
   return (
-    <span
-      title={`Desligado em ${formatarData(membro.desligado_em)}${motivo ? ` — ${motivo}${detalhe}` : ''}`}
-    >
-      <Selo tom="perigo">Desligado</Selo>
-    </span>
+    <Dica dica={`Desligado em ${formatarData(membro.desligado_em)}${motivo ? ` — ${motivo}${detalhe}` : ''}`}>
+      <span>
+        <Selo tom="perigo">Desligado</Selo>
+      </span>
+    </Dica>
   )
 }

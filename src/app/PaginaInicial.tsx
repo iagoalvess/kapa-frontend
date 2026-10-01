@@ -1,9 +1,9 @@
 import { CalendarDays, ChevronRight } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteAcenando from '@/assets/mascote/acenando.webp'
 import mascoteCanudo from '@/assets/mascote/canudo.webp'
 import mascoteFoguete from '@/assets/mascote/foguete.webp'
-import { Esqueleto, EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { PAPEIS } from '@/config/perfis'
 import { MODULOS } from '@/config/planos'
@@ -30,7 +30,7 @@ export function PaginaInicial() {
   const telaGrande = useTelaGrande()
   const muralTrancado = usePlanoDaTurma().bloqueia(MODULOS.mural)
 
-  if (formatura.isPending) return <Esqueleto className="h-80 rounded-3xl" />
+  if (formatura.isPending) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
   if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
 
   const turma = formatura.data
@@ -110,12 +110,12 @@ export function PaginaInicial() {
                   {formatarData(fim)}
                 </p>
               ) : ehGestao ? (
-                <Link
+                <LinkDaPagina
                   to={ROTAS.agenda}
                   className="text-brand-text mt-3 inline-block text-sm underline underline-offset-4"
                 >
                   Marcar agora
-                </Link>
+                </LinkDaPagina>
               ) : null}
             </div>
             <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
@@ -219,7 +219,7 @@ function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
             return (
               <li key={evento.id} className="border-border border-b last:border-0">
                 {/* A linha inteira leva à agenda: a data não tem tela própria, e é lá que ela se lê inteira. */}
-                <Link
+                <LinkDaPagina
                   to={ROTAS.agenda}
                   className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5 outline-none focus-visible:ring-2"
                 >
@@ -236,7 +236,7 @@ function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
                     </span>
                   </span>
                   <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
-                </Link>
+                </LinkDaPagina>
               </li>
             )
           })}

@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
+import { CampoDeArquivo } from '@/components/CampoDeArquivo'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { EditorDeMarkdown } from '@/components/EditorDeMarkdown'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
@@ -44,6 +46,7 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
   const criar = useCriarItem()
   const atualizar = useAtualizarItem()
   const salvando = criar.isPending || atualizar.isPending
+  const [contrato, definirContrato] = useState<File | undefined>(undefined)
 
   const formulario = useForm<ValoresDoItem>({
     resolver: zodResolver(esquemaDeItemDaFesta),
@@ -67,8 +70,8 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
       onError: (erro: unknown) => exibirErroNoFormulario(erro, formulario.setError),
     }
 
-    if (editando) atualizar.mutate({ id: editando.id, dados: paraDadosDoItem(valores) }, aoTerminar)
-    else criar.mutate(paraDadosDoItem(valores), aoTerminar)
+    if (editando) atualizar.mutate({ id: editando.id, dados: paraDadosDoItem(valores), contrato }, aoTerminar)
+    else criar.mutate({ dados: paraDadosDoItem(valores), contrato }, aoTerminar)
   })
 
   return (
@@ -178,6 +181,17 @@ export function FormularioDoItem({ editando, editavel, aoConcluir }: Props) {
             )}
           />
         </div>
+
+        {/* Anexar aqui evita a ida ao acervo: o contrato nasce lá, visível para a turma, e o item já
+            aponta para ele. Escolher um existente acima continua valendo para reusar o mesmo contrato. */}
+        <CampoDeArquivo
+          valor={contrato}
+          aoEscolher={definirContrato}
+          tipos=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx"
+          rotulo="Anexar contrato (opcional)"
+          dica="PDF, imagem, Word ou Excel. Vai para o acervo, visível para a turma — ou escolha um já existente acima."
+          desabilitado={!editavel}
+        />
 
         <div className="grid items-start gap-4 sm:grid-cols-2">
           <FormField

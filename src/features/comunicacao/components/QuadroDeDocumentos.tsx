@@ -1,8 +1,11 @@
 import { Clock, Download, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar } from '@/components/Avatar'
+import { Dica } from '@/components/Dica'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
+import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   formatarDataHora,
   formatarDataRelativa,
@@ -35,6 +38,7 @@ const NOVO_NA_CATEGORIA = {
   Ata: 'Nova ata',
   Contrato: 'Novo contrato',
   Orcamento: 'Novo orçamento',
+  Comprovante: 'Novo comprovante',
   Regulamento: 'Novo regulamento',
   Outros: 'Novo documento',
 } as const satisfies Record<CategoriaDeDocumento, string>
@@ -77,13 +81,11 @@ export function QuadroDeDocumentos({ documentos, gestao, editavel, aoAdicionar, 
                 {formatarNumero(itens.length)}
               </span>
               {ultimo ? (
-                <time
-                  dateTime={ultimo}
-                  title={`Último adicionado em ${formatarDataHora(ultimo)}`}
-                  className="text-texto-muted ml-auto shrink-0 text-xs"
-                >
-                  {formatarDiaMes(ultimo)}
-                </time>
+                <Dica dica={`Último adicionado em ${formatarDataHora(ultimo)}`}>
+                  <time dateTime={ultimo} className="text-texto-muted ml-auto shrink-0 text-xs">
+                    {formatarDiaMes(ultimo)}
+                  </time>
+                </Dica>
               ) : null}
             </header>
 
@@ -149,35 +151,28 @@ function CartaoDeDocumento({
         <span className="text-texto-muted">
           {extensao(documento.nome_do_arquivo)} · {formatarTamanho(documento.tamanho)}
         </span>
-        <span className="bg-warning-bg text-warning-text inline-flex h-5 items-center gap-1 rounded-md px-1.5 font-medium">
+        <Selo tom="alerta" className="gap-1">
           <Clock className="size-3" aria-hidden />
-          <time dateTime={documento.enviado_em} title={formatarDataHora(documento.enviado_em)}>
-            {formatarDataRelativa(documento.enviado_em)}
-          </time>
-        </span>
-        {documento.versao > 1 ? (
-          <span className="bg-muted text-muted-foreground inline-flex h-5 items-center rounded-md px-1.5 font-medium">
-            v{documento.versao}
-          </span>
-        ) : null}
-        {documento.visibilidade === 'SomenteComissao' ? (
-          <span className="bg-neutral-bg text-neutral-text inline-flex h-5 items-center rounded-md px-1.5 font-medium">
-            Só comissão
-          </span>
-        ) : null}
+          <Dica dica={formatarDataHora(documento.enviado_em)}>
+            <time dateTime={documento.enviado_em}>{formatarDataRelativa(documento.enviado_em)}</time>
+          </Dica>
+        </Selo>
+        {documento.versao > 1 ? <Selo tom="neutro">v{documento.versao}</Selo> : null}
+        {documento.visibilidade === 'SomenteComissao' ? <Selo tom="cinza">Só comissão</Selo> : null}
 
         <span className="ml-auto flex">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={iconeDeAcao}
-            disabled={abrindo}
-            onClick={() => abrir(documento)}
-            aria-label={`Baixar ${documento.titulo}`}
-            title="Baixar"
-          >
-            <Download className="size-4" aria-hidden />
-          </Button>
+          <Dica dica="Baixar">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={iconeDeAcao}
+              disabled={abrindo}
+              onClick={() => abrir(documento)}
+              aria-label={`Baixar ${documento.titulo}`}
+            >
+              <Download className="size-4" aria-hidden />
+            </Button>
+          </Dica>
           {acoes ? <AcoesDaGestao documento={documento} acoes={acoes} classe={iconeDeAcao} /> : null}
         </span>
       </div>
@@ -196,44 +191,55 @@ function AcoesDaGestao({
   classe: string
 }) {
   const excluir = useExcluirDocumento()
+  const desabilitado = !acoes.editavel || excluir.isPending
+
+  const botaoDeExcluir = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={classe}
+      disabled={desabilitado}
+      aria-label={`Excluir ${documento.titulo}`}
+    >
+      <Trash2 className="size-4" aria-hidden />
+    </Button>
+  )
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={classe}
-        disabled={!acoes.editavel}
-        onClick={acoes.aoEditar}
-        aria-label={`Editar ${documento.titulo}`}
-        title="Editar ou substituir o arquivo"
-      >
-        <Pencil className="size-4" aria-hidden />
-      </Button>
-      <DialogoDeConfirmacao
-        gatilho={
-          <Button
-            variant="ghost"
-            size="icon"
-            className={classe}
-            disabled={!acoes.editavel || excluir.isPending}
-            aria-label={`Excluir ${documento.titulo}`}
-            title="Excluir"
-          >
-            <Trash2 className="size-4" aria-hidden />
-          </Button>
-        }
-        titulo={`Excluir “${documento.titulo}”?`}
-        descricao="O documento e o arquivo são apagados, e a exclusão fica registrada com o seu nome. Não há como recuperar."
-        rotulo="Excluir"
-        destrutivo
-        aoConfirmar={() =>
-          excluir.mutate(documento.id, {
-            onSuccess: () => toast.info('Documento excluído.'),
-            onError: avisarErro,
-          })
-        }
-      />
+      <Dica dica="Editar ou substituir o arquivo">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={classe}
+          disabled={!acoes.editavel}
+          onClick={acoes.aoEditar}
+          aria-label={`Editar ${documento.titulo}`}
+        >
+          <Pencil className="size-4" aria-hidden />
+        </Button>
+      </Dica>
+      <Tooltip>
+        <DialogoDeConfirmacao
+          gatilho={
+            <TooltipTrigger asChild>
+              {/* Botão desabilitado não recebe hover: o vão mostra o tooltip por ele. */}
+              {desabilitado ? <span className="inline-flex">{botaoDeExcluir}</span> : botaoDeExcluir}
+            </TooltipTrigger>
+          }
+          titulo={`Excluir “${documento.titulo}”?`}
+          descricao="O documento e o arquivo são apagados, e a exclusão fica registrada com o seu nome. Não há como recuperar."
+          rotulo="Excluir"
+          destrutivo
+          aoConfirmar={() =>
+            excluir.mutate(documento.id, {
+              onSuccess: () => toast.info('Documento excluído.'),
+              onError: avisarErro,
+            })
+          }
+        />
+        <TooltipContent>Excluir</TooltipContent>
+      </Tooltip>
     </>
   )
 }

@@ -1,6 +1,6 @@
 import { CalendarClock, CircleCheck, HandCoins, Plus, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
@@ -49,6 +49,7 @@ const ehCategoria = (valor: string | null): valor is CategoriaDeOutraReceita =>
 export default function OutrasReceitasPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const [dialogo, definirDialogo] = useState<false | { outraReceita?: OutraReceita }>(false)
   const { tem } = usePapel()
   // Ler é de todo membro; lançar, receber e cancelar são da Tesouraria — a API recusa o resto.
@@ -85,7 +86,7 @@ export default function OutrasReceitasPage() {
   if (outrasReceitas.data && outrasReceitas.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, outrasReceitas.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (

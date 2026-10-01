@@ -1,15 +1,15 @@
-import { CalendarClock, CircleCheck, Handshake, Plus, Receipt, TriangleAlert } from 'lucide-react'
+import { CalendarClock, CircleCheck, Plus, Receipt, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDePeriodo, faixasDeVencimento } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
-import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -18,6 +18,7 @@ import { usePapel } from '@/hooks/useSessao'
 import { ehDia, formatarCentavos } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { DialogoDeDespesa } from '../components/DialogoDeDespesa'
+import { LateralDeDespesas } from '../components/LateralDeDespesas'
 import { LinhaDeDespesa } from '../components/LinhaDeDespesa'
 import { useDespesas, useResumoDeDespesas } from '../hooks/useDespesas'
 import { useFornecedores } from '../hooks/useFornecedores'
@@ -55,6 +56,7 @@ const ehCategoria = (valor: string | null): valor is CategoriaDeDespesa =>
 export default function DespesasPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
+  const { state } = useLocation()
   const [lancamento, definirLancamento] = useState<false | { despesa?: Despesa }>(false)
   const { tem } = usePapel()
   // Ler é de todo membro; lançar, pagar e cancelar continuam da Tesouraria — a API recusa o resto.
@@ -112,7 +114,7 @@ export default function DespesasPage() {
   if (despesas.data && despesas.data.itens.length === 0 && pagina > 1) {
     const ultima = new URLSearchParams(parametros)
     ultima.set('pagina', String(Math.max(1, despesas.data.total_paginas)))
-    return <Navigate to={{ search: ultima.toString() }} replace />
+    return <Navigate to={{ search: ultima.toString() }} state={state} replace />
   }
 
   return (
@@ -213,20 +215,6 @@ export default function DespesasPage() {
             <FiltroDePeriodo className="mt-4" de={de} ate={ate} aoMudar={atualizar} />
           </BotaoDeFiltros>
         }
-        acoes={
-          <>
-            {tesouraria ? (
-              <Button asChild size="xs">
-                <Link to={ROTAS.fornecedores}>
-                  <Handshake aria-hidden />
-                  Fornecedores
-                </Link>
-              </Button>
-            ) : null}
-            {/* Some para quem não é da Tesouraria; desabilitado, prometeria uma ação que nunca vai
-                ser dele. Para a Tesouraria com a turma fora de Ativa, aí sim: fica cinza. */}
-          </>
-        }
         acaoPrincipal={
           tesouraria ? (
             <Button size="xs" disabled={!editavel} onClick={() => definirLancamento({})}>
@@ -237,33 +225,45 @@ export default function DespesasPage() {
         }
       />
 
-      <Planilha
-        rotulo="Lista de despesas"
-        consulta={despesas}
-        vazio={{
-          titulo: filtrando ? 'Nenhuma despesa com esses filtros' : 'Nenhuma despesa lançada',
-          dica: filtrando
-            ? 'Tente outra situação, outra categoria ou outro período.'
-            : 'Registre os gastos da turma, como buffet, espaço e banda. Eles aparecerão no caixa junto com os valores recebidos.',
-        }}
-        ordenacao={ordenacao}
-        cabecalho={
-          <>
-            <ColunaOrdenavel coluna="despesa">Despesa</ColunaOrdenavel>
-            <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
-            <ColunaOrdenavel coluna="valor" numerica>
-              Valor
-            </ColunaOrdenavel>
-            {/* "Atrasada" não é coluna do banco: sai do vencimento contra hoje, e não ordena. */}
-            <th className="py-3 pr-4 font-normal">Situação</th>
-          </>
-        }
-        aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
-      >
-        {(despesas.data?.itens ?? []).map((despesa) => (
-          <LinhaDeDespesa key={despesa.id} despesa={despesa} editavel={editavel} />
-        ))}
-      </Planilha>
+      {/* A lateral só na tela bem larga (`2xl`, como a Conferência e Parcelas): a lista tem o valor
+          e as ações de cada linha, e 22rem a menos a espremeria. Abaixo, ela desce. */}
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0">
+          <Planilha
+            rotulo="Lista de despesas"
+            consulta={despesas}
+            vazio={{
+              titulo: filtrando ? 'Nenhuma despesa com esses filtros' : 'Nenhuma despesa lançada',
+              dica: filtrando
+                ? 'Tente outra situação, outra categoria ou outro período.'
+                : 'Registre os gastos da turma, como buffet, espaço e banda. Eles aparecerão no caixa junto com os valores recebidos.',
+            }}
+            ordenacao={ordenacao}
+            cabecalho={
+              <>
+                <ColunaOrdenavel coluna="despesa">Despesa</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="vencimento">Vencimento</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="valor" numerica>
+                  Valor
+                </ColunaOrdenavel>
+                {/* "Atrasada" não é coluna do banco: sai do vencimento contra hoje, e não ordena. */}
+                <th className="py-3 pr-4 font-normal">Situação</th>
+              </>
+            }
+            aoMudarPagina={(nova) => atualizar({ pagina: nova === 1 ? null : String(nova) })}
+          >
+            {(despesas.data?.itens ?? []).map((despesa) => (
+              <LinhaDeDespesa key={despesa.id} despesa={despesa} editavel={editavel} />
+            ))}
+          </Planilha>
+        </div>
+
+        {despesas.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
+        ) : (
+          <LateralDeDespesas resumo={resumo} />
+        )}
+      </div>
 
       <DialogoDeDespesa
         aberto={lancamento !== false ? lancamento : contratando ? {} : false}

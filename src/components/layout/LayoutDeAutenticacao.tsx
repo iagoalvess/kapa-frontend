@@ -36,7 +36,7 @@ export const estilos = {
  * @param etapa Nas telas de mais de um passo, qual está na tela: trocar o valor faz o conteúdo
  *   entrar de novo com a animação padrão. O logo fica parado.
  * @param onboarding Escolher, criar ou entrar numa formatura: o formulário é maior que o de
- *   login, então as colunas se dividem ao meio, o carrossel passa para a esquerda e conta o
+ *   login. O passaporte ocupa a coluna maior e passa para a esquerda, contando o
  *   caminho da turma em vez de vender o produto.
  */
 export function LayoutDeAutenticacao({
@@ -52,7 +52,7 @@ export function LayoutDeAutenticacao({
     <div
       className={cn(
         'grid min-h-full',
-        onboarding ? 'lg:grid-cols-2' : 'lg:grid-cols-[minmax(500px,660px)_1fr]',
+        onboarding ? 'lg:grid-cols-[1.1fr_minmax(400px,0.9fr)]' : 'lg:grid-cols-[minmax(400px,0.9fr)_1.1fr]',
       )}
     >
       <main className="bg-card flex flex-col justify-center px-8 py-12 lg:px-14">
@@ -70,7 +70,7 @@ export function LayoutDeAutenticacao({
       */}
       <aside
         className={cn(
-          'bg-brand text-on-brand hidden flex-col items-center justify-center p-12 lg:flex',
+          'bg-brand text-on-brand hidden min-w-0 flex-col items-center justify-center px-6 py-12 lg:flex xl:px-12',
           onboarding && 'lg:order-first',
         )}
         aria-label="Kapa"

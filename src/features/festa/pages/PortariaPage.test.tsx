@@ -92,12 +92,17 @@ describe('PortariaPage', () => {
 
   afterEach(() => sessao.encerrar())
 
-  it('mostra a contagem e o revogado em vermelho, com o motivo', async () => {
+  it('mostra a contagem, e o detalhe do convite abre ao clicar na linha', async () => {
     renderizar(<PortariaPage />)
 
     expect(await screen.findByText('Maria Avó')).toBeInTheDocument()
-    expect(screen.getByText('Revogado: pagamento estornado')).toBeInTheDocument()
-    expect(screen.getByText(/Entrou às .*, por Bruno/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('João Primo'))
+    expect(await screen.findByText(/Entrou às .*, por Bruno/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    await userEvent.click(screen.getByText('Carlos Antigo'))
+    expect(await screen.findByText('pagamento estornado')).toBeInTheDocument()
   })
 
   it('a busca filtra a lista já carregada, sem acento e pelo código', async () => {
@@ -120,9 +125,9 @@ describe('PortariaPage', () => {
     expect(screen.queryByText('Maria Avó')).not.toBeInTheDocument()
   })
 
-  it('o código ditado vale na hora, e a segunda leitura diz quem validou', async () => {
+  it('a validação pela linha abre o resultado, e a segunda leitura diz quem validou', async () => {
     servidor.use(
-      http.post(`${API}/api/v1/festa/convites/MED27-BBBB/check-in`, () =>
+      http.post(`${API}/api/v1/festa/convites/MED27-AAAA/check-in`, () =>
         HttpResponse.json(
           {
             codigo: 'festa.ja_validado',
@@ -140,14 +145,13 @@ describe('PortariaPage', () => {
     )
     renderizar(<PortariaPage />)
 
-    await userEvent.type(await screen.findByRole('textbox', { name: 'Código do convite' }), 'med27-bbbb')
-    await userEvent.click(screen.getByRole('button', { name: 'Validar código' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Validar' }))
 
     expect(await screen.findByText(/^Já validado às/)).toBeInTheDocument()
     expect(screen.getByText(/Por Bruno/)).toBeInTheDocument()
   })
 
-  it('a portaria da colação pede a lista dela e valida com o evento dela — o convite da festa não passa', async () => {
+  it('a portaria da colação pede a lista dela e valida com o evento dela', async () => {
     let eventoDoCheckIn: unknown = 'não chamado'
     const colacao: ListaDaPortaria = {
       ...lista,
@@ -158,7 +162,7 @@ describe('PortariaPage', () => {
       http.get(`${API}/api/v1/festa/portaria`, ({ request }) =>
         HttpResponse.json(new URL(request.url).searchParams.get('tipo') === 'Colacao' ? colacao : lista),
       ),
-      http.post(`${API}/api/v1/festa/convites/MED27-AAAA/check-in`, async ({ request }) => {
+      http.post(`${API}/api/v1/festa/convites/MED27-KKKK/check-in`, async ({ request }) => {
         eventoDoCheckIn = ((await request.json()) as { evento_id: string | null }).evento_id
         return HttpResponse.json(
           { codigo: 'festa.outro_evento', detail: 'Este convite é de outro evento.' },
@@ -173,22 +177,22 @@ describe('PortariaPage', () => {
     expect(await screen.findByText('Tia Rosa')).toBeInTheDocument()
     expect(screen.queryByText('Maria Avó')).not.toBeInTheDocument()
 
-    await userEvent.type(screen.getByRole('textbox', { name: 'Código do convite' }), 'MED27-AAAA')
-    await userEvent.click(screen.getByRole('button', { name: 'Validar código' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Validar' }))
 
     await screen.findByText(/outro evento/i)
     expect(eventoDoCheckIn).toBe('ev-colacao')
   })
 
-  it('sem rede, oferece marcar a entrada no aparelho e sincronizar depois', async () => {
+  it('sem internet, oferece registrar a entrada no celular e sincronizar depois', async () => {
     servidor.use(http.post(`${API}/api/v1/festa/convites/MED27-AAAA/check-in`, () => HttpResponse.error()))
     renderizar(<PortariaPage />)
 
-    await userEvent.type(await screen.findByRole('textbox', { name: 'Código do convite' }), 'MED27-AAAA')
-    await userEvent.click(screen.getByRole('button', { name: 'Validar código' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Marcar entrada sem rede' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Validar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Registrar entrada no celular' }))
 
-    expect(await screen.findByText(/1 entrada marcada sem\s+rede neste aparelho/)).toBeInTheDocument()
+    expect(
+      await screen.findByText('1 entrada registrada neste celular, aguardando internet.'),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sincronizar' })).toBeInTheDocument()
   })
 })

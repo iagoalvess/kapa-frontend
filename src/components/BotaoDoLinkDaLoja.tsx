@@ -9,11 +9,20 @@ import { copiar } from '@/lib/copiar'
  * Copia o link da loja pública da turma da sessão (Sprint 26) — o que a comissão divulga.
  *
  * Em `components/` porque duas features o mostram: o cartão de Opcionais, onde a loja se abre, e a
- * tela de compras da Gestão, onde ela se acompanha.
+ * lateral da tela de compras da Gestão, onde ela se acompanha.
  *
- * @param tamanho `sm` no cabeçalho de cartão; `xs` na barra de uma lista.
+ * @param tamanho `sm` no cabeçalho de cartão; `default` no corpo do cartão lateral, onde é a ação
+ *   principal — o mesmo formato do "Pagar com PIX" de Minhas parcelas.
+ * @param variante `outline` no cabeçalho de cartão (ação secundária); `default` no cartão lateral,
+ *   onde divulgar é o que se faz com a loja.
  */
-export function BotaoDoLinkDaLoja({ tamanho = 'sm' }: { tamanho?: 'sm' | 'xs' }) {
+export function BotaoDoLinkDaLoja({
+  tamanho = 'sm',
+  variante = 'outline',
+}: {
+  tamanho?: 'sm' | 'default'
+  variante?: 'default' | 'outline'
+}) {
   const { formaturaId } = useFormaturaAtiva()
   if (!formaturaId) return null
 
@@ -25,7 +34,7 @@ export function BotaoDoLinkDaLoja({ tamanho = 'sm' }: { tamanho?: 'sm' | 'xs' })
   }
 
   return (
-    <Button variant="outline" size={tamanho} onClick={() => void copiarLink()}>
+    <Button variant={variante} size={tamanho} onClick={() => void copiarLink()}>
       <Link2 aria-hidden />
       Copiar link da loja
     </Button>

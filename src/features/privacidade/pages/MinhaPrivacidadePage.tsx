@@ -10,7 +10,7 @@ import {
   UserRound,
   Wallet,
 } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -113,15 +113,18 @@ export default function MinhaPrivacidadePage() {
         <p className="text-muted-foreground text-[15px]">
           Para <strong className="text-foreground font-medium">corrigir</strong> qualquer dado desta página,
           use{' '}
-          <Link to={ROTAS.meuCadastro} className="text-brand-text underline underline-offset-4">
+          <LinkDaPagina to={ROTAS.meuCadastro} className="text-brand-text underline underline-offset-4">
             Meus dados
-          </Link>{' '}
+          </LinkDaPagina>{' '}
           — o cadastro é seu e você o edita quando quiser. Para saber{' '}
           <strong className="text-foreground font-medium">com quem compartilhamos</strong>, veja a{' '}
-          <Link to={urlDoSite(ROTAS.operadores)} className="text-brand-text underline underline-offset-4">
+          <LinkDaPagina
+            to={urlDoSite(ROTAS.operadores)}
+            className="text-brand-text underline underline-offset-4"
+          >
             empresas que recebem seus dados
             <ExternalLink className="ml-0.5 inline size-3.5" aria-hidden />
-          </Link>
+          </LinkDaPagina>
           .
         </p>
 

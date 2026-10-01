@@ -10,14 +10,42 @@ const PROPOSTAS = '/api/v1/festa/propostas'
   uma feature não importa de outra.
 */
 
-/** Cria um item no fim da lista. */
-export function criarItemDaFesta(dados: DadosDoItemDaFesta) {
-  return api.post<ItemDaFesta>(ITENS, { body: dados })
+/** Cria um item no fim da lista. O contrato, se vier, nasce no acervo e o item aponta para ele. */
+export function criarItemDaFesta({ dados, contrato }: { dados: DadosDoItemDaFesta; contrato?: File }) {
+  return api.post<ItemDaFesta>(ITENS, { body: formularioDoContrato(dados, contrato) })
 }
 
-/** Corrige um item. Item cancelado devolve `festa.item_cancelado`. */
-export function atualizarItemDaFesta({ id, dados }: { id: string; dados: DadosDoItemDaFesta }) {
-  return api.put<ItemDaFesta>(`${ITENS}/${id}`, { body: dados })
+/** Corrige um item. Item cancelado devolve `festa.item_cancelado`. O contrato, se vier, nasce no acervo. */
+export function atualizarItemDaFesta({
+  id,
+  dados,
+  contrato,
+}: {
+  id: string
+  dados: DadosDoItemDaFesta
+  contrato?: File
+}) {
+  return api.put<ItemDaFesta>(`${ITENS}/${id}`, { body: formularioDoContrato(dados, contrato) })
+}
+
+/**
+ * O item como multipart — o contrato pode vir junto, e vira documento do acervo no servidor.
+ *
+ * Campos em `snake_case` porque a API os lê assim no formulário; o contrato é opcional, e escolher
+ * um documento já existente continua valendo por `documento_id`.
+ */
+function formularioDoContrato(dados: DadosDoItemDaFesta, contrato?: File) {
+  const corpo = new FormData()
+  corpo.append('titulo', dados.titulo)
+  corpo.append('categoria', dados.categoria)
+  corpo.append('rateio', dados.rateio)
+  corpo.append('valor_previsto_em_centavos', String(dados.valor_previsto_em_centavos))
+  corpo.append('quantidade_estimada', String(dados.quantidade_estimada ?? 1))
+  if (dados.o_que_inclui) corpo.append('o_que_inclui', dados.o_que_inclui)
+  if (dados.documento_id) corpo.append('documento_id', dados.documento_id)
+  if (contrato) corpo.append('contrato', contrato)
+
+  return corpo
 }
 
 /** A turma desistiu: o item sai do custo da festa e fica na lista com o selo. */

@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { CreditCard } from 'lucide-react'
-import { Link } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { ChipDeStatus } from '@/components/ChipDeStatus'
 import { rotaDoPagamento } from '@/config/rotas'
@@ -110,12 +110,12 @@ export function LinhaDeParcela({ parcela }: { parcela: Parcela }) {
               rotulo="Pagar"
               descricaoAcessivel={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
             >
-              <Link
+              <LinkDaPagina
                 to={rotaDoPagamento(parcela.id)}
                 aria-label={`Pagar a parcela ${parcela.numero}/${parcela.de}`}
               >
                 <CreditCard aria-hidden className="size-4" />
-              </Link>
+              </LinkDaPagina>
             </AcaoDaLinha>
           ) : null}
         </AcoesDaLinha>

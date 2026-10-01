@@ -220,6 +220,9 @@
   */
   --shadow-cartao: 0 1px 1px rgb(28 28 26 / 0.08), 0 3px 10px rgb(28 28 26 / 0.07);
 
+  /* A linha de baixo do cabeçalho grudado de uma tabela: um traço de borda, sem sombra de verdade. */
+  --shadow-linha: inset 0 -1px 0 var(--border);
+
   /* A faixa de indicadores é o topo da tela: a mesma sombra, mais funda embaixo, para ela assentar sobre o resto. */
   --shadow-faixa: 0 2px 2px rgb(28 28 26 / 0.08), 0 11px 24px -6px rgb(28 28 26 / 0.16);
 
@@ -324,9 +327,6 @@
   --animate-processar: processar 3s ease-in-out infinite;
   --animate-encher: encher 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
   --animate-halo: halo 2s ease-out infinite;
-  /* Carrossel do onboarding: moeda caindo no cofre (percurso em `--queda`) e barra que se enche. */
-  --animate-cair: cair 2.4s cubic-bezier(0.5, 0, 0.75, 0) infinite both;
-  --animate-crescer: crescer 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
   /* O porquinho sacode quando a moeda entra. */
   --animate-sacudir: sacudir 0.45s ease-out;
   /* Um selo que sai de cena para outro tomar o lugar (o cadastro que fica completo). */
@@ -408,41 +408,6 @@
     }
   }
 
-  /*
-    A volta termina quando a moeda some na fenda: é o `animationiteration` que soma no caixa.
-    Queda, giro e encolhida em `translate`, `rotate` e `scale` separados: o `translate` é aplicado
-    por último, então a queda fica sempre na vertical. Com `transform: translateY`, o giro
-    entraria antes e entortaria a queda num arco.
-  */
-  @keyframes cair {
-    0% {
-      opacity: 0;
-      translate: 0 0;
-      rotate: 0deg;
-    }
-    12% {
-      opacity: 1;
-    }
-    88% {
-      opacity: 1;
-      translate: 0 var(--queda);
-      rotate: 360deg;
-      scale: 1;
-    }
-    100% {
-      opacity: 0;
-      translate: 0 var(--queda);
-      rotate: 360deg;
-      scale: 0.4;
-    }
-  }
-
-  @keyframes crescer {
-    from {
-      transform: scaleX(0);
-    }
-  }
-
   @keyframes sumir {
     to {
       opacity: 0;
@@ -457,6 +422,49 @@
     60% {
       transform: rotate(3deg);
     }
+  }
+}
+
+/* O ingresso usa a largura da própria coluna: login e formatura têm a mesma composição. */
+.carrossel-passaporte {
+  container-type: inline-size;
+}
+
+/* A sombra acompanha o recorte real, sem círculos pintados que escureçam sobre o fundo. */
+.carrossel-passaporte-ingresso {
+  filter: drop-shadow(0 12px 18px color-mix(in srgb, var(--brand-border) 16%, transparent));
+}
+
+.carrossel-passaporte-recorte {
+  mask-image:
+    radial-gradient(circle 14px at 32% 0, transparent 13.5px, #000 14px),
+    radial-gradient(circle 14px at 32% 100%, transparent 13.5px, #000 14px);
+  mask-composite: intersect;
+}
+
+.carrossel-passaporte-titulo {
+  font-size: clamp(1.75rem, 8.2cqw, 2.75rem);
+  line-height: 1.1;
+}
+
+.carrossel-passaporte-chamada {
+  font-size: clamp(1.125rem, 4.4cqw, 1.5rem);
+  line-height: 1.15;
+}
+
+@container (width < 430px) {
+  .carrossel-passaporte-conteudo {
+    padding-inline: 1rem;
+  }
+
+  .carrossel-rotulo-status {
+    display: none;
+  }
+
+  .carrossel-status {
+    width: 18px;
+    grid-template-columns: 18px;
+    gap: 0;
   }
 }
 

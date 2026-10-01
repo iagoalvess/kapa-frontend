@@ -406,7 +406,7 @@ export function Recursos() {
         <Cartao
           largo
           className="max-sm:order-2"
-          titulo="A festa e a meta"
+          titulo="Festa e meta"
           texto="Data, local, orçamento e o progresso da arrecadação."
         >
           <MaqueteDaFesta />

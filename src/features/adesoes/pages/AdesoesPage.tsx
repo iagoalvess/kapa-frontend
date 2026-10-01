@@ -1,6 +1,7 @@
-import { ChartPie, Eye, FilePenLine, ScrollText, UserCheck, UserRoundX } from 'lucide-react'
+import { ChartPie, FilePenLine, ScrollText, UserCheck, UserRoundX } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
@@ -31,6 +32,7 @@ export default function AdesoesPage() {
   const resumo = useResumoDeAdesoes()
   const conteudo = useConteudoParaAdesao()
   const [parametros, definirParametros] = useSearchParams()
+  const { state } = useLocation()
 
   // Adesões deixou de ser item do menu e passou a ser porta de Membros: sem o "voltar", quem
   // entrasse aqui só sairia pelo botão do navegador.
@@ -62,12 +64,15 @@ export default function AdesoesPage() {
   const faltam = resumo.data ? resumo.data.membros - resumo.data.aderiram : null
   /** Abre ou fecha o editor sem mexer nos filtros do painel, que moram na mesma URL. */
   const editor = (aberto: boolean) =>
-    definirParametros((atuais) => {
-      const proximos = new URLSearchParams(atuais)
-      if (aberto) proximos.set('editar', 'termo')
-      else proximos.delete('editar')
-      return proximos
-    })
+    definirParametros(
+      (atuais) => {
+        const proximos = new URLSearchParams(atuais)
+        if (aberto) proximos.set('editar', 'termo')
+        else proximos.delete('editar')
+        return proximos
+      },
+      { state },
+    )
 
   return (
     <>
@@ -107,9 +112,9 @@ export default function AdesoesPage() {
         <Aviso>
           A turma ainda não tem plano de cobrança em vigor — sem ele, ninguém consegue aderir.{' '}
           {tem(PAPEIS.tesoureiro) ? (
-            <Link to={ROTAS.cobrancas} className="font-medium underline">
+            <LinkDaPagina to={ROTAS.cobrancas} className="font-medium underline">
               Montar o plano
-            </Link>
+            </LinkDaPagina>
           ) : null}
         </Aviso>
       )}
@@ -134,24 +139,13 @@ export default function AdesoesPage() {
         <PainelDeAdesoes
           resumo={resumo.data}
           versaoVigente={termo?.versao}
-          acoes={
-            <>
-              {termo ? (
-                <Button asChild variant="outline" size="xs">
-                  <Link to={ROTAS.adesao} title="A tela do formando, com a versão vigente do termo">
-                    <Eye aria-hidden />
-                    Visualizar
-                  </Link>
-                </Button>
-              ) : null}
-
-              {ehPresidente && termo ? (
-                <Button size="xs" disabled={!liberado} onClick={() => editor(true)}>
-                  <FilePenLine aria-hidden />
-                  Publicar nova versão
-                </Button>
-              ) : null}
-            </>
+          acaoPrincipal={
+            ehPresidente && termo ? (
+              <Button size="xs" disabled={!liberado} onClick={() => editor(true)}>
+                <FilePenLine aria-hidden />
+                Publicar nova versão
+              </Button>
+            ) : null
           }
         />
       )}

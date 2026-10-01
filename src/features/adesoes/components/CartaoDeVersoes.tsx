@@ -1,4 +1,4 @@
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData, formatarNumero } from '@/lib/formato'
 import { Tabela } from '@/components/Planilha'
@@ -41,9 +41,9 @@ export function CartaoDeVersoes() {
         ))}
       </Tabela>
 
-      <p className="bg-muted/60 text-foreground rounded-xl px-4 py-3 text-sm">
+      <TextoDoCartao className="bg-muted/60 text-foreground rounded-xl px-4 py-3">
         Quem aderiu continua na versão que aceitou.
-      </p>
+      </TextoDoCartao>
     </Cartao>
   )
 }

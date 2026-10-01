@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
  *
  * O traço é `box-shadow` interno pela mesma razão: sobrevive ao colapso e acompanha o cabeçalho.
  */
-export const CABECALHO_GRUDADO = 'bg-card py-2 shadow-[inset_0_-1px_0_var(--border)]'
+export const CABECALHO_GRUDADO = 'bg-card py-2 shadow-linha'
 
 /** Ainda sobra conteúdo abaixo do que está à vista? Um pixel de folga: a rolagem é fracionária. */
 const temSobra = (caixa: HTMLDivElement | null) =>

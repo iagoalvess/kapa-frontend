@@ -1,7 +1,7 @@
 import { LoaderCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import mascoteCelular from '@/assets/mascote/celular.webp'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 
 /**
  * O passo 2 quando o meio baixa sozinho — os do Mercado Pago da turma (Sprint 25): no
@@ -23,11 +23,11 @@ export function ConfirmacaoAutomatica({ children }: { children?: ReactNode }) {
 
       <div className="bg-muted flex items-center gap-4 rounded-2xl p-4">
         <img src={mascoteCelular} alt="" className="w-14 shrink-0 drop-shadow-lg" />
-        <p className="text-muted-foreground flex items-start gap-2 text-sm">
+        <TextoDoCartao className="flex items-start gap-2">
           <LoaderCircle className="mt-0.5 size-4 shrink-0 motion-safe:animate-spin" aria-hidden />
           Depois de pagar, aguarde nesta tela. Assim que o pagamento for confirmado, a parcela aparecerá como
           paga. Você também receberá um e-mail.
-        </p>
+        </TextoDoCartao>
       </div>
     </Cartao>
   )

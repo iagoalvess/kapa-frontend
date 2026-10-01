@@ -112,7 +112,7 @@ export function DialogoDeTexto<Campo extends string>({
                     <textarea
                       {...field}
                       rows={3}
-                      className="border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-xl border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                      className="border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
                     />
                   </FormControl>
                   <FormMessage />

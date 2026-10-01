@@ -1,6 +1,6 @@
 import { Copy, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
-import { Cartao } from '@/components/Cartao'
+import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -58,7 +58,7 @@ export function CartaoDoLinkDaTurma() {
             onSuccess: async (criado) => {
               const antes = substitui ? 'Link novo gerado; o anterior parou de funcionar.' : 'Link gerado.'
               if (await copiar(criado.link)) toast.success(`${antes} Já está copiado.`)
-              else toast.success(`${antes} Use "Copiar link" para copiá-lo.`)
+              else toast.warning(`${antes} Use "Copiar link" para copiá-lo.`)
             },
             onError: avisarErro,
           },
@@ -66,10 +66,10 @@ export function CartaoDoLinkDaTurma() {
 
   return (
     <Cartao titulo="Link da turma">
-      <p className="text-muted-foreground text-sm">
+      <TextoDoCartao>
         Para colar no grupo da turma: quem entra por ele entra como Formando. Vale por 30 dias. Gerar um novo
         desativa o atual.
-      </p>
+      </TextoDoCartao>
 
       {convites.isPending ? (
         <EsqueletoDeTexto linhas={2} />

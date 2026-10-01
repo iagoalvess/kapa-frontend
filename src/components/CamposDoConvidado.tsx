@@ -86,7 +86,7 @@ export function CamposDoConvidado({ documentoAtual }: { documentoAtual?: string 
             <FormControl>
               <Input type="email" {...field} autoComplete="off" />
             </FormControl>
-            <p className="text-texto-muted text-xs">O convite chega direto para ele, com o QR.</p>
+            <p className="text-texto-muted text-xs">O convite chega direto para ele.</p>
             <FormMessage />
           </FormItem>
         )}

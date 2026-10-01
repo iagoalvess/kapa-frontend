@@ -1,3 +1,4 @@
+import { TextoDoCartao } from '@/components/Cartao'
 import { CalendarClock, Hash, TriangleAlert, Wallet } from 'lucide-react'
 import { CABECALHO_GRUDADO, CaixaRolavel } from '@/components/CaixaRolavel'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
@@ -119,7 +120,9 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
         })}
       </Tabela>
 
-      <p className="bg-muted/60 text-foreground rounded-xl px-4 py-3 text-sm">{regrasDeAtraso(plano)}</p>
+      <TextoDoCartao className="bg-muted/60 text-foreground rounded-xl px-4 py-3">
+        {regrasDeAtraso(plano)}
+      </TextoDoCartao>
 
       <details className="group rounded-xl border px-4 py-3">
         <summary className="text-foreground cursor-pointer text-sm font-medium">

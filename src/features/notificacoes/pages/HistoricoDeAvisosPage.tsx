@@ -1,6 +1,8 @@
 import { AlertTriangle, CheckCheck, Clock, Send } from 'lucide-react'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDePeriodo, faixasDePublicacao } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
@@ -9,7 +11,7 @@ import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { usePapel } from '@/hooks/useSessao'
-import { formatarData, formatarDataHora } from '@/lib/formato'
+import { ehDia, formatarData, formatarDataHora } from '@/lib/formato'
 import { useHistorico } from '../hooks/useRegras'
 import {
   marcoDoDegrau,
@@ -40,12 +42,20 @@ export default function HistoricoDeAvisosPage() {
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const tesouraria = usePapel().tem(PAPEIS.tesoureiro)
+  // A origem do botão prevalece sobre o perfil e continua na URL ao filtrar o histórico.
+  const voltarParaLembretes = tesouraria && parametros.get('origem') !== 'parcelas'
   const status = (parametros.get('status') as StatusDaNotificacao | null) ?? undefined
+  const deNaUrl = parametros.get('de')
+  const de = ehDia(deNaUrl) ? deNaUrl : undefined
+  const ateNaUrl = parametros.get('ate')
+  const ate = ehDia(ateNaUrl) ? ateNaUrl : undefined
 
   const historico = useHistorico({
     pagina,
     tamanho: tamanhoDaPagina,
     status,
+    de,
+    ate,
     busca: busca || undefined,
     ordenar_por: parametros.get('ordenar_por') ?? undefined,
     descendente: parametros.get('descendente') === '1',
@@ -56,8 +66,8 @@ export default function HistoricoDeAvisosPage() {
 
   return (
     <>
-      <LinkDeVolta para={tesouraria ? ROTAS.regua : ROTAS.parcelas}>
-        {tesouraria ? 'Lembretes automáticos' : 'Parcelas'}
+      <LinkDeVolta para={voltarParaLembretes ? ROTAS.regua : ROTAS.parcelas}>
+        {voltarParaLembretes ? 'Lembretes automáticos' : 'Parcelas'}
       </LinkDeVolta>
 
       <FaixaDeIndicadores
@@ -104,6 +114,17 @@ export default function HistoricoDeAvisosPage() {
           rotulo: 'Buscar destinatário',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-do-historico" ligados={de || ate ? 1 : 0} largura="w-80">
+            <FiltroDePeriodo
+              legenda="Dia do envio"
+              faixas={faixasDePublicacao()}
+              de={de}
+              ate={ate}
+              aoMudar={atualizar}
+            />
+          </BotaoDeFiltros>
+        }
         contagem={
           historico.data
             ? { mostrando: itens.length, total: historico.data.total, unidade: 'avisos' }

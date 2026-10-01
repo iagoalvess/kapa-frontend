@@ -102,7 +102,7 @@ function Quadro({ icone, titulo, children }: { icone: ReactNode; titulo: string;
       className="bg-card shadow-cartao text-muted-foreground mx-auto grid max-w-md gap-4 rounded-3xl p-8 text-center text-sm [&>svg]:mx-auto [&>svg]:size-10"
     >
       {icone}
-      <h2 className="text-foreground text-lg font-medium">{titulo}</h2>
+      <h2 className="text-foreground text-xl leading-snug font-medium">{titulo}</h2>
       {children}
     </section>
   )

@@ -1,5 +1,6 @@
 import { ChevronDown, Download, Loader2 } from 'lucide-react'
 import { Chip } from '@/components/Chip'
+import { Button } from '@/components/ui/button'
 import {
   FORMATOS,
   type FormatoDoRelatorio,
@@ -38,19 +39,11 @@ export function MenuDeExportacao({
 }) {
   return (
     <>
-      <button
-        type="button"
-        popoverTarget={MENU}
-        className="text-muted-foreground border-border hover:bg-card focus-visible:ring-ring inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors [anchor-name:--exportar] focus-visible:ring-2 focus-visible:outline-none"
-      >
-        {ocupado ? (
-          <Loader2 className="size-4 animate-spin" aria-hidden />
-        ) : (
-          <Download className="size-4" aria-hidden />
-        )}
+      <Button size="xs" popoverTarget={MENU} className="[anchor-name:--exportar]">
+        {ocupado ? <Loader2 className="animate-spin" aria-hidden /> : <Download aria-hidden />}
         Exportar
-        <ChevronDown className="size-4" aria-hidden />
-      </button>
+        <ChevronDown aria-hidden />
+      </Button>
 
       {/* Nenhuma classe de `display` na raiz do popover: o `display: none` que o fecha vem da folha
           do navegador, e qualquer `grid` ou `flex` do autor o vence — o menu nasceria aberto e não

@@ -17,7 +17,8 @@ describe('PedidosPage', () => {
 
     renderizar(<PedidosPage />)
 
-    expect(screen.getByRole('link', { name: 'Meus pedidos' })).toHaveAttribute('href', '/meus-pedidos')
     expect(await screen.findByText('Nenhum pedido ainda')).toBeInTheDocument()
+    // A lateral só aparece depois do carregamento, junto com a lista.
+    expect(screen.getByRole('link', { name: 'Ver meus pedidos' })).toHaveAttribute('href', '/meus-pedidos')
   })
 })

@@ -6,7 +6,6 @@ const APARENCIA: Record<StatusDaParcela, { rotulo: string; tom: ComponentProps<t
   Aberta: { rotulo: 'Aberta', tom: 'cinza' },
   Paga: { rotulo: 'Paga', tom: 'sucesso' },
   Vencida: { rotulo: 'Vencida', tom: 'perigo' },
-  Renegociada: { rotulo: 'Renegociada', tom: 'alerta' },
   Cancelada: { rotulo: 'Cancelada', tom: 'neutro' },
 }
 

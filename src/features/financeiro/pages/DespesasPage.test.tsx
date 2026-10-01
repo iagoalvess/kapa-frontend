@@ -83,7 +83,7 @@ describe('DespesasPage', () => {
     renderizar(<DespesasPage />)
 
     expect(await screen.findByText('Entrada do buffet 1/3')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Fornecedores' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Ver fornecedores' })).toHaveAttribute(
       'href',
       '/financeiro/fornecedores',
     )
@@ -197,7 +197,7 @@ describe('DespesasPage', () => {
     expect(within(lista).getByText(reais(1_500_000))).toBeInTheDocument()
 
     expect(screen.queryByRole('button', { name: /Nova despesa/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Fornecedores' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ver fornecedores' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pagar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Cancelar/ })).not.toBeInTheDocument()
     // O comprovante traz conta e titular do fornecedor: nem o botão aparece.

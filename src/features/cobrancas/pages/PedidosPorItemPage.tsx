@@ -1,8 +1,10 @@
 import { Clock, Package, PackageOpen, Wallet } from 'lucide-react'
+import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ListaVazia } from '@/components/ListaVazia'
@@ -141,6 +143,22 @@ export default function PedidosPorItemPage() {
           rotulo: 'Buscar item',
           aoBuscar: (termo) => atualizar({ busca: termo }),
         }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-por-item" ligados={ordenacao.por ? 1 : 0}>
+            <FiltroDeOrdenacao
+              ordenacao={ordenacao}
+              opcoes={[
+                { por: 'item', rotulo: 'Item' },
+                { por: 'pedidos', rotulo: 'Pedidos' },
+                { por: 'unidades', rotulo: 'Unidades' },
+                { por: 'pagas', rotulo: 'Pagas' },
+                { por: 'aguardando', rotulo: 'Aguardando' },
+                { por: 'livres', rotulo: 'Livres' },
+                { por: 'recebido', rotulo: 'Recebido' },
+              ]}
+            />
+          </BotaoDeFiltros>
+        }
         contagem={{ mostrando: visiveis.length, total: linhas.length, unidade: 'itens' }}
       />
 
