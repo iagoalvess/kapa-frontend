@@ -49,7 +49,7 @@ export const PAGINAS: readonly PaginaDoSite[] = [
     caminho: ROTAS.landing,
     titulo: 'Kapa — a formatura da sua turma organizada',
     descricao:
-      'Cobrança recorrente, QR do PIX por parcela, conferência em lote e prestação de contas para comissões de formatura. O dinheiro cai na conta da turma, não na nossa.',
+      'Cobrança parcelada, QR do PIX por parcela, conferência em lote e prestação de contas para comissões de formatura. O dinheiro cai na conta da turma, não na nossa.',
   },
   ...(env.VITE_LISTA_DE_ESPERA ? [AVISO_DA_LISTA_DE_ESPERA] : DOCUMENTOS_LEGAIS),
 ]

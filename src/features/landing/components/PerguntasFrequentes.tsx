@@ -6,8 +6,7 @@ import { SecaoDaLanding } from './SecaoDaLanding'
 /**
  * As perguntas que toda comissão faz antes de contratar. Revistas em 28/09/2026, a pedido dele: tom
  * leve, de conversa, sem termo técnico (nada de "balancete", "trilha de auditoria", "criptografado").
- * O "quanto custa" responde sem valor (P10 da Sprint 36), e com a lista de espera ligada entra a
- * pergunta de quando a turma começa.
+ * O "quanto custa" responde sem valor (P10 da Sprint 36).
  */
 const PERGUNTAS = [
   {
@@ -39,20 +38,6 @@ const PERGUNTAS = [
     resposta:
       'Fica pronta. Qualquer pessoa da turma pode ver quanto entrou, quanto saiu e quanto sobrou, sem precisar pedir para a comissão. Nada de planilha no fim do mês.',
   },
-  {
-    pergunta: 'Os dados da turma ficam seguros?',
-    resposta:
-      'Ficam. Os dados pessoais são protegidos e cada pessoa pode baixar ou pedir para apagar os próprios dados quando quiser.',
-  },
-  ...(env.VITE_LISTA_DE_ESPERA
-    ? [
-        {
-          pergunta: 'Quando a minha turma pode começar?',
-          resposta:
-            'Estamos abrindo o Kapa aos poucos. Clique em "Criar minha turma", deixe seu contato e a gente fala com você por e-mail.',
-        },
-      ]
-    : []),
 ]
 
 /**

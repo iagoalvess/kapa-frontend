@@ -1,21 +1,23 @@
 import convite from '@/assets/landing/screenshots/convite.jpg'
-import pix from '@/assets/landing/screenshots/pix.jpg'
+import minhasParcelas from '@/assets/landing/screenshots/minhas-parcelas.jpg'
 import caixa from '@/assets/landing/screenshots/caixa.jpg'
-import { BatteryFull, Signal, Wifi } from 'lucide-react'
+import { BatteryFull, Lock, Signal, Wifi } from 'lucide-react'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
 const TELAS = [
   {
     numero: '02',
-    titulo: 'Pagamento por PIX',
-    descricao: 'A parcela, o código e o QR Code no mesmo lugar.',
-    imagem: pix,
-    alt: 'Tela real do Kapa para pagar uma parcela por PIX, com valor, código e QR Code.',
+    titulo: 'Minhas parcelas',
+    descricao: 'O que falta pagar, quando vence e o PIX a um toque.',
+    url: 'app.kapaformaturas.com.br/minhas-parcelas',
+    imagem: minhasParcelas,
+    alt: 'Tela real de Minhas parcelas no Kapa, com o total em aberto, a próxima parcela e a grade de parcelas por situação.',
   },
   {
     numero: '03',
     titulo: 'Caixa da turma',
     descricao: 'Entradas, saídas e projeções à vista da comissão.',
+    url: 'app.kapaformaturas.com.br/financeiro/caixa',
     imagem: caixa,
     alt: 'Tela real do caixa da turma no Kapa, com resumo financeiro e gráfico de entradas e saídas.',
   },
@@ -28,7 +30,7 @@ export function TelasReais() {
       id="na-pratica"
       etiqueta="Na prática"
       titulo="Do convite ao caixa da turma"
-      descricao="O convidado recebe o convite para a festa, cada formando paga suas parcelas por PIX e a comissão acompanha tudo o que entra e sai."
+      descricao="O convidado recebe o convite para a festa, cada formando vê e paga as suas parcelas por PIX e a comissão acompanha tudo o que entra e sai."
     >
       <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-6">
         <figure className="border-brand-tint/70 bg-brand-wash shadow-vitrine relative grid min-w-0 content-start gap-7 overflow-hidden rounded-[2rem] border p-4 sm:p-6">
@@ -100,12 +102,18 @@ export function TelasReais() {
             </figcaption>
             <div className="border-border/70 bg-card overflow-hidden rounded-2xl border shadow-lg">
               <div
-                className="border-border/70 bg-card flex h-8 items-center gap-1.5 border-b px-4"
+                className="border-border/70 bg-card relative flex h-9 items-center border-b px-4"
                 aria-hidden
               >
-                <span className="bg-brand/75 size-2 rounded-full" />
-                <span className="bg-brand/35 size-2 rounded-full" />
-                <span className="bg-brand/20 size-2 rounded-full" />
+                <span className="flex items-center gap-1.5">
+                  <span className="bg-brand/75 size-2 rounded-full" />
+                  <span className="bg-brand/35 size-2 rounded-full" />
+                  <span className="bg-brand/20 size-2 rounded-full" />
+                </span>
+                <span className="border-border/70 bg-muted/50 text-muted-foreground absolute left-1/2 flex h-5 max-w-[72%] min-w-0 -translate-x-1/2 items-center gap-1.5 rounded-full border px-3 text-[10px] whitespace-nowrap">
+                  <Lock className="size-2.5 shrink-0" strokeWidth={2.25} />
+                  <span className="truncate">{tela.url}</span>
+                </span>
               </div>
               <img
                 src={tela.imagem}

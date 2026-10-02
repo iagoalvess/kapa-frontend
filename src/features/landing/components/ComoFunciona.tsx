@@ -208,7 +208,7 @@ export function ComoFunciona() {
       className="gap-8 [&>header]:max-w-4xl [&>header>p:last-child]:max-w-2xl"
       etiqueta="Como funciona"
       titulo="Três passos, e a turma está rodando"
-      descricao="Do zero à primeira parcela cobrada numa tarde. Sem instalar nada e sem abrir conta em banco nenhum."
+      descricao="Do zero à primeira parcela cobrada numa tarde. Sem instalar nada e sem burocracia."
     >
       <div className="relative">
         <div
