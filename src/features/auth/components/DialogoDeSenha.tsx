@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useAlterarSenha } from '../hooks/useConta'
 import { esquemaDeTrocaDeSenha, type FormularioDeTrocaDeSenha } from '../schemas/auth.schema'
@@ -76,7 +76,7 @@ export function DialogoDeSenha() {
                   <FormItem>
                     <FormLabel>{rotulo}</FormLabel>
                     <FormControl>
-                      <Input type="password" autoComplete={autoComplete} {...field} />
+                      <CampoDeSenha autoComplete={autoComplete} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

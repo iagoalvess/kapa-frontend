@@ -187,7 +187,8 @@ export interface ResumoDosConvites {
 }
 
 /**
- * O painel da cota de convites da colação (Sprint 30), na Gestão.
+ * O painel da cota de convites de um evento — a festa ou a colação —, na Gestão (Sprint 30; a festa
+ * em 01/10/2026).
  *
  * Mora em `types/` porque é convite da festa lido pela agenda. `excedente` é aviso, não bloqueio
  * (decisão 3): o número de formandos muda depois do cadastro. Espelha `PainelDaCotaDTO`.

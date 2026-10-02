@@ -1,17 +1,14 @@
 import { Cartao } from '@/components/Cartao'
 import { BotaoDoLinkDaLoja } from '@/components/BotaoDoLinkDaLoja'
-import { CancelarVendasDaFesta } from './CancelarVendasDaFesta'
 
 /**
  * A coluna da direita da tela de compras da loja, como a de Conferir e a de Minhas parcelas: o que se
- * faz com a loja fora da lista — divulgar e encerrar as vendas da festa.
+ * faz com a loja fora da lista — divulgar.
  *
- * As duas ações saíram da barra de filtros (Sprint 43): divulgar é ação de contexto, não filtro, e o
- * cancelamento em massa merece a explicação que a barra não cabe — antes disputava com a exportação.
- *
- * @param festaId A festa da agenda; o cartão de cancelamento só aparece com ela.
+ * A ação saiu da barra de filtros (Sprint 43): divulgar é ação de contexto, não filtro, e antes
+ * disputava com a exportação.
  */
-export function LateralDaLoja({ festaId }: { festaId: string | null }) {
+export function LateralDaLoja() {
   return (
     <div className="grid min-w-0 gap-5">
       <Cartao
@@ -20,8 +17,6 @@ export function LateralDaLoja({ festaId }: { festaId: string | null }) {
       >
         <BotaoDoLinkDaLoja tamanho="default" variante="default" />
       </Cartao>
-
-      <CancelarVendasDaFesta festaId={festaId} />
     </div>
   )
 }

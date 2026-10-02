@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
+import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -101,12 +102,7 @@ export default function LoginPage() {
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
-                        autoComplete="current-password"
-                        className={estilos.campo}
-                        {...field}
-                      />
+                      <CampoDeSenha autoComplete="current-password" className={estilos.campo} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

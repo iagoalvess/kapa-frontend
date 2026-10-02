@@ -185,8 +185,6 @@ export interface ResumoDaLoja {
   aguardando_pix: number
   compras_a_devolver: number
   arrecadado_em_centavos: number
-  /** A festa da agenda — o alvo de "Cancelar as vendas da festa" (P6). */
-  festa_id: string | null
 }
 
 /** O filtro da lista da Gestão. */

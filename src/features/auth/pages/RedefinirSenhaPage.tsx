@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { ROTAS } from '@/config/rotas'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
@@ -89,7 +89,7 @@ export default function RedefinirSenhaPage() {
               <FormItem className={estilos.item}>
                 <FormLabel className={estilos.rotulo}>Nova senha</FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="new-password" className={estilos.campo} {...field} />
+                  <CampoDeSenha autoComplete="new-password" className={estilos.campo} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -103,7 +103,7 @@ export default function RedefinirSenhaPage() {
               <FormItem className={estilos.item}>
                 <FormLabel className={estilos.rotulo}>Repita a nova senha</FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="new-password" className={estilos.campo} {...field} />
+                  <CampoDeSenha autoComplete="new-password" className={estilos.campo} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

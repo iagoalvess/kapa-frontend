@@ -9,7 +9,7 @@ import { entrarComo, renderizar } from '@/test/utils'
 import type { PainelDaCota as Painel } from '@/types/festa'
 import { PainelDaCota } from './PainelDaCota'
 
-const COTA = `${env.VITE_API_URL}/api/v1/festa/colacao/cota`
+const COTA = `${env.VITE_API_URL}/api/v1/festa/cota`
 
 const painel = (partes: Partial<Painel> = {}): Painel => ({
   evento: {
@@ -49,7 +49,7 @@ describe('PainelDaCota', () => {
         return HttpResponse.json(atual)
       }),
     )
-    renderizar(<PainelDaCota editavel />)
+    renderizar(<PainelDaCota tipo="Colacao" editavel />)
 
     expect(await screen.findByText(/60 formandos × 2 \+ 3 cortesias = 123/)).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Passa da capacidade em 23 lugares')
@@ -60,11 +60,11 @@ describe('PainelDaCota', () => {
     expect(screen.getByRole('button', { name: 'Reabrir cota' })).toBeInTheDocument()
   })
 
-  it('sem hora ou local na colação, não deixa abrir', async () => {
+  it('sem hora ou local no evento, não deixa abrir', async () => {
     servidor.use(
       http.get(COTA, () => HttpResponse.json(painel({ evento: { ...painel().evento, completo: false } }))),
     )
-    renderizar(<PainelDaCota editavel />)
+    renderizar(<PainelDaCota tipo="Colacao" editavel />)
 
     expect(await screen.findByRole('button', { name: 'Abrir cota' })).toBeDisabled()
     expect(screen.getByText(/precisa de hora e local/)).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe('PainelDaCota', () => {
         ),
       ),
     )
-    renderizar(<PainelDaCota editavel />)
+    renderizar(<PainelDaCota tipo="Colacao" editavel />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Editar' }))
     const campo = screen.getByRole('textbox', { name: 'Convites por formando' })
@@ -93,10 +93,17 @@ describe('PainelDaCota', () => {
 
   it('para quem só lê, mostra a conta sem editar nem abrir', async () => {
     servidor.use(http.get(COTA, () => HttpResponse.json(painel({ excedente: 0, capacidade: null }))))
-    renderizar(<PainelDaCota editavel={false} />)
+    renderizar(<PainelDaCota tipo="Colacao" editavel={false} />)
 
     expect(await screen.findByText('Não informado')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Abrir cota' })).not.toBeInTheDocument()
+  })
+
+  it('nomeia o painel pelo evento: a festa também tem cota (01/10/2026)', async () => {
+    servidor.use(http.get(COTA, () => HttpResponse.json(painel())))
+    renderizar(<PainelDaCota tipo="Festa" editavel />)
+
+    expect(await screen.findByRole('heading', { name: 'Convites da festa' })).toBeInTheDocument()
   })
 })

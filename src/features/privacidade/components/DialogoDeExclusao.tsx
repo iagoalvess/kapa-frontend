@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
+import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { esquemaDeExclusao, type FormularioDeExclusao } from '../schemas/privacidade.schema'
 
@@ -161,7 +161,7 @@ export function DialogoDeExclusao({
                 <FormItem>
                   <FormLabel>Sua senha</FormLabel>
                   <FormControl>
-                    <Input type="password" autoComplete="current-password" {...field} />
+                    <CampoDeSenha autoComplete="current-password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

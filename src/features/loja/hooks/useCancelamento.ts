@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   aprovarPedidoDeCancelamento,
   cancelarCompra,
-  cancelarVendasDaFesta,
   listarConvitesDaCompra,
   listarPedidosDeCancelamento,
   marcarDevolvida,
@@ -39,11 +38,6 @@ export function useCancelarCompra() {
 /** Marca a compra devolvida, com o comprovante do PIX (decisão 2). */
 export function useMarcarDevolvida() {
   return useMutation({ mutationFn: marcarDevolvida, onSuccess: useReler() })
-}
-
-/** Festa cancelada: todas as compras da loja vão para a lista a devolver (P6). */
-export function useCancelarVendasDaFesta() {
-  return useMutation({ mutationFn: cancelarVendasDaFesta, onSuccess: useReler() })
 }
 
 /** A fila de pedidos de cancelamento do comprador (P1). */

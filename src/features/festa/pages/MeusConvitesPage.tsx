@@ -4,49 +4,126 @@ import {
   GraduationCap,
   Link2,
   PartyPopper,
+  Pencil,
   Ticket,
   TicketCheck,
   UserRound,
 } from 'lucide-react'
 import { useState } from 'react'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteCelular from '@/assets/mascote/celular.webp'
+import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
+import { Chip } from '@/components/Chip'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
+import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ListaVazia } from '@/components/ListaVazia'
-import { Selo } from '@/components/Selo'
+import { Paginacao } from '@/components/Paginacao'
+import { ColunaOrdenavel, Tabela } from '@/components/Planilha'
+import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoIngresso } from '@/config/rotas'
+import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
+import { useOrdenacao } from '@/hooks/useOrdenacao'
+import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { contemBusca } from '@/lib/busca'
 import { copiar } from '@/lib/copiar'
-import { cn } from '@/lib/utils'
 import { formatarData, formatarDataHora, formatarHora, formatarNumero } from '@/lib/formato'
+import { ehOpcao } from '@/lib/opcao'
+import { paginar } from '@/lib/paginar'
+import { cn } from '@/lib/utils'
+import type { EventoDoConvite } from '@/types/festa'
 import { DialogoDoConvidado } from '../components/DialogoDoConvidado'
 import { useMeusConvites } from '../hooks/useConvitesDaFesta'
-import type { MeuConvite, MeusConvites } from '../types/convites.types'
+import type { MeuConvite, TipoDoEventoDoConvite } from '../types/convites.types'
+
+/** Os eventos que a lista separa, como vão na URL. */
+const EVENTOS = { Festa: 'Festa', Colacao: 'Colação' } as const satisfies Record<
+  TipoDoEventoDoConvite,
+  string
+>
+
+/**
+ * Em que pé está um convite, para o selo e o filtro. A precedência é a de sempre: quem já entrou
+ * não está mais "pronto"; quem não tem nome não tem documento a cobrar.
+ */
+type Situacao = 'semNome' | 'semDocumento' | 'pronto' | 'entrou'
+
+const SITUACOES: Record<Situacao, { rotulo: string; tom: TomDoSelo }> = {
+  semNome: { rotulo: 'Sem nome', tom: 'neutro' },
+  semDocumento: { rotulo: 'Falta o documento', tom: 'alerta' },
+  pronto: { rotulo: 'Pronto', tom: 'sucesso' },
+  entrou: { rotulo: 'Entrou', tom: 'sucesso' },
+}
+
+const ehEvento = (valor: string | null): valor is TipoDoEventoDoConvite => ehOpcao(valor, EVENTOS)
+const ehSituacao = (valor: string | null): valor is Situacao => ehOpcao(valor, SITUACOES)
+
+function situacaoDe(convite: MeuConvite): Situacao {
+  if (convite.validado_em) return 'entrou'
+  if (!convite.nome_do_convidado) return 'semNome'
+  if (!convite.documento) return 'semDocumento'
+  return 'pronto'
+}
+
+/** Uma linha da lista: o convite e o evento a que ele pertence. */
+interface LinhaDeConvite {
+  convite: MeuConvite
+  evento: EventoDoConvite | null
+  listaAberta: boolean
+}
+
+/**
+ * O que cada coluna ordenável compara. Sem coluna escolhida vale a ordem de chegada — evento pela
+ * data, e dentro dele a ordem em que os convites foram emitidos.
+ */
+const CHAVES: Record<string, (linha: LinhaDeConvite) => string> = {
+  convidado: (linha) => linha.convite.nome_do_convidado ?? '',
+  evento: (linha) => linha.evento?.titulo ?? '',
+  situacao: (linha) => SITUACOES[situacaoDe(linha.convite)].rotulo,
+}
+
+/** `toSorted` porque a lista sai do cache do React Query: ordenar no lugar mexeria no cache. */
+function ordenar(linhas: LinhaDeConvite[], por: string | undefined, descendente: boolean) {
+  const chave = por ? CHAVES[por] : undefined
+  if (!chave) return linhas
+
+  return linhas.toSorted((a, b) => {
+    const ordem = chave(a).localeCompare(chave(b))
+    return descendente ? -ordem : ordem
+  })
+}
 
 /**
  * "Meus convites": os convites da festa que a pessoa comprou e os da colação que a cota deu, um por
- * convidado (P1), separados por evento.
+ * convidado (P1), numa tabela só com filtro por evento, por situação e busca.
  *
- * Cada linha é uma pessoa — a avó leva o dela, e o link vai pelo WhatsApp. Nomear e trocar o nome
- * ficam abertos até o fechamento da lista, 24 h antes do evento (P5); depois disso a tela só mostra,
- * e quem muda é a comissão. O convite da festa só nasce quitado (P2): o que ainda está sendo pago
- * aparece como "aguardando pagamento", para ninguém achar que o pedido sumiu. O da colação nasce
- * quando a comissão abre a cota (Sprint 30) — uma tela só para as duas, porque a ação é a mesma.
+ * Nomear e trocar o nome ficam abertos até o fechamento da lista, 24 h antes do evento (P5); depois
+ * disso a tela só mostra, e quem muda é a comissão. O convite da festa só nasce quitado (P2): o que
+ * ainda está sendo pago aparece como "aguardando pagamento", para ninguém achar que o pedido sumiu.
+ * O da colação nasce quando a comissão abre a cota (Sprint 30) — uma tela só para as duas, porque a
+ * ação é a mesma.
+ *
+ * A lista vem inteira nas duas consultas (é a grade de um formando), então filtro, busca, ordenação
+ * e página são todos no navegador. O evento, a situação e a busca vivem na URL, como nas demais
+ * listas: voltar, recarregar e mandar o link devolvem a mesma tela.
  */
 export default function MeusConvitesPage() {
+  const tamanhoDaPagina = useTamanhoDaPagina()
   const festa = useMeusConvites('Festa')
   const colacao = useMeusConvites('Colacao')
+  const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
   const [editando, definirEditando] = useState<false | { convite: MeuConvite }>(false)
+  const ordenacao = useOrdenacao(atualizar)
 
   if (festa.isPending || colacao.isPending)
     return (
       <EsqueletoDeCartao>
-        <EsqueletoDeTexto linhas={4} />
+        <EsqueletoDeTexto linhas={6} />
       </EsqueletoDeCartao>
     )
 
@@ -54,20 +131,62 @@ export default function MeusConvitesPage() {
   if (colacao.isError)
     return <ErroDaConsulta erro={colacao.error} aoTentarDeNovo={() => void colacao.refetch()} />
 
-  const secoes = [festa.data, colacao.data]
-    .filter((meus) => meus.evento && meus.convites.length > 0)
-    .toSorted((a, b) => (a.evento?.data ?? '').localeCompare(b.evento?.data ?? ''))
-  const convites = secoes.flatMap((meus) => meus.convites)
-  const semNome = convites.filter((convite) => !convite.nome_do_convidado).length
+  const linhas = [festa.data, colacao.data]
+    .flatMap((meus) =>
+      meus.convites.map((convite) => ({
+        convite,
+        evento: meus.evento,
+        listaAberta: meus.lista_aberta,
+      })),
+    )
+    .toSorted(
+      (a, b) =>
+        (a.evento?.data ?? '').localeCompare(b.evento?.data ?? '') ||
+        a.convite.sequencial - b.convite.sequencial,
+    )
+
+  const tipoNaUrl = parametros.get('evento')
+  const tipo = ehEvento(tipoNaUrl) ? tipoNaUrl : undefined
+  const situacaoNaUrl = parametros.get('situacao')
+  const situacao = ehSituacao(situacaoNaUrl) ? situacaoNaUrl : undefined
+
+  const doEvento = tipo ? linhas.filter((linha) => linha.evento?.tipo === tipo) : linhas
+  const visiveis = ordenar(
+    doEvento.filter(
+      (linha) =>
+        (!situacao || situacaoDe(linha.convite) === situacao) &&
+        contemBusca(
+          busca,
+          linha.convite.nome_do_convidado,
+          linha.convite.codigo,
+          linha.convite.documento,
+          linha.evento?.titulo,
+        ),
+    ),
+    ordenacao.por,
+    ordenacao.descendente,
+  )
+  const pagina = paginar(visiveis, paginaNaUrl, tamanhoDaPagina)
+
+  const semNome = linhas.filter((linha) => !linha.convite.nome_do_convidado).length
   const aguardando = festa.data.aguardando_pagamento
-  const proximoFechamento = secoes.find((meus) => meus.lista_aberta)?.evento?.fechamento_da_lista
+  const proximoFechamento = [festa.data, colacao.data]
+    .filter((meus) => meus.lista_aberta)
+    .map((meus) => meus.evento?.fechamento_da_lista)
+    .filter((fechamento): fechamento is string => Boolean(fechamento))
+    .toSorted()[0]
+
+  const contarEvento = (valor: TipoDoEventoDoConvite) =>
+    linhas.filter((linha) => linha.evento?.tipo === valor).length
+  const contarSituacao = (valor: Situacao) =>
+    doEvento.filter((linha) => situacaoDe(linha.convite) === valor).length
 
   return (
     <>
       <FaixaDeIndicadores
         rotulo="Resumo dos meus convites"
         indicadores={[
-          { rotulo: 'Convites', valor: convites.length, icone: Ticket },
+          { rotulo: 'Convites', valor: linhas.length, icone: Ticket },
           { rotulo: 'Sem nome', valor: semNome, icone: UserRound },
           { rotulo: 'Aguardando pagamento', valor: aguardando, icone: CalendarClock },
           {
@@ -78,9 +197,56 @@ export default function MeusConvitesPage() {
         ]}
       />
 
+      {linhas.length > 0 ? (
+        <FiltrosDaPlanilha
+          principal={
+            <fieldset className="flex flex-wrap gap-2">
+              <legend className="sr-only">Evento</legend>
+              <Chip
+                tom="claro"
+                ativo={!tipo}
+                contagem={linhas.length}
+                onClick={() => atualizar({ evento: null })}
+              >
+                Todos
+              </Chip>
+              {Object.entries(EVENTOS).map(([valor, rotulo]) => (
+                <Chip
+                  key={valor}
+                  tom="claro"
+                  ativo={tipo === valor}
+                  contagem={contarEvento(valor as TipoDoEventoDoConvite)}
+                  onClick={() => atualizar({ evento: tipo === valor ? null : valor })}
+                >
+                  {rotulo}
+                </Chip>
+              ))}
+            </fieldset>
+          }
+          legenda="Situação"
+          filtros={Object.entries(SITUACOES).map(([valor, { rotulo }]) => (
+            <Chip
+              key={valor}
+              ativo={situacao === valor}
+              contagem={contarSituacao(valor as Situacao)}
+              onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+            >
+              {rotulo}
+            </Chip>
+          ))}
+          busca={{
+            valor: busca,
+            rotulo: 'Buscar convidado',
+            aoBuscar: (termo) => atualizar({ busca: termo }),
+          }}
+          contagem={{ mostrando: pagina.visiveis.length, total: visiveis.length, unidade: 'convites' }}
+        />
+      ) : null}
+
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="grid min-w-0 gap-5">
-          {secoes.length === 0 ? (
+        {/* Sem título nem descrição, como as listas da gestão: o `h1` da tela já diz "Meus convites". */}
+        <Cartao rotulo="Meus convites" className="min-w-0 px-5 py-2">
+          {linhas.length === 0 ? (
             <ListaVazia
               mascote={mascoteCelular}
               titulo="Nenhum convite ainda"
@@ -92,16 +258,47 @@ export default function MeusConvitesPage() {
                 </>
               }
             />
+          ) : visiveis.length === 0 ? (
+            // Três vazios diferentes: quem não tem convite, quem filtrou por evento ou situação e quem
+            // só digitou um termo. Dizer "nenhum convite ainda" a quem buscou é responder outra coisa.
+            <ListaVazia
+              titulo={busca ? `Nada encontrado para “${busca}”` : 'Nenhum convite neste filtro'}
+              dica={
+                busca
+                  ? 'Procure pelo nome do convidado, pelo código ou pelo documento — ou limpe a busca.'
+                  : 'Toque em “Todos” ou tire a situação para ver a lista inteira.'
+              }
+            />
           ) : (
-            secoes.map((meus) => (
-              <SecaoDoEvento
-                key={meus.evento?.id}
-                meus={meus}
-                aoEditar={(convite) => definirEditando({ convite })}
+            <>
+              <Tabela
+                emLista
+                ordenacao={ordenacao}
+                cabecalho={
+                  <>
+                    <ColunaOrdenavel coluna="convidado">Convidado</ColunaOrdenavel>
+                    <ColunaOrdenavel coluna="evento">Evento</ColunaOrdenavel>
+                    <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
+                  </>
+                }
+              >
+                {pagina.visiveis.map((linha) => (
+                  <LinhaDoConvite
+                    key={linha.convite.id}
+                    linha={linha}
+                    aoEditar={() => definirEditando({ convite: linha.convite })}
+                  />
+                ))}
+              </Tabela>
+              <Paginacao
+                pagina={pagina.pagina}
+                totalPaginas={pagina.totalPaginas}
+                total={pagina.total}
+                aoMudar={(numero) => atualizar({ pagina: String(numero) })}
               />
-            ))
+            </>
           )}
-        </div>
+        </Cartao>
 
         <LateralDosConvites aguardando={aguardando} />
       </div>
@@ -154,117 +351,85 @@ function LateralDosConvites({ aguardando }: { aguardando: number }) {
   )
 }
 
-/** Os convites de um evento: o cartão com o dia, a hora e o local, e uma linha por convidado. */
-function SecaoDoEvento({ meus, aoEditar }: { meus: MeusConvites; aoEditar: (convite: MeuConvite) => void }) {
-  const { evento, convites, lista_aberta } = meus
+/** O dia, a hora e o local de um evento numa linha de apoio. */
+function descricaoDoEvento(evento: EventoDoConvite) {
+  return `${formatarData(evento.data)}${evento.hora ? ` · ${formatarHora(evento.hora)}` : ''}${evento.local ? ` · ${evento.local}` : ''}`
+}
 
+/**
+ * O ícone do evento e quem vai usar o convite — a primeira célula da linha, que a nomeia.
+ *
+ * É um componente próprio porque a célula que só encadeia `<div>` e `<span>` com um `<svg>` não é
+ * reconhecida como rotulada pelo linter de acessibilidade; delegando a um componente, como o
+ * `Avatar` de Membros, a célula passa e o rótulo continua sendo o nome do convidado.
+ */
+function BlocoDoConvidado({ convite, colacao }: { convite: MeuConvite; colacao: boolean }) {
   return (
-    <Cartao
-      titulo={evento?.titulo ?? 'Convites'}
-      icone={evento?.tipo === 'Colacao' ? GraduationCap : PartyPopper}
-      descricao={
-        evento
-          ? `${formatarData(evento.data)}${evento.hora ? ` · ${formatarHora(evento.hora)}` : ''}${evento.local ? ` · ${evento.local}` : ''}`
-          : null
-      }
-    >
-      {/* As colunas da vitrine de "Meus pedidos": item, situação e ação, com o cabeçalho miúdo só
-          quando cabem lado a lado. */}
-      <div className="@container">
-        <div
-          aria-hidden
-          className="text-texto-muted hidden grid-cols-[minmax(0,1fr)_9rem_auto] gap-4 px-3 pb-2 text-xs @min-[42rem]:grid"
-        >
-          <span>Convidado e código</span>
-          <span>Situação</span>
-          <span className="text-right">Ações</span>
-        </div>
-        <ul className="grid gap-2" aria-label={`Convites: ${evento?.titulo ?? 'evento'}`}>
-          {convites.map((convite) => (
-            <LinhaDoConvite
-              key={convite.id}
-              convite={convite}
-              colacao={evento?.tipo === 'Colacao'}
-              editavel={lista_aberta}
-              aoEditar={() => aoEditar(convite)}
-            />
-          ))}
-        </ul>
+    <div className="flex items-center gap-3">
+      <span
+        className={cn(
+          'text-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-lg',
+          colacao ? 'bg-avatar-4/20' : 'bg-avatar-3/20',
+        )}
+      >
+        {colacao ? (
+          <GraduationCap className="size-4.5" strokeWidth={1.75} aria-hidden />
+        ) : (
+          <PartyPopper className="size-4.5" strokeWidth={1.75} aria-hidden />
+        )}
+      </span>
+      <div className="grid min-w-0 gap-0.5">
+        <span className="text-foreground font-medium break-words">
+          {convite.nome_do_convidado ?? (
+            <span className="text-muted-foreground font-normal">Convidado a definir</span>
+          )}
+        </span>
+        <span className="text-muted-foreground font-mono text-xs">
+          {convite.codigo}
+          {convite.documento ? <span className="font-sans"> · {convite.documento}</span> : null}
+        </span>
       </div>
-      {!lista_aberta ? (
-        <p className="text-muted-foreground pt-4 text-sm">
-          A lista de convidados fechou 24 horas antes do evento. Para mudar um nome agora, fale com a
-          comissão.
-        </p>
-      ) : null}
-    </Cartao>
+    </div>
   )
 }
 
 /**
- * Um convidado, no desenho de um item da vitrine: bloco do ícone na cor do evento (a mesma da
- * agenda), nome e código; a situação no meio; as ações à direita.
+ * Um convidado na tabela: quem é, para que evento e em que pé está, com as ações da linha. No
+ * celular a primeira célula nomeia e a última é a ação, como manda a lista densa (Sprint 41).
  */
-function LinhaDoConvite({
-  convite,
-  colacao,
-  editavel,
-  aoEditar,
-}: {
-  convite: MeuConvite
-  colacao: boolean
-  editavel: boolean
-  aoEditar: () => void
-}) {
+function LinhaDoConvite({ linha, aoEditar }: { linha: LinhaDeConvite; aoEditar: () => void }) {
+  const { convite, evento, listaAberta } = linha
+  const colacao = evento?.tipo === 'Colacao'
+  const situacao = SITUACOES[situacaoDe(convite)]
+
   return (
-    <li className="grid items-center gap-4 rounded-xl border-b p-3 @min-[42rem]:grid-cols-[minmax(0,1fr)_9rem_auto]">
-      <div className="flex items-start gap-3">
-        <span
-          className={cn(
-            'text-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-lg',
-            colacao ? 'bg-avatar-4/20' : 'bg-avatar-3/20',
-          )}
-        >
-          {colacao ? (
-            <GraduationCap className="size-4.5" strokeWidth={1.75} aria-hidden />
-          ) : (
-            <Ticket className="size-4.5" strokeWidth={1.75} aria-hidden />
-          )}
-        </span>
-        <div className="grid min-w-0 gap-0.5">
-          <h3 className="text-foreground font-medium break-words">
-            {convite.nome_do_convidado ?? (
-              <span className="text-muted-foreground font-normal">Convidado a definir</span>
-            )}
-          </h3>
-          <p className="text-muted-foreground font-mono text-xs">
-            {convite.codigo}
-            {convite.documento ? <span className="font-sans"> · {convite.documento}</span> : null}
-          </p>
-        </div>
-      </div>
+    <tr className="border-b last:border-0">
+      <td className="py-3 pr-4">
+        <BlocoDoConvidado convite={convite} colacao={colacao} />
+      </td>
 
-      <div className="flex flex-wrap gap-2">
-        {convite.validado_em ? (
-          <Selo tom="sucesso">Entrou</Selo>
-        ) : !convite.nome_do_convidado ? (
-          <Selo tom="neutro">Sem nome</Selo>
-        ) : !convite.documento ? (
-          <Selo tom="alerta">Falta o documento</Selo>
-        ) : (
-          <Selo tom="sucesso">Pronto</Selo>
-        )}
-      </div>
+      <td className="py-3 pr-4">
+        <span className="text-foreground block">{evento?.titulo ?? 'Convite'}</span>
+        {evento ? <span className="text-texto-muted block text-xs">{descricaoDoEvento(evento)}</span> : null}
+      </td>
 
-      <div className="flex flex-wrap gap-2 @min-[42rem]:justify-end">
-        {editavel ? (
-          <Button variant="outline" size="sm" onClick={aoEditar}>
-            {convite.nome_do_convidado ? 'Editar' : 'Nomear'}
-          </Button>
-        ) : null}
-        {convite.token ? <AcoesDoLink token={convite.token} /> : null}
-      </div>
-    </li>
+      <td className="py-3 pr-4">
+        <Selo tom={situacao.tom}>{situacao.rotulo}</Selo>
+      </td>
+
+      <td className="py-3 text-right">
+        <AcoesDaLinha rotulo={`Ações do convite ${convite.codigo}`}>
+          {listaAberta ? (
+            <AcaoDaLinha
+              rotulo={convite.nome_do_convidado ? 'Editar' : 'Nomear'}
+              icone={Pencil}
+              onClick={aoEditar}
+            />
+          ) : null}
+          {convite.token ? <AcoesDoLink token={convite.token} codigo={convite.codigo} /> : null}
+        </AcoesDaLinha>
+      </td>
+    </tr>
   )
 }
 
@@ -272,8 +437,9 @@ function LinhaDoConvite({
  * Copiar e abrir o convite. Só com convidado: "a definir" é vaga paga, sem link — a API nem manda o
  * token, e a página pública responde que o convite não existe.
  */
-function AcoesDoLink({ token }: { token: string }) {
+function AcoesDoLink({ token, codigo }: { token: string; codigo: string }) {
   const link = `${window.location.origin}${rotaDoIngresso(token)}`
+  const abrir = `Abrir o convite ${codigo}`
 
   const copiarLink = async () => {
     if (await copiar(link)) toast.success('Link do convite copiado.')
@@ -282,16 +448,12 @@ function AcoesDoLink({ token }: { token: string }) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => void copiarLink()}>
-        <Link2 aria-hidden />
-        Copiar link
-      </Button>
-      <Button variant="outline" size="sm" asChild>
-        <a href={link} target="_blank" rel="noreferrer">
-          <ExternalLink aria-hidden />
-          Abrir
+      <AcaoDaLinha rotulo="Copiar link" icone={Link2} onClick={() => void copiarLink()} />
+      <AcaoDaLinha asChild rotulo="Abrir" descricaoAcessivel={abrir}>
+        <a href={link} target="_blank" rel="noreferrer" aria-label={abrir}>
+          <ExternalLink aria-hidden className="size-4" />
         </a>
-      </Button>
+      </AcaoDaLinha>
     </>
   )
 }

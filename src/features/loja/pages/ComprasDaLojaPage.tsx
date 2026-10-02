@@ -221,9 +221,9 @@ export default function ComprasDaLojaPage() {
         </div>
 
         {compras.isPending ? (
-          <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
+          <EsqueletoDeCartoes quantidade={1} className="md:grid-cols-1" />
         ) : (
-          <LateralDaLoja festaId={resumo.data?.festa_id ?? null} />
+          <LateralDaLoja />
         )}
       </div>
     </>

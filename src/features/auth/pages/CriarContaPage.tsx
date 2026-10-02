@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { CampoDeMarcar } from '@/components/CampoDeMarcar'
+import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { AceiteObrigatorio } from '@/components/legal/AceiteObrigatorio'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -102,7 +103,7 @@ export default function CriarContaPage() {
               <FormItem className={estilos.item}>
                 <FormLabel className={estilos.rotulo}>Senha</FormLabel>
                 <FormControl>
-                  <Input type="password" autoComplete="new-password" className={estilos.campo} {...field} />
+                  <CampoDeSenha autoComplete="new-password" className={estilos.campo} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

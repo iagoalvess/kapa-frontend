@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
@@ -23,7 +24,7 @@ const evento = (tipo: EventoDoConvite['tipo'], titulo: string, data: string): Ev
   janela_abre_em: '2099-01-01T00:00:00Z',
 })
 
-const convite = (id: string, nome: string | null): MeuConvite => ({
+const convite = (id: string, nome: string | null, extra: Partial<MeuConvite> = {}): MeuConvite => ({
   id,
   sequencial: 1,
   codigo: `MED27-${id}`,
@@ -34,6 +35,7 @@ const convite = (id: string, nome: string | null): MeuConvite => ({
   email_do_convidado: null,
   emitido_em: '2027-09-23T12:00:00Z',
   validado_em: null,
+  ...extra,
 })
 
 const meus = (partes: Partial<MeusConvites>): MeusConvites => ({
@@ -44,62 +46,129 @@ const meus = (partes: Partial<MeusConvites>): MeusConvites => ({
   ...partes,
 })
 
+/** A resposta por evento, como a tela pede: uma consulta para a festa, outra para a colação. */
+function responderPor(porTipo: { Festa?: MeusConvites; Colacao?: MeusConvites }) {
+  servidor.use(
+    http.get(MEUS, ({ request }) => {
+      const tipo = new URL(request.url).searchParams.get('tipo')
+      return HttpResponse.json(porTipo[tipo === 'Colacao' ? 'Colacao' : 'Festa'] ?? meus({}))
+    }),
+  )
+}
+
+/** As linhas do corpo, sem o cabeçalho da tabela. */
+function corpo() {
+  return screen.getAllByRole('row').slice(1)
+}
+
 describe('MeusConvitesPage', () => {
   beforeEach(() => entrarComo('Formando'))
   afterEach(() => sessao.encerrar())
 
-  it('separa os convites por evento, a colação antes da festa, e soma os dois no topo', async () => {
-    servidor.use(
-      http.get(MEUS, ({ request }) =>
-        HttpResponse.json(
-          new URL(request.url).searchParams.get('tipo') === 'Colacao'
-            ? meus({
-                evento: evento('Colacao', 'Colação de grau', '2027-12-10'),
-                convites: [convite('AAAA', null), convite('BBBB', 'Tia Rosa')],
-              })
-            : meus({
-                evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
-                convites: [convite('CCCC', null)],
-              }),
-        ),
-      ),
-    )
+  it('junta os dois eventos numa tabela só, a colação antes da festa, e conta os dois no topo', async () => {
+    responderPor({
+      Colacao: meus({
+        evento: evento('Colacao', 'Colação de grau', '2027-12-10'),
+        convites: [convite('AAAA', null), convite('BBBB', 'Tia Rosa')],
+      }),
+      Festa: meus({
+        evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
+        convites: [convite('CCCC', null)],
+      }),
+    })
     renderizar(<MeusConvitesPage />)
 
-    const titulos = await screen.findAllByRole('heading', { name: /Colação de grau|Festa de formatura/ })
-    expect(titulos.map((titulo) => titulo.textContent)).toEqual(['Colação de grau', 'Festa de formatura'])
-    expect(screen.getByText('Tia Rosa')).toBeInTheDocument()
+    const [colacao, tiaRosa, festa] = (await screen.findAllByRole('row')).slice(1) as [
+      HTMLElement,
+      HTMLElement,
+      HTMLElement,
+    ]
+    expect(within(colacao).getByText('Colação de grau')).toBeInTheDocument()
+    expect(within(colacao).getByText('Convidado a definir')).toBeInTheDocument()
+    expect(within(tiaRosa).getByText('Tia Rosa')).toBeInTheDocument()
+    expect(within(festa).getByText('Festa de formatura')).toBeInTheDocument()
     expect(screen.getAllByText('Convidado a definir')).toHaveLength(2)
+
+    const resumo = screen.getByRole('region', { name: 'Resumo dos meus convites' })
+    expect(within(resumo).getByText('3')).toBeInTheDocument()
   })
 
   it('convite a definir só se nomeia: o link aparece com o convidado', async () => {
-    servidor.use(
-      http.get(MEUS, ({ request }) =>
-        HttpResponse.json(
-          new URL(request.url).searchParams.get('tipo') === 'Colacao'
-            ? meus({})
-            : meus({
-                evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
-                convites: [convite('AAAA', null), convite('BBBB', 'Tia Rosa')],
-              }),
-        ),
-      ),
-    )
+    responderPor({
+      Festa: meus({
+        evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
+        convites: [convite('AAAA', null), convite('BBBB', 'Tia Rosa')],
+      }),
+    })
     renderizar(<MeusConvitesPage />)
 
-    const lista = await screen.findByRole('list', { name: 'Convites: Festa de formatura' })
-    const [aDefinir, nomeado] = within(lista).getAllByRole('listitem') as [HTMLElement, HTMLElement]
+    await screen.findByText('Tia Rosa')
+    const [aDefinir, nomeado] = corpo() as [HTMLElement, HTMLElement]
     expect(within(aDefinir).getByRole('button', { name: 'Nomear' })).toBeInTheDocument()
     expect(within(aDefinir).queryByRole('button', { name: 'Copiar link' })).not.toBeInTheDocument()
-    expect(within(aDefinir).queryByRole('link', { name: 'Abrir' })).not.toBeInTheDocument()
-    expect(within(nomeado).getByRole('link', { name: 'Abrir' })).toHaveAttribute(
+    expect(within(aDefinir).queryByRole('link', { name: /Abrir/ })).not.toBeInTheDocument()
+    expect(within(nomeado).getByRole('link', { name: 'Abrir o convite MED27-BBBB' })).toHaveAttribute(
       'href',
       expect.stringContaining('MED27-BBBB-XXXXXXXX'),
     )
   })
 
+  it('a busca recorta a lista pelo nome do convidado', async () => {
+    responderPor({
+      Festa: meus({
+        evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
+        convites: [convite('AAAA', null), convite('BBBB', 'Tia Rosa')],
+      }),
+    })
+    renderizar(<MeusConvitesPage />)
+
+    await userEvent.type(await screen.findByRole('searchbox', { name: 'Buscar convidado' }), 'rosa{enter}')
+
+    expect(screen.getByText('Tia Rosa')).toBeInTheDocument()
+    expect(screen.queryByText('Convidado a definir')).not.toBeInTheDocument()
+  })
+
+  it('o filtro de evento isola os convites daquele evento', async () => {
+    responderPor({
+      Colacao: meus({
+        evento: evento('Colacao', 'Colação de grau', '2027-12-10'),
+        convites: [convite('AAAA', 'Vovô')],
+      }),
+      Festa: meus({
+        evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
+        convites: [convite('BBBB', 'Tia Rosa')],
+      }),
+    })
+    renderizar(<MeusConvitesPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Festa/ }))
+
+    expect(screen.getByText('Tia Rosa')).toBeInTheDocument()
+    expect(screen.queryByText('Vovô')).not.toBeInTheDocument()
+  })
+
+  it('o filtro de situação recorta pelo que falta em cada convite', async () => {
+    responderPor({
+      Festa: meus({
+        evento: evento('Festa', 'Festa de formatura', '2027-12-11'),
+        convites: [
+          convite('AAAA', null),
+          convite('BBBB', 'Tia Rosa'),
+          convite('CCCC', 'Tio João', { tipo_do_documento: 'Rg', documento: 'RG ••••1234' }),
+        ],
+      }),
+    })
+    renderizar(<MeusConvitesPage />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Falta o documento/ }))
+
+    expect(screen.getByText('Tia Rosa')).toBeInTheDocument()
+    expect(screen.queryByText('Tio João')).not.toBeInTheDocument()
+    expect(screen.queryByText('Convidado a definir')).not.toBeInTheDocument()
+  })
+
   it('sem convite nenhum, diz de onde cada um vem', async () => {
-    servidor.use(http.get(MEUS, () => HttpResponse.json(meus({}))))
+    responderPor({})
     renderizar(<MeusConvitesPage />)
 
     expect(

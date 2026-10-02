@@ -6,10 +6,14 @@ import { MODULOS } from '@/config/planos'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { formatarData, formatarHora } from '@/lib/formato'
-import { type EventoDaTurma, ROTULOS_DE_TIPO } from '@/types/agenda'
+import { type EventoDaTurma, ROTULOS_DE_TIPO, type TipoDeEvento } from '@/types/agenda'
 import { FormularioDoEvento } from './FormularioDoEvento'
 import { PainelDaCota } from './PainelDaCota'
 import { SeloDoEvento } from './SeloDoEvento'
+
+/** Só a festa e a colação têm cota de convites (Sprint 30; a festa em 01/10/2026). */
+const ehEventoDeConvite = (tipo: TipoDeEvento): tipo is 'Festa' | 'Colacao' =>
+  tipo === 'Festa' || tipo === 'Colacao'
 
 interface Props {
   /** Aberto com um evento, mostra ou corrige; aberto sem, marca uma data nova; fechado, é `false`. */
@@ -84,7 +88,9 @@ export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFe
             ) : null}
           </ListaDeDados>
 
-          {ehGestao && comCota && evento?.tipo === 'Colacao' ? <PainelDaCota editavel={editavel} /> : null}
+          {ehGestao && comCota && evento && ehEventoDeConvite(evento.tipo) ? (
+            <PainelDaCota tipo={evento.tipo} editavel={editavel} />
+          ) : null}
 
           <div className="ml-auto">
             <Button type="button" variant="outline" onClick={aoFechar}>

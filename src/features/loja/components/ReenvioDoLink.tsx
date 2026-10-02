@@ -64,13 +64,7 @@ export function ReenvioDoLink({ formaturaId }: { formaturaId: string }) {
             )}
           />
           <ErroDoFormulario />
-          <Button
-            type="submit"
-            variant="outline"
-            size="sm"
-            className="justify-self-start"
-            disabled={reenviar.isPending}
-          >
+          <Button type="submit" size="lg" disabled={reenviar.isPending}>
             {reenviar.isPending ? 'Enviando…' : 'Receber de novo'}
           </Button>
         </form>

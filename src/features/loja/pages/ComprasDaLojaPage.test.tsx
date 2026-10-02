@@ -18,7 +18,6 @@ const resumo: ResumoDaLoja = {
   aguardando_pix: 3,
   compras_a_devolver: 1,
   arrecadado_em_centavos: 1_050_000,
-  festa_id: null,
 }
 
 const compra = (dados: Partial<CompraNaGestao> = {}): CompraNaGestao => ({
@@ -182,18 +181,5 @@ describe('ComprasDaLojaPage', () => {
     await usuario.click(recusar)
 
     await waitFor(() => expect(recusa).toEqual({ motivo: 'Fora do prazo' }))
-  })
-
-  it('só o Presidente vê "Cancelar as vendas da festa"', async () => {
-    entrarComo(PAPEIS.tesoureiro)
-    servidor.use(
-      http.get(`${COMPRAS}/resumo`, () => HttpResponse.json({ ...resumo, festa_id: 'e-1' })),
-      http.get(COMPRAS, () => HttpResponse.json(pagina([compra()]))),
-    )
-
-    renderizar(<ComprasDaLojaPage />)
-
-    await screen.findByText('Maria Souza')
-    expect(screen.queryByRole('button', { name: 'Cancelar as vendas da festa' })).not.toBeInTheDocument()
   })
 })

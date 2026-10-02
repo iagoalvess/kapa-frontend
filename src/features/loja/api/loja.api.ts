@@ -134,13 +134,6 @@ export function marcarDevolvida({ compraId, comprovante }: { compraId: string; c
   return api.post<void>(`${LOJA}/compras/${compraId}/devolucao`, { body: corpo })
 }
 
-/** Festa cancelada: cancela todas as compras pagas da loja e as põe na lista a devolver (P6). */
-export function cancelarVendasDaFesta({ festaId, motivo }: { festaId: string; motivo: string }) {
-  return api.post<{ compras_canceladas: number }>(`${LOJA}/eventos/${festaId}/cancelamento-das-compras`, {
-    body: { motivo },
-  })
-}
-
 /** Os pedidos de cancelamento abertos, do mais antigo. */
 export function listarPedidosDeCancelamento(signal?: AbortSignal) {
   return api.get<PedidoNaGestao[]>(`${LOJA}/pedidos-de-cancelamento`, { signal })

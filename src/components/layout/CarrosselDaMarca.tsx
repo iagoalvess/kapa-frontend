@@ -62,7 +62,7 @@ function CenaContribuicoes() {
           <Check className="size-3" strokeWidth={3} />
         </span>
         <span className="grid gap-0.5 text-[10px]">
-          <strong className="text-success-text font-semibold">Pagamento conferido</strong>
+          <strong className="text-success-text font-semibold">Pagamento confirmado</strong>
           <span className="text-muted-foreground">R$ 150,00 · Ana Clara</span>
         </span>
       </div>

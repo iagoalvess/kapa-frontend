@@ -208,6 +208,7 @@ outra. O catálogo:
 | Página/busca/filtro na URL               | `hooks/useFiltrosDaUrl`                              |
 | Guarda de opção lida da URL              | `ehOpcao` (`lib/opcao`) — nunca `valor in MAPA`      |
 | Caixa de marcar num formulário           | `CampoDeMarcar`                                      |
+| Campo de senha (com "olhinho")           | `CampoDeSenha`                                       |
 | Página pública de leitura (termos)       | `LayoutDePaginaPublica` (`components/layout`)        |
 | Tabela de resumo com faixa cinza         | `Tabela variante="faixa"`                            |
 | Toast de erro de uma mutação             | `avisarErro` (`lib/http/erros`)                      |
