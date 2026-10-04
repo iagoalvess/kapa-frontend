@@ -80,7 +80,7 @@ export function GraficoDaArrecadacao() {
       : ''
 
   return (
-    <section aria-labelledby="bloco-evolucao" className="border-b pt-8 pb-9">
+    <section aria-labelledby="bloco-evolucao" className="pt-6 pb-5 lg:pt-8">
       <h2 id="bloco-evolucao" className="text-[17px] font-semibold">
         Evolução das arrecadações
       </h2>

@@ -20,6 +20,7 @@ import { HeroDaJornada } from './HeroDaJornada'
 import { PrimeirosPassos } from './PrimeirosPassos'
 import { ProximasDatas } from './ProximasDatas'
 import { Rotulo } from './RotuloDoBloco'
+import { TracoDoInicio } from './TracoDoInicio'
 
 /**
  * O Início: a página conecta a jornada coletiva às próximas ações da pessoa, numa leitura só — o herói
@@ -62,44 +63,33 @@ export function PaginaInicial() {
       <AvisoDeAdesao />
       {tem(PAPEIS.tesoureiro) ? <PrimeirosPassos turma={turma} /> : null}
 
-      <svg
-        aria-hidden
-        viewBox="0 0 1000 28"
-        preserveAspectRatio="none"
-        className="text-brand/45 mx-auto hidden h-5 w-full lg:block"
-      >
-        <path
-          d="M8 8C205 5 379 8 485 8C492 8 496 21 500 21C504 21 508 8 515 8C621 8 795 5 992 8"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        <path
-          d="M430 13Q466 10 492 15M508 15Q534 10 570 13"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          opacity="0.65"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      <TracoDoInicio className="-my-4 hidden h-5 w-full lg:block" />
 
-      <div className={cn('grid border-b', temDinheiro && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)]')}>
+      <div
+        className={cn(
+          'grid gap-y-3 lg:gap-y-0',
+          temDinheiro && 'lg:grid-cols-[minmax(0,1fr)_1rem_minmax(0,1.16fr)] lg:gap-x-4',
+        )}
+      >
         <section
           aria-labelledby="bloco-parcela"
-          className={cn('grid min-w-0 content-start gap-4 pt-8 pb-9', temDinheiro && 'lg:pr-12')}
+          className="grid min-w-0 content-start gap-4 pt-8 pb-5 lg:pb-8"
         >
           <Rotulo id="bloco-parcela">Sua parcela</Rotulo>
           <BlocoDaParcela />
         </section>
 
         {temDinheiro ? (
+          <TracoDoInicio
+            verticalNoDesktop
+            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-4"
+          />
+        ) : null}
+
+        {temDinheiro ? (
           <section
             aria-labelledby="bloco-dinheiro"
-            className="grid min-w-0 content-start gap-4 border-t pt-8 pb-9 lg:border-t-0 lg:border-l lg:pl-12"
+            className="grid min-w-0 content-start gap-4 pt-4 pb-8 lg:col-start-3 lg:pt-8"
           >
             <Rotulo id="bloco-dinheiro">O dinheiro da turma</Rotulo>
             <BlocoDaFesta />
@@ -107,21 +97,34 @@ export function PaginaInicial() {
         ) : null}
       </div>
 
+      <TracoDoInicio className="-my-3 h-4 w-full lg:-my-4 lg:h-5" />
+
       <GraficoDaArrecadacao />
 
-      <div className={cn('grid', temRecados && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)]')}>
-        <section
-          aria-labelledby="bloco-datas"
-          className={cn('grid min-w-0 content-start gap-4 pt-8', temRecados && 'lg:pr-12')}
-        >
+      <TracoDoInicio className="-my-2 h-4 w-full lg:-my-3 lg:h-5" />
+
+      <div
+        className={cn(
+          'grid gap-y-3 lg:gap-y-0',
+          temRecados && 'lg:grid-cols-[minmax(0,1fr)_1rem_minmax(0,1.16fr)] lg:gap-x-4',
+        )}
+      >
+        <section aria-labelledby="bloco-datas" className="grid min-w-0 content-start gap-4 pt-5 pb-5 lg:py-8">
           <Cabecalho id="bloco-datas" rotulo="Próximas datas" para={ROTAS.agenda} texto="Ver agenda" />
           <ProximasDatas ehGestao={ehGestao} />
         </section>
 
         {temRecados ? (
+          <TracoDoInicio
+            verticalNoDesktop
+            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-4"
+          />
+        ) : null}
+
+        {temRecados ? (
           <section
             aria-labelledby="bloco-recados"
-            className="grid min-w-0 content-start gap-4 border-t pt-8 lg:border-t-0 lg:border-l lg:pl-12"
+            className="grid min-w-0 content-start gap-4 pt-4 pb-8 lg:col-start-3 lg:py-8"
           >
             <Cabecalho id="bloco-recados" rotulo="Recados" para={ROTAS.mural} texto="Ver o mural" />
             <FeedDoMural />

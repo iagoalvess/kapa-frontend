@@ -9,6 +9,7 @@ import { contar, useResumoDeMembros } from '@/features/membros'
 import { useContaDeRecebimento, useMercadoPago } from '@/features/recebimentos'
 import type { FormaturaDetalhe } from '@/types/formatura'
 import { Rotulo } from './RotuloDoBloco'
+import { TracoDoInicio } from './TracoDoInicio'
 
 /** Um passo do caminho: o que fazer e a porta, enquanto não está feito. */
 interface Passo {
@@ -121,61 +122,64 @@ export function PrimeirosPassos({ turma }: { turma: FormaturaDetalhe }) {
   }, [])
 
   return (
-    <section aria-labelledby="bloco-primeiros-passos" className="border-b pt-8 pb-9">
-      <Rotulo id="bloco-primeiros-passos">Primeiros passos</Rotulo>
-      <p className="text-muted-foreground mt-2 text-sm">
-        {concluidos} de {necessarios.length} etapas concluídas para começar. Monte a turma antes de chamar os
-        formandos.
-      </p>
+    <>
+      <section aria-labelledby="bloco-primeiros-passos" className="pt-8 pb-4">
+        <Rotulo id="bloco-primeiros-passos">Primeiros passos</Rotulo>
+        <p className="text-muted-foreground mt-2 text-sm">
+          {concluidos} de {necessarios.length} etapas concluídas para começar. Monte a turma antes de chamar
+          os formandos.
+        </p>
 
-      <ol className="mt-4 grid">
-        {itens.map(({ passo, numero }) => (
-          <li key={passo.titulo} className="border-border border-b last:border-0">
-            {passo.feito ? (
-              <div className="flex min-w-0 items-center gap-3 py-3.5">
-                <span className="bg-success text-on-brand grid size-7 shrink-0 place-items-center rounded-full">
-                  <Check className="size-4" strokeWidth={3} aria-hidden />
-                </span>
-                <span className="text-muted-foreground min-w-0 flex-1 text-[15px]">{passo.titulo}</span>
-                {passo.opcional ? <Selo tom="cinza">Opcional</Selo> : null}
-                <span className="sr-only">Concluído</span>
-              </div>
-            ) : (
-              // O passo pendente é o próprio link: um "Fazer" ao lado repetiria o título, e dois
-              // passos que levam à mesma tela teriam o mesmo nome acessível.
-              <LinkDaPagina
-                to={passo.para}
-                aria-label={passo.titulo}
-                className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-3.5 outline-none focus-visible:ring-2"
-              >
-                {numero === null ? (
-                  <span
-                    aria-hidden
-                    className="bg-muted text-muted-foreground grid size-7 shrink-0 place-items-center rounded-full"
-                  >
-                    <Users className="size-3.5" strokeWidth={1.75} />
+        <ol className="mt-4 grid">
+          {itens.map(({ passo, numero }) => (
+            <li key={passo.titulo} className="border-border border-b last:border-0">
+              {passo.feito ? (
+                <div className="flex min-w-0 items-center gap-3 py-3.5">
+                  <span className="bg-success text-on-brand grid size-7 shrink-0 place-items-center rounded-full">
+                    <Check className="size-4" strokeWidth={3} aria-hidden />
                   </span>
-                ) : (
-                  <span
-                    aria-hidden
-                    className="bg-brand-tint text-brand-text grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums"
-                  >
-                    {numero}
+                  <span className="text-muted-foreground min-w-0 flex-1 text-[15px]">{passo.titulo}</span>
+                  {passo.opcional ? <Selo tom="cinza">Opcional</Selo> : null}
+                  <span className="sr-only">Concluído</span>
+                </div>
+              ) : (
+                // O passo pendente é o próprio link: um "Fazer" ao lado repetiria o título, e dois
+                // passos que levam à mesma tela teriam o mesmo nome acessível.
+                <LinkDaPagina
+                  to={passo.para}
+                  aria-label={passo.titulo}
+                  className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-3.5 outline-none focus-visible:ring-2"
+                >
+                  {numero === null ? (
+                    <span
+                      aria-hidden
+                      className="bg-muted text-muted-foreground grid size-7 shrink-0 place-items-center rounded-full"
+                    >
+                      <Users className="size-3.5" strokeWidth={1.75} />
+                    </span>
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="bg-brand-tint text-brand-text grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums"
+                    >
+                      {numero}
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="text-brand-text flex flex-wrap items-center gap-2 text-[15px] font-semibold">
+                      {passo.titulo}
+                      {passo.opcional ? <Selo tom="cinza">Opcional</Selo> : null}
+                    </span>
+                    <span className="text-muted-foreground mt-1 block text-sm">{passo.descricao}</span>
                   </span>
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="text-brand-text flex flex-wrap items-center gap-2 text-[15px] font-semibold">
-                    {passo.titulo}
-                    {passo.opcional ? <Selo tom="cinza">Opcional</Selo> : null}
-                  </span>
-                  <span className="text-muted-foreground mt-1 block text-sm">{passo.descricao}</span>
-                </span>
-                <ArrowRight className="text-brand-text size-4 shrink-0" aria-hidden />
-              </LinkDaPagina>
-            )}
-          </li>
-        ))}
-      </ol>
-    </section>
+                  <ArrowRight className="text-brand-text size-4 shrink-0" aria-hidden />
+                </LinkDaPagina>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
+      <TracoDoInicio className="h-4 w-full" />
+    </>
   )
 }

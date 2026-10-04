@@ -9,6 +9,7 @@ import { rotaDoPagamento } from '@/config/rotas'
 import { useExtrato } from '@/features/pagamentos'
 import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
 import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { TracoDoInicio } from './TracoDoInicio'
 
 /**
  * Quanto tempo a parcela tem, dito como se fala.
@@ -54,7 +55,7 @@ export function BlocoDaParcela() {
     )
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-6">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1rem_auto] lg:items-center lg:gap-3">
       <div className="grid gap-4">
         <div className="flex items-center gap-4">
           <WalletMinimal className="text-brand size-8 shrink-0" strokeWidth={1.6} aria-hidden />
@@ -86,18 +87,21 @@ export function BlocoDaParcela() {
       </div>
 
       {segundaProxima ? (
-        <aside
-          aria-label="Parcela seguinte"
-          className="grid gap-1 border-t pt-4 lg:border-t-0 lg:border-l lg:py-2 lg:pl-5"
-        >
-          <p className="text-muted-foreground text-xs font-medium">
-            Depois · {rotuloDoItem(segundaProxima)} {segundaProxima.numero}/{segundaProxima.de}
-          </p>
-          <p className="text-lg font-bold tabular-nums">{formatarCentavos(valorNaLista(segundaProxima))}</p>
-          <p className="text-muted-foreground text-xs tabular-nums">
-            {formatarData(segundaProxima.vencimento)}
-          </p>
-        </aside>
+        <>
+          <TracoDoInicio
+            verticalNoDesktop
+            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-3"
+          />
+          <aside aria-label="Parcela seguinte" className="grid gap-1 py-1">
+            <p className="text-muted-foreground text-xs font-medium">
+              Depois · {rotuloDoItem(segundaProxima)} {segundaProxima.numero}/{segundaProxima.de}
+            </p>
+            <p className="text-lg font-bold tabular-nums">{formatarCentavos(valorNaLista(segundaProxima))}</p>
+            <p className="text-muted-foreground text-xs tabular-nums">
+              {formatarData(segundaProxima.vencimento)}
+            </p>
+          </aside>
+        </>
       ) : null}
     </div>
   )
