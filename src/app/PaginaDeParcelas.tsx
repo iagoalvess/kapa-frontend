@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react'
+import { MailCheck } from 'lucide-react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Button } from '@/components/ui/button'
@@ -18,15 +18,23 @@ import type { Parcela } from '@/types/cobranca'
  * manual começa na tela Parcelas; Sprint 13: o disparo avulso, também).
  */
 export default function PaginaDeParcelas() {
-  return <ParcelasPage AcoesDaLinha={AcoesDaParcelaDaTurma} AcoesDaBarra={AcoesDaBarra} />
+  return (
+    <ParcelasPage
+      AcoesDaLinha={AcoesDaParcelaDaTurma}
+      AcoesDaBarra={AcoesDaBarra}
+      atalhosAdicionais={[
+        { titulo: 'Avisos enviados', para: `${ROTAS.avisosEnviados}?origem=parcelas`, icone: MailCheck },
+      ]}
+    />
+  )
 }
 
-/** Da lista da turma, a Gestão abre o histórico de avisos. As próprias parcelas ficam no card lateral. */
+/** No computador, o histórico de avisos continua na barra da lista; no celular fica na faixa de atalhos. */
 function AcoesDaBarra() {
   return (
     <Button asChild size="xs">
       <LinkDaPagina to={`${ROTAS.avisosEnviados}?origem=parcelas`}>
-        <Send aria-hidden />
+        <MailCheck aria-hidden />
         Avisos enviados
       </LinkDaPagina>
     </Button>

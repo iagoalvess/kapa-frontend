@@ -60,3 +60,26 @@ export function usePlanoQueLibera(modulo: Modulo) {
       .toSorted((a, b) => a.preco_em_centavos - b.preco_em_centavos)[0] ?? null
   )
 }
+
+/**
+ * Se o atalho de uma tela que mora **dentro** de outra ainda precisa do menu (Sprint 45).
+ *
+ * Um atalho secundário de Gestão pode virar card dentro de uma tela que o abriga — a Portaria e a Loja
+ * moram em A festa e em Pedidos. O problema é o plano: a tela que abriga pode estar fora dele, e aí ela
+ * não monta (o `<ExigeModulo>` mostra a vitrine) e leva o card embora. A regra é:
+ *
+ * - **A tela que abriga está no plano** → o card é o caminho; o atalho some do menu.
+ * - **A tela que abriga está fora do plano** → o atalho fica no menu, que continua levando à vitrine.
+ * - **Ainda não se sabe** (carregando, ou erro na leitura) → o atalho fica no menu. Perder a porta é
+ *   pior que vê-la por um instante; é a mesma escolha "fail-open" de {@link usePlanoDaTurma}.
+ *
+ * O gate de verdade continua na API (`[ExigeModulo]`); isto é navegação.
+ *
+ * @param moduloDaTelaQueAbriga Módulo que libera a tela onde o card mora. Sem gate (Pedidos), o
+ *   atalho nunca volta ao menu.
+ */
+export function useAtalhoNoMenu(moduloDaTelaQueAbriga: Modulo) {
+  const { plano } = usePlanoDaTurma()
+
+  return !plano?.modulos.includes(moduloDaTelaQueAbriga)
+}

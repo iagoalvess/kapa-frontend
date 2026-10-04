@@ -59,8 +59,8 @@ export function useSolicitarCodigo() {
 /**
  * O aceite. A resposta é a adesão; o resto da feature recarrega.
  *
- * O aceite também gera as parcelas, que vivem no cache de `cobrancas`: derrubar pelo prefixo é o
- * único contato com a outra feature — sem importar nada dela.
+ * O aceite também gera as parcelas da tesouraria (`cobrancas`) e do extrato pessoal (`pagamentos`).
+ * Ambos os caches precisam mudar para não manter "nenhuma parcela" depois do aceite.
  */
 export function useAderir() {
   const queryClient = useQueryClient()
@@ -70,6 +70,7 @@ export function useAderir() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: chaves.tudo })
       void queryClient.invalidateQueries({ queryKey: ['cobrancas'] })
+      void queryClient.invalidateQueries({ queryKey: ['pagamentos'] })
     },
   })
 }

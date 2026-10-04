@@ -29,7 +29,7 @@ export interface CompradorDeMesa {
 
 /** O que um elemento do salão representa — dá o ícone. */
 export type TipoDeElemento =
-  'Palco' | 'Pista' | 'Bar' | 'Buffet' | 'Entrada' | 'Saida' | 'Banheiro' | 'Som' | 'Area'
+  'Palco' | 'Pista' | 'Bar' | 'Buffet' | 'Entrada' | 'Saida' | 'Banheiro' | 'Som' | 'Area' | 'Divisoria'
 
 /** As cores de uma área: as do mapa, e só elas. */
 export type CorDaArea = 'Laranja' | 'Amarelo' | 'Lilas' | 'Cinza'
@@ -81,8 +81,9 @@ export interface PosicaoDaMesa {
   girada: boolean
 }
 
-/** O corpo do "Salvar mapa": o salão inteiro e as mesas que mudaram de lugar. */
-export interface DesenhoDoSalao extends PlantaDoSalao {
+/** O corpo do "Salvar mapa": os elementos e as mesas que mudaram de lugar. */
+export interface DesenhoDoSalao {
+  elementos: ElementoDoSalao[]
   posicoes: PosicaoDaMesa[]
 }
 

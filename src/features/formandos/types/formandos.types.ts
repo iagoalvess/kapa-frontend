@@ -36,15 +36,15 @@ interface DadosDeEmergencia {
 
 /** Itens que a completude conta, como a API os nomeia em `faltando`. */
 export type ItemDoCadastro =
-  | 'nome_completo'
-  | 'nome_no_diploma'
+  | 'nomeCompleto'
+  | 'nomeNoDiploma'
   | 'cpf'
   | 'rg'
   | 'matricula'
   | 'telefone'
-  | 'data_de_nascimento'
+  | 'dataDeNascimento'
   | 'endereco'
-  | 'contato_de_emergencia'
+  | 'contatoDeEmergencia'
   | 'foto'
 
 /** O cadastro inteiro. Espelha `PerfilDoFormandoDTO`. */

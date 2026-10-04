@@ -1,9 +1,6 @@
 import { Link2 } from 'lucide-react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { rotaDaLoja } from '@/config/rotas'
-import { useFormaturaAtiva } from '@/hooks/useSessao'
-import { copiar } from '@/lib/copiar'
+import { useCopiarLinkDaLoja } from '@/hooks/useCopiarLinkDaLoja'
 
 /**
  * Copia o link da loja pública da turma da sessão (Sprint 26) — o que a comissão divulga.
@@ -23,15 +20,8 @@ export function BotaoDoLinkDaLoja({
   tamanho?: 'sm' | 'default'
   variante?: 'default' | 'outline'
 }) {
-  const { formaturaId } = useFormaturaAtiva()
-  if (!formaturaId) return null
-
-  const link = `${window.location.origin}${rotaDaLoja(formaturaId)}`
-
-  const copiarLink = async () => {
-    if (await copiar(link)) toast.success('Link da loja copiado.')
-    else toast.warning(`Não deu para copiar. O link é ${link}`)
-  }
+  const { disponivel, copiarLink } = useCopiarLinkDaLoja()
+  if (!disponivel) return null
 
   return (
     <Button variant={variante} size={tamanho} onClick={() => void copiarLink()}>

@@ -1,10 +1,9 @@
 import { ChartPie, FilePenLine, ScrollText, UserCheck, UserRoundX } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
+import { ListaDePendencias, type Pendencia } from '@/components/ListaDePendencias'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
@@ -74,6 +73,27 @@ export default function AdesoesPage() {
       { state },
     )
 
+  // Os dois bloqueios da tela, numa lista numerada: sem plano ou sem termo, ninguém consegue aderir.
+  const pendencias: Pendencia[] = []
+  if (!plano)
+    pendencias.push({
+      chave: 'plano',
+      texto: 'A turma ainda não tem plano de cobrança em vigor — sem ele, ninguém consegue aderir.',
+      acao: tem(PAPEIS.tesoureiro) ? { rotulo: 'Montar o plano', para: ROTAS.cobrancas } : undefined,
+    })
+  if (!termo && !editando)
+    pendencias.push({
+      chave: 'termo',
+      texto: (
+        <>
+          A turma ainda não tem termo publicado — sem ele, ninguém consegue aderir.{' '}
+          {ehPresidente
+            ? 'Com a turma fora de Ativa, o termo não pode ser publicado.'
+            : 'Quem publica o termo é o Presidente.'}
+        </>
+      ),
+    })
+
   return (
     <>
       {voltar}
@@ -107,26 +127,7 @@ export default function AdesoesPage() {
         ]}
       />
 
-      {/* Os dois bloqueios da tela, em faixa: sem plano ou sem termo, ninguém consegue aderir. */}
-      {plano ? null : (
-        <Aviso>
-          A turma ainda não tem plano de cobrança em vigor — sem ele, ninguém consegue aderir.{' '}
-          {tem(PAPEIS.tesoureiro) ? (
-            <LinkDaPagina to={ROTAS.cobrancas} className="font-medium underline">
-              Montar o plano
-            </LinkDaPagina>
-          ) : null}
-        </Aviso>
-      )}
-
-      {termo || editando ? null : (
-        <Aviso>
-          A turma ainda não tem termo publicado — sem ele, ninguém consegue aderir.{' '}
-          {ehPresidente
-            ? 'Com a turma fora de Ativa, o termo não pode ser publicado.'
-            : 'Quem publica o termo é o Presidente.'}
-        </Aviso>
-      )}
+      <ListaDePendencias pendencias={pendencias} />
 
       {/* Escrevendo o termo, a tela é só o editor: a lista de quem aderiu não ajuda em nada aqui. */}
       {editando ? (
@@ -151,9 +152,4 @@ export default function AdesoesPage() {
       )}
     </>
   )
-}
-
-/** Faixa de bloqueio da tela, largura toda, logo abaixo dos indicadores. */
-function Aviso({ children }: { children: ReactNode }) {
-  return <p className="bg-warning-bg text-warning-text rounded-2xl px-4 py-3 text-sm">{children}</p>
 }

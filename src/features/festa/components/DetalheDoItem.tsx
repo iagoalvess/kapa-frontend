@@ -105,11 +105,11 @@ export function DetalheDoItem({
                   Editar
                 </Button>
                 {item.quantidade_de_despesas === 0 ? (
-                  <Button size="sm" variant="outline" className="text-danger-text" onClick={aoExcluir}>
+                  <Button size="sm" variant="outline" onClick={aoExcluir}>
                     Excluir
                   </Button>
                 ) : (
-                  <Button size="sm" variant="outline" className="text-danger-text" onClick={aoCancelar}>
+                  <Button size="sm" variant="outline" onClick={aoCancelar}>
                     Cancelar
                   </Button>
                 )}

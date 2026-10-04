@@ -19,8 +19,12 @@ export function registrar(conta: NovaConta) {
  *
  * Mesma chamada da página do convite; repetida aqui porque uma feature não importa de outra.
  */
-export function aceitarConvite(token: string) {
-  return api.post<ParDeTokens>(`/api/v1/convites/${encodeURIComponent(token)}/aceitar`, { body: {} })
+export function aceitarConvite(token: string, accessToken: string) {
+  return api.post<ParDeTokens>(`/api/v1/convites/${encodeURIComponent(token)}/aceitar`, {
+    body: {},
+    autenticar: false,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
 }
 
 /**

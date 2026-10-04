@@ -64,10 +64,10 @@ describe('FiltrosDaPlanilha', () => {
     expect(within(painel).getByRole('group', { name: 'Situação', hidden: true })).toBeInTheDocument()
     expect(within(painel).getByRole('button', { name: 'A pagar', hidden: true })).toBeInTheDocument()
 
-    // Fora do painel: a principal, a ligada e o botão da tela; a que não está ligada, não.
+    // Com ação na mesma linha, só a situação ligada fica fora. Todas continuam no painel.
     const fora = (nome: string) =>
       screen.queryAllByRole('button', { name: nome }).filter((elemento) => !painel.contains(elemento))
-    expect(fora('Todas')).toHaveLength(1)
+    expect(fora('Todas')).toHaveLength(0)
     expect(fora('Pagas')).toHaveLength(1)
     expect(fora('A pagar')).toHaveLength(0)
     expect(screen.getByRole('button', { name: 'Fornecedores' })).toBeInTheDocument()

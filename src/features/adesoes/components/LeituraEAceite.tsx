@@ -28,9 +28,9 @@ import { ResumoDoTermo } from './ResumoDoTermo'
 import { IndicadoresDoPlano, ResumoFinanceiroDaAdesao } from './ResumoFinanceiroDaAdesao'
 
 const ROTULOS_DE_PENDENCIA: Record<PendenciaDoCadastro, string> = {
-  nome_completo: 'nome completo',
+  nomeCompleto: 'nome completo',
   cpf: 'CPF',
-  data_de_nascimento: 'data de nascimento',
+  dataDeNascimento: 'data de nascimento',
 }
 
 /**
@@ -147,7 +147,7 @@ export function LeituraEAceite({
               {pendencias.length > 0 ? (
                 <div className="grid gap-4">
                   <p className="text-muted-foreground text-sm">
-                    O termo identifica quem assina. Antes do aceite, informe seu{' '}
+                    O termo identifica quem assina. Antes do aceite, complete os dados que faltam:{' '}
                     {pendencias.map((pendencia) => ROTULOS_DE_PENDENCIA[pendencia]).join(', ')} — ficam no seu
                     cadastro e no termo.
                   </p>

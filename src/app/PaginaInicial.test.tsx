@@ -1,11 +1,12 @@
 import { screen, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS } from '@/config/perfis'
+import { parcelaDeTeste, vencidaDeTeste } from '@/features/pagamentos/dadosDeTeste'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
-import { entrarComo, pagina, renderizar } from '@/test/utils'
+import { entrarComo, pagina, PLANO_ESSENCIAL, PLANO_GRATUITO, renderizar } from '@/test/utils'
 import { PaginaInicial } from './PaginaInicial'
 
 const base = env.VITE_API_URL
@@ -60,6 +61,20 @@ describe('Página inicial', () => {
       http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(ARRECADACAO)),
       http.get(`${base}/api/v1/extrato/eu`, () => HttpResponse.json({ proxima: null })),
       http.get(`${base}/api/v1/comunicacao/avisos`, () => HttpResponse.json(pagina([]))),
+      // Consultas do guia de primeiros passos e do aviso de cadastro, que só a Gestão aciona.
+      http.get(`${base}/api/v1/formaturas/atual/membros/resumo`, () => HttpResponse.json([])),
+      http.get(`${base}/api/v1/cobrancas/planos`, () => HttpResponse.json([])),
+      http.get(`${base}/api/v1/adesoes/eu`, () =>
+        HttpResponse.json({ adesao: null, pendencias: [], menor_de_idade: false }),
+      ),
+      http.get(`${base}/api/v1/adesoes/termos/vigente`, () =>
+        HttpResponse.json({ termo: null, plano: null, hash_do_conteudo: null }),
+      ),
+      http.get(`${base}/api/v1/recebimentos/conta`, () => HttpResponse.json({ conta: null })),
+      http.get(`${base}/api/v1/recebimentos/conta/mercado-pago`, () => HttpResponse.json({ provedor: null })),
+      http.get(`${base}/api/v1/formandos/eu`, () =>
+        HttpResponse.json({ essencial_pendente: false, completude: 100 }),
+      ),
     )
   })
   afterEach(() => sessao.encerrar())
@@ -68,12 +83,42 @@ describe('Página inicial', () => {
     renderizar(<PaginaInicial />)
     const jornada = await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
     expect(within(jornada).getByText('dias para a festa')).toBeInTheDocument()
-    // A mesma data no contador e na lista de próximas — a segunda vem da agenda.
-    await screen.findByRole('list', { name: 'Próximas datas da turma' })
-    expect(within(jornada).getAllByText('19/12/2099')).toHaveLength(2)
+    // A mesma data no contador e no bloco de dia da lista de próximas — a segunda vem da agenda.
+    expect(within(jornada).getByText('19/12/2099')).toBeInTheDocument()
+    const proximas = await screen.findByRole('list', { name: 'Próximas datas da turma' })
+    expect(within(proximas).getByText('19')).toBeInTheDocument()
+    expect(within(proximas).getByText('Festa de formatura')).toBeInTheDocument()
     expect(await screen.findByText(/Toda festa começa com uma ideia/)).toBeInTheDocument()
     expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver a festa' })).toHaveAttribute('href', '/festa')
+    expect(screen.getByRole('link', { name: 'Ver agenda' })).toHaveAttribute('href', '/agenda')
+    expect(await screen.findByRole('region', { name: 'Recados' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver o mural' })).toHaveAttribute('href', '/mural')
+  })
+
+  it.each([PAPEIS.presidente, PAPEIS.formando])(
+    'no Essencial, %s vê só os recursos incluídos no plano',
+    async (papel) => {
+      entrarComo(papel)
+      renderizar(<PaginaInicial />, '/', '*', PLANO_ESSENCIAL)
+
+      expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
+      expect(await screen.findByRole('list', { name: 'Próximas datas da turma' })).toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Ver o mural' })).not.toBeInTheDocument()
+      expect(screen.queryByText(/Mural, documentos e o orçamento/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
+    },
+  )
+
+  it('no gratuito, a gestão não vê propaganda dos recursos exclusivos no Início', async () => {
+    entrarComo(PAPEIS.presidente)
+    renderizar(<PaginaInicial />, '/', '*', PLANO_GRATUITO)
+
+    expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
   })
 
   /** O gráfico abre no mês atual — o último que não é previsão —, com o total dele à vista. */
@@ -82,9 +127,29 @@ describe('Página inicial', () => {
 
     const grafico = await screen.findByRole('region', { name: 'Evolução das arrecadações' })
     expect(await within(grafico).findByText('Setembro')).toBeInTheDocument()
+    expect(grafico.querySelector('svg')).toHaveAttribute('viewBox', '0 0 1000 235')
     const tabela = within(grafico).getByRole('table', { name: 'Total arrecadado ao fim de cada mês' })
     expect(within(tabela).getAllByRole('row')).toHaveLength(7)
     expect(within(tabela).getByText(/(previsto)/)).toBeInTheDocument()
+  })
+
+  it('mantém o gráfico no celular em um desenho mais estreito', async () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: false,
+      addEventListener: vi.fn<() => void>(),
+      removeEventListener: vi.fn<() => void>(),
+    }))
+
+    try {
+      renderizar(<PaginaInicial />)
+
+      const grafico = await screen.findByRole('region', { name: 'Evolução das arrecadações' })
+      expect(await within(grafico).findByText('Setembro')).toBeInTheDocument()
+      expect(grafico.querySelector('svg')).toHaveAttribute('viewBox', '0 0 390 275')
+      expect(within(grafico).queryByRole('button')).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('usa a colação quando a turma não tem data da festa', async () => {
@@ -118,6 +183,24 @@ describe('Página inicial', () => {
     expect(screen.queryByText('Contagem regressiva')).not.toBeInTheDocument()
   })
 
+  it('a parcela em aberto leva ao PIX daquela parcela', async () => {
+    const parcela = vencidaDeTeste()
+    const seguinte = parcelaDeTeste({ id: 'pa-seguinte', numero: 3, vencimento: '2026-09-10' })
+    servidor.use(
+      http.get(`${base}/api/v1/extrato/eu`, () =>
+        HttpResponse.json({ proxima: parcela, parcelas: [parcela, seguinte], em_aberto_em_centavos: 71_120 }),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+
+    expect(await screen.findByRole('link', { name: 'Pagar parcela' })).toHaveAttribute(
+      'href',
+      `/minhas-parcelas/parcelas/${parcela.id}/pagar`,
+    )
+    const parcelaSeguinte = screen.getByRole('complementary', { name: 'Parcela seguinte' })
+    expect(within(parcelaSeguinte).getByText('Depois · Mensalidade 3/24')).toBeInTheDocument()
+  })
+
   it('mostra falha de consulta sem afirmar que o usuário está em dia', async () => {
     servidor.use(
       http.get(`${base}/api/v1/extrato/eu`, () =>
@@ -125,8 +208,49 @@ describe('Página inicial', () => {
       ),
     )
     renderizar(<PaginaInicial />)
-    const parcela = await screen.findByRole('region', { name: 'Sua próxima parcela' })
+    const parcela = await screen.findByRole('region', { name: 'Sua parcela' })
     expect(await within(parcela).findByRole('alert')).toBeInTheDocument()
     expect(within(parcela).queryByText(/Você está em dia/)).not.toBeInTheDocument()
+  })
+
+  it('a comissão nova vê o guia de primeiros passos no topo', async () => {
+    entrarComo(PAPEIS.presidente)
+    responderTurma({ ...turma, status: 'Ativa', ja_contratou: false })
+    servidor.use(
+      http.get(`${base}/api/v1/formaturas/atual/membros/resumo`, () =>
+        HttpResponse.json([
+          {
+            papel: PAPEIS.presidente,
+            ativo: true,
+            desligado: false,
+            essencial_pendente: false,
+            quantidade: 1,
+          },
+        ]),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+
+    const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
+    expect(within(guia).getByText('Convide os formandos')).toBeInTheDocument()
+    expect(within(guia).getByRole('link', { name: 'Convide os formandos' })).toHaveAttribute(
+      'href',
+      '/formatura#convites',
+    )
+  })
+
+  it('explica que o aceite gera as parcelas e abre o termo disponível', async () => {
+    responderTurma({ ...turma, status: 'Ativa' })
+    servidor.use(
+      http.get(`${base}/api/v1/adesoes/termos/vigente`, () =>
+        HttpResponse.json({ termo: { id: 't-1' }, hash_do_conteudo: 'hash' }),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+    expect(await screen.findByRole('link', { name: 'Ler e aceitar termo' })).toHaveAttribute(
+      'href',
+      '/meu-termo',
+    )
+    expect(screen.getByText(/suas parcelas serão geradas/)).toBeInTheDocument()
   })
 })

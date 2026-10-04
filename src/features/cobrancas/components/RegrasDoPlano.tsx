@@ -28,22 +28,24 @@ const carencia = (dias: number) =>
  *
  * @param editavel Falso esconde o botão — formatura fora de `Ativa`.
  */
-export function RegrasDoPlano({ plano, editavel }: { plano: PlanoDeCobranca; editavel: boolean }) {
+export function RegrasDoPlano({
+  plano,
+  editavel,
+  semCartao = false,
+}: {
+  plano: PlanoDeCobranca
+  editavel: boolean
+  semCartao?: boolean
+}) {
   const [editando, definirEditando] = useState(false)
 
-  return (
-    <Cartao
-      // Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão.
-      titulo="Regras de atraso"
-      descricao="Valem para quem aderir daqui em diante."
-      acao={
-        editavel ? (
-          <Button variant="outline" size="sm" onClick={() => definirEditando(true)}>
-            Editar
-          </Button>
-        ) : null
-      }
-    >
+  const acao = editavel ? (
+    <Button variant="outline" size={semCartao ? 'default' : 'sm'} onClick={() => definirEditando(true)}>
+      {semCartao ? 'Editar regras' : 'Editar'}
+    </Button>
+  ) : null
+  const conteudo = (
+    <>
       <ListaDeDados>
         <Dado icone={TriangleAlert} rotulo="Multa por atraso">
           <span className="flex flex-wrap items-center gap-2">
@@ -79,6 +81,16 @@ export function RegrasDoPlano({ plano, editavel }: { plano: PlanoDeCobranca; edi
       >
         <FormularioDoPlano plano={plano} editavel={editavel} aoConcluir={() => definirEditando(false)} />
       </DialogoDeFormulario>
+    </>
+  )
+  return semCartao ? (
+    <div className="grid gap-4">
+      {conteudo}
+      {acao}
+    </div>
+  ) : (
+    <Cartao titulo="Regras de atraso" descricao="Valem para quem aderir daqui em diante." acao={acao}>
+      {conteudo}
     </Cartao>
   )
 }

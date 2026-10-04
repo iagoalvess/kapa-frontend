@@ -29,7 +29,7 @@ export function SeletorDeDono({
   return (
     <Select
       aria-label={`Dono da ${mesa.identificacao}`}
-      className={cn('h-9 min-w-44 text-sm md:text-sm', className)}
+      className={cn('h-7 rounded-full text-sm md:text-sm', className)}
       value={mesa.vinculo_id ?? ''}
       disabled={definir.isPending}
       onChange={(evento) => {

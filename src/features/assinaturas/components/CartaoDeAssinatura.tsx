@@ -24,7 +24,7 @@ import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
-import { useAssinatura, useCancelarAssinatura, useTrocarMeio } from '../hooks/useAssinatura'
+import { useAssinatura, useCancelarAssinatura, useTrocarMeio, useTrocarPlano } from '../hooks/useAssinatura'
 import { usePagarCiclo } from '../hooks/useCheckout'
 import type { Assinatura } from '../types/assinaturas.types'
 import { SeloDeStatus } from './SeloDeStatus'
@@ -147,6 +147,7 @@ function Situacao({ assinatura, presidente }: { assinatura: Assinatura; presiden
  */
 function Andamento({ assinatura, presidente }: { assinatura: Assinatura; presidente: boolean }) {
   const trocarMeio = useTrocarMeio()
+  const trocarPlano = useTrocarPlano()
   const pagarCiclo = usePagarCiclo()
   const vencimento = formatarData(assinatura.vigente_ate)
   const paraOPix = assinatura.meio === 'Cartao'
@@ -155,7 +156,26 @@ function Andamento({ assinatura, presidente }: { assinatura: Assinatura; preside
     <>
       {assinatura.proximo_plano ? (
         <Recado>
-          A partir da renovação de {vencimento}, o plano passa a ser o {assinatura.proximo_plano.nome}.
+          <span>
+            A partir da renovação de {vencimento}, o plano passa a ser o {assinatura.proximo_plano.nome}.
+          </span>
+          {/* A descida agendada tem volta: escolher o plano atual desfaz o agendamento no back. */}
+          {presidente ? (
+            <Button
+              variant="outline"
+              className="w-1/2"
+              disabled={trocarPlano.isPending}
+              onClick={() =>
+                trocarPlano.mutate(assinatura.plano.codigo, {
+                  onSuccess: () =>
+                    toast.success(`Mudança desfeita. A turma continua no ${assinatura.plano.nome}.`),
+                  onError: avisarErro,
+                })
+              }
+            >
+              Manter o {assinatura.plano.nome}
+            </Button>
+          ) : null}
         </Recado>
       ) : null}
 

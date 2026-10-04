@@ -1,7 +1,8 @@
-import { Clock, FolderOpen, Megaphone, Pin, Plus, Star } from 'lucide-react'
+import { Files } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
+import { Clock, Megaphone, Pin, Plus, Star } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteLendo from '@/assets/mascote/lendo.webp'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { Cartao } from '@/components/Cartao'
@@ -25,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { ehOpcao } from '@/lib/opcao'
 import { DetalheDoAviso } from '../components/DetalheDoAviso'
 import { EditorDeAviso } from '../components/EditorDeAviso'
+import { LateralDoMural } from '../components/LateralDoMural'
 import { LinhaDoMural } from '../components/LinhaDoMural'
 import { useAviso, useAvisos, useMarcarMuralVisto, useResumoDoMural } from '../hooks/useAvisos'
 import { LIMITE_DE_FIXADOS, type ResumoDoMural } from '../types/comunicacao.types'
@@ -168,6 +170,8 @@ export default function MuralPage() {
     <>
       {faixa}
 
+      <AtalhosDaPagina atalhos={[{ titulo: 'Documentos', para: ROTAS.documentos, icone: Files }]} />
+
       {/* Os filtros ficam acima das duas colunas, como em Membros e Despesas: é a lista inteira que
           eles recortam, e não o cartão da esquerda. No celular somem junto com a lista. */}
       <div className={cn(id && 'max-lg:hidden')}>
@@ -198,14 +202,6 @@ export default function MuralPage() {
                 aoMudar={atualizar}
               />
             </BotaoDeFiltros>
-          }
-          acoes={
-            <Button asChild size="xs">
-              <LinkDaPagina to={ROTAS.documentos}>
-                <FolderOpen aria-hidden />
-                Documentos
-              </LinkDaPagina>
-            </Button>
           }
           acaoPrincipal={
             gestao ? (
@@ -253,7 +249,13 @@ export default function MuralPage() {
           ) : null}
         </Cartao>
 
-        <div className={cn('grid min-w-0 gap-3', !id && 'max-lg:hidden')}>
+        <div
+          className={cn(
+            'grid min-w-0 gap-3',
+            '2xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:items-start',
+            !id && 'max-lg:hidden',
+          )}
+        >
           {/* Só no celular: no desktop a lista está ao lado, e não há de onde voltar. */}
           <LinkDeVolta para={ROTAS.mural} className="lg:hidden">
             Mural
@@ -278,6 +280,8 @@ export default function MuralPage() {
               </p>
             </Cartao>
           ) : null}
+
+          <LateralDoMural />
         </div>
       </div>
     </>

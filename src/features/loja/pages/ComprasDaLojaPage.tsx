@@ -1,4 +1,6 @@
-import { CircleAlert, Download, Hourglass, Ticket, Wallet } from 'lucide-react'
+import { CircleAlert, Download, Hourglass, Link2, Ticket, Wallet } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
+import { useCopiarLinkDaLoja } from '@/hooks/useCopiarLinkDaLoja'
 import { Navigate, useLocation } from 'react-router'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
@@ -19,7 +21,7 @@ import { LateralDaLoja } from '../components/LateralDaLoja'
 import { PedidosDeCancelamento } from '../components/PedidosDeCancelamento'
 import { useComprasDaLoja, useExportarCompras, useResumoDaLoja } from '../hooks/useComprasDaLoja'
 import { ROTULOS_DA_COMPRA, type StatusDaCompra } from '../types/loja.types'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { useTamanhoDaPagina, useTelaGrande } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -40,6 +42,8 @@ const TOM_DA_COMPRA = {
  * faz no banco dela.
  */
 export default function ComprasDaLojaPage() {
+  const telaGrande = useTelaGrande()
+  const linkDaLoja = useCopiarLinkDaLoja()
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const { state } = useLocation()
@@ -95,6 +99,23 @@ export default function ComprasDaLojaPage() {
         ]}
       />
 
+      <AtalhosDaPagina
+        atalhos={[
+          {
+            titulo: 'Copiar link da loja',
+            icone: Link2,
+            aoAcionar: () => void linkDaLoja.copiarLink(),
+            desabilitado: !linkDaLoja.disponivel,
+          },
+          {
+            titulo: 'Exportar planilha',
+            icone: Download,
+            aoAcionar: () => exportar.mutate({ status, busca: busca || undefined }),
+            carregando: exportar.isPending,
+          },
+        ]}
+      />
+
       <PedidosDeCancelamento />
 
       <FiltrosDaPlanilha
@@ -131,14 +152,16 @@ export default function ComprasDaLojaPage() {
           </BotaoDeFiltros>
         }
         acoes={
-          <Button
-            size="xs"
-            disabled={exportar.isPending}
-            onClick={() => exportar.mutate({ status, busca: busca || undefined })}
-          >
-            <Download aria-hidden />
-            {exportar.isPending ? 'Baixando…' : 'Planilha'}
-          </Button>
+          telaGrande ? (
+            <Button
+              size="xs"
+              disabled={exportar.isPending}
+              onClick={() => exportar.mutate({ status, busca: busca || undefined })}
+            >
+              <Download aria-hidden />
+              {exportar.isPending ? 'Baixando…' : 'Planilha'}
+            </Button>
+          ) : null
         }
         contagem={{
           mostrando: compras.data?.itens.length ?? 0,
@@ -222,9 +245,9 @@ export default function ComprasDaLojaPage() {
 
         {compras.isPending ? (
           <EsqueletoDeCartoes quantidade={1} className="md:grid-cols-1" />
-        ) : (
+        ) : telaGrande ? (
           <LateralDaLoja />
-        )}
+        ) : null}
       </div>
     </>
   )

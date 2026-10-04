@@ -54,8 +54,8 @@ export default function CompraPage() {
             <h1 className="text-xl font-semibold">Compra não encontrada</h1>
             <p className="text-muted-foreground text-sm">
               Este endereço não vale mais: ele muda sempre que alguém pede para receber os convites de novo, e
-              deixa de abrir um mês depois da festa. Volte à loja da turma e toque em “Já comprei e não acho
-              meus convites”.
+              deixa de abrir um mês depois da festa. Volte à loja da turma e toque em “Receber o link de
+              novo”.
             </p>
           </div>
         ) : (

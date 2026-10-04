@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useRef } from 'react'
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
 import { VoltaDaPagina } from '@/components/VoltaDaPagina'
 import { LogoKapa } from '@/components/layout/LogoKapa'
@@ -10,10 +10,12 @@ import { BuscaGlobal } from '@/features/busca'
 import { SinoDeNovidades } from '@/features/comunicacao'
 import { FaixaDeStatus } from '@/features/formaturas'
 import { MODULOS } from '@/config/planos'
+import { ROTAS } from '@/config/rotas'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, useSessao } from '@/hooks/useSessao'
 import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { useTituloDaRota } from '@/hooks/useNavegacaoDaPagina'
+import { cn } from '@/lib/utils'
 import { BarraInferior } from './BarraInferior'
 import { BarraLateral } from './BarraLateral'
 import { MenuDaConta } from './MenuDaConta'
@@ -32,6 +34,10 @@ export function LayoutApp() {
   const { usuario } = useSessao()
   const { selecionada, desligadoEm } = useFormaturaAtiva()
   const titulo = useTituloDaRota()
+  const { pathname } = useLocation()
+  // A largura de leitura é só do Início: nas telas de trabalho (planilha, relatório, caixa), a tabela
+  // usa a tela inteira. Aqui o miolo encolhe e centraliza, sobrando margem dos dois lados.
+  const soOInicio = pathname === ROTAS.inicio
   const noPainel = useNoPainel()
   const telaGrande = useTelaGrande()
   const muralForaDoPlano = usePlanoDaTurma().bloqueia(MODULOS.mural)
@@ -94,10 +100,15 @@ export function LayoutApp() {
 
       {/* O respiro de baixo, no celular, é o da barra inferior mais o da área segura do aparelho — e o
           do botão, quando a tela tem uma `AcaoFixa`. */}
-      <div className="flex min-w-0 flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] has-[[data-acao-fixa]]:max-lg:pb-[calc(9.5rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-8">
-        <header className="flex h-16 shrink-0 items-center gap-3">
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 flex-col px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] has-[[data-acao-fixa]]:max-lg:pb-[calc(9.5rem+env(safe-area-inset-bottom))] lg:px-6 lg:pb-8',
+          soOInicio && 'mx-auto w-full max-w-[1440px]',
+        )}
+      >
+        <header className="flex min-h-16 shrink-0 items-center gap-3 py-3 lg:h-16 lg:py-0">
           {titulo ? (
-            <h1 className="text-foreground min-w-0 truncate text-[1.625rem] font-medium tracking-tight">
+            <h1 className="text-foreground min-w-0 text-[1.375rem] leading-tight font-medium tracking-tight lg:truncate lg:text-[1.625rem]">
               {titulo}
             </h1>
           ) : (

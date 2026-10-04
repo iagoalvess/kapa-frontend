@@ -1,4 +1,6 @@
-import { ChartColumn, CircleCheck, Package, ShoppingBag, Wallet } from 'lucide-react'
+import { Info, Store } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
+import { CircleCheck, Package, ShoppingBag, ShoppingCartPlus, Wallet } from 'lucide-react'
 import { Navigate, useLocation } from 'react-router'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcoesDaLinha } from '@/components/AcoesDaLinha'
@@ -20,7 +22,7 @@ import { usePedidos, useResumoDosPedidos } from '../hooks/usePedidos'
 import { ehOpcao } from '@/lib/opcao'
 import { rotuloDoItem, type FiltroDePedidos } from '../types/cobrancas.types'
 import { AcoesDoPedido } from '../components/AcoesDoPedido'
-import { LateralDePedidos } from '../components/LateralDePedidos'
+import { LateralDePedidos, OrientacoesDePedidos } from '../components/LateralDePedidos'
 import { LiberarConvites } from '../components/LiberarConvites'
 import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
@@ -113,6 +115,22 @@ export default function PedidosPage() {
         ]}
       />
 
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Meus pedidos', para: ROTAS.meusPedidos, icone: ShoppingBag },
+          { titulo: 'Compras da loja', para: ROTAS.comprasDaLoja, icone: Store },
+          {
+            titulo: 'Como funciona',
+            icone: Info,
+            dialogo: {
+              titulo: 'Como funciona o pedido',
+              descricao: 'Pedidos, quantidades e parcelas no extrato do formando.',
+              conteudo: <OrientacoesDePedidos />,
+            },
+          },
+        ]}
+      />
+
       <FiltrosDaPlanilha
         principal={
           <Chip
@@ -166,7 +184,7 @@ export default function PedidosPage() {
         acoes={
           <Button asChild size="xs">
             <LinkDaPagina to={ROTAS.pedidosPorItem}>
-              <ChartColumn aria-hidden />
+              <ShoppingCartPlus aria-hidden />
               Itens
             </LinkDaPagina>
           </Button>

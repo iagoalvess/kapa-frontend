@@ -1,9 +1,10 @@
-import { ArrowUpRight, type LucideIcon } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, type LucideIcon } from 'lucide-react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { Dica } from '@/components/Dica'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 
 interface Props {
   /** Título visível, que também nomeia a seção para o leitor de tela. */
@@ -28,18 +29,10 @@ interface Props {
   /** Nome da seta para o leitor de tela e a dica do mouse. Sem ele, "Abrir" e o título. */
   rotuloDoAtalho?: string
   className?: string
+  /** Guias longos viram uma seção expansível no celular; seu conteúdo continua acessível. */
+  recolhivelNoCelular?: boolean
   children: ReactNode
 }
-
-/**
- * Texto de ajuda que sai no celular (P4 da Sprint 41): a frase que explica o cartão, quando passa de
- * uma linha e pouco. Só texto — descrição montada em JSX costuma trazer dado (uma data, um valor), e
- * esse fica.
- *
- * ponytail: corte por tamanho, e não por marcação de quem escreve; se uma ajuda curta precisar sair
- * ou uma longa ficar, vira prop.
- */
-const ehAjudaLonga = (descricao: ReactNode) => typeof descricao === 'string' && descricao.length > 80
 
 /** Texto de apoio dos cartões: a mesma tipografia para descrições, orientações e listas laterais. */
 export function TextoDoCartao({
@@ -47,7 +40,15 @@ export function TextoDoCartao({
   className,
   ...props
 }: HTMLAttributes<HTMLElement> & { as?: 'p' | 'div' | 'ul' | 'ol' }) {
-  return <Elemento {...props} className={cn('text-muted-foreground text-[15px] leading-normal', className)} />
+  return (
+    <Elemento
+      {...props}
+      className={cn(
+        'text-muted-foreground text-[15px] leading-normal max-lg:[overflow-wrap:anywhere]',
+        className,
+      )}
+    />
+  )
 }
 
 /**
@@ -68,12 +69,31 @@ export function Cartao({
   para,
   rotuloDoAtalho,
   className,
+  recolhivelNoCelular = false,
   children,
 }: Props) {
+  const telaGrande = useTelaGrande()
+
+  if (recolhivelNoCelular && !telaGrande && titulo) {
+    return (
+      <details className={cn('bg-card shadow-cartao group min-w-0 rounded-2xl p-4', className)}>
+        <summary className="focus-visible:ring-ring flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg font-medium focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+          <h2 className="text-base">{titulo}</h2>
+          <ChevronDown className="text-muted-foreground size-5 shrink-0 group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="mt-3 grid gap-4 border-t pt-4">
+          {descricao ? <TextoDoCartao as="div">{descricao}</TextoDoCartao> : null}
+          {acao ? <div className="flex flex-wrap gap-2">{acao}</div> : null}
+          {children}
+        </div>
+      </details>
+    )
+  }
+
   return (
     <section
       aria-label={titulo ?? rotulo}
-      className={cn('bg-card shadow-cartao grid content-start gap-5 rounded-3xl p-5', className)}
+      className={cn('bg-card shadow-cartao grid min-w-0 content-start gap-5 rounded-3xl p-5', className)}
     >
       {titulo ? (
         // Sem descrição, o título sozinho centra na altura do ícone.
@@ -92,18 +112,13 @@ export function Cartao({
           ) : null}
           {/* `basis-60`: sem espaço para o texto e as ações lado a lado, as ações descem de linha. Só
               a seta não desce: ela cabe em qualquer largura, e sozinha numa linha parecia solta. */}
-          <div className={cn('grid min-w-0 flex-1 gap-0.5', acao ? 'basis-60' : 'basis-0')}>
-            <h2 className="text-foreground flex flex-wrap items-center gap-2 text-xl leading-snug font-medium">
+          <div className={cn('grid min-w-0 flex-1 gap-0.5', acao ? 'basis-40 lg:basis-60' : 'basis-0')}>
+            <h2 className="text-foreground flex flex-wrap items-center gap-2 text-lg leading-snug font-medium lg:text-xl">
               {titulo}
               {selo}
             </h2>
             {descricao ? (
-              <TextoDoCartao
-                as={typeof descricao === 'string' ? 'p' : 'div'}
-                className={cn(ehAjudaLonga(descricao) && 'max-lg:hidden')}
-              >
-                {descricao}
-              </TextoDoCartao>
+              <TextoDoCartao as={typeof descricao === 'string' ? 'p' : 'div'}>{descricao}</TextoDoCartao>
             ) : null}
           </div>
           {acao || para ? (

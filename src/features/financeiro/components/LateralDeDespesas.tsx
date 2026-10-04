@@ -16,33 +16,49 @@ import type { ResumoDeDespesas } from '../types/financeiro.types'
  * O total sai do mesmo resumo da faixa e dos filtros, então acompanha o recorte da tela. Quem paga
  * uma despesa é a linha da lista; aqui o cartão é só o número grande.
  */
-export function LateralDeDespesas({ resumo }: { resumo?: ResumoDeDespesas }) {
+export function LateralDeDespesas({
+  resumo,
+  mostrarResumo = true,
+}: {
+  resumo?: ResumoDeDespesas
+  mostrarResumo?: boolean
+}) {
   const { tem } = usePapel()
   const tesouraria = tem(PAPEIS.tesoureiro)
-  const aPagar = resumo?.prevista.valor_em_centavos ?? 0
 
   return (
-    <div className="grid min-w-0 gap-5">
-      <CartaoDeValor
-        titulo="Despesas a pagar"
-        destaque={aPagar > 0}
-        rotulo="A pagar"
-        valor={resumo ? formatarCentavos(aPagar) : null}
-        nota={
-          resumo?.atrasada.quantidade
-            ? `${formatarCentavos(resumo.atrasada.valor_em_centavos)} em atraso.`
-            : 'Nada em atraso.'
-        }
-        rodape="Pagar uma despesa registra a saída no Caixa. O comprovante é obrigatório."
-      />
+    <div className="grid min-w-0 gap-5 max-lg:contents">
+      {mostrarResumo ? <ResumoDeDespesasAPagar resumo={resumo} /> : null}
 
       {tesouraria ? (
-        <Cartao titulo="Fornecedores" descricao="Quem a turma contrata, e o que já saiu para cada um.">
+        <Cartao
+          titulo="Fornecedores"
+          className="hidden lg:grid"
+          descricao="Quem a turma contrata, e o que já saiu para cada um."
+        >
           <Button asChild variant="outline" size="sm" className="justify-self-start">
             <LinkDaPagina to={ROTAS.fornecedores}>Ver fornecedores</LinkDaPagina>
           </Button>
         </Cartao>
       ) : null}
     </div>
+  )
+}
+
+export function ResumoDeDespesasAPagar({ resumo }: { resumo?: ResumoDeDespesas }) {
+  const aPagar = resumo?.prevista.valor_em_centavos ?? 0
+  return (
+    <CartaoDeValor
+      titulo="Despesas a pagar"
+      destaque={aPagar > 0}
+      rotulo="A pagar"
+      valor={resumo ? formatarCentavos(aPagar) : null}
+      nota={
+        resumo?.atrasada.quantidade
+          ? `${formatarCentavos(resumo.atrasada.valor_em_centavos)} em atraso.`
+          : 'Nada em atraso.'
+      }
+      rodape="Pagar uma despesa registra a saída no Caixa. O comprovante é obrigatório."
+    />
   )
 }

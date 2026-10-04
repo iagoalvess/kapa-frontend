@@ -112,6 +112,70 @@ describe('LojaPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Convites da festa' })).toBeInTheDocument()
   })
 
+  it('com vários convites, a escolha é a etapa 1 e o item escolhido vai na compra', async () => {
+    const corpos: Record<string, unknown>[] = []
+    servidor.use(
+      http.get(LOJA, () =>
+        HttpResponse.json(
+          loja({
+            itens: [item(), item({ id: 'i-2', descricao: 'Convite infantil', preco_em_centavos: 15_000 })],
+          }),
+        ),
+      ),
+      http.post(`${LOJA}/compras`, async ({ request }) => {
+        corpos.push((await request.json()) as Record<string, unknown>)
+        return HttpResponse.json({ token: 'tok-1', compra })
+      }),
+    )
+    const usuario = userEvent.setup()
+    abrir()
+
+    expect(await screen.findByText('Etapa 1 de 3')).toBeInTheDocument()
+    await usuario.click(screen.getByText('Convite infantil'))
+    await usuario.clear(screen.getByLabelText('Quantos convites'))
+    await usuario.type(screen.getByLabelText('Quantos convites'), '2')
+    await usuario.click(screen.getByRole('button', { name: /^Continuar/ }))
+
+    expect(await screen.findByText('Etapa 2 de 3')).toBeInTheDocument()
+    await usuario.type(screen.getByLabelText('Seu nome'), 'Maria Souza')
+    await usuario.type(screen.getByLabelText('E-mail'), 'maria@teste.dev')
+    await usuario.type(screen.getByLabelText('CPF'), '529.982.247-25')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Li como meus dados são usados' }))
+    await usuario.click(screen.getByRole('button', { name: /^Continuar/ }))
+
+    const nomes = await screen.findAllByLabelText('Nome completo')
+    const documentos = screen.getAllByLabelText('Número')
+    await usuario.type(nomes[0]!, 'Tia Carmem')
+    await usuario.type(documentos[0]!, '111.444.777-35')
+    await usuario.type(nomes[1]!, 'Tio Beto')
+    await usuario.type(documentos[1]!, '111.444.777-35')
+    await usuario.click(screen.getByRole('button', { name: /^Comprar/ }))
+
+    await waitFor(() => expect(corpos).toHaveLength(1))
+    expect(corpos[0]?.item_de_cobranca_id).toBe('i-2')
+    expect(corpos[0]?.quantidade).toBe(2)
+  })
+
+  it('o convite esgotado aparece no cartão e não se escolhe', async () => {
+    servidor.use(
+      http.get(LOJA, () =>
+        HttpResponse.json(
+          loja({
+            itens: [
+              item({ id: 'i-1', descricao: 'Convite adulto', disponivel: 0 }),
+              item({ id: 'i-2', descricao: 'Convite infantil' }),
+            ],
+          }),
+        ),
+      ),
+    )
+    abrir()
+
+    expect(await screen.findByText('Esgotado')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Convite adulto/ })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /Convite infantil/ })).toBeEnabled()
+  })
+
   it('esgotado diz esgotado e não oferece a compra', async () => {
     servidor.use(http.get(LOJA, () => HttpResponse.json(loja({ itens: [item({ disponivel: 0 })] }))))
 
@@ -278,18 +342,11 @@ describe('LojaPage', () => {
     await waitFor(() => expect(corpos[0]?.meio).toBe('Cartao'))
   })
 
-  it('reenvia o link com a mesma resposta exista compra ou não', async () => {
-    servidor.use(
-      http.get(LOJA, () => HttpResponse.json(loja())),
-      http.post(`${LOJA}/reenvio`, () => new HttpResponse(null, { status: 204 })),
-    )
-    const usuario = userEvent.setup()
+  it('leva quem já comprou à página de reenvio do link', async () => {
+    servidor.use(http.get(LOJA, () => HttpResponse.json(loja())))
     abrir()
 
-    await usuario.click(await screen.findByText('Já comprei e não acho meus convites'))
-    await usuario.type(screen.getByLabelText('E-mail que você usou na compra'), 'maria@teste.dev')
-    await usuario.click(screen.getByRole('button', { name: 'Receber de novo' }))
-
-    expect(await screen.findByText(/Se você comprou com este e-mail/)).toBeInTheDocument()
+    const link = await screen.findByRole('link', { name: 'Receber o link de novo' })
+    expect(link).toHaveAttribute('href', '/loja/f-1/reenviar')
   })
 })

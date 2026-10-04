@@ -179,6 +179,7 @@ export default function PedidosPorItemPage() {
 
         {visiveis.length > 0 ? (
           <Tabela
+            emLista
             ordenacao={ordenacao}
             cabecalho={
               <>
@@ -222,14 +223,28 @@ export default function PedidosPorItemPage() {
                       {rotuloDoItem(linha)}
                     </div>
                   </th>
-                  <td className="py-3 pr-4 text-right">{formatarNumero(linha.pedidos)}</td>
-                  <td className="py-3 pr-4 text-right">{formatarNumero(linha.unidades)}</td>
-                  <td className="py-3 pr-4 text-right">{formatarNumero(linha.unidades_quitadas)}</td>
-                  <td className="py-3 pr-4 text-right">{formatarNumero(aguardando(linha))}</td>
                   <td className="py-3 pr-4 text-right">
+                    <span className="text-texto-muted lg:hidden">Pedidos: </span>
+                    {formatarNumero(linha.pedidos)}
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    <span className="text-texto-muted lg:hidden">Unidades: </span>
+                    {formatarNumero(linha.unidades)}
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    <span className="text-texto-muted lg:hidden">Pagas: </span>
+                    {formatarNumero(linha.unidades_quitadas)}
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    <span className="text-texto-muted lg:hidden">Aguardando: </span>
+                    {formatarNumero(aguardando(linha))}
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    <span className="text-texto-muted lg:hidden">Livres: </span>
                     {linha.disponivel === null ? '—' : formatarNumero(linha.disponivel)}
                   </td>
                   <td className="py-3 text-right whitespace-nowrap">
+                    <span className="text-texto-muted block text-xs lg:hidden">Recebido</span>
                     {formatarCentavos(linha.pago_em_centavos)}
                     <span className="text-texto-muted block text-xs">
                       de {formatarCentavos(linha.total_em_centavos)}

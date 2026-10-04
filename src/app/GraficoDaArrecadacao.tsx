@@ -1,9 +1,8 @@
-import { ChartColumnIncreasing } from 'lucide-react'
-import { useState } from 'react'
-import { Cartao } from '@/components/Cartao'
-import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { useId, useState } from 'react'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { useArrecadacao } from '@/hooks/useArrecadacao'
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 import {
   formatarCentavos,
   formatarMesDoDia,
@@ -16,6 +15,15 @@ import { cn } from '@/lib/utils'
 /** Três degraus acima do zero, como o modelo: R$ 0, 50 mil, 100 mil, 150 mil. */
 const DEGRAUS = 3
 
+/** A caixa do desenho, em unidades do `viewBox` — a área útil vai de (X0,Y0) a (X1,Y1). */
+const LARGURA = 1000
+const ALTURA = 235
+const X0 = 90
+const X1 = 950
+const Y0 = 15
+const Y1 = 175
+const MESES_ROTULADOS_NO_CELULAR = 6
+
 /** O degrau "redondo" que cobre o valor: 1, 2 ou 5 vezes uma potência de dez. */
 function degrauRedondo(valor: number) {
   if (valor <= 0) return 1
@@ -26,148 +34,223 @@ function degrauRedondo(valor: number) {
 }
 
 /**
- * Quanto a turma já juntou, mês a mês — cada barra é o acumulado ao fim do mês.
+ * Quanto a turma já juntou, mês a mês — cada ponto é o acumulado ao fim do mês, ligados por uma linha
+ * sobre uma área preenchida.
  *
- * Uma série só, então sem legenda: o título a nomeia. O mês atual vem cheio de laranja e com a
- * dica aberta, porque é a pergunta de quem abre o Início ("quanto temos hoje?"); passar o mouse
- * leva a dica a outro mês. O próximo mês é previsão — o que já entrou mais o que vence nele — e a
- * dica diz isso.
+ * Uma série só, então sem legenda: o título a nomeia. O mês atual vem com o ponto cheio e a dica
+ * aberta, porque é a pergunta de quem abre o Início ("quanto temos hoje?"); passar o mouse escolhe o mês
+ * da dica, e ela fica nele até outro passar. O próximo mês é previsão — o que já entrou mais o que vence
+ * nele — e a dica diz isso.
  *
- * Barras em HTML, e não SVG: a dica e a coluna destacada se posicionam pela altura em porcentagem,
- * sem geometria à mão. A tabela escondida é a mesma informação para o leitor de tela.
+ * O desenho é um SVG só: a linha, a área, os pontos e os eixos saem das mesmas coordenadas. A tabela
+ * escondida é a mesma informação para o leitor de tela.
  */
 export function GraficoDaArrecadacao() {
+  const telaGrande = useTelaGrande()
   const arrecadacao = useArrecadacao()
   const meses = arrecadacao.data ?? []
   const atual = meses.findLastIndex((mes) => !mes.projetado)
   const [apontado, definirApontado] = useState<number | null>(null)
   const ativo = apontado ?? atual
+  const gradiente = useId().replace(/:/g, '')
+  const larguraSvg = telaGrande ? LARGURA : 390
+  const alturaSvg = telaGrande ? ALTURA : 275
+  const xInicio = telaGrande ? X0 : 76
+  const xFim = telaGrande ? X1 : 378
+  const yInicio = telaGrande ? Y0 : 20
+  const yFim = telaGrande ? Y1 : 190
+  const yMeses = telaGrande ? 205 : 230
 
   const maior = Math.max(0, ...meses.map((mes) => mes.arrecadado_em_centavos))
   const degrau = degrauRedondo(maior / DEGRAUS)
   const teto = degrau * DEGRAUS
 
+  const n = meses.length
+  const passo = n > 1 ? (xFim - xInicio) / (n - 1) : 0
+  const px = (indice: number) => xInicio + indice * passo
+  const py = (valor: number) => yFim - (teto > 0 ? Math.min(valor / teto, 1) * (yFim - yInicio) : 0)
+  const intervaloDosMeses = Math.max(1, Math.ceil(n / MESES_ROTULADOS_NO_CELULAR))
+
+  const pontos = meses.map((mes, indice) => ({ x: px(indice), y: py(mes.arrecadado_em_centavos) }))
+  const coordenadas = pontos.map((ponto) => `${ponto.x.toFixed(1)},${ponto.y.toFixed(1)}`)
+  const linha = coordenadas.map((par, indice) => `${indice === 0 ? 'M' : 'L'}${par}`).join(' ')
+  const area =
+    pontos.length > 0
+      ? `M${pontos[0]!.x.toFixed(1)},${yFim} ${coordenadas.map((par) => `L${par}`).join(' ')} L${pontos[pontos.length - 1]!.x.toFixed(1)},${yFim} Z`
+      : ''
+
   return (
-    <Cartao titulo="Evolução das arrecadações" icone={ChartColumnIncreasing} className="gap-4">
-      {arrecadacao.isPending ? <EsqueletoDeTexto linhas={4} /> : null}
-      {arrecadacao.isError ? <ErroDaConsulta erro={arrecadacao.error} /> : null}
+    <section aria-labelledby="bloco-evolucao" className="border-b pt-8 pb-9">
+      <h2 id="bloco-evolucao" className="text-[17px] font-semibold">
+        Evolução das arrecadações
+      </h2>
+
+      {arrecadacao.isPending ? (
+        <div className="mt-4">
+          <EsqueletoDeTexto linhas={4} />
+        </div>
+      ) : null}
+      {arrecadacao.isError ? (
+        <div className="mt-4">
+          <ErroDaConsulta erro={arrecadacao.error} />
+        </div>
+      ) : null}
 
       {arrecadacao.data && maior === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground mt-4 text-sm">
           Nenhum pagamento entrou ainda. Quando a turma começar a pagar, a evolução aparece aqui.
         </p>
       ) : null}
 
       {arrecadacao.data && maior > 0 ? (
         <>
-          <div aria-hidden className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3">
-            {/* O eixo: cada rótulo centrado na altura da sua linha de grade, do teto ao zero. */}
-            <div className="text-texto-muted relative h-44 w-16 text-right text-xs tabular-nums">
-              {Array.from({ length: DEGRAUS + 1 }, (_, indice) => (
-                <span
-                  key={indice}
-                  className="absolute right-0 -translate-y-1/2 whitespace-nowrap"
-                  style={{ top: `${(indice / DEGRAUS) * 100}%` }}
-                >
-                  {indice === DEGRAUS ? 'R$ 0' : formatarMoedaCurta((DEGRAUS - indice) * degrau)}
-                </span>
-              ))}
-            </div>
+          <div className="relative mt-4" aria-hidden>
+            <svg viewBox={`0 0 ${larguraSvg} ${alturaSvg}`} className="h-auto w-full">
+              <defs>
+                <linearGradient id={gradiente} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="var(--brand)" stopOpacity={0.33} />
+                  <stop offset="1" stopColor="var(--brand)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
 
-            <div className="relative h-44">
-              {Array.from({ length: DEGRAUS + 1 }, (_, indice) => (
-                <span
-                  key={indice}
-                  className="border-border absolute inset-x-0 border-t border-dashed"
-                  style={{ top: `${(indice / DEGRAUS) * 100}%` }}
+              {Array.from({ length: DEGRAUS + 1 }, (_, indice) => {
+                const y = yInicio + (indice / DEGRAUS) * (yFim - yInicio)
+
+                return (
+                  <g key={indice}>
+                    <line
+                      x1={xInicio - 10}
+                      y1={y}
+                      x2={xFim + 10}
+                      y2={y}
+                      className="stroke-border"
+                      strokeDasharray="5 6"
+                    />
+                    <text
+                      x={xInicio - 14}
+                      y={y + 4}
+                      textAnchor="end"
+                      className={cn('fill-texto-muted', telaGrande ? 'text-[11px]' : 'text-[12px]')}
+                    >
+                      {indice === DEGRAUS ? 'R$ 0' : formatarMoedaCurta((DEGRAUS - indice) * degrau)}
+                    </text>
+                  </g>
+                )
+              })}
+
+              <path d={area} fill={`url(#${gradiente})`} />
+              <path
+                d={linha}
+                fill="none"
+                className="stroke-brand"
+                strokeWidth={3.5}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+
+              {ativo >= 0 && pontos[ativo] ? (
+                <line
+                  x1={pontos[ativo].x}
+                  y1={pontos[ativo].y}
+                  x2={pontos[ativo].x}
+                  y2={yFim}
+                  className="stroke-brand"
+                  strokeWidth={1.8}
+                  strokeDasharray="4 5"
+                  opacity={0.65}
+                />
+              ) : null}
+
+              {pontos.map((ponto, indice) => (
+                <circle
+                  key={meses[indice]!.mes}
+                  cx={ponto.x}
+                  cy={ponto.y}
+                  r={indice === ativo ? 7.5 : 4.5}
+                  className={cn('fill-brand', indice === ativo && 'stroke-card')}
+                  strokeWidth={indice === ativo ? 3 : 0}
                 />
               ))}
 
-              <div className="absolute inset-0 flex items-end">
-                {meses.map((mes, indice) => {
-                  const altura = (mes.arrecadado_em_centavos / teto) * 100
-                  const destaque = indice === ativo
-
-                  return (
-                    <div
-                      key={mes.mes}
-                      className={cn(
-                        'relative flex h-full flex-1 items-end justify-center rounded-t-xl transition-colors',
-                        destaque && 'bg-brand-wash/70',
-                      )}
-                      onMouseEnter={() => definirApontado(indice)}
-                      onMouseLeave={() => definirApontado(null)}
-                    >
-                      <span
-                        className={cn(
-                          'relative z-10 w-1/2 max-w-9',
-                          destaque
-                            ? 'bg-brand'
-                            : mes.projetado
-                              ? 'from-brand-tint/70 to-brand-wash bg-linear-to-t'
-                              : 'from-brand-soft/70 to-brand-wash bg-linear-to-t',
-                        )}
-                        style={{ height: `${Math.max(altura, 2)}%` }}
-                      />
-
-                      {destaque ? (
-                        <span
-                          className="bg-card shadow-cartao after:bg-card absolute z-20 -translate-y-3.5 rounded-xl px-3 py-2 whitespace-nowrap after:absolute after:top-full after:left-1/2 after:size-3 after:-translate-x-1/2 after:-translate-y-1/2 after:rotate-45 after:rounded-[2px]"
-                          style={{ bottom: `${altura}%` }}
-                        >
-                          <span className="text-muted-foreground block text-xs">
-                            {primeiraMaiuscula(formatarMesLongo(mes.mes).split(' de ')[0] ?? '')}
-                            {mes.projetado ? ' · previsto' : null}
-                          </span>
-                          <span className="block text-sm font-bold tabular-nums">
-                            {formatarCentavos(mes.arrecadado_em_centavos)}
-                          </span>
-                        </span>
-                      ) : null}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <span />
-            <div className="mt-2 flex">
-              {meses.map((mes, indice) => (
-                <span
-                  key={mes.mes}
-                  className={cn(
-                    'flex-1 text-center text-xs',
-                    indice === ativo ? 'text-foreground font-semibold' : 'text-muted-foreground',
-                  )}
-                >
-                  {primeiraMaiuscula(formatarMesDoDia(mes.mes))}
-                </span>
+              {/* Alvos de ponteiro, maiores que os pontos: a dica acompanha o mês sob o mouse e fica
+                  nele — sair não devolve ao mês atual, que é só o ponto de partida. */}
+              {pontos.map((ponto, indice) => (
+                <circle
+                  key={`alvo-${meses[indice]!.mes}`}
+                  cx={ponto.x}
+                  cy={ponto.y}
+                  r={18}
+                  fill="transparent"
+                  onMouseEnter={() => definirApontado(indice)}
+                  onPointerDown={() => definirApontado(indice)}
+                />
               ))}
-            </div>
+
+              {meses.map((mes, indice) =>
+                telaGrande || indice % intervaloDosMeses === 0 || indice === n - 1 ? (
+                  <text
+                    key={`mes-${mes.mes}`}
+                    x={px(indice)}
+                    y={yMeses}
+                    textAnchor="middle"
+                    className={cn(
+                      telaGrande ? 'text-[11.5px]' : 'text-[12px]',
+                      indice === ativo ? 'fill-foreground font-semibold' : 'fill-texto-muted',
+                    )}
+                  >
+                    {primeiraMaiuscula(formatarMesDoDia(mes.mes))}
+                  </text>
+                ) : null,
+              )}
+            </svg>
+
+            {ativo >= 0 && meses[ativo] ? (
+              <span
+                className="bg-card border-border shadow-cartao absolute -translate-x-1/2 rounded-xl border px-3 py-1.5 text-center whitespace-nowrap"
+                style={{
+                  left: `${
+                    telaGrande
+                      ? (px(ativo) / larguraSvg) * 100
+                      : Math.max(25, Math.min((px(ativo) / larguraSvg) * 100, 75))
+                  }%`,
+                  bottom: `calc(${((alturaSvg - py(meses[ativo].arrecadado_em_centavos)) / alturaSvg) * 100}% + 16px)`,
+                }}
+              >
+                <span className="text-muted-foreground block text-[11.5px]">
+                  {primeiraMaiuscula(formatarMesLongo(meses[ativo].mes).split(' de ')[0] ?? '')}
+                  {meses[ativo].projetado ? ' · previsto' : null}
+                </span>
+                <span className="block text-[15px] font-extrabold tabular-nums">
+                  {formatarCentavos(meses[ativo].arrecadado_em_centavos)}
+                </span>
+              </span>
+            ) : null}
           </div>
 
-          <table className="sr-only">
-            <caption>Total arrecadado ao fim de cada mês</caption>
-            <thead>
-              <tr>
-                <th scope="col">Mês</th>
-                <th scope="col">Arrecadado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {meses.map((mes) => (
-                <tr key={mes.mes}>
-                  <th scope="row">
-                    {formatarMesLongo(mes.mes)}
-                    {mes.projetado ? ' (previsto)' : ''}
-                  </th>
-                  <td>{formatarCentavos(mes.arrecadado_em_centavos)}</td>
+          <div className="sr-only">
+            <table>
+              <caption>Total arrecadado ao fim de cada mês</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Mês</th>
+                  <th scope="col">Arrecadado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {meses.map((mes) => (
+                  <tr key={mes.mes}>
+                    <th scope="row">
+                      {formatarMesLongo(mes.mes)}
+                      {mes.projetado ? ' (previsto)' : ''}
+                    </th>
+                    <td>{formatarCentavos(mes.arrecadado_em_centavos)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       ) : null}
-    </Cartao>
+    </section>
   )
 }

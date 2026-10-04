@@ -1,7 +1,7 @@
 import { Navigate, Outlet, ScrollRestoration, createBrowserRouter, useParams } from 'react-router'
 import { PAPEIS, PERFIS } from '@/config/perfis'
 import { MODULOS } from '@/config/planos'
-import { ROTAS, rotaDaContaNoPainel, rotaDaTurmaNoPainel } from '@/config/rotas'
+import { ROTAS, rotaDaContaNoPainel, rotaDaTurmaNoPainel, rotaDoMapaDeMesas } from '@/config/rotas'
 import { ExigeAceites } from './guards/ExigeAceites'
 import { ExigeAutenticacao } from './guards/ExigeAutenticacao'
 import { ExigeFormatura } from './guards/ExigeFormatura'
@@ -97,6 +97,11 @@ export const router = createBrowserRouter([
       {
         path: `${ROTAS.loja}/:formaturaId`,
         lazy: pagina(() => import('@/features/loja/pages/LojaPage')),
+      },
+      // O reenvio do link, pela loja: quem comprou e perdeu o acesso pede outro pelo e-mail (decisão 10).
+      {
+        path: `${ROTAS.loja}/:formaturaId/reenviar`,
+        lazy: pagina(() => import('@/features/loja/pages/ReenvioDoLinkPage')),
       },
       {
         path: `${ROTAS.compra}/:token`,
@@ -349,6 +354,13 @@ export const router = createBrowserRouter([
                                 path: ROTAS.mesas,
                                 handle: { titulo: 'Mesas' },
                                 lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
+                              },
+                              // O editor do salão precisa de largura para arrastar: página própria,
+                              // aberta pelo card lateral da lista (ver docs/menu-e-planos.md).
+                              {
+                                path: rotaDoMapaDeMesas,
+                                handle: { titulo: 'Mapa do salão' },
+                                lazy: pagina(() => import('@/features/festa/pages/MapaDasMesasPage')),
                               },
                             ],
                           },

@@ -78,6 +78,7 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
   return (
     <div className="grid gap-4">
       <Tabela
+        emLista
         variante="faixa"
         legenda="Itens do plano"
         cabecalho={
@@ -111,7 +112,10 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
                   1ª em {formatarData(parcelas[0]?.vencimento)} · todo dia {item.dia_de_vencimento}
                 </span>
               </td>
-              <td className="px-3 py-2.5 text-right whitespace-nowrap">{formatarNumero(parcelas.length)}×</td>
+              <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                {formatarNumero(parcelas.length)}×
+                <span className="text-muted-foreground lg:hidden"> parcelas</span>
+              </td>
               <td className="px-3 py-2.5 text-right whitespace-nowrap">
                 {formatarCentavos(item.valor_em_centavos)}
               </td>

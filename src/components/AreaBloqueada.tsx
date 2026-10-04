@@ -1,4 +1,5 @@
 import { Check, Lock } from 'lucide-react'
+import type { ReactNode } from 'react'
 import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import { AcaoDeUpgrade } from '@/components/AcaoDeUpgrade'
 import { Cartao } from '@/components/Cartao'
@@ -15,17 +16,24 @@ import { usePlanoQueLibera } from '@/hooks/usePlanoDaTurma'
  *
  * @param modulo O módulo que a área exige.
  */
-export function AreaBloqueada({ modulo }: { modulo: Modulo }) {
+export function AreaBloqueada({ modulo, previa }: { modulo: Modulo; previa?: ReactNode }) {
   const area = AREAS_DO_PLANO[modulo]
   const plano = usePlanoQueLibera(modulo)
 
   return (
-    <div className="relative isolate grid min-h-[32rem] place-items-center overflow-hidden rounded-3xl">
-      {area ? <Maquete area={area} /> : null}
+    <div className="relative isolate grid min-h-[48rem] place-items-center overflow-hidden rounded-3xl">
+      <div
+        aria-hidden
+        inert
+        data-testid="previa-area-bloqueada"
+        className="pointer-events-none absolute inset-0 grid content-start gap-5 opacity-70 blur-[2px] select-none"
+      >
+        {previa ?? (area ? <Maquete area={area} /> : null)}
+      </div>
 
       <section
         aria-labelledby="area-bloqueada"
-        className="bg-card shadow-cartao relative z-10 m-4 grid w-full max-w-md justify-items-center gap-4 rounded-3xl p-6 text-center"
+        className="bg-card shadow-cartao relative z-10 m-4 grid w-[calc(100%-2rem)] max-w-md justify-items-center gap-4 rounded-3xl p-6 text-center"
       >
         <img src={mascoteCadeado} alt="" className="w-24 drop-shadow-lg" />
         <p className="bg-brand-tint text-brand-text inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold">
@@ -62,11 +70,7 @@ function Maquete({ area }: { area: AreaDoPlano }) {
   const Icone = area.icone
 
   return (
-    <div
-      aria-hidden
-      inert
-      className="absolute inset-0 grid content-start gap-5 opacity-70 blur-[2px] select-none"
-    >
+    <>
       <div className="grid grid-cols-3 gap-3">
         {area.indicadores.map(([rotulo, valor]) => (
           <div key={rotulo} className="bg-card shadow-cartao grid gap-1 rounded-2xl p-4">
@@ -94,6 +98,6 @@ function Maquete({ area }: { area: AreaDoPlano }) {
           ))}
         </ul>
       </Cartao>
-    </div>
+    </>
   )
 }

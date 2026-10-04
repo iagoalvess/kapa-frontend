@@ -1,8 +1,9 @@
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 import { AreaBloqueada } from '@/components/AreaBloqueada'
 import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import type { Modulo } from '@/config/planos'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
+import { PreviaDaArea } from '../previas/PreviaDaArea'
 
 /**
  * Restringe um ramo de rotas às turmas cujo plano inclui o módulo (Sprint 45).
@@ -16,9 +17,12 @@ import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
  */
 export function ExigeModulo({ modulo }: { modulo: Modulo }) {
   const { carregando, bloqueia } = usePlanoDaTurma()
+  const { pathname } = useLocation()
 
   if (carregando) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
-  if (bloqueia(modulo)) return <AreaBloqueada modulo={modulo} />
+  if (bloqueia(modulo)) {
+    return <AreaBloqueada modulo={modulo} previa={<PreviaDaArea modulo={modulo} caminho={pathname} />} />
+  }
 
   return <Outlet />
 }

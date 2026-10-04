@@ -39,8 +39,11 @@ export function useSalvarPerfil(usuario_id?: string) {
   return useMutation({
     mutationFn: (dados: AtualizarPerfil) =>
       usuario_id ? corrigirPerfil(usuario_id, dados) : atualizarMeuPerfil(dados),
-    onSuccess: (perfil: PerfilDoFormando) =>
-      queryClient.setQueryData(usuario_id ? chaves.detalhe(usuario_id) : chaves.meu(), perfil),
+    onSuccess: (perfil: PerfilDoFormando) => {
+      queryClient.setQueryData(usuario_id ? chaves.detalhe(usuario_id) : chaves.meu(), perfil)
+      // O menu já pode ter consultado as pendências do termo antes da edição do cadastro.
+      if (!usuario_id) void queryClient.invalidateQueries({ queryKey: ['adesoes', 'minha'] })
+    },
   })
 }
 

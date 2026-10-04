@@ -136,6 +136,9 @@ export const rotaDoIngresso = (token: string) => `${ROTAS.ingresso}/${token}`
 /** A loja pública da turma: `/loja/:formaturaId`. É o link que a comissão divulga. */
 export const rotaDaLoja = (formaturaId: string) => `${ROTAS.loja}/${formaturaId}`
 
+/** O reenvio do link da compra: `/loja/:formaturaId/reenviar`. */
+export const rotaDoReenvio = (formaturaId: string) => `${rotaDaLoja(formaturaId)}/reenviar`
+
 /** A compra pelo link de acesso: `/compra/:token`. */
 export const rotaDaCompra = (token: string) => `${ROTAS.compra}/${token}`
 
@@ -144,6 +147,9 @@ export const rotaDoAviso = (id: string) => `${ROTAS.mural}/${id}`
 
 /** O cadastro de um fornecedor, com o que já saiu para ele: `/financeiro/fornecedores/:id`. */
 export const rotaDoFornecedor = (id: string) => `${ROTAS.fornecedores}/${id}`
+
+/** O editor do mapa do salão, aberto a partir da lista de mesas: `/festa/mesas/mapa`. */
+export const rotaDoMapaDeMesas = `${ROTAS.mesas}/mapa`
 
 /** O PIX de uma parcela, com o "Já paguei": `/minhas-parcelas/parcelas/:id/pagar`. */
 export const rotaDoPagamento = (parcelaId: string) => `${ROTAS.extrato}/parcelas/${parcelaId}/pagar`

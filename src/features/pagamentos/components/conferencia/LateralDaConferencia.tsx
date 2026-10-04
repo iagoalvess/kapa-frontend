@@ -10,22 +10,14 @@ import { ROTAS } from '@/config/rotas'
  */
 export function LateralDaConferencia() {
   return (
-    <div className="grid min-w-0 gap-5">
+    <div className="hidden min-w-0 gap-5 lg:grid">
       <Cartao titulo="Como conferir">
-        <TextoDoCartao as="ol" className="divide-y">
-          <li className="pb-3">Abra o extrato do banco no período dos avisos.</li>
-          <li className="py-3">
-            Ache cada pagamento pelo dia e pelo valor. Se entrou outro valor, corrija na linha antes de
-            confirmar: depois, a diferença fica registrada para conferência.
-          </li>
-          <li className="pt-3">
-            Selecione os lançamentos e confirme. O formando recebe o recibo por e-mail.
-          </li>
-        </TextoDoCartao>
+        <OrientacoesDaConferencia />
       </Cartao>
 
       <Cartao
         titulo="Pagou e não avisou?"
+        className="hidden lg:grid"
         descricao={
           <>
             <p>Encontrou um pagamento no extrato que o formando não avisou?</p>
@@ -38,5 +30,21 @@ export function LateralDaConferencia() {
         </Button>
       </Cartao>
     </div>
+  )
+}
+
+export function OrientacoesDaConferencia() {
+  return (
+    <TextoDoCartao as="ol" className="divide-y">
+      <li className="pb-3">Confira o extrato do banco. Para dinheiro em mãos, confirme com quem recebeu.</li>
+      <li className="py-3">
+        Ache cada pagamento pelo dia e pelo valor. Se entrou outro valor, corrija na linha antes de confirmar:
+        depois, a diferença fica registrada para conferência.
+      </li>
+      <li className="pt-3">
+        Clique nas linhas para selecioná-las; pelo teclado, use Tab e Espaço. O botão de confirmação aparece
+        com a seleção. Confirmado, o formando recebe o recibo por e-mail.
+      </li>
+    </TextoDoCartao>
   )
 }

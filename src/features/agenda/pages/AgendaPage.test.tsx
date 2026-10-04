@@ -137,6 +137,12 @@ describe('AgendaPage', () => {
     expect(await screen.findByRole('region', { name: 'Outubro de 2026' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Agosto de 2026' })).not.toBeInTheDocument()
 
+    // "Hoje" fica sempre habilitado, mesmo já estando nele: clicar não muda nada.
+    const hoje = screen.getByRole('button', { name: 'Hoje' })
+    expect(hoje).toBeEnabled()
+    await userEvent.click(hoje)
+    expect(screen.getByRole('region', { name: 'Outubro de 2026' })).toBeInTheDocument()
+
     await userEvent.click(screen.getByRole('button', { name: 'Meses anteriores' }))
 
     const agosto = await screen.findByRole('region', { name: 'Agosto de 2026' })

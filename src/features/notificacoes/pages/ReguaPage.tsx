@@ -1,4 +1,6 @@
-import { Bell, CalendarClock, History, Inbox, Mail } from 'lucide-react'
+import { Bell, CalendarClock, History, Inbox, Info, Mail } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 import type { ReactNode } from 'react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
@@ -29,6 +31,7 @@ import { destinoDoDegrau, marcoDoDegrau, type Regra, tomDoDegrau } from '../type
  * lembrete.
  */
 export default function ReguaPage() {
+  const telaGrande = useTelaGrande()
   const regua = useRegua()
   // Uma linha só: o que se quer daqui é o total de envios, não a lista — ela tem tela própria.
   const historico = useHistorico({ pagina: 1, tamanho: 1 })
@@ -75,6 +78,21 @@ export default function ReguaPage() {
         ]}
       />
 
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Avisos enviados', para: ROTAS.avisosEnviados, icone: History },
+          {
+            titulo: 'Sequência de lembretes',
+            icone: Info,
+            dialogo: {
+              titulo: 'Sequência de lembretes',
+              descricao: 'Quando cada mensagem é enviada.',
+              conteudo: <SequenciaDeLembretes degraus={vencimentos} />,
+            },
+          },
+        ]}
+      />
+
       {regua.isPending ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <EsqueletoDeCartao>
@@ -94,12 +112,14 @@ export default function ReguaPage() {
             icone={CalendarClock}
             descricao="Veja quando cada lembrete é enviado. Cada formando recebe no máximo uma mensagem por dia."
             acao={
-              <Button asChild variant="outline" size="sm">
-                <LinkDaPagina to={ROTAS.avisosEnviados}>
-                  <History aria-hidden />
-                  Avisos enviados
-                </LinkDaPagina>
-              </Button>
+              telaGrande ? (
+                <Button asChild variant="outline" size="sm">
+                  <LinkDaPagina to={ROTAS.avisosEnviados}>
+                    <History aria-hidden />
+                    Avisos enviados
+                  </LinkDaPagina>
+                </Button>
+              ) : null
             }
           >
             <TabelaDeDegraus>
@@ -137,7 +157,7 @@ export default function ReguaPage() {
           <Cartao
             titulo="Sequência de lembretes"
             descricao="Quando cada mensagem é enviada"
-            className="grid-rows-[auto_1fr]"
+            className="hidden grid-rows-[auto_1fr] lg:grid"
           >
             <SequenciaDeLembretes degraus={vencimentos} />
           </Cartao>
@@ -196,6 +216,7 @@ function SequenciaDeLembretes({ degraus }: { degraus: Regra[] }) {
 function TabelaDeDegraus({ children }: { children: ReactNode }) {
   return (
     <Tabela
+      emLista
       cabecalho={
         <>
           <th className="py-3 pr-4 font-normal">Quando</th>

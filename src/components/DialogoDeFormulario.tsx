@@ -48,7 +48,10 @@ export function DialogoDeFormulario({
   return (
     <AlertDialog open={aberto} onOpenChange={(estaAberto) => (estaAberto ? null : aoFechar())}>
       <AlertDialogContent
-        className={cn('bg-card grid max-h-[90dvh] gap-5 overflow-y-auto rounded-3xl p-8', LARGURAS[largura])}
+        className={cn(
+          'bg-card grid max-h-[calc(100dvh-2rem)] gap-5 overflow-y-auto overscroll-contain rounded-2xl p-5 sm:max-h-[90dvh] sm:rounded-3xl sm:p-8',
+          LARGURAS[largura],
+        )}
       >
         <div className="grid gap-1.5">
           <AlertDialogTitle>{titulo}</AlertDialogTitle>

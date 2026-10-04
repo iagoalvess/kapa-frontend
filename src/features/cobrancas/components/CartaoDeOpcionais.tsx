@@ -2,7 +2,6 @@ import { OctagonX, Pencil, Plus, ShoppingBag, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
-import { BotaoDoLinkDaLoja } from '@/components/BotaoDoLinkDaLoja'
 import { Cartao } from '@/components/Cartao'
 import { Paginacao } from '@/components/Paginacao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
@@ -39,7 +38,6 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
   const itens = plano.itens.filter((item) => item.opcional)
   const abertos = itens.filter((item) => !item.encerrado_em)
   const ordenados = [...abertos, ...itens.filter((item) => item.encerrado_em)]
-  const temLoja = abertos.some((item) => item.modo_de_venda === 'Publica')
   const [paginaPedida, definirPagina] = useState(1)
   const pagina = paginar(ordenados, paginaPedida, tamanhoDaPagina)
 
@@ -50,15 +48,12 @@ export function CartaoDeOpcionais({ plano, editavel }: { plano: PlanoDeCobranca;
         icone={ShoppingBag}
         descricao="Convites extras, kits e fotos são cobrados apenas de quem pedir. Cada pedido gera parcelas para o formando."
         acao={
-          <div className="flex flex-wrap gap-2">
-            {temLoja ? <BotaoDoLinkDaLoja /> : null}
-            {editavel ? (
-              <Button variant="outline" size="sm" onClick={() => definirDialogo({})}>
-                <Plus aria-hidden />
-                Novo opcional
-              </Button>
-            ) : null}
-          </div>
+          editavel ? (
+            <Button variant="outline" size="sm" onClick={() => definirDialogo({})}>
+              <Plus aria-hidden />
+              Novo opcional
+            </Button>
+          ) : undefined
         }
       >
         {ordenados.length === 0 ? (

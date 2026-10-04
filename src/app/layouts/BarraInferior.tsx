@@ -127,10 +127,12 @@ export function BarraInferior({ aoAbrirMais }: { aoAbrirMais?: () => void }) {
           {pendente ? <Ponto rotulo={pendente} /> : null}
         </NavLink>
       ))}
-      <button type="button" onClick={aoAbrirMais} className={estiloDoDestino(!naBarra)}>
-        <Ellipsis strokeWidth={1.75} aria-hidden />
-        Mais
-      </button>
+      {aoAbrirMais ? (
+        <button type="button" onClick={aoAbrirMais} className={estiloDoDestino(!naBarra)}>
+          <Ellipsis strokeWidth={1.75} aria-hidden />
+          Mais
+        </button>
+      ) : null}
     </nav>
   )
 }

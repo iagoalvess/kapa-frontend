@@ -5,15 +5,15 @@ import type { ItemDoCadastro, PerfilDoFormando } from '../types/formandos.types'
 
 /** Como cada item de `faltando` aparece na tela. */
 const ROTULOS_DOS_ITENS: Record<ItemDoCadastro, string> = {
-  nome_completo: 'Nome completo',
-  nome_no_diploma: 'Nome no diploma',
+  nomeCompleto: 'Nome completo',
+  nomeNoDiploma: 'Nome no diploma',
   cpf: 'CPF',
   rg: 'RG',
   matricula: 'Matrícula',
   telefone: 'Telefone',
-  data_de_nascimento: 'Data de nascimento',
+  dataDeNascimento: 'Data de nascimento',
   endereco: 'Endereço',
-  contato_de_emergencia: 'Contato de emergência',
+  contatoDeEmergencia: 'Contato de emergência',
   foto: 'Foto',
 }
 

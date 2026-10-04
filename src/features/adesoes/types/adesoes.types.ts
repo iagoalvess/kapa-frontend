@@ -99,7 +99,7 @@ export interface CodigoEnviado {
 }
 
 /** O que o cadastro precisa ter para aderir, como a API os nomeia. */
-export type PendenciaDoCadastro = 'nome_completo' | 'cpf' | 'data_de_nascimento'
+export type PendenciaDoCadastro = 'nomeCompleto' | 'cpf' | 'dataDeNascimento'
 
 /** A situação do próprio formando. Espelha `MinhaAdesaoDTO`. */
 export interface MinhaAdesao {

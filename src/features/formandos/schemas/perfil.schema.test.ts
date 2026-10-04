@@ -30,7 +30,7 @@ const perfil: PerfilDoFormando = {
   contato_de_emergencia: { nome: null, telefone: null, parentesco: null },
   foto_arquivo_id: null,
   completude: 30,
-  faltando: ['cpf', 'data_de_nascimento'],
+  faltando: ['cpf', 'dataDeNascimento'],
   essencial_pendente: true,
 }
 

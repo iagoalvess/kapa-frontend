@@ -1,20 +1,20 @@
-import { Fingerprint, GraduationCap, ShieldCheck, UserRound } from 'lucide-react'
+import { Fingerprint, LogOut, ShieldCheck, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import { BotaoDeInstalar } from '@/features/auth'
+import { BotaoDeInstalar, useSair } from '@/features/auth'
 import { FotoDoFormando, type PerfilDoFormando } from '@/features/formandos'
 import { SeletorDeFormatura } from '@/features/formaturas'
-import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
+import { usePapel } from '@/hooks/useSessao'
 import { cn } from '@/lib/utils'
 
 /** Um menu da conta por tela — o header é único. */
 const MENU = 'menu-da-conta'
 
 const formaDoItem =
-  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] [&_svg]:size-4.5 [&_svg]:shrink-0'
+  'flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] lg:min-h-0 [&_svg]:size-4.5 [&_svg]:shrink-0'
 
 const estiloDoItem = cn(
   formaDoItem,
@@ -52,7 +52,7 @@ export function MenuDaConta({
   cadastroPendente: boolean
 }) {
   const { tem } = usePapel()
-  const { selecionada } = useFormaturaAtiva()
+  const sair = useSair()
   // Mesmo recorte da rota da auditoria: `comCadastro` já exclui quem não tem turma na sessão e
   // quem foi desligado.
   const ehGestao = comCadastro && tem(PAPEIS.tesoureiro, PAPEIS.comissao)
@@ -123,17 +123,6 @@ export function MenuDaConta({
             Privacidade
           </Link>
 
-          {/* O cadastro da turma — nome, instituição, data da colação — sai do menu da esquerda pelo
-              mesmo motivo da auditoria: abre-se uma vez, quando a turma nasce, e ocupava ali a
-              altura de "Membros", que se abre toda semana. O recorte é o da rota: basta ter turma na
-              sessão, inclusive para quem foi desligado, que continua lendo o que é dela. */}
-          {selecionada ? (
-            <Link to={ROTAS.formatura} onClick={fechar} className={estiloDoItem}>
-              <GraduationCap strokeWidth={1.75} aria-hidden />
-              Formatura
-            </Link>
-          ) : null}
-
           {/* A trilha da turma mora aqui, e não no menu da esquerda: ela se abre uma vez por
               assembleia, e ocupava no menu a mesma altura de "Membros", que se abre toda semana.
               Só a Gestão a vê — é o mesmo recorte da rota. */}
@@ -146,6 +135,18 @@ export function MenuDaConta({
 
           {/* Some sozinho onde não há o que instalar — no computador, e no app já instalado. */}
           <BotaoDeInstalar className={estiloDoItem} />
+          <button
+            type="button"
+            className={estiloDoItem}
+            disabled={sair.isPending}
+            onClick={() => {
+              fechar()
+              sair.mutate()
+            }}
+          >
+            <LogOut strokeWidth={1.75} aria-hidden />
+            Sair
+          </button>
         </div>
       </div>
     </>

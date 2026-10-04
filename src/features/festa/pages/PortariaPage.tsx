@@ -4,6 +4,7 @@ import {
   Clock,
   DoorOpen,
   Download,
+  Info,
   MapPin,
   Plus,
   Ticket,
@@ -11,6 +12,7 @@ import {
   WifiOff,
 } from 'lucide-react'
 import { useState } from 'react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
@@ -206,6 +208,20 @@ export default function PortariaPage() {
     ordenacao.descendente,
   )
   const pendentes = tipo === 'Festa' ? (resumo.data?.pedidos_quitados_sem_convite ?? 0) : 0
+  const dadosDoEvento = (
+    <ListaDeDados>
+      <Dado icone={CalendarDays} rotulo="Quando">
+        {formatarData(evento.data)}
+        {evento.hora ? ` às ${evento.hora.slice(0, 5)}` : ''}
+      </Dado>
+      <Dado icone={MapPin} rotulo="Onde">
+        {evento.local ?? '—'}
+      </Dado>
+      <Dado icone={Clock} rotulo="Lista gerada em">
+        {formatarDataHora(lista.data.gerada_em)}
+      </Dado>
+    </ListaDeDados>
+  )
 
   return (
     <>
@@ -216,6 +232,26 @@ export default function PortariaPage() {
           { rotulo: 'Convites válidos', valor: lista.data.total, icone: Ticket },
           { rotulo: 'Faltam entrar', valor: lista.data.total - lista.data.validados, icone: DoorOpen },
           { rotulo: 'Sem nome ou documento', valor: lista.data.sem_titular, icone: UserRound },
+        ]}
+      />
+
+      <AtalhosDaPagina
+        atalhos={[
+          {
+            titulo: 'Informações do evento',
+            icone: Info,
+            dialogo: {
+              titulo: evento.titulo,
+              descricao: 'Data, local e atualização da lista da portaria.',
+              conteudo: dadosDoEvento,
+            },
+          },
+          {
+            titulo: 'Exportar PDF',
+            icone: Download,
+            aoAcionar: () => baixarLista.mutate(tipo, { onError: avisarErro }),
+            carregando: baixarLista.isPending,
+          },
         ]}
       />
 
@@ -352,21 +388,8 @@ export default function PortariaPage() {
           aoMudarPagina={(numero) => atualizar({ pagina: String(numero) })}
         />
 
-        <div className="grid min-w-0 content-start gap-5">
-          <Cartao titulo={evento.titulo}>
-            <ListaDeDados>
-              <Dado icone={CalendarDays} rotulo="Quando">
-                {formatarData(evento.data)}
-                {evento.hora ? ` às ${evento.hora.slice(0, 5)}` : ''}
-              </Dado>
-              <Dado icone={MapPin} rotulo="Onde">
-                {evento.local ?? '—'}
-              </Dado>
-              <Dado icone={Clock} rotulo="Lista gerada em">
-                {formatarDataHora(lista.data.gerada_em)}
-              </Dado>
-            </ListaDeDados>
-          </Cartao>
+        <div className="hidden min-w-0 content-start gap-5 lg:grid">
+          <Cartao titulo={evento.titulo}>{dadosDoEvento}</Cartao>
 
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao

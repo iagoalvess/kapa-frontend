@@ -199,7 +199,7 @@ function Secao({
         aberto={editando}
         aoFechar={() => definirEditando(false)}
         titulo={titulo}
-        descricao="Nenhum campo é obrigatório: preencha o que tiver agora e complete depois."
+        descricao="Preencha o que tiver agora. Para aceitar o termo, você precisa de nome completo, CPF e data de nascimento; o telefone permite que a comissão fale com você."
         largura={largura}
       >
         <FecharSecao value={() => definirEditando(false)}>{formulario}</FecharSecao>

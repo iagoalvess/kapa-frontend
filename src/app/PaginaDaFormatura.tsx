@@ -1,4 +1,6 @@
 import { CalendarCheck, Flag, GraduationCap, type LucideIcon, PartyPopper, Users } from 'lucide-react'
+import { useEffect } from 'react'
+import { useLocation } from 'react-router'
 import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeDados } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicadores'
@@ -53,6 +55,10 @@ export default function PaginaDaFormatura() {
   const { tem } = usePapel()
   const gestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const tesouraria = tem(PAPEIS.tesoureiro)
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (formatura.data && hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }, [formatura.data, hash])
 
   // O desenho que vem: a faixa de números e, embaixo, a coluna de cartões (duas, para a gestão).
   if (formatura.isPending)
@@ -91,8 +97,14 @@ export default function PaginaDaFormatura() {
                 Tesouraria, o mesmo recorte que a rota tinha. */}
             <div className="grid gap-5">
               <DadosDaFormatura formatura={dados} />
-              <CartaoDeConvitesPorEmail />
-              {tesouraria ? <MeiosDeRecebimento /> : null}
+              <div id="convites" className="scroll-mt-6">
+                <CartaoDeConvitesPorEmail />
+              </div>
+              {tesouraria ? (
+                <div id="recebimentos" className="scroll-mt-6">
+                  <MeiosDeRecebimento />
+                </div>
+              ) : null}
               {tesouraria ? <CartaoDoMercadoPago /> : null}
             </div>
             <div className="grid gap-5">

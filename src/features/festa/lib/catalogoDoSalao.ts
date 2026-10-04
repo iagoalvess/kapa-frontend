@@ -1,4 +1,5 @@
 import {
+  Columns3,
   DoorOpen,
   LogOut,
   type LucideIcon,
@@ -23,15 +24,16 @@ export const ELEMENTOS_DO_SALAO: Record<
   TipoDeElemento,
   { rotulo: string; icone: LucideIcon; largura: number; altura: number }
 > = {
-  Palco: { rotulo: 'Palco', icone: MicVocal, largura: 600, altura: 260 },
-  Pista: { rotulo: 'Pista de dança', icone: Music, largura: 500, altura: 500 },
-  Som: { rotulo: 'DJ', icone: Speaker, largura: 200, altura: 140 },
-  Bar: { rotulo: 'Bar', icone: Martini, largura: 320, altura: 140 },
-  Buffet: { rotulo: 'Buffet', icone: UtensilsCrossed, largura: 400, altura: 140 },
-  Banheiro: { rotulo: 'Banheiros', icone: Toilet, largura: 300, altura: 240 },
-  Entrada: { rotulo: 'Entrada', icone: DoorOpen, largura: 200, altura: 60 },
-  Saida: { rotulo: 'Saída', icone: LogOut, largura: 200, altura: 60 },
-  Area: { rotulo: 'Área', icone: SquareDashed, largura: 600, altura: 400 },
+  Palco: { rotulo: 'Palco', icone: MicVocal, largura: 480, altura: 200 },
+  Pista: { rotulo: 'Pista de dança', icone: Music, largura: 400, altura: 400 },
+  Som: { rotulo: 'DJ', icone: Speaker, largura: 160, altura: 100 },
+  Bar: { rotulo: 'Bar', icone: Martini, largura: 240, altura: 100 },
+  Buffet: { rotulo: 'Buffet', icone: UtensilsCrossed, largura: 300, altura: 100 },
+  Banheiro: { rotulo: 'Banheiros', icone: Toilet, largura: 220, altura: 180 },
+  Entrada: { rotulo: 'Entrada', icone: DoorOpen, largura: 160, altura: 40 },
+  Saida: { rotulo: 'Saída', icone: LogOut, largura: 160, altura: 40 },
+  Area: { rotulo: 'Área', icone: SquareDashed, largura: 400, altura: 300 },
+  Divisoria: { rotulo: 'Divisória', icone: Columns3, largura: 300, altura: 40 },
 }
 
 /** A ordem da paleta "Adicionar": o que quase todo salão tem vem primeiro. */

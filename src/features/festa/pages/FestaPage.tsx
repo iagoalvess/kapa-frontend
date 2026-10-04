@@ -1,7 +1,8 @@
-import { Armchair, CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
+import { ScanLine, Armchair } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
+import { CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
@@ -32,6 +33,7 @@ import { contemBusca } from '@/lib/busca'
 import { type EstadoDoItem, type ItemDaFesta, percentualDaMeta, ROTULOS_DE_ESTADO } from '@/types/festa'
 import { DetalheDoItem } from '../components/DetalheDoItem'
 import { DialogoDeItem } from '../components/DialogoDeItem'
+import { LateralDaFesta } from '../components/LateralDaFesta'
 import { LinhaDoItem } from '../components/LinhaDoItem'
 import { useCancelarItem, useExcluirItem, useReativarItem } from '../hooks/useEscritaDaFesta'
 
@@ -174,6 +176,15 @@ export default function FestaPage() {
         ]}
       />
 
+      {ehGestao ? (
+        <AtalhosDaPagina
+          atalhos={[
+            { titulo: 'Portaria', para: ROTAS.portaria, icone: ScanLine },
+            { titulo: 'Mesas do jantar', para: ROTAS.mesas, icone: Armchair },
+          ]}
+        />
+      ) : null}
+
       {/* A escadinha e a busca ficam acima das duas colunas, como no mural: é a lista inteira que
           elas recortam, e não o painel da direita. No celular somem junto com a lista.
 
@@ -214,18 +225,6 @@ export default function FestaPage() {
                 ]}
               />
             </BotaoDeFiltros>
-          }
-          acoes={
-            <>
-              {ehGestao ? (
-                <Button asChild size="xs">
-                  <LinkDaPagina to={ROTAS.mesas}>
-                    <Armchair aria-hidden />
-                    Mesas
-                  </LinkDaPagina>
-                </Button>
-              ) : null}
-            </>
           }
           acaoPrincipal={
             editavel ? (
@@ -283,7 +282,18 @@ export default function FestaPage() {
           })}
         </Cartao>
 
-        <div className={cn('grid min-w-0 gap-3', !id && 'max-lg:hidden')}>
+        {/* O painel do item e a lateral da festa. ABAIXO do `2xl`, a lateral desce para baixo do
+            detalhe — ela é atalho, e não pode sumir junto com a coluna larga. A partir do `2xl`,
+            os dois ficam lado a lado: o detalhe cede os 20rem da lateral, como em Pedidos, mas
+            continua sendo quem ocupa o resto. */}
+        <div
+          className={cn(
+            'grid min-w-0 gap-3',
+            // Sem a lateral, o detalhe ocupa a coluna inteira — só a Gestão cede os 20rem.
+            ehGestao && '2xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:items-start',
+            !id && 'max-lg:hidden',
+          )}
+        >
           {/* Só no celular: no desktop a lista está ao lado, e não há de onde voltar. */}
           <LinkDeVolta para={ROTAS.festa} className="lg:hidden">
             Festa
@@ -319,6 +329,9 @@ export default function FestaPage() {
               </p>
             </Cartao>
           ) : null}
+
+          {/* A Gestão é quem monta as mesas: para o formando, a rota seria só uma porta trancada. */}
+          {ehGestao ? <LateralDaFesta /> : null}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useId, useRef } from 'react'
+import { type KeyboardEvent, type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import {
   CADEIRA,
@@ -38,14 +38,14 @@ interface Props {
   mesas: MesaNoMapa[]
   /** Nome do mapa para o leitor de tela. */
   rotulo: string
-  /** 1 é o mapa na largura da caixa; 1,5 é 50% maior, com rolagem. */
-  zoom?: number
   selecionado?: Selecao | null
   /** Sem ele o mapa é só de ler: nada se seleciona nem se arrasta. */
   aoSelecionar?: (selecao: Selecao | null) => void
   /** O ponto novo, em centímetros e ainda cru: quem chama encaixa na grade e no salão. */
   aoMover?: (selecao: Selecao, ponto: Ponto) => void
   aoRedimensionar?: (indice: number, tamanho: Tamanho) => void
+  /** Com o elemento escolhido, desenha o "−" que o remove — a exclusão mora no próprio desenho. */
+  aoExcluirElemento?: (indice: number) => void
   className?: string
 }
 
@@ -71,18 +71,18 @@ export function MapaDoSalao({
   salao,
   mesas,
   rotulo,
-  zoom = 1,
   selecionado,
   aoSelecionar,
   aoMover,
   aoRedimensionar,
+  aoExcluirElemento,
   className,
 }: Props) {
   const idDaGrade = useId()
   const svg = useRef<SVGSVGElement>(null)
   const arrasto = useRef<Arrasto | null>(null)
   const editavel = !!aoSelecionar
-  const letra = Math.max(salao.largura, salao.altura) / 60
+  const letra = Math.max(salao.largura, salao.altura) / 85
   const parede = Math.max(8, letra / 3)
 
   const noSalao = (evento: PointerEvent): Ponto => {
@@ -175,6 +175,26 @@ export function MapaDoSalao({
     const alvo: Selecao = { tipo: 'elemento', indice }
     const escolhido = ehSelecionado(selecionado, alvo)
     const alca = letra * 0.7
+    // O "−" que exclui o elemento. Num `<g>` porque SVG não tem `<button>`; as props vão num objeto
+    // para o linter de acessibilidade não pedir a tag que não existe aqui.
+    const controleDeExclusao = {
+      role: 'button',
+      tabIndex: 0,
+      'aria-label': `Excluir ${elemento.rotulo}`,
+      className: 'cursor-pointer outline-none',
+      onPointerDown: (evento: PointerEvent) => evento.stopPropagation(),
+      onClick: (evento: MouseEvent) => {
+        evento.stopPropagation()
+        aoExcluirElemento?.(indice)
+      },
+      onKeyDown: (evento: KeyboardEvent) => {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+          evento.preventDefault()
+          evento.stopPropagation()
+          aoExcluirElemento?.(indice)
+        }
+      },
+    }
 
     return (
       <g
@@ -218,6 +238,27 @@ export function MapaDoSalao({
             onPointerDown={(evento) => pegar(evento, alvo, 'redimensionar')}
           />
         ) : null}
+        {/* A exclusão do elemento, no próprio desenho: um "−" no canto de cima, à esquerda. */}
+        {escolhido && aoExcluirElemento ? (
+          <g {...controleDeExclusao}>
+            <circle
+              cx={elemento.x}
+              cy={elemento.y}
+              r={alca * 0.9}
+              className="fill-danger-text stroke-card"
+              strokeWidth={parede / 2}
+            />
+            <line
+              x1={elemento.x - alca * 0.4}
+              y1={elemento.y}
+              x2={elemento.x + alca * 0.4}
+              y2={elemento.y}
+              stroke="var(--card)"
+              strokeWidth={alca * 0.24}
+              strokeLinecap="round"
+            />
+          </g>
+        ) : null}
       </g>
     )
   }
@@ -228,8 +269,7 @@ export function MapaDoSalao({
       viewBox={`${-parede} ${-parede} ${salao.largura + parede * 2} ${salao.altura + parede * 2}`}
       role={editavel ? 'group' : 'img'}
       aria-label={rotulo}
-      style={{ width: `${zoom * 100}%` }}
-      className={cn('block h-auto select-none', className)}
+      className={cn('block h-auto w-full select-none', className)}
       onPointerDown={editavel ? () => aoSelecionar(null) : undefined}
       onPointerMove={editavel ? arrastar : undefined}
       onPointerUp={editavel ? soltar : undefined}

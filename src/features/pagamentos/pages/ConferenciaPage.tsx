@@ -1,3 +1,6 @@
+import { ROTAS } from '@/config/rotas'
+import { Info, ReceiptText } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { CircleCheck, ListChecks, Scale, Wallet } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router'
@@ -15,7 +18,10 @@ import { AbaConferir } from '../components/conferencia/AbaConferir'
 import { AbaConfirmados } from '../components/conferencia/AbaConfirmados'
 import { AbaDivergencias } from '../components/conferencia/AbaDivergencias'
 import { ConfirmarLote } from '../components/conferencia/ConfirmarLote'
-import { LateralDaConferencia } from '../components/conferencia/LateralDaConferencia'
+import {
+  LateralDaConferencia,
+  OrientacoesDaConferencia,
+} from '../components/conferencia/LateralDaConferencia'
 import { useDivergencias, useInformes } from '../hooks/useInformes'
 import { useValoresADevolver } from '../hooks/useValoresADevolver'
 import type { Informe } from '../types/pagamentos.types'
@@ -188,6 +194,21 @@ export default function ConferenciaPage() {
             valor: divergencias.data?.total ?? null,
             icone: Scale,
             sinal: divergencias.data?.total ? { texto: 'revisar', tom: 'negativo' } : undefined,
+          },
+        ]}
+      />
+
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Registrar em Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
+          {
+            titulo: 'Como conferir',
+            icone: Info,
+            dialogo: {
+              titulo: 'Como conferir',
+              descricao: 'Confira os avisos com o extrato do banco antes de confirmar.',
+              conteudo: <OrientacoesDaConferencia />,
+            },
           },
         ]}
       />

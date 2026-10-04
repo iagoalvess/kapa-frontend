@@ -206,7 +206,6 @@ export default function AgendaPage() {
                     variant="outline"
                     size="sm"
                     className="border-border text-muted-foreground hover:bg-card h-7 bg-transparent px-3 text-sm font-normal shadow-none"
-                    disabled={inicio === padrao}
                     onClick={() => definirMesEscolhido(null)}
                   >
                     Hoje

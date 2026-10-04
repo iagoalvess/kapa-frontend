@@ -8,6 +8,7 @@ import mascoteErro from '@/assets/mascote/erro.webp'
 import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { queryClient } from '@/lib/query/client'
+import { useTelaGrande } from '@/hooks/useTelaGrande'
 import { router } from './router'
 
 /**
@@ -16,6 +17,7 @@ import { router } from './router'
  * Ordem importa: o cache existe antes das rotas, porque as páginas consultam no primeiro render.
  */
 export function App() {
+  const telaGrande = useTelaGrande()
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
@@ -54,7 +56,7 @@ export function App() {
           },
         }}
       />
-      {import.meta.env.DEV ? <ReactQueryDevtools buttonPosition="bottom-right" /> : null}
+      {import.meta.env.DEV && telaGrande ? <ReactQueryDevtools buttonPosition="bottom-right" /> : null}
     </QueryClientProvider>
   )
 }

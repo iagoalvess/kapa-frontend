@@ -131,7 +131,8 @@ describe('FestaPage', () => {
 
     // Sem id na rota, o primeiro abre: a direita nunca fica vazia.
     const buffet = await detalhe('Buffet')
-    expect(screen.getByRole('link', { name: 'Mesas' })).toHaveAttribute('href', '/festa/mesas')
+    expect(screen.getByRole('link', { name: 'Abrir mesas' })).toHaveAttribute('href', '/festa/mesas')
+    expect(screen.getByRole('link', { name: 'Abrir portaria' })).toHaveAttribute('href', '/festa/portaria')
     expect(within(buffet).getByText('Orçado')).toBeInTheDocument()
     expect(within(buffet).getByText(reais(60_000_00))).toBeInTheDocument()
   })
@@ -186,7 +187,8 @@ describe('FestaPage', () => {
 
     await detalhe('Buffet')
     expect(screen.queryByRole('button', { name: 'Novo item' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Mesas' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Abrir mesas' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Abrir portaria' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
   })

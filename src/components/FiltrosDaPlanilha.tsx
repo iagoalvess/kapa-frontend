@@ -110,8 +110,9 @@ function pilulasDe(no: ReactNode): ReactElement<{ ativo?: boolean }>[] {
 /**
  * O celular (Sprint 41), em duas linhas. Em cima, a busca e o botão de filtros. Embaixo, o que leva a
  * outro lugar — os botões da tela (Adesões, Fornecedores) —, à vista porque é o que não se acha de
- * outro jeito, e no máximo duas pílulas: a primeira ("Todas", "Ativos") e a ligada — ou, sem nenhuma
- * ligada, a segunda, para preencher a linha. Todas as pílulas estão no painel de filtros; a contagem
+ * outro jeito. Com ação, só a situação atual fica na mesma linha do botão. Sem ação, ficam até duas
+ * pílulas: a primeira ("Todas", "Ativos") e a ligada — ou, sem nenhuma ligada, a segunda. Todas as
+ * pílulas estão no painel de filtros; a contagem
  * sai, porque o total está na pílula e a página na paginação.
  *
  * O painel é o da tela (`filtrosAvancados`), que recebe as pílulas por `ContextoDoPainelDeFiltros`;
@@ -132,7 +133,8 @@ function NoCelular({
   const todas = [...pilulasDe(principal), ...pilulasDe(filtros)]
   const ligadas = todas.slice(1).filter((pilula) => pilula.props.ativo)
   // Tela cuja pílula não se reconhece (sem `ativo`) segue com a principal à vista, como antes.
-  const deFora = todas.length === 0 ? [principal] : [todas[0], ligadas[0] ?? todas[1]]
+  const deFora =
+    todas.length === 0 ? [principal] : acoes ? [ligadas[0] ?? todas[0]] : [todas[0], ligadas[0] ?? todas[1]]
 
   const painel =
     todas.length > 1 ? (
@@ -176,11 +178,17 @@ function NoCelular({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {deFora.map((pilula, indice) => (
-          <Fragment key={indice}>{pilula}</Fragment>
-        ))}
-        {acoes ? <div className="ml-auto flex flex-wrap justify-end gap-2">{acoes}</div> : null}
+      <div className="flex min-w-0 items-center gap-3">
+        <fieldset
+          aria-label="Filtros rápidos"
+          className="flex min-w-0 flex-1 [scrollbar-width:none] items-center gap-2 overflow-x-auto py-1 [&::-webkit-scrollbar]:hidden [&>button]:max-w-full"
+        >
+          {deFora.map((pilula, indice) => (
+            <Fragment key={indice}>{pilula}</Fragment>
+          ))}
+        </fieldset>
+        {/* Com ação, só a situação atual fica fora do painel: a barra nunca quebra em uma linha solta. */}
+        {acoes ? <div className="ml-auto flex shrink-0 items-center gap-2">{acoes}</div> : null}
       </div>
 
       {antesDaContagem ? <div className="flex flex-wrap items-center gap-3">{antesDaContagem}</div> : null}

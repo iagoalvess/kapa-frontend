@@ -152,4 +152,24 @@ describe('CartaoDeAssinatura', () => {
 
     expect(await screen.findByText(/o plano passa a ser o Essencial/)).toBeInTheDocument()
   })
+
+  it('o Presidente desfaz a descida agendada', async () => {
+    entrarComo(PAPEIS.presidente)
+    let pedido: unknown
+    servidor.use(
+      http.get(ASSINATURA, () =>
+        HttpResponse.json({ ...ativa, proximo_plano: { ...ativa.plano, nome: 'Essencial' } }),
+      ),
+      http.post(`${ASSINATURA}/trocar-plano`, async ({ request }) => {
+        pedido = await request.json()
+        return HttpResponse.json({ url: null })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<CartaoDeAssinatura />)
+    await usuario.click(await screen.findByRole('button', { name: 'Manter o Premium' }))
+
+    await expect.poll(() => pedido).toEqual({ plano_codigo: 'premium' })
+  })
 })

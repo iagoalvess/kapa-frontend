@@ -1,34 +1,37 @@
-import { CalendarDays, ChevronRight } from 'lucide-react'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
-import mascoteAcenando from '@/assets/mascote/acenando.webp'
-import mascoteCanudo from '@/assets/mascote/canudo.webp'
-import mascoteFoguete from '@/assets/mascote/foguete.webp'
-import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
+import { ArrowRight } from 'lucide-react'
+import { EsqueletoDeCartao } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { PAPEIS } from '@/config/perfis'
+import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { MODULOS } from '@/config/planos'
+import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import { ICONE_DO_TIPO } from '@/features/agenda'
-import { useResumoDaAgenda } from '@/hooks/useAgenda'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel, useSessao } from '@/hooks/useSessao'
-import { useTelaGrande } from '@/hooks/useTelaGrande'
-import { diasAte, formatarData, formatarNumero } from '@/lib/formato'
-import { CartaoDaAreaBloqueada } from './CartaoDaAreaBloqueada'
-import { CartaoDaFesta } from './CartaoDaFesta'
-import { CartaoDaProximaParcela } from './CartaoDaProximaParcela'
-import { CartaoDoMural } from './CartaoDoMural'
+import { diasAte } from '@/lib/formato'
+import { cn } from '@/lib/utils'
+import { AvisoDeCadastro } from './AvisoDeCadastro'
+import { AvisoDeAdesao } from './AvisoDeAdesao'
+import { BlocoDaFesta } from './BlocoDaFesta'
+import { BlocoDaParcela } from './BlocoDaParcela'
+import { FeedDoMural } from './FeedDoMural'
 import { GraficoDaArrecadacao } from './GraficoDaArrecadacao'
+import { HeroDaJornada } from './HeroDaJornada'
+import { PrimeirosPassos } from './PrimeirosPassos'
+import { ProximasDatas } from './ProximasDatas'
+import { Rotulo } from './RotuloDoBloco'
 
-/** A página conecta a jornada coletiva às próximas ações da pessoa. */
+/**
+ * O Início: a página conecta a jornada coletiva às próximas ações da pessoa, numa leitura só — o herói
+ * com a contagem, a parcela da pessoa, o dinheiro da turma, a evolução e os recados, separados por fios
+ * em vez de uma grade de cartões iguais.
+ */
 export function PaginaInicial() {
   const { usuario } = useSessao()
   const { tem } = usePapel()
   const formatura = useFormaturaAtual()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
-  const telaGrande = useTelaGrande()
-  const muralTrancado = usePlanoDaTurma().bloqueia(MODULOS.mural)
+  const temMural = usePlanoDaTurma().inclui(MODULOS.mural)
 
   if (formatura.isPending) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
   if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
@@ -37,211 +40,107 @@ export function PaginaInicial() {
   const fim = turma.previsao_da_festa ?? turma.previsao_de_colacao
   const dias = diasAte(fim)
   const evento = turma.previsao_da_festa ? 'a festa' : 'a colação'
-  const mascote = dias === null ? mascoteAcenando : dias > 30 ? mascoteFoguete : mascoteCanudo
   const primeiroNome = usuario?.nome?.split(' ')[0] || 'visitante'
 
-  return (
-    <div className="grid gap-5">
-      <section
-        aria-label="Sua jornada até a formatura"
-        className="bg-card shadow-cartao overflow-hidden rounded-3xl"
-      >
-        <div className="relative grid items-center gap-5 p-5 min-[1024px]:grid-cols-2 min-[1440px]:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,1fr)]">
-          <div className="relative z-10 min-w-0">
-            <h2 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
-              Olá, {primeiroNome} <span className="text-brand">:)</span>
-            </h2>
-            <p className="text-muted-foreground mt-3 max-w-md text-base leading-relaxed">
-              Uma grande conquista se faz juntos.
-              <br className="hidden sm:block" /> Vamos dar o{' '}
-              <span className="relative inline-block">
-                próximo passo?
-                <svg
-                  aria-hidden
-                  viewBox="0 0 160 12"
-                  fill="none"
-                  className="text-brand/55 pointer-events-none absolute -bottom-1.5 left-0 h-3 w-full"
-                >
-                  <path
-                    d="M3 8C43 2 105 2 156 6M20 11C63 6 110 7 143 9"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-            </p>
-            <p className="mt-5 text-sm font-medium break-words">{turma.nome}</p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {[turma.curso, turma.instituicao].filter(Boolean).join(' · ')}
-            </p>
-          </div>
-          <div className="relative flex min-w-0 items-center justify-center gap-2 py-3 sm:gap-4">
-            <div aria-hidden className="bg-background absolute size-56 rounded-full" />
-            <div className="bg-card shadow-cartao border-card relative z-10 -rotate-3 rounded-2xl border px-5 py-5 text-center sm:px-7">
-              <p className="text-muted-foreground text-xs font-medium">
-                {dias !== null && dias > 0 ? 'Contagem regressiva' : 'O grande dia'}
-              </p>
-              {dias !== null && dias > 0 ? (
-                <>
-                  <p className="text-brand my-2 text-5xl font-bold tracking-tighter tabular-nums sm:text-6xl">
-                    {formatarNumero(dias)}
-                  </p>
-                  <p className="text-sm">
-                    {dias === 1 ? 'dia' : 'dias'} para {evento}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-brand-text mt-3 text-2xl font-semibold">
-                    {dias === null ? 'Vem aí!' : dias === 0 ? 'É hoje!' : 'Fica na memória'}
-                  </p>
-                  <p className="text-muted-foreground mt-2 max-w-44 text-sm">
-                    {dias === null
-                      ? 'A data ainda será marcada.'
-                      : dias === 0
-                        ? `Chegou o dia d${evento}.`
-                        : `${turma.previsao_da_festa ? 'A festa' : 'A colação'} foi ${dias === -1 ? 'ontem' : `há ${formatarNumero(Math.abs(dias))} dias`}.`}
-                  </p>
-                </>
-              )}
-              {fim ? (
-                <p className="border-border text-muted-foreground mt-3 border-t pt-3 text-xs">
-                  {formatarData(fim)}
-                </p>
-              ) : ehGestao ? (
-                <LinkDaPagina
-                  to={ROTAS.agenda}
-                  className="text-brand-text mt-3 inline-block text-sm underline underline-offset-4"
-                >
-                  Marcar agora
-                </LinkDaPagina>
-              ) : null}
-            </div>
-            <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
-              <img
-                src={mascote}
-                alt=""
-                className="w-20 object-contain drop-shadow-lg min-[400px]:w-24 sm:w-36 xl:w-40"
-              />
-              {/* À direita do mascote, e não embaixo: embaixo, a frase e o coração somavam quase um
-                  terço da altura do cartão. */}
-              <div className="hidden justify-items-center sm:grid">
-                <p className="font-hand text-brand-text -rotate-6 text-center text-lg leading-none sm:text-2xl">
-                  Juntos até a<br />
-                  formatura!
-                </p>
-                <svg
-                  aria-hidden
-                  viewBox="0 0 32 28"
-                  fill="none"
-                  className="text-brand/70 pointer-events-none mt-2 h-5 w-6 rotate-6"
-                >
-                  <path
-                    d="M16 23S3 15 5 8C7 2 13 5 16 9C19 3 26 3 27 9C29 16 16 23 16 23Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <ProximasDatas ehGestao={ehGestao} />
-        </div>
-      </section>
+  // O Início apresenta só o que a turma pode usar. Esperar o plano também evita que os blocos
+  // exclusivos apareçam por um instante antes de a consulta terminar.
+  const temDinheiro = temMural
+  const temRecados = temMural
 
-      {/* O progresso da turma e a parcela da pessoa lado a lado; embaixo, a evolução do dinheiro e os
-          recados. */}
-      <section aria-labelledby="acompanhe" className="grid gap-3">
-        <h2 id="acompanhe" className="text-lg font-medium">
-          Acompanhe sua formatura
-        </h2>
-        <div className="grid items-stretch gap-5 md:grid-cols-2">
-          {/* A meta da festa e os recados são do módulo `mural`: fora do plano, os dois dão lugar a um
-              cartão só, e só para a Gestão, que é quem contrata (Sprint 45). */}
-          {!muralTrancado ? (
-            <CartaoDaFesta />
-          ) : ehGestao ? (
-            <CartaoDaAreaBloqueada modulo={MODULOS.mural} />
-          ) : null}
-          <CartaoDaProximaParcela />
-          {/* No celular o gráfico sai (P4 da Sprint 41), e sem montar: nem a consulta dele vai. */}
-          {telaGrande ? <GraficoDaArrecadacao /> : null}
-          {muralTrancado ? null : <CartaoDoMural />}
-        </div>
-      </section>
+  return (
+    <div className="grid">
+      <HeroDaJornada
+        turma={turma}
+        primeiroNome={primeiroNome}
+        dias={dias}
+        evento={evento}
+        fim={fim}
+        ehGestao={ehGestao}
+      />
+
+      <AvisoDeCadastro />
+      <AvisoDeAdesao />
+      {tem(PAPEIS.tesoureiro) ? <PrimeirosPassos turma={turma} /> : null}
+
+      <svg
+        aria-hidden
+        viewBox="0 0 1000 28"
+        preserveAspectRatio="none"
+        className="text-brand/45 mx-auto hidden h-5 w-full lg:block"
+      >
+        <path
+          d="M8 8C205 5 379 8 485 8C492 8 496 21 500 21C504 21 508 8 515 8C621 8 795 5 992 8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d="M430 13Q466 10 492 15M508 15Q534 10 570 13"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity="0.65"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+
+      <div className={cn('grid border-b', temDinheiro && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)]')}>
+        <section
+          aria-labelledby="bloco-parcela"
+          className={cn('grid min-w-0 content-start gap-4 pt-8 pb-9', temDinheiro && 'lg:pr-12')}
+        >
+          <Rotulo id="bloco-parcela">Sua parcela</Rotulo>
+          <BlocoDaParcela />
+        </section>
+
+        {temDinheiro ? (
+          <section
+            aria-labelledby="bloco-dinheiro"
+            className="grid min-w-0 content-start gap-4 border-t pt-8 pb-9 lg:border-t-0 lg:border-l lg:pl-12"
+          >
+            <Rotulo id="bloco-dinheiro">O dinheiro da turma</Rotulo>
+            <BlocoDaFesta />
+          </section>
+        ) : null}
+      </div>
+
+      <GraficoDaArrecadacao />
+
+      <div className={cn('grid', temRecados && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.16fr)]')}>
+        <section
+          aria-labelledby="bloco-datas"
+          className={cn('grid min-w-0 content-start gap-4 pt-8', temRecados && 'lg:pr-12')}
+        >
+          <Cabecalho id="bloco-datas" rotulo="Próximas datas" para={ROTAS.agenda} texto="Ver agenda" />
+          <ProximasDatas ehGestao={ehGestao} />
+        </section>
+
+        {temRecados ? (
+          <section
+            aria-labelledby="bloco-recados"
+            className="grid min-w-0 content-start gap-4 border-t pt-8 lg:border-t-0 lg:border-l lg:pl-12"
+          >
+            <Cabecalho id="bloco-recados" rotulo="Recados" para={ROTAS.mural} texto="Ver o mural" />
+            <FeedDoMural />
+          </section>
+        ) : null}
+      </div>
     </div>
   )
 }
 
-/**
- * As três próximas datas da turma, direto da agenda.
- *
- * Eram três marcos fixos — começo, colação e festa —, e viraram isto na Sprint 19: quando a turma
- * tem reunião amanhã e prova da beca semana que vem, dizer só "colação em 2027" é responder o que
- * ninguém perguntou. A colação e a festa continuam no contador ao lado, que é onde elas pesam.
- *
- * Mora no meio do cartão de cima, entre a saudação e a contagem (22/09): no rodapé dele, a faixa
- * das datas dobrava a altura do cartão para três linhas de texto.
- *
- * O resumo é um endpoint próprio: a home desenha três linhas e não deve carregar a agenda inteira
- * a cada abertura do app.
- *
- * @param ehGestao Se quem está olhando pode marcar data — muda só o convite do vazio.
- */
-function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
-  const resumo = useResumoDaAgenda()
-  const proximos = resumo.data?.proximos ?? []
-
+/** O rótulo do bloco com o atalho para a tela do assunto. */
+function Cabecalho({ id, rotulo, para, texto }: { id: string; rotulo: string; para: string; texto: string }) {
   return (
-    <div className="border-border grid min-w-0 content-start gap-2 border-t pt-5 min-[1024px]:col-span-2 min-[1440px]:col-span-1 min-[1440px]:border-t-0 min-[1440px]:border-l min-[1440px]:pt-0 min-[1440px]:pl-5">
-      <h3 className="text-muted-foreground text-sm font-medium">Próximas datas</h3>
-
-      {resumo.isPending ? <EsqueletoDeTexto linhas={3} /> : null}
-
-      {resumo.data && proximos.length === 0 ? (
-        <p className="text-muted-foreground flex items-center gap-2 text-sm">
-          <CalendarDays className="size-4 shrink-0" aria-hidden />
-          {ehGestao
-            ? 'Nenhuma data marcada. Comece pela colação e pela festa, na Agenda.'
-            : 'A comissão ainda não marcou nenhuma data.'}
-        </p>
-      ) : null}
-
-      {proximos.length > 0 ? (
-        <ol aria-label="Próximas datas da turma" className="grid">
-          {proximos.map((evento) => {
-            const Icone = ICONE_DO_TIPO[evento.tipo]
-            const dias = diasAte(evento.data)
-
-            return (
-              <li key={evento.id} className="border-border border-b last:border-0">
-                {/* A linha inteira leva à agenda: a data não tem tela própria, e é lá que ela se lê inteira. */}
-                <LinkDaPagina
-                  to={ROTAS.agenda}
-                  className="hover:bg-muted/60 focus-visible:ring-ring -mx-2 flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5 outline-none focus-visible:ring-2"
-                >
-                  <span className="bg-brand-tint text-brand-text grid size-10 shrink-0 place-items-center rounded-full">
-                    <Icone className="size-4" aria-hidden />
-                  </span>
-                  <span className="grid min-w-0 flex-1">
-                    <span className="truncate text-sm font-medium">{evento.titulo}</span>
-                    <span className="text-muted-foreground mt-0.5 text-xs">
-                      <time dateTime={evento.data}>{formatarData(evento.data)}</time>
-                      {dias !== null && dias >= 0
-                        ? ` · ${dias === 0 ? 'é hoje' : dias === 1 ? 'amanhã' : `em ${formatarNumero(dias)} dias`}`
-                        : null}
-                    </span>
-                  </span>
-                  <ChevronRight className="text-muted-foreground size-4 shrink-0" aria-hidden />
-                </LinkDaPagina>
-              </li>
-            )
-          })}
-        </ol>
-      ) : null}
+    <div className="flex items-center justify-between gap-3">
+      <Rotulo id={id}>{rotulo}</Rotulo>
+      <LinkDaPagina to={para} className="text-brand-text inline-flex items-center gap-1.5 text-sm font-bold">
+        {texto}
+        <ArrowRight className="size-4" aria-hidden />
+      </LinkDaPagina>
     </div>
   )
 }

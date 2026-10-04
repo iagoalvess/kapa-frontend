@@ -20,5 +20,10 @@ describe('PedidosPage', () => {
     expect(await screen.findByText('Nenhum pedido ainda')).toBeInTheDocument()
     // A lateral só aparece depois do carregamento, junto com a lista.
     expect(screen.getByRole('link', { name: 'Ver meus pedidos' })).toHaveAttribute('href', '/meus-pedidos')
+    // A Loja é atalho da lateral desde que saiu do menu: a tela das compras públicas continua lá.
+    expect(screen.getByRole('link', { name: 'Ver compras da loja' })).toHaveAttribute(
+      'href',
+      '/cobrancas/loja',
+    )
   })
 })

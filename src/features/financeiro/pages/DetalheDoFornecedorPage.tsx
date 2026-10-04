@@ -172,6 +172,7 @@ function DespesasDoFornecedor({ fornecedor }: { fornecedor: Fornecedor }) {
 
       {itens.length > 0 ? (
         <Tabela
+          emLista
           cabecalho={
             <>
               <th className="py-3 pr-4 font-normal">Despesa</th>

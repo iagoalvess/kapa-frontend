@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { servidor } from '@/test/msw/server'
 import { reais, renderizar } from '@/test/utils'
@@ -31,6 +31,23 @@ function responder(extrato: Extrato = EXTRATO) {
 }
 
 describe('MeuExtratoPage', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('no celular apresenta a próxima parcela antes da busca, mantendo um único acesso ao PIX', async () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    responder()
+    renderizar(<MeuExtratoPage />)
+
+    const proxima = await screen.findByRole('region', { name: 'Próxima parcela' })
+    const busca = screen.getByRole('searchbox', { name: 'Buscar parcela' })
+    expect(proxima.compareDocumentPosition(busca) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
+    expect(screen.getAllByRole('link', { name: 'Pagar parcela' })).toHaveLength(1)
+  })
+
   it('mostra na faixa quanto falta, a próxima, as pagas e as em conferência', async () => {
     responder()
 
@@ -100,7 +117,7 @@ describe('MeuExtratoPage', () => {
     renderizar(<MeuExtratoPage />)
 
     const proxima = await screen.findByRole('region', { name: 'Próxima parcela' })
-    expect(within(proxima).getByRole('link', { name: 'Pagar com PIX' })).toHaveAttribute(
+    expect(within(proxima).getByRole('link', { name: 'Pagar parcela' })).toHaveAttribute(
       'href',
       `/minhas-parcelas/parcelas/${vencida.id}/pagar`,
     )
@@ -119,7 +136,9 @@ describe('MeuExtratoPage', () => {
       '/minhas-parcelas/parcelas/pa-venc/pagar',
       '/minhas-parcelas/parcelas/pa-aberta/pagar',
     ])
-    expect(screen.getByText('Em conferência', { selector: 'span' })).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('table')).getByText('Em conferência', { selector: 'span' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Paga em 09/07/2026')).toBeInTheDocument()
     // Sprint 22: só a linha com baixa leva o recibo.
     expect(

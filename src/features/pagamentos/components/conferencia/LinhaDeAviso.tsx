@@ -72,7 +72,7 @@ export function LinhaDeAviso({
           // `ml-auto`: o `Input` é `flex`, e caixa de bloco ignora o `text-right` da célula — sem
           // isso o campo encosta na coluna do devido em vez de alinhar com o cabeçalho "Recebido".
           className={cn(
-            'ml-auto h-8 w-32 rounded-full px-4 text-right text-sm',
+            'ml-auto h-11 w-40 rounded-full px-4 text-right text-base lg:h-8 lg:w-32 lg:text-sm',
             difere && 'border-warning bg-warning-bg text-warning-text',
           )}
         />

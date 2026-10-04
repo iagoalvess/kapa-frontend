@@ -34,6 +34,19 @@ export const PLANO_GRATUITO: PlanoDaTurma = {
 }
 
 /**
+ * A turma no Essencial: o que a Portaria e a Loja pedem (`festa`), sem A festa (`mural`) nem as mesas.
+ *
+ * É o plano que prova o padrão do `useAtalhoNoMenu`: um atalho que mora numa tela de módulo que a turma
+ * não tem precisa continuar no menu, senão fica inalcançável.
+ */
+export const PLANO_ESSENCIAL: PlanoDaTurma = {
+  codigo: 'essencial',
+  nome: 'Essencial',
+  modulos: [...PLANO_GRATUITO.modulos, MODULOS.festa],
+  pago: true,
+}
+
+/**
  * Renderiza um componente com roteador e cache próprios.
  *
  * Cada teste ganha um `QueryClient` novo — cache compartilhado faz um teste passar por causa do

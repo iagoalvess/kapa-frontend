@@ -67,7 +67,6 @@ const mapa: MapaDeMesas = {
 
 function comApi() {
   const donos: unknown[] = []
-  const saloes: unknown[] = []
   servidor.use(
     http.get(MESAS, () => HttpResponse.json(mapa)),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
@@ -76,18 +75,23 @@ function comApi() {
 
       return HttpResponse.json({ ...livre, vinculo_id: 'v-bruno', dono: 'Bruno Lima' })
     }),
-    http.put(`${MESAS}/salao`, async ({ request }) => {
-      saloes.push(await request.json())
-
-      return new HttpResponse(null, { status: 204 })
-    }),
   )
 
-  return { donos, saloes }
+  return { donos }
 }
 
 describe('MesasPage', () => {
   afterEach(() => sessao.encerrar())
+
+  it('explica como as mesas funcionam na lateral', async () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<MesasPage />)
+
+    expect(await screen.findByText('Como funcionam as mesas')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir o mapa' })).toBeInTheDocument()
+  })
 
   it('o seletor de dono só oferece quem ainda tem mesa a receber, e a reservada não tem seletor', async () => {
     entrarComo('Comissao')
@@ -119,35 +123,5 @@ describe('MesasPage', () => {
     await usuario.selectOptions(await screen.findByRole('combobox', { name: 'Dono da Mesa 1' }), 'v-bruno')
 
     await expect.poll(() => donos).toEqual([{ id: 'm-1', corpo: { vinculo_id: 'v-bruno' } }])
-  })
-
-  it('a mesa fora do mapa vai para o salão num clique, e só o "Salvar mapa" grava', async () => {
-    entrarComo('Comissao')
-    const { saloes } = comApi()
-    const usuario = userEvent.setup()
-
-    renderizar(<MesasPage />)
-
-    const salvar = await screen.findByRole('button', { name: 'Salvar mapa' })
-    expect(salvar).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Mesa 2, 10 lugares, Ana Souza' })).toBeInTheDocument()
-
-    await usuario.click(screen.getByRole('button', { name: /^Mesa 1/ }))
-
-    // Um metro na diagonal do meio do salão de 24 m × 16 m — a Mesa 2 já está no mapa —, e ainda
-    // não gravou nada.
-    expect(screen.getByRole('button', { name: 'Mesa 1, 10 lugares, Perto da pista' })).toBeInTheDocument()
-    expect(saloes).toEqual([])
-
-    await usuario.click(salvar)
-
-    await expect
-      .poll(() => saloes)
-      .toEqual([
-        {
-          ...mapa.salao,
-          posicoes: [{ mesa_id: 'm-1', x: 1300, y: 900, girada: false }],
-        },
-      ])
   })
 })

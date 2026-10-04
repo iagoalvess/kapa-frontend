@@ -1,20 +1,24 @@
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import mascoteErro from '@/assets/mascote/erro.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { Selo } from '@/components/Selo'
-import { formatarCentavos, formatarData, formatarNumero, instanteDe } from '@/lib/formato'
+import { rotaDoReenvio } from '@/config/rotas'
+import { formatarCentavos } from '@/lib/formato'
 import { ehErroDaApi } from '@/lib/http/erros'
-import { ContagemRegressiva, useAgoraDoServidor } from '../components/ContagemRegressiva'
+import { CartoesDeConvite, PrazosDoItem, SituacaoDoItem } from '../components/CartoesDeConvite'
+import { useAgoraDoServidor } from '../components/ContagemRegressiva'
 import { FormularioDeCompra } from '../components/FormularioDeCompra'
 import { CabecalhoDaFesta, MolduraDaLoja, QuemVende } from '../components/MolduraDaLoja'
-import { ReenvioDoLink } from '../components/ReenvioDoLink'
 import { useLoja } from '../hooks/useLoja'
-import type { ItemDaLoja } from '../types/loja.types'
+import { aVenda, estaAberto } from '../lib/disponibilidade'
 
 /**
  * `/loja/:formaturaId` — a loja pública da turma (Sprint 26): qualquer pessoa com o link compra o
  * convite da festa, sem conta (P1).
+ *
+ * A escolha do convite é a primeira etapa do formulário: os cartões da vitrine deixaram de ser uma lista
+ * passiva acima do formulário que se repetia no `select` "Convite". Com um convite só eles não aparecem —
+ * o convite é o título, e a compra começa direto nos dados de quem compra.
  *
  * Sem sala de espera (decisão 6): o contador de restantes relê a cada poucos segundos, a abertura é
  * contada pelo relógio do servidor, e esgotado diz "esgotado" na hora.
@@ -64,11 +68,7 @@ function Vitrine({
 }) {
   const agora = useAgoraDoServidor(loja.diferencaDoRelogio)
 
-  // O servidor diz se já abriu; entre uma leitura e outra, o relógio corrigido libera o botão na hora
-  // certa — e a API recusa quem chegar antes, qualquer que seja o relógio dele.
-  const aberto = (item: ItemDaLoja) =>
-    item.aberto || (item.abertura_de_vendas !== null && instanteDe(item.abertura_de_vendas) <= agora)
-  const compraveis = loja.itens.filter((item) => aberto(item) && item.disponivel !== 0)
+  const compraveis = loja.itens.filter((item) => aVenda(item, agora))
   const unico = loja.itens.length === 1 ? loja.itens[0] : undefined
 
   return (
@@ -85,31 +85,17 @@ function Vitrine({
               <span className="text-xl font-semibold tabular-nums">
                 {formatarCentavos(unico.preco_em_centavos)}
               </span>
-              <SituacaoDoItem item={unico} aberto={aberto(unico)} />
+              <SituacaoDoItem item={unico} aberto={estaAberto(unico, agora)} />
             </p>
-            <PrazosDoItem item={unico} aberto={aberto(unico)} agora={agora} />
+            <PrazosDoItem item={unico} aberto={estaAberto(unico, agora)} agora={agora} />
           </div>
         </CabecalhoDaFesta>
       ) : (
         <>
           <CabecalhoDaFesta turma={`${loja.turma} · ${loja.instituicao}`} festa={loja.festa} />
 
-          <ul className="grid gap-3" aria-label="Convites à venda">
-            {loja.itens.map((item) => (
-              <li key={item.id} className="grid gap-2 rounded-xl border p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="grid">
-                    <span className="font-medium">{item.descricao}</span>
-                    <span className="text-lg font-semibold tabular-nums">
-                      {formatarCentavos(item.preco_em_centavos)}
-                    </span>
-                  </div>
-                  <SituacaoDoItem item={item} aberto={aberto(item)} />
-                </div>
-                <PrazosDoItem item={item} aberto={aberto(item)} agora={agora} />
-              </li>
-            ))}
-          </ul>
+          {/* Nada à venda: os cartões ficam como leitura, para dizer o que esgotou ou ainda vai abrir. */}
+          {compraveis.length === 0 ? <CartoesDeConvite itens={loja.itens} agora={agora} /> : null}
         </>
       )}
 
@@ -120,40 +106,26 @@ function Vitrine({
           </h2>
           <FormularioDeCompra
             formaturaId={formaturaId}
-            itens={compraveis}
+            itens={loja.itens}
             meios={loja.meios}
+            agora={agora}
             aoEsgotar={aoEsgotar}
           />
         </section>
       ) : null}
 
       <QuemVende turma={loja.turma} contato={loja.contato_da_comissao} />
-      <ReenvioDoLink formaturaId={formaturaId} />
+
+      <p className="text-muted-foreground text-center text-xs leading-relaxed">
+        Já comprei e não acho meus convites?{' '}
+        <Link
+          to={rotaDoReenvio(formaturaId)}
+          className="text-brand-hover hover:text-brand-border font-medium underline underline-offset-2 transition-colors"
+        >
+          Receber o link de novo
+        </Link>
+        .
+      </p>
     </MolduraDaLoja>
   )
-}
-
-/** Quando as vendas abrem (em contagem regressiva) e até quando vão. */
-function PrazosDoItem({ item, aberto, agora }: { item: ItemDaLoja; aberto: boolean; agora: number }) {
-  return (
-    <>
-      {!aberto && item.abertura_de_vendas && instanteDe(item.abertura_de_vendas) > agora ? (
-        <p className="text-sm">
-          <ContagemRegressiva ate={item.abertura_de_vendas} agora={agora} prefixo="As vendas abrem em" />
-        </p>
-      ) : null}
-      {item.vendas_ate ? (
-        <p className="text-muted-foreground text-xs">Vendas até {formatarData(item.vendas_ate)}.</p>
-      ) : null}
-    </>
-  )
-}
-
-/** Esgotado, quantos restam, ou que ainda não abriu — o número é **reservado**, não pago. */
-function SituacaoDoItem({ item, aberto }: { item: ItemDaLoja; aberto: boolean }) {
-  if (item.disponivel === 0) return <Selo tom="perigo">Esgotado</Selo>
-  if (!aberto) return <Selo tom="alerta">Em breve</Selo>
-  if (item.disponivel === null) return <Selo tom="sucesso">À venda</Selo>
-
-  return <Selo tom="sucesso">Restam {formatarNumero(item.disponivel)}</Selo>
 }

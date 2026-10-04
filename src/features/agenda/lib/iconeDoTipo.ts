@@ -35,3 +35,17 @@ export const COR_DO_TIPO = {
   Prazo: 'bg-warning-bg text-warning-text',
   Outro: 'bg-neutral-bg text-neutral-text',
 } as const satisfies Record<TipoDeEvento, string>
+
+/**
+ * A cor do **ponto** do tipo — a bolinha que marca a data nas listas do Início e da agenda.
+ *
+ * São os tokens `--evento-*`, um matiz por tipo, os mesmos da barra do cartão da agenda. Escritos por
+ * extenso: o scanner do Tailwind lê o código como texto, e classe montada em template não sairia.
+ */
+export const PONTO_DO_TIPO = {
+  Colacao: 'bg-evento-colacao',
+  Festa: 'bg-evento-festa',
+  Reuniao: 'bg-evento-reuniao',
+  Prazo: 'bg-evento-prazo',
+  Outro: 'bg-evento-outro',
+} as const satisfies Record<TipoDeEvento, string>

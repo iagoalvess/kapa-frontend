@@ -55,7 +55,10 @@ function entrarComo(papel: string) {
 }
 
 /** @param assinatura A assinatura da turma; ausente, a API responde 404, como antes de contratar. */
-function comFormatura(status: string, assinatura?: { status: string; plano: typeof PREMIUM }) {
+function comFormatura(
+  status: string,
+  assinatura?: { status: string; plano: typeof PREMIUM; proximo_plano?: typeof ESSENCIAL | null },
+) {
   servidor.use(
     http.get(`${env.VITE_API_URL}/api/v1/planos`, () => HttpResponse.json(PLANOS)),
     http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () => HttpResponse.json({ id: 'f-1', status })),
@@ -159,7 +162,33 @@ describe('PlanosPage', () => {
     expect(within(contratado).getByText('Plano atual', { selector: 'p' })).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Mudar para Essencial' }))
 
+    // A troca não é um clique só: o diálogo diz o que acontece e só então chama a API.
+    await usuario.click(await screen.findByRole('button', { name: 'Agendar a mudança' }))
     await expect.poll(() => pedido).toEqual({ plano_codigo: 'essencial' })
+  })
+
+  /** A descida agendada tem volta: o back desfaz ao escolher o plano atual, e a tela dá o botão. */
+  it('desfaz a descida agendada ao manter o plano atual', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM, proximo_plano: ESSENCIAL })
+    let pedido: unknown
+    servidor.use(
+      http.post(
+        `${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/trocar-plano`,
+        async ({ request }) => {
+          pedido = await request.json()
+          return HttpResponse.json({ url: null })
+        },
+      ),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
+
+    expect(await screen.findByText(/A partir da próxima renovação/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Manter o Premium' }))
+
+    await expect.poll(() => pedido).toEqual({ plano_codigo: 'premium' })
   })
 
   it('turma ativa não troca entre mensal e anual', async () => {

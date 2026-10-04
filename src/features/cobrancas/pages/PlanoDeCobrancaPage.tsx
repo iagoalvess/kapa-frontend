@@ -1,10 +1,11 @@
-import { BellRing, Coins, OctagonX, Pencil, X } from 'lucide-react'
+import { BellRing, Coins, Info, OctagonX, Pencil, ReceiptText, X } from 'lucide-react'
 import { useState } from 'react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import {
   EsqueletoDeCartao,
@@ -96,6 +97,36 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
   return (
     <>
       <ResumoDoPlano simulacao={gravado.data} />
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Lembretes automáticos', para: ROTAS.regua, icone: BellRing },
+          {
+            titulo: 'Regras de atraso',
+            icone: Info,
+            dialogo: {
+              titulo: 'Regras de atraso',
+              descricao:
+                'Valem para quem aderir daqui em diante; os demais seguem com as regras que aceitaram.',
+              conteudo: <RegrasDoPlano plano={plano.data} editavel={editavel} semCartao />,
+            },
+          },
+          {
+            titulo: 'Prévia das parcelas',
+            icone: ReceiptText,
+            dialogo: {
+              titulo: 'Prévia das parcelas',
+              descricao: 'Parcelas e valores que serão cobrados de um formando.',
+              conteudo: (
+                <PreviaDaGrade
+                  simulacao={gravado.data}
+                  atualizando={gravado.isFetching}
+                  erro={gravado.error}
+                />
+              ),
+            },
+          },
+        ]}
+      />
 
       {/* O arranjo das telas de formatura e adesão: o que se faz à esquerda — o plano e os itens —,
           e à direita o que se consulta: as regras e a grade que sai delas. */}
@@ -150,7 +181,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
           )}
         </DialogoDeFormulario>
 
-        <div className="grid gap-5">
+        <div className="hidden gap-5 lg:grid">
           <RegrasDoPlano plano={plano.data} editavel={editavel} />
           <CartaoDeLembretes />
 
@@ -171,6 +202,7 @@ function CartaoDeLembretes() {
   return (
     <Cartao
       titulo="Lembretes automáticos"
+      className="hidden lg:grid"
       descricao="Acompanhe os avisos de vencimento e os alertas para a tesouraria."
     >
       <Button asChild>
@@ -260,6 +292,7 @@ function ListaDeItens({
 
   return (
     <Tabela
+      emLista
       cabecalho={
         <>
           <th className="py-3 pr-4 font-normal">Cobrança</th>

@@ -196,8 +196,15 @@ export function Tabela({
       {/* `tabular-nums`: valor e data alinham coluna a coluna, e não mexe em texto. */}
       <tbody className={cn('tabular-nums', emLista && LISTA_NO_CELULAR)}>{children}</tbody>
       {rodape ? (
-        <tfoot>
-          <tr>{rodape}</tr>
+        <tfoot className={cn(emLista && 'max-lg:block max-lg:border-t')}>
+          <tr
+            className={cn(
+              emLista &&
+                'max-lg:flex max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:gap-2 max-lg:py-3 max-lg:[&>td]:p-0',
+            )}
+          >
+            {rodape}
+          </tr>
         </tfoot>
       ) : null}
     </table>

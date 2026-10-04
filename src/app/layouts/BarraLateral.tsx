@@ -21,7 +21,6 @@ import {
   ReceiptText,
   ShoppingBag,
   Users,
-  Store,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router'
@@ -34,7 +33,7 @@ import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO, MODULOS } from '@/config/planos
 import { useSair } from '@/features/auth'
 import { useDespesasAtrasadas } from '@/features/financeiro'
 import { useParcelasVencidas, usePendentesDeConferencia } from '@/features/pagamentos'
-import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
+import { useAtalhoNoMenu, usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -48,7 +47,7 @@ import { MENU_DO_PAINEL, useNoPainel } from './menuDoPainel'
  * menu que só aparece rolando é item que ninguém acha.
  */
 const formaDoItem =
-  'flex h-8 w-full items-center gap-2.5 rounded-lg px-3 text-sm [&_svg]:size-[18px] [&_svg]:shrink-0'
+  'flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-sm lg:h-8 lg:min-h-0 [&_svg]:size-[18px] [&_svg]:shrink-0'
 
 const estiloDoItem = (ativo: boolean) =>
   cn(
@@ -351,6 +350,9 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
   const { bloqueia } = usePlanoDaTurma()
   const festaTrancada = bloqueia(MODULOS.festa)
   const muralTrancado = bloqueia(MODULOS.mural)
+  // A Portaria é a única tela do módulo `festa` que ainda pode virar card: no Premium ela mora
+  // dentro de A festa (`mural`), e no Essencial — que não tem A festa — ela fica aqui no menu.
+  const portariaNoMenu = useAtalhoNoMenu(MODULOS.mural)
 
   return (
     // Três faixas: logo e rodapé presos, e só o miolo rola. `min-h-0` no miolo porque, sem ele, um
@@ -435,14 +437,8 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.pedidos} icone={ShoppingBag} aoNavegar={aoNavegar} secao>
                   Pedidos
                 </ItemDeMenu>
-                <ItemDeMenu
-                  to={ROTAS.comprasDaLoja}
-                  icone={Store}
-                  aoNavegar={aoNavegar}
-                  trancado={festaTrancada}
-                >
-                  Loja
-                </ItemDeMenu>
+                {/* A Loja não tem item próprio: ela é um atalho na lateral de Pedidos. A rota
+                    continua, e quem a guarda é o `<ExigeModulo>` de `MODULOS.festa`. */}
                 {ehTesouraria ? (
                   <ItemDeMenu to={ROTAS.cobrancas} icone={Coins} aoNavegar={aoNavegar}>
                     Plano
@@ -458,6 +454,11 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
               />
 
               <Secao titulo="Turma">
+                {/* O cadastro da turma — nome, instituição, datas — e as portas de convite e
+                    recebimento. Todo membro lê; é a primeira porta da turma depois do próprio Início. */}
+                <ItemDeMenu to={ROTAS.formatura} icone={GraduationCap} aoNavegar={aoNavegar}>
+                  Formatura
+                </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.membros} icone={Users} aoNavegar={aoNavegar} secao>
                   Membros
                 </ItemDeMenu>
@@ -472,14 +473,19 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 >
                   Festa
                 </ItemDeMenu>
-                <ItemDeMenu
-                  to={ROTAS.portaria}
-                  icone={DoorOpen}
-                  aoNavegar={aoNavegar}
-                  trancado={festaTrancada}
-                >
-                  Portaria
-                </ItemDeMenu>
+                {/* Quando A festa monta (Premium), a Portaria vira card lá dentro e some daqui —
+                    senão seriam duas portas para a mesma tela. Fora do plano (`mural`), o item
+                    fica: é ele que leva à vitrine. Ver `useAtalhoNoMenu`. */}
+                {portariaNoMenu ? (
+                  <ItemDeMenu
+                    to={ROTAS.portaria}
+                    icone={DoorOpen}
+                    aoNavegar={aoNavegar}
+                    trancado={festaTrancada}
+                  >
+                    Portaria
+                  </ItemDeMenu>
+                ) : null}
                 <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} trancado={muralTrancado}>
                   Mural
                 </ItemDeMenu>
@@ -496,6 +502,9 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
 
               {/* O que não pode se perder na rolagem do grupo, e a turma que ele lê sem administrar. */}
               <Secao titulo="A turma">
+                <ItemDeMenu to={ROTAS.formatura} icone={GraduationCap} aoNavegar={aoNavegar}>
+                  Formatura
+                </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
                   Agenda
                 </ItemDeMenu>

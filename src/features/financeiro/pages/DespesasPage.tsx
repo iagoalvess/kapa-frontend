@@ -1,3 +1,6 @@
+import { ROTAS } from '@/config/rotas'
+import { Handshake } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { CalendarClock, CircleCheck, Plus, Receipt, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router'
@@ -18,7 +21,7 @@ import { usePapel } from '@/hooks/useSessao'
 import { ehDia, formatarCentavos } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { DialogoDeDespesa } from '../components/DialogoDeDespesa'
-import { LateralDeDespesas } from '../components/LateralDeDespesas'
+import { LateralDeDespesas, ResumoDeDespesasAPagar } from '../components/LateralDeDespesas'
 import { LinhaDeDespesa } from '../components/LinhaDeDespesa'
 import { useDespesas, useResumoDeDespesas } from '../hooks/useDespesas'
 import { useFornecedores } from '../hooks/useFornecedores'
@@ -28,7 +31,7 @@ import {
   ROTULOS_DE_CATEGORIA,
   type ResumoDeDespesas,
 } from '../types/financeiro.types'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { useTamanhoDaPagina, useTelaGrande } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -54,6 +57,7 @@ const ehCategoria = (valor: string | null): valor is CategoriaDeDespesa =>
  * leitura — a mesma regra de `Vencida` na parcela.
  */
 export default function DespesasPage() {
+  const telaGrande = useTelaGrande()
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const { state } = useLocation()
@@ -145,6 +149,12 @@ export default function DespesasPage() {
           },
         ]}
       />
+
+      {tesouraria ? (
+        <AtalhosDaPagina atalhos={[{ titulo: 'Fornecedores', para: ROTAS.fornecedores, icone: Handshake }]} />
+      ) : null}
+
+      {!telaGrande ? <ResumoDeDespesasAPagar resumo={resumo} /> : null}
 
       <FiltrosDaPlanilha
         principal={
@@ -261,7 +271,7 @@ export default function DespesasPage() {
         {despesas.isPending ? (
           <EsqueletoDeCartoes quantidade={2} className="md:grid-cols-1" />
         ) : (
-          <LateralDeDespesas resumo={resumo} />
+          <LateralDeDespesas resumo={resumo} mostrarResumo={telaGrande} />
         )}
       </div>
 

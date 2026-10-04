@@ -1,4 +1,4 @@
-import type { ElementoDoSalao, FormatoDaMesa, PlantaDoSalao } from '../types/mesas.types'
+import type { ElementoDoSalao, FormatoDaMesa } from '../types/mesas.types'
 
 /**
  * A geometria do mapa do salão: tudo em centímetros, a mesma unidade que a API grava.
@@ -14,13 +14,13 @@ export const GRADE = 20
 export const METRO = 100
 
 /** Diâmetro da cadeira desenhada. */
-export const CADEIRA = 44
+export const CADEIRA = 34
 
 /** Espaço de mesa por pessoa, na borda — o de buffet. */
-const POR_LUGAR = 60
+const POR_LUGAR = 50
 
 /** Largura da mesa retangular, de uma fila de cadeiras à outra. */
-const LARGURA_DA_RETANGULAR = 90
+const LARGURA_DA_RETANGULAR = 76
 
 /** O que basta de uma mesa para desenhá-la. */
 export interface MesaDesenhavel {
@@ -111,9 +111,4 @@ export function encaixarElemento(elemento: ElementoDoSalao, salao: Tamanho): Ele
     x: limitar(encaixar(elemento.x), 0, salao.largura - largura),
     y: limitar(encaixar(elemento.y), 0, salao.altura - altura),
   }
-}
-
-/** O salão com um tamanho novo, com os elementos trazidos para dentro dele. */
-export function redimensionarSalao(planta: PlantaDoSalao, tamanho: Tamanho): PlantaDoSalao {
-  return { ...tamanho, elementos: planta.elementos.map((elemento) => encaixarElemento(elemento, tamanho)) }
 }

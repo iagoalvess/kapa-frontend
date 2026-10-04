@@ -15,18 +15,22 @@ import { aceitarConvite, entrar, registrar, sair } from '../api/auth.api'
  * novo e explica o erro (e-mail a confirmar, convite esgotado, já participa).
  */
 async function iniciarSessao(par: ParDeTokens, queryClient: QueryClient) {
-  sessao.autenticar(par)
-
   const convite = convitePendente.ler()
-  if (!convite) return
+  let sessaoFinal = par
 
-  try {
-    sessao.autenticar(await aceitarConvite(convite))
-    convitePendente.descartar()
-    queryClient.clear()
-  } catch {
-    // A página do convite mostra o erro.
+  if (convite) {
+    try {
+      sessaoFinal = await aceitarConvite(convite, par.access_token)
+      convitePendente.descartar()
+      queryClient.clear()
+    } catch {
+      // A página do convite mostra o erro.
+    }
   }
+
+  // Publicar a sessão antes de o aceite terminar faria SomenteVisitante desmontar o formulário
+  // e disparar um segundo aceite na página do convite, concorrendo com este.
+  sessao.autenticar(sessaoFinal)
 }
 
 /**

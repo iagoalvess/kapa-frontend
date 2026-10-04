@@ -203,18 +203,21 @@ describe('MembrosPage', () => {
     await waitFor(() => expect(pedidas.at(-1)?.has('papel')).toBe(false))
   })
 
-  /** O nome civil, quando informado, identifica melhor que o da conta — e abre o cadastro. */
-  it('mostra o cadastro de cada um, com o nome abrindo o detalhe', async () => {
+  /** O nome civil, quando informado, identifica melhor que o da conta — e o cadastro abre pela ação. */
+  it('mostra o cadastro de cada um, e a ação da linha abre o detalhe', async () => {
     registrarListagens(() => pagina([{ ...ana, nome_completo: 'Ana Souza' }, bruno]), 2)
     entrarComo(PAPEIS.comissao)
 
     renderizar(<MembrosPage />)
 
-    expect(await screen.findByRole('link', { name: 'Ana Souza' })).toHaveAttribute(
+    // O nome é cabeçalho de linha, não link: quem abre é o ícone da pílula de ações.
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ana Souza' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir cadastro de Ana Souza' })).toHaveAttribute(
       'href',
       '/formatura/membros/u-1',
     )
-    const linhaDeBruno = screen.getByRole('link', { name: 'Bruno' }).closest('tr')!
+    const linhaDeBruno = screen.getByRole('link', { name: 'Abrir cadastro de Bruno' }).closest('tr')!
     expect(within(linhaDeBruno).getByText('0%')).toBeInTheDocument()
     expect(within(linhaDeBruno).getByText('Falta o essencial')).toBeInTheDocument()
     expect(screen.getByText('Completo')).toBeInTheDocument()
@@ -234,7 +237,7 @@ describe('MembrosPage', () => {
     renderizar(<MembrosPage />, '/?situacao=removidos')
 
     expect(await screen.findByText('Bruno')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Bruno' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Abrir cadastro de Bruno' })).not.toBeInTheDocument()
   })
 
   /**

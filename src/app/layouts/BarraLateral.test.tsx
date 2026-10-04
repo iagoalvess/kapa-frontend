@@ -6,7 +6,7 @@ import { PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
-import { PLANO_GRATUITO, entrarComo, renderizar } from '@/test/utils'
+import { PLANO_COMPLETO, PLANO_ESSENCIAL, PLANO_GRATUITO, entrarComo, renderizar } from '@/test/utils'
 import { BarraLateral } from './BarraLateral'
 
 const API = `${env.VITE_API_URL}/api/v1`
@@ -35,6 +35,7 @@ describe('BarraLateral', () => {
     expect(menu.getByRole('link', { name: /^Parcelas/ })).toHaveAttribute('href', '/cobrancas/parcelas')
     expect(menu.getAllByRole('link', { name: 'Pedidos' })).toHaveLength(1)
     expect(menu.getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/cobrancas/pedidos')
+    expect(menu.getByRole('link', { name: 'Formatura' })).toHaveAttribute('href', ROTAS.formatura)
   })
 
   it('leva o formando às listas pessoais com os mesmos nomes', async () => {
@@ -48,6 +49,7 @@ describe('BarraLateral', () => {
     expect(menu.getByRole('link', { name: /^Parcelas/ })).toHaveAttribute('href', '/minhas-parcelas')
     expect(menu.getAllByRole('link', { name: 'Pedidos' })).toHaveLength(1)
     expect(menu.getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/meus-pedidos')
+    expect(menu.getByRole('link', { name: 'Formatura' })).toHaveAttribute('href', ROTAS.formatura)
   })
 
   it('deixa os lembretes dentro do Plano para a tesouraria', () => {
@@ -79,6 +81,33 @@ describe('BarraLateral', () => {
     expect(menu.getByRole('link', { name: /^Portaria/ })).toHaveTextContent('fora do plano da turma')
     expect(menu.getByRole('link', { name: 'Membros' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver planos' })).toHaveAttribute('href', ROTAS.planos)
+  })
+
+  /**
+   * O padrão `useAtalhoNoMenu` (docs/menu-e-planos.md): o atalho só sai do menu quando a tela que o
+   * abriga está no plano. A Portaria é Essencial e abriga-se em A festa, que é Premium.
+   */
+  it('no Essencial, a Portaria fica no menu — A festa, que a abriga, está fora do plano', () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<BarraLateral />, '/', '*', PLANO_ESSENCIAL)
+
+    const menu = within(screen.getByRole('navigation', { name: 'Principal' }))
+    const portaria = menu.getByRole('link', { name: 'Portaria' })
+    expect(portaria).toHaveAttribute('href', ROTAS.portaria)
+    // O Essencial tem `festa`: a Portaria abre, não é vitrine.
+    expect(portaria).not.toHaveTextContent('fora do plano da turma')
+  })
+
+  it('no Premium, a Portaria sai do menu — o card dentro de A festa é o caminho', () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<BarraLateral />, '/', '*', PLANO_COMPLETO)
+
+    const menu = within(screen.getByRole('navigation', { name: 'Principal' }))
+    expect(menu.queryByRole('link', { name: 'Portaria' })).not.toBeInTheDocument()
   })
 
   /** Quem contrata é a comissão: para o formando, a área fora do plano seria só uma porta trancada. */

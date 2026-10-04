@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { servidor } from '@/test/msw/server'
 import { reais, renderizar } from '@/test/utils'
+import { useExtrato } from '@/features/pagamentos'
 import type { Adesao, ConteudoParaAdesao, MinhaAdesao, PlanoAceito } from '../types/adesoes.types'
 import { AdesaoDoFormando } from './AdesaoDoFormando'
 
@@ -12,6 +13,11 @@ const CONTEUDO = `${env.VITE_API_URL}/api/v1/adesoes/termos/vigente`
 const MINHA = `${env.VITE_API_URL}/api/v1/adesoes/eu`
 const ADERIR = `${env.VITE_API_URL}/api/v1/adesoes`
 const CODIGO = `${env.VITE_API_URL}/api/v1/adesoes/codigo`
+
+function ExtratoObservado() {
+  const { data } = useExtrato()
+  return <p>Parcelas no extrato: {data?.parcelas.length ?? 'carregando'}</p>
+}
 
 /** Como a tela lê: o Testing Library normaliza o espaço fixo que o `Intl` põe depois do R$. */
 
@@ -166,16 +172,31 @@ describe('AdesaoDoFormando', () => {
 
   it('só libera o aceite depois de rolar o termo e confirmar o código, e envia os dois', async () => {
     let enviado: unknown
+    let quantidade = 0
     responder({ adesao: null, pendencias: [], menor_de_idade: false })
     servidor.use(
       http.post(ADERIR, async ({ request }) => {
         enviado = await request.json()
+        quantidade = 12
         responder({ adesao, pendencias: [], menor_de_idade: false })
         return HttpResponse.json(adesao, { status: 201 })
       }),
+      http.get(`${env.VITE_API_URL}/api/v1/extrato/eu`, () =>
+        HttpResponse.json({
+          parcelas: Array.from({ length: quantidade }, (_, i) => ({ id: String(i) })),
+          proxima: null,
+          em_aberto_em_centavos: 0,
+        }),
+      ),
     )
 
-    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+    renderizar(
+      <>
+        <AdesaoDoFormando FormularioDoTitular={TitularFalso} />
+        <ExtratoObservado />
+      </>,
+    )
+    expect(await screen.findByText('Parcelas no extrato: 0')).toBeInTheDocument()
 
     const aceitar = await screen.findByRole('button', { name: 'Aceitar' })
     expect(aceitar).toBeDisabled()
@@ -187,6 +208,7 @@ describe('AdesaoDoFormando', () => {
 
     expect(await screen.findByRole('region', { name: 'Termo assinado' })).toBeInTheDocument()
     expect(enviado).toEqual({ hash_do_conteudo: HASH, codigo: '123456' })
+    expect(await screen.findByText('Parcelas no extrato: 12')).toBeInTheDocument()
   })
 
   /** Sem a caixa marcada, aceitar só avisa: não gasta código nem abre o diálogo. */
@@ -205,12 +227,12 @@ describe('AdesaoDoFormando', () => {
   })
 
   it('pede nome, CPF e nascimento antes do aceite quando o cadastro não tem', async () => {
-    responder({ adesao: null, pendencias: ['cpf', 'data_de_nascimento'], menor_de_idade: false })
+    responder({ adesao: null, pendencias: ['cpf', 'dataDeNascimento'], menor_de_idade: false })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
     expect(await screen.findByText('formulário do titular')).toBeInTheDocument()
-    expect(screen.getByText(/informe seu CPF, data de nascimento/)).toBeInTheDocument()
+    expect(screen.getByText(/complete os dados que faltam: CPF, data de nascimento/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument()
   })
 

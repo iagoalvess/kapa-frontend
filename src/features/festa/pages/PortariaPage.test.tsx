@@ -1,7 +1,8 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as download from '@/lib/download'
 import { env } from '@/config/env'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
@@ -90,7 +91,37 @@ describe('PortariaPage', () => {
     )
   })
 
-  afterEach(() => sessao.encerrar())
+  afterEach(() => {
+    sessao.encerrar()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
+  it('consulta o evento e exporta a lista pela barra no celular', async () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    const baixar = vi.spyOn(download, 'baixarArquivo').mockImplementation(() => {})
+    let eventoExportado: string | null = null
+    servidor.use(
+      http.get(`${API}/api/v1/festa/portaria/pdf`, ({ request }) => {
+        eventoExportado = new URL(request.url).searchParams.get('tipo')
+        return new HttpResponse('%PDF-1.7', { headers: { 'Content-Type': 'application/pdf' } })
+      }),
+    )
+    renderizar(<PortariaPage />)
+    const barra = await screen.findByRole('navigation', { name: 'Mais nesta área' })
+    await userEvent.click(within(barra).getByRole('button', { name: 'Informações do evento' }))
+    const dialogo = screen.getByRole('dialog', { name: 'Festa de formatura' })
+    expect(dialogo).toHaveTextContent('Espaço Vitrália')
+    expect(dialogo).toHaveTextContent('22:00')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar informações' }))
+    await userEvent.click(within(barra).getByRole('button', { name: 'Exportar PDF' }))
+    await waitFor(() => expect(baixar).toHaveBeenCalledWith(expect.any(Blob), 'lista-da-portaria.pdf'))
+    expect(eventoExportado).toBe('Festa')
+  })
 
   it('mostra a contagem, e o detalhe do convite abre ao clicar na linha', async () => {
     renderizar(<PortariaPage />)

@@ -1,9 +1,9 @@
-import { ClipboardCheck, UserMinus } from 'lucide-react'
+import { ClipboardCheck, IdCard, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { toast } from 'sonner'
-import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
+import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Avatar } from '@/components/Avatar'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
@@ -69,7 +69,8 @@ const ehPapel = (valor: string | null): valor is Papel =>
  *
  * Comissão e Tesouraria veem a lista; só o Presidente troca papel e remove. Os controles somem
  * para quem não pode — a recusa de verdade é da API, que confere o papel no vínculo gravado.
- * O nome abre o cadastro do membro.
+ * O cadastro do membro abre pela pílula de ações da linha, junto do desligar — o nome é só o
+ * cabeçalho da linha, como o da despesa.
  *
  * Página, busca, situação, papel e cadastro vivem na URL: voltar, recarregar e mandar o link
  * devolvem a mesma lista. As contagens dos filtros acompanham a situação escolhida, para o número
@@ -255,35 +256,29 @@ function AcaoDeSaida({
 }) {
   const remover = useRemoverMembro()
 
-  if (membro.tem_adesao) {
-    return (
-      <AcoesDaLinha rotulo={`Ações de ${nome}`}>
-        <DialogoDeDesligamento membro={membro} desabilitado={ocupado} />
-      </AcoesDaLinha>
-    )
-  }
+  // Não embrulha em `AcoesDaLinha`: quem monta a pílula é a linha, para juntar esta ação à de abrir
+  // o cadastro. Embrulhar aqui daria duas pílulas na mesma célula.
+  if (membro.tem_adesao) return <DialogoDeDesligamento membro={membro} desabilitado={ocupado} />
 
   return (
-    <AcoesDaLinha rotulo={`Ações de ${nome}`}>
-      <AcaoComConfirmacao
-        rotulo="Remover"
-        icone={UserMinus}
-        desabilitada={ocupado}
-        confirmacao={{
-          titulo: ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`,
-          descricao: ehOProprio
-            ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
-            : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.',
-          rotulo: ehOProprio ? 'Sair' : 'Remover',
-          aoConfirmar: () =>
-            remover.mutate(membro.usuario_id, {
-              onSuccess: () =>
-                toast.info(ehOProprio ? 'Você saiu da formatura.' : `${nome} foi removido da turma.`),
-              onError: avisarErro,
-            }),
-        }}
-      />
-    </AcoesDaLinha>
+    <AcaoComConfirmacao
+      rotulo="Remover"
+      icone={UserMinus}
+      desabilitada={ocupado}
+      confirmacao={{
+        titulo: ehOProprio ? 'Sair da formatura?' : `Remover ${nome}?`,
+        descricao: ehOProprio
+          ? 'Você perderá o acesso a esta turma. O seu histórico de pagamentos e adesão é mantido.'
+          : 'A pessoa perde o acesso à turma na hora. O histórico de pagamentos e adesão dela é mantido.',
+        rotulo: ehOProprio ? 'Sair' : 'Remover',
+        aoConfirmar: () =>
+          remover.mutate(membro.usuario_id, {
+            onSuccess: () =>
+              toast.info(ehOProprio ? 'Você saiu da formatura.' : `${nome} foi removido da turma.`),
+            onError: avisarErro,
+          }),
+      }}
+    />
   )
 }
 
@@ -323,17 +318,9 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
         <div className={cn('flex items-center gap-3', !membro.ativo && 'opacity-60')}>
           <Avatar nome={nome} semente={membro.usuario_id} className="size-8 text-sm" />
           <div className="grid min-w-0">
-            {/* Removido não tem cadastro para abrir: a API só mostra o de quem ainda está na turma. */}
-            {membro.ativo ? (
-              <LinkDaPagina
-                to={`${ROTAS.membros}/${membro.usuario_id}`}
-                className="text-foreground truncate font-medium hover:underline"
-              >
-                {nome}
-              </LinkDaPagina>
-            ) : (
-              <span className="text-foreground truncate font-medium">{nome}</span>
-            )}
+            {/* O nome não abre mais o cadastro: quem abre é o ícone da pílula de ações, junto do
+                desligar. Aqui ele é só o cabeçalho da linha, como o da despesa. */}
+            <span className="text-foreground truncate font-medium">{nome}</span>
             <span className="text-texto-muted truncate">{membro.email}</span>
           </div>
         </div>
@@ -385,13 +372,27 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
       <td className="py-3 pr-4">
         <SeloDeDesligado membro={membro} />
       </td>
-      {editavel ? (
-        <td className="py-3 text-right">
+      {/* As ações da linha, sempre presentes para a Gestão (a página inteira é da Gestão): abrir o
+          cadastro é de todos; desligar/remover é só do Presidente. Removido e desligado não têm
+          cadastro para abrir — a API só mostra o de quem ainda está na turma — e não têm ação. */}
+      <td className="py-3 text-right">
+        <AcoesDaLinha rotulo={`Ações de ${nome}`}>
           {membro.ativo ? (
+            <AcaoDaLinha asChild rotulo="Abrir cadastro" descricaoAcessivel={`Abrir cadastro de ${nome}`}>
+              <LinkDaPagina
+                to={`${ROTAS.membros}/${membro.usuario_id}`}
+                aria-label={`Abrir cadastro de ${nome}`}
+              >
+                <IdCard aria-hidden className="size-4" />
+              </LinkDaPagina>
+            </AcaoDaLinha>
+          ) : null}
+
+          {editavel && membro.ativo ? (
             <AcaoDeSaida membro={membro} ocupado={ocupado} ehOProprio={ehOProprio} nome={nome} />
           ) : null}
-        </td>
-      ) : null}
+        </AcoesDaLinha>
+      </td>
     </tr>
   )
 }

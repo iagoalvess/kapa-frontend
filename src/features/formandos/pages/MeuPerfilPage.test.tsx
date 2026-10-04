@@ -7,9 +7,15 @@ import { PAPEIS, PERFIS } from '@/config/perfis'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
+import { useMinhaAdesao } from '@/features/adesoes/hooks/useAderir'
 import MeuPerfilPage from './MeuPerfilPage'
 
 const EU = `${env.VITE_API_URL}/api/v1/formandos/eu`
+
+function PendenciasObservadas() {
+  const { data } = useMinhaAdesao()
+  return <p>Dados pendentes no termo: {data?.pendencias.length ?? 'carregando'}</p>
+}
 
 /** Como a API devolve: campo vazio vem `null`. */
 const perfil = {
@@ -40,12 +46,12 @@ const perfil = {
   foto_arquivo_id: null,
   completude: 30,
   faltando: [
-    'nome_no_diploma',
+    'nomeNoDiploma',
     'rg',
     'matricula',
-    'data_de_nascimento',
+    'dataDeNascimento',
     'endereco',
-    'contato_de_emergencia',
+    'contatoDeEmergencia',
     'foto',
   ],
   essencial_pendente: false,
@@ -96,6 +102,33 @@ describe('MeuPerfilPage', () => {
   })
 
   /** Salvar uma seção não pode reenviar (nem apagar) as outras. */
+  it('atualiza as pendências do termo ao salvar os dados pessoais', async () => {
+    let pendente = true
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/adesoes/eu`, () =>
+        HttpResponse.json({
+          adesao: null,
+          pendencias: pendente ? ['nomeCompleto'] : [],
+          menor_de_idade: false,
+        }),
+      ),
+      http.put(EU, () => {
+        pendente = false
+        return HttpResponse.json(perfil)
+      }),
+    )
+    renderizar(
+      <>
+        <MeuPerfilPage />
+        <PendenciasObservadas />
+      </>,
+    )
+    expect(await screen.findByText('Dados pendentes no termo: 1')).toBeInTheDocument()
+    const pessoais = await editar('Dados pessoais')
+    await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
+    expect(await screen.findByText('Dados pendentes no termo: 0')).toBeInTheDocument()
+  })
+
   it('salva só a seção do botão, com campo vazio indo nulo', async () => {
     let enviado: Record<string, unknown> | undefined
     servidor.use(
@@ -183,7 +216,7 @@ describe('MeuPerfilPage', () => {
         HttpResponse.json({
           ...perfil,
           pessoais: {},
-          faltando: ['nome_completo', 'cpf', 'telefone'],
+          faltando: ['nomeCompleto', 'cpf', 'telefone'],
           essencial_pendente: true,
         }),
       ),

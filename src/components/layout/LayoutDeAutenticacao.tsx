@@ -55,7 +55,7 @@ export function LayoutDeAutenticacao({
         onboarding ? 'lg:grid-cols-[1.1fr_minmax(400px,0.9fr)]' : 'lg:grid-cols-[minmax(400px,0.9fr)_1.1fr]',
       )}
     >
-      <main className="bg-card flex flex-col justify-center px-8 py-12 lg:px-14">
+      <main className="bg-card flex flex-col justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-14">
         <div className={cn('mx-auto w-full', onboarding ? 'max-w-lg' : 'max-w-md lg:-translate-y-10')}>
           <LogoKapa className="mb-4 -ml-1 h-12" />
           <div key={etapa} className="motion-safe:animate-entrar">

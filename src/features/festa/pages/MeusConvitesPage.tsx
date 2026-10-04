@@ -1,7 +1,9 @@
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import {
   CalendarClock,
   ExternalLink,
   GraduationCap,
+  Info,
   Link2,
   PartyPopper,
   Pencil,
@@ -29,7 +31,7 @@ import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoIngresso } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { useTamanhoDaPagina, useTelaGrande } from '@/hooks/useTelaGrande'
 import { contemBusca } from '@/lib/busca'
 import { copiar } from '@/lib/copiar'
 import { formatarData, formatarDataHora, formatarHora, formatarNumero } from '@/lib/formato'
@@ -113,6 +115,7 @@ function ordenar(linhas: LinhaDeConvite[], por: string | undefined, descendente:
  * listas: voltar, recarregar e mandar o link devolvem a mesma tela.
  */
 export default function MeusConvitesPage() {
+  const telaGrande = useTelaGrande()
   const tamanhoDaPagina = useTamanhoDaPagina()
   const festa = useMeusConvites('Festa')
   const colacao = useMeusConvites('Colacao')
@@ -196,6 +199,23 @@ export default function MeusConvitesPage() {
           },
         ]}
       />
+
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Pedir mais convites', para: ROTAS.meusPedidos, icone: Ticket },
+          {
+            titulo: 'Nomear e enviar',
+            icone: Info,
+            dialogo: {
+              titulo: 'Nomear e enviar',
+              descricao: 'Como identificar os convidados e compartilhar seus convites.',
+              conteudo: <OrientacoesDosConvites />,
+            },
+          },
+        ]}
+      />
+
+      {!telaGrande ? <ResumoDosConvitesAguardando aguardando={aguardando} /> : null}
 
       {linhas.length > 0 ? (
         <FiltrosDaPlanilha
@@ -300,7 +320,7 @@ export default function MeusConvitesPage() {
           )}
         </Cartao>
 
-        <LateralDosConvites aguardando={aguardando} />
+        <LateralDosConvites aguardando={aguardando} mostrarResumo={telaGrande} />
       </div>
 
       <DialogoDoConvidado aberto={editando} aoFechar={() => definirEditando(false)} />
@@ -312,42 +332,55 @@ export default function MeusConvitesPage() {
  * A coluna da direita, como a de "Meus pedidos": o que ainda está sendo pago, como a lista funciona
  * e onde se pedem mais. O que era a faixa amarela acima da lista virou o primeiro cartão.
  */
-function LateralDosConvites({ aguardando }: { aguardando: number }) {
+function LateralDosConvites({ aguardando, mostrarResumo }: { aguardando: number; mostrarResumo: boolean }) {
   return (
-    <div className="grid min-w-0 gap-5">
-      {aguardando > 0 ? (
-        <CartaoDeValor
-          titulo="Aguardando pagamento"
-          destaque
-          rotulo="Convites pedidos"
-          valor={formatarNumero(aguardando)}
-          nota={`${aguardando === 1 ? 'Ainda está sendo pago' : 'Ainda estão sendo pagos'}. O convite sai quando a última parcela do pedido for confirmada.`}
-          acao={
-            <Button asChild variant="outline">
-              <LinkDaPagina to={ROTAS.meusPedidos}>Ver meus pedidos</LinkDaPagina>
-            </Button>
-          }
-        />
-      ) : null}
+    <div className="hidden min-w-0 gap-5 lg:grid">
+      {mostrarResumo ? <ResumoDosConvitesAguardando aguardando={aguardando} /> : null}
 
       <Cartao titulo="Nomear e enviar">
-        <TextoDoCartao as="ul" className="divide-y">
-          <li className="pb-3">
-            Cada convite é de uma pessoa: o link aparece quando você dá o nome, e aí vai pelo WhatsApp.
-          </li>
-          <li className="py-3">Na entrada, a portaria confere o código e o documento do convidado.</li>
-          <li className="pt-3">
-            Dá para trocar o nome até 24 horas antes do evento. Depois, só com a comissão.
-          </li>
-        </TextoDoCartao>
+        <OrientacoesDosConvites />
       </Cartao>
 
-      <Cartao titulo="Mais convites" descricao="Convites extras da festa se pedem como os outros opcionais.">
+      <Cartao
+        titulo="Mais convites"
+        className="hidden lg:grid"
+        descricao="Convites extras da festa se pedem como os outros opcionais."
+      >
         <Button asChild variant="outline" size="sm" className="justify-self-start">
           <LinkDaPagina to={ROTAS.meusPedidos}>Ir para Meus pedidos</LinkDaPagina>
         </Button>
       </Cartao>
     </div>
+  )
+}
+
+function OrientacoesDosConvites() {
+  return (
+    <TextoDoCartao as="ul" className="divide-y">
+      <li className="pb-3">
+        Cada convite é de uma pessoa: o link aparece quando você dá o nome, e aí vai pelo WhatsApp.
+      </li>
+      <li className="py-3">Na entrada, a portaria confere o código e o documento do convidado.</li>
+      <li className="pt-3">Dá para trocar o nome até 24 horas antes do evento. Depois, só com a comissão.</li>
+    </TextoDoCartao>
+  )
+}
+
+function ResumoDosConvitesAguardando({ aguardando }: { aguardando: number }) {
+  if (aguardando === 0) return null
+  return (
+    <CartaoDeValor
+      titulo="Aguardando pagamento"
+      destaque
+      rotulo="Convites pedidos"
+      valor={formatarNumero(aguardando)}
+      nota={`${aguardando === 1 ? 'Ainda está sendo pago' : 'Ainda estão sendo pagos'}. O convite sai quando a última parcela do pedido for confirmada.`}
+      acao={
+        <Button asChild variant="outline">
+          <LinkDaPagina to={ROTAS.meusPedidos}>Ver meus pedidos</LinkDaPagina>
+        </Button>
+      }
+    />
   )
 }
 

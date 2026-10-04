@@ -127,22 +127,22 @@ export function FaixaDeIndicadores({ indicadores, rotulo }: { indicadores: Indic
     // Altura da faixa: o `py-*` daqui (24px). A referência respira mais que um cartão comum.
     <section
       aria-label={rotulo}
-      className="bg-card shadow-faixa grid grid-cols-2 gap-y-5 rounded-3xl px-5 py-7 lg:grid-cols-4"
+      className="bg-card shadow-faixa grid grid-cols-2 gap-x-4 gap-y-4 rounded-2xl p-4 lg:grid-cols-4 lg:gap-x-0 lg:gap-y-5 lg:rounded-3xl lg:px-5 lg:py-7"
     >
       {indicadores.map(({ rotulo: nome, valor, unidade, icone: Icone, sinal, nota, serie }, indice) => (
         <dl
           key={nome}
           id={indice === 2 ? id : undefined}
           className={cn(
-            'flex items-center gap-3 px-2',
+            'flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center lg:gap-3 lg:px-2',
             indice > 0 && 'lg:border-l lg:pl-6',
             indice > 1 && !detalhes && 'max-lg:hidden',
           )}
         >
-          <span className="bloco-de-icone text-card inline-flex size-10 shrink-0 items-center justify-center rounded-xl">
+          <span className="bloco-de-icone text-card inline-flex size-8 shrink-0 items-center justify-center rounded-xl lg:size-10">
             <Icone className="size-5" strokeWidth={1.75} aria-hidden />
           </span>
-          <div className="@container grid min-w-0 flex-1 gap-1">
+          <div className="@container grid w-full min-w-0 flex-1 gap-1">
             <dt className="text-muted-foreground text-sm leading-snug">{nome}</dt>
             {/* O selo sempre embaixo do número: ao lado, ele subia com "negativo" e descia com
                 "R$ 11.249,98 em atraso", e dois indicadores vizinhos não se alinhavam. */}
@@ -186,7 +186,7 @@ export function FaixaDeIndicadores({ indicadores, rotulo }: { indicadores: Indic
           aria-expanded={detalhes}
           aria-controls={id}
           onClick={() => definirDetalhes(!detalhes)}
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring col-span-2 -mb-2 inline-flex items-center justify-center gap-1 rounded-md text-sm focus-visible:ring-2 focus-visible:outline-none lg:hidden"
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring col-span-2 -mb-1 inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border-t text-sm focus-visible:ring-2 focus-visible:outline-none lg:hidden"
         >
           {detalhes ? 'Menos detalhes' : 'Ver detalhes'}
           <ChevronDown className={cn('size-4', detalhes && 'rotate-180')} aria-hidden />

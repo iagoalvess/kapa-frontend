@@ -1,3 +1,5 @@
+import { Info, ShoppingBag } from 'lucide-react'
+import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
@@ -16,7 +18,11 @@ import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { aPagar, emAberto, type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { DialogoDeEscolhaDeParcelas } from '../components/DialogoDeEscolhaDeParcelas'
-import { LateralDoExtrato } from '../components/LateralDoExtrato'
+import {
+  LateralDoExtrato,
+  ParcelasEmConferencia,
+  ResumoDaProximaParcela,
+} from '../components/LateralDoExtrato'
 import { LinhaDeParcela } from '../components/LinhaDeParcela'
 import { ResumoDoExtrato } from '../components/ResumoDoExtrato'
 import { useExtrato } from '../hooks/useExtrato'
@@ -24,7 +30,7 @@ import { ehOpcao } from '@/lib/opcao'
 import { contemBusca } from '@/lib/busca'
 import { ehDia } from '@/lib/formato'
 import { paginar } from '@/lib/paginar'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { useTamanhoDaPagina, useTelaGrande } from '@/hooks/useTelaGrande'
 
 /**
  * As pílulas de situação, como as de Parcelas e Membros. "Em conferência" é uma leitura, e não um
@@ -86,6 +92,7 @@ function ordenar(parcelas: Parcela[], por: string | undefined, descendente: bool
  * numa consulta só (é a grade de um formando), e um `?situacao=` na API não traria nada de novo.
  */
 export default function MeuExtratoPage() {
+  const telaGrande = useTelaGrande()
   const tamanhoDaPagina = useTamanhoDaPagina()
   const extrato = useExtrato()
   const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
@@ -127,6 +134,28 @@ export default function MeuExtratoPage() {
   return (
     <>
       <ResumoDoExtrato extrato={extrato.data} />
+
+      <AtalhosDaPagina
+        atalhos={[
+          { titulo: 'Meus pedidos', para: ROTAS.meusPedidos, icone: ShoppingBag },
+          ...(extrato.data?.parcelas.some((parcela) => parcela.em_conferencia)
+            ? [
+                {
+                  titulo: 'Em conferência',
+                  icone: Info,
+                  dialogo: {
+                    titulo: 'Parcelas em conferência',
+                    descricao:
+                      'A tesouraria confere com o extrato do banco. Confirmado, o recibo chega por e-mail.',
+                    conteudo: <ParcelasEmConferencia extrato={extrato.data} />,
+                  },
+                },
+              ]
+            : []),
+        ]}
+      />
+
+      {!telaGrande && extrato.data ? <ResumoDaProximaParcela extrato={extrato.data} /> : null}
 
       {todas.length > 0 ? (
         <FiltrosDaPlanilha
@@ -243,7 +272,7 @@ export default function MeuExtratoPage() {
           ) : null}
         </Cartao>
 
-        {extrato.data ? <LateralDoExtrato extrato={extrato.data} /> : null}
+        {extrato.data ? <LateralDoExtrato extrato={extrato.data} mostrarResumo={telaGrande} /> : null}
       </div>
     </>
   )

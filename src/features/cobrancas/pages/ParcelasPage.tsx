@@ -1,4 +1,6 @@
-import { CalendarClock, CircleCheck, ReceiptText, TriangleAlert } from 'lucide-react'
+import { ROTAS } from '@/config/rotas'
+import { AtalhosDaPagina, type AtalhoDaPagina } from '@/components/AtalhosDaPagina'
+import { CalendarClock, CircleCheck, Info, ReceiptText, TriangleAlert } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { Avatar } from '@/components/Avatar'
@@ -15,14 +17,14 @@ import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { ehDia, formatarCentavos, formatarData } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
 import { useParcelas, useResumoDeParcelas } from '../hooks/useParcelas'
-import { LateralDeParcelas } from '../components/LateralDeParcelas'
+import { LateralDeParcelas, OrientacoesDeParcelas } from '../components/LateralDeParcelas'
 import {
   type Parcela,
   type ResumoDeParcelas,
   rotuloDoItem,
   type StatusDaParcela,
 } from '../types/cobrancas.types'
-import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
+import { useTamanhoDaPagina, useTelaGrande } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
 
@@ -47,6 +49,8 @@ interface Props {
   AcoesDaLinha?: ComponentType<{ parcela: Parcela }>
   /** Destinos relacionados à lista, compostos pela camada `app/`. */
   AcoesDaBarra?: ComponentType
+  /** Destinos da camada `app/`, na mesma faixa das parcelas pessoais no celular. */
+  atalhosAdicionais?: AtalhoDaPagina[]
 }
 
 /**
@@ -57,7 +61,8 @@ interface Props {
  * de parecer quebrada. Situação, período e busca vivem na URL — recarregar e mandar o link devolvem
  * a mesma lista. A faixa e as pílulas saem de um resumo só, no mesmo período e busca da lista.
  */
-export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
+export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra, atalhosAdicionais = [] }: Props) {
+  const telaGrande = useTelaGrande()
   const tamanhoDaPagina = useTamanhoDaPagina(TAMANHO_DA_PAGINA)
   const { parametros, pagina, busca, atualizar } = useFiltrosDaUrl()
   const { state } = useLocation()
@@ -119,6 +124,24 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
         ]}
       />
 
+      {!telaGrande ? (
+        <AtalhosDaPagina
+          atalhos={[
+            { titulo: 'Minhas parcelas', para: ROTAS.extrato, icone: ReceiptText },
+            ...atalhosAdicionais,
+            {
+              titulo: 'Como cobrar',
+              icone: Info,
+              dialogo: {
+                titulo: 'Como cobrar',
+                descricao: 'Como registrar, conferir e cobrar as parcelas da turma.',
+                conteudo: <OrientacoesDeParcelas />,
+              },
+            },
+          ]}
+        />
+      ) : null}
+
       <FiltrosDaPlanilha
         principal={
           <Chip
@@ -151,7 +174,7 @@ export default function ParcelasPage({ AcoesDaLinha, AcoesDaBarra }: Props) {
             <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
           </BotaoDeFiltros>
         }
-        acoes={<>{AcoesDaBarra ? <AcoesDaBarra /> : null}</>}
+        acoes={telaGrande && AcoesDaBarra ? <AcoesDaBarra /> : undefined}
         contagem={{
           mostrando: parcelas.data?.itens.length ?? 0,
           total: parcelas.data?.total ?? 0,
