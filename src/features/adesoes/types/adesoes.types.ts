@@ -57,13 +57,41 @@ export interface PlanoAceito {
   itens: ItemAceito[]
   parcelas: ParcelaAceita[]
   total_em_centavos: number
+  /** O quadro de escolhas: os pacotes contratados (Sprint 47). Nulo nas adesões anteriores à cesta. */
+  cesta: PacoteDaCesta[] | null
+}
+
+/** Um pacote do quadro de escolhas, como foi congelado no aceite. Espelha `PacoteDaCestaDTO`. */
+export interface PacoteDaCesta {
+  item_id: string
+  /** Grupo de faixas ("Festa"); nulo é pacote avulso. */
+  grupo: string | null
+  tipo: TipoDeCobranca
+  descricao: string | null
+  valor_em_centavos: number
+  convites_da_festa: number
+  convites_da_colacao: number
+}
+
+/** Um pacote do catálogo, como o formando o vê na adesão. Espelha `PacoteDoCatalogoDTO`. */
+export interface PacoteDoCatalogo {
+  id: string
+  /** Pacotes do mesmo grupo são faixas: a cesta aceita uma. */
+  grupo: string | null
+  tipo: TipoDeCobranca
+  descricao: string | null
+  valor_em_centavos: number
+  /** Em quantas parcelas quem adere hoje paga — menos que o item, para quem chega tarde. */
+  numero_de_parcelas: number
+  convites_da_festa: number
+  convites_da_colacao: number
 }
 
 /**
  * O que a tela mostra antes do aceite. Espelha `ConteudoParaAdesaoDTO`.
  *
- * Parte ausente é o que falta à turma: sem termo publicado, sem plano em vigor. O hash só vem com os
- * dois, e é ele que volta no aceite.
+ * Parte ausente é o que falta à turma: sem termo publicado, sem plano em vigor. O plano e o hash são os da
+ * cesta pedida em `?pacotes=` — trocar um pacote é pedir o conteúdo de novo, e é o hash dele que volta no aceite.
  */
 export interface ConteudoParaAdesao {
   termo: VersaoDoTermo | null
@@ -74,6 +102,10 @@ export interface ConteudoParaAdesao {
    * não é parte do que se aceita.
    */
   resumo: string | null
+  /** Os pacotes à venda, de onde o formando monta a cesta. */
+  catalogo: PacoteDoCatalogo[]
+  /** A cesta de uma adesão anterior: a re-adesão a mantém, e mudá-la é a Sprint 48. Vazia para quem nunca aderiu. */
+  cesta_contratada: string[]
 }
 
 /** Uma adesão, com o termo e o plano aceitos. Espelha `AdesaoDTO`. */
@@ -119,6 +151,16 @@ export interface SituacaoDeAdesao {
   adesao_id: string | null
   versao: number | null
   aceito_em: string | null
+  /** Os pacotes da cesta, com o detalhe livre de cada um (Sprint 48, D40). */
+  cesta: PacoteEscolhido[]
+}
+
+/** Um pacote na cesta de um formando, no painel de adesões. Espelha `PacoteEscolhidoDTO`. */
+export interface PacoteEscolhido {
+  item_de_cobranca_id: string
+  /** "Festa — Festa 15", ou o nome do pacote avulso. */
+  rotulo: string
+  observacao: string | null
 }
 
 /** Filtros de `GET /api/v1/adesoes`. */
@@ -132,4 +174,63 @@ export interface FiltroDeAdesoes extends PaginacaoRequest {
 export interface ResumoDeAdesoes {
   membros: number
   aderiram: number
+}
+
+/** O detalhe livre de um pacote — "beca M" (Sprint 48, D40). Fora do hash. */
+export interface ObservacaoDoPacote {
+  pacote_id: string
+  texto: string
+}
+
+/** Um pacote na cesta do formando. Espelha `PacoteNaCestaDTO` (Sprint 48). */
+export interface PacoteNaCesta {
+  item_de_cobranca_id: string
+  tipo: TipoDeCobranca
+  descricao: string | null
+  grupo: string | null
+  /** O que as parcelas dele somam — o preço aceito, e não o de hoje. No grupo, somadas as faixas anteriores. */
+  contratado_em_centavos: number
+  convites_da_festa: number
+  convites_da_colacao: number
+  observacao: string | null
+  /** Último dia para pedir o cancelamento; nulo, sem trava (D36). */
+  cancelavel_ate: string | null
+  cancelamento_solicitado: boolean
+}
+
+/** Um pacote que o aditivo pode acrescentar (D38). Espelha `PacoteDisponivelDTO`. */
+export interface PacoteDisponivel {
+  item_de_cobranca_id: string
+  tipo: TipoDeCobranca
+  descricao: string | null
+  grupo: string | null
+  valor_em_centavos: number
+  /** O que o aditivo cobraria: o preço menos o já contratado na faixa que sai. */
+  diferenca_em_centavos: number
+  convites_da_festa: number
+  convites_da_colacao: number
+  /** A faixa do mesmo grupo que sai; nula quando é pacote novo. */
+  substitui: string | null
+}
+
+/** A cesta e o que ainda se pode acrescentar. Espelha `MinhaCestaDTO`. */
+export interface MinhaCesta {
+  pacotes: PacoteNaCesta[]
+  disponiveis: PacoteDisponivel[]
+}
+
+/** Um pacote que entra pelo aditivo. Espelha `MudancaDaCestaDTO`. */
+interface MudancaDaCesta {
+  entra: PacoteDaCesta
+  sai: PacoteDaCesta | null
+  ja_contratado_em_centavos: number
+  diferenca_em_centavos: number
+}
+
+/** O aditivo antes do aceite. Espelha `PreviaDoAditivoDTO`. */
+export interface PreviaDoAditivo {
+  mudancas: MudancaDaCesta[]
+  parcelas: ParcelaAceita[]
+  total_em_centavos: number
+  hash_do_conteudo: string
 }

@@ -10,7 +10,7 @@ import { rotuloDoMeio } from '@/types/recebimento'
 import { useRecusarInforme } from '../../hooks/useInformes'
 import { esquemaDaRecusa } from '../../schemas/pagamento.schema'
 import type { Informe } from '../../types/pagamentos.types'
-import { DialogoDeTexto } from '../DialogoDeTexto'
+import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 import { Comprovante } from './Comprovante'
 import { Formando } from './Formando'
 

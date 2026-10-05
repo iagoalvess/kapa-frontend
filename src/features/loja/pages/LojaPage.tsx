@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router'
-import mascoteErro from '@/assets/mascote/erro.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { rotaDoReenvio } from '@/config/rotas'
 import { formatarCentavos } from '@/lib/formato'
@@ -40,13 +40,11 @@ export default function LojaPage() {
     return (
       <MolduraDaLoja>
         {naoExiste ? (
-          <div className="grid justify-items-center gap-3 text-center">
-            <img src={mascoteErro} alt="" className="size-28" />
-            <h1 className="text-xl font-semibold">Loja não encontrada</h1>
-            <p className="text-muted-foreground text-sm">
-              Esta turma não está vendendo convites por aqui. Confira o link com a comissão.
-            </p>
-          </div>
+          <EstadoDeErro
+            titulo="Loja não encontrada"
+            descricao={<>Esta turma não está vendendo convites por aqui. Confira o link com a comissão.</>}
+            nivelDoTitulo={1}
+          />
         ) : (
           <ErroDaConsulta erro={loja.error} aoTentarDeNovo={() => void loja.refetch()} />
         )}

@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import mascoteCanudo from '@/assets/mascote/canudo.webp'
 import mascoteFoguete from '@/assets/mascote/foguete.webp'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
@@ -39,17 +40,19 @@ export default function RetornoDoCheckoutPage() {
       ehErroDaApi(assinatura.error) && assinatura.error.codigo === 'assinatura.nao_encontrada'
 
     return (
-      <Quadro
-        icone={<Clock />}
+      <EstadoDeErro
         titulo={semContratacao ? 'Nenhuma contratação em andamento' : 'Não foi possível consultar'}
+        descricao={semContratacao ? 'Escolha um plano para contratar.' : mensagemDoErro(assinatura.error)}
       >
-        <p role="alert">
-          {semContratacao ? 'Escolha um plano para contratar.' : mensagemDoErro(assinatura.error)}
-        </p>
-        <Button asChild variant="outline" className="justify-self-center">
+        {semContratacao ? null : (
+          <Button onClick={() => void assinatura.refetch()} className="rounded-full px-6">
+            Tentar de novo
+          </Button>
+        )}
+        <Button asChild variant={semContratacao ? 'default' : 'outline'} className="rounded-full px-6">
           <Link to={ROTAS.planos}>Ver planos</Link>
         </Button>
-      </Quadro>
+      </EstadoDeErro>
     )
   }
 

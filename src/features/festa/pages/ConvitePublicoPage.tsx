@@ -1,8 +1,8 @@
 import { CalendarDays, Download, MapPin } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router'
-import mascoteErro from '@/assets/mascote/erro.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { QrCode } from '@/components/QrCode'
@@ -45,14 +45,16 @@ export default function ConvitePublicoPage() {
     return (
       <Moldura>
         {naoExiste ? (
-          <div className="grid justify-items-center gap-3 text-center">
-            <img src={mascoteErro} alt="" className="size-28" />
-            <h1 className="text-xl font-semibold">Convite não encontrado</h1>
-            <p className="text-muted-foreground text-sm">
-              Confira o link com quem te convidou. Se o convite foi passado para outra pessoa, este link
-              deixou de valer.
-            </p>
-          </div>
+          <EstadoDeErro
+            titulo="Convite não encontrado"
+            descricao={
+              <>
+                Confira o link com quem te convidou. Se o convite foi passado para outra pessoa, este link
+                deixou de valer.
+              </>
+            }
+            nivelDoTitulo={1}
+          />
         ) : (
           <ErroDaConsulta erro={convite.error} aoTentarDeNovo={() => void convite.refetch()} />
         )}

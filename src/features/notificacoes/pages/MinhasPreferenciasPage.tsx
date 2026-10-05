@@ -36,7 +36,9 @@ export default function MinhasPreferenciasPage() {
       descricao="O que a Kapa manda para o seu e-mail. A cobrança de parcela faz parte do termo de adesão e chega sempre."
     >
       {preferencias.isPending ? <EsqueletoDeTexto linhas={4} /> : null}
-      {preferencias.isError ? <ErroDaConsulta erro={preferencias.error} /> : null}
+      {preferencias.isError ? (
+        <ErroDaConsulta erro={preferencias.error} aoTentarDeNovo={() => void preferencias.refetch()} />
+      ) : null}
 
       {preferencias.data ? (
         <ul className="divide-border -mt-2 divide-y">

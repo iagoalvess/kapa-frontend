@@ -92,7 +92,11 @@ export function GraficoDaArrecadacao() {
       ) : null}
       {arrecadacao.isError ? (
         <div className="mt-4">
-          <ErroDaConsulta erro={arrecadacao.error} />
+          <ErroDaConsulta
+            compacto
+            erro={arrecadacao.error}
+            aoTentarDeNovo={() => void arrecadacao.refetch()}
+          />
         </div>
       ) : null}
 

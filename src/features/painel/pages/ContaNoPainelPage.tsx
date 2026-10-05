@@ -91,7 +91,7 @@ export default function ContaNoPainelPage() {
     return (
       <>
         <LinkDeVolta para={ROTAS.painelContas}>Contas</LinkDeVolta>
-        <ErroDaConsulta erro={conta.error} />
+        <ErroDaConsulta erro={conta.error} aoTentarDeNovo={() => void conta.refetch()} />
       </>
     )
   }

@@ -161,7 +161,9 @@ export default function AuditoriaPage() {
       >
         {trilha.isPending ? <EsqueletoDeDados linhas={6} /> : null}
 
-        {trilha.isError ? <ErroDaConsulta erro={trilha.error} /> : null}
+        {trilha.isError ? (
+          <ErroDaConsulta erro={trilha.error} aoTentarDeNovo={() => void trilha.refetch()} />
+        ) : null}
 
         {trilha.data && itens.length === 0 ? (
           <ListaVazia

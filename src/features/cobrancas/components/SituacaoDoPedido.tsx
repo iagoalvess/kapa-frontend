@@ -11,5 +11,7 @@ import type { Pedido } from '../types/cobrancas.types'
 export function SituacaoDoPedido({ pedido }: { pedido: Pedido }) {
   if (pedido.status === 'Cancelado') return <Selo>Cancelado</Selo>
 
+  if (pedido.cancelamento_solicitado) return <Selo tom="alerta">Cancelamento pedido</Selo>
+
   return pedido.quitado ? <Selo tom="sucesso">Pago</Selo> : <Selo tom="cinza">Aguardando pagamento</Selo>
 }

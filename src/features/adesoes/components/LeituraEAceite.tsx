@@ -20,7 +20,13 @@ import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { useAderir, useSolicitarCodigo } from '../hooks/useAderir'
 import { COLUNAS, LATERAL, TERMO } from '../lib/colunasDoTermo'
 import { esquemaDeAceite, type FormularioDeAceite } from '../schemas/adesao.schema'
-import type { Adesao, PendenciaDoCadastro, PlanoAceito, VersaoDoTermo } from '../types/adesoes.types'
+import type {
+  Adesao,
+  PendenciaDoCadastro,
+  PlanoAceito,
+  VersaoDoTermo,
+  ObservacaoDoPacote,
+} from '../types/adesoes.types'
 import { CampoDeCodigo } from './CampoDeCodigo'
 import { CartaoDeVersoes } from './CartaoDeVersoes'
 import { LeitorDeTermo } from './LeitorDeTermo'
@@ -44,6 +50,10 @@ const ROTULOS_DE_PENDENCIA: Record<PendenciaDoCadastro, string> = {
 export function LeituraEAceite({
   termo,
   plano,
+  cesta,
+  pacotes,
+  observacoes = [],
+  calculando,
   resumo,
   hash,
   anterior,
@@ -54,6 +64,14 @@ export function LeituraEAceite({
 }: {
   termo: VersaoDoTermo
   plano: PlanoAceito
+  /** O seletor da cesta, entre o que se paga e o termo (Sprint 47). */
+  cesta: ReactNode
+  /** A cesta escolhida — vai no aceite junto do hash que ela deu. */
+  pacotes: string[]
+  /** O detalhe livre de cada pacote (Sprint 48, D40) — vai no aceite, fora do hash. */
+  observacoes?: ObservacaoDoPacote[]
+  /** O conteúdo da cesta nova ainda não chegou: o hash na tela é o da anterior, e o aceite espera. */
+  calculando: boolean
   resumo: string | null
   hash: string
   anterior: Adesao | null
@@ -85,7 +103,12 @@ export function LeituraEAceite({
 
   const enviar = formulario.handleSubmit((valores) =>
     aderir.mutate(
-      { hash_do_conteudo: hash, codigo: valores.codigo },
+      {
+        hash_do_conteudo: hash,
+        codigo: valores.codigo,
+        pacotes,
+        observacoes: observacoes.length > 0 ? observacoes : undefined,
+      },
       {
         onSuccess: () => {
           toast.success('Adesão registrada. As parcelas já estão no seu nome.')
@@ -113,8 +136,16 @@ export function LeituraEAceite({
 
       <div className={COLUNAS}>
         <div className={LATERAL}>
-          <Cartao titulo="O que você vai pagar">
-            <ResumoFinanceiroDaAdesao plano={plano} />
+          {cesta}
+
+          <Cartao titulo="O que você vai pagar" aria-busy={calculando}>
+            {pacotes.length > 0 ? (
+              <ResumoFinanceiroDaAdesao plano={plano} />
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                Escolha ao menos um pacote para ver as parcelas.
+              </p>
+            )}
           </Cartao>
 
           <CartaoDeVersoes />
@@ -174,7 +205,8 @@ export function LeituraEAceite({
                                 disabled={!leuAteOFim}
                                 className="accent-brand mt-0.5 size-4 shrink-0"
                               />
-                              Li o termo e aceito aderir à formatura nessas condições.
+                              Li o termo e aceito aderir à formatura nessas condições, com a cesta que
+                              escolhi.
                             </label>
                           </FormControl>
                           <FormMessage />
@@ -185,7 +217,9 @@ export function LeituraEAceite({
                     <Button
                       type="button"
                       onClick={aceitar}
-                      disabled={!leuAteOFim || !liberado || codigo.isPending}
+                      disabled={
+                        !leuAteOFim || !liberado || codigo.isPending || calculando || pacotes.length === 0
+                      }
                       className="ml-auto"
                     >
                       <CircleCheck aria-hidden />

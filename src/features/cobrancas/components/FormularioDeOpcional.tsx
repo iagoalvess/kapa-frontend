@@ -235,9 +235,7 @@ export function FormularioDeOpcional({
                 <FormControl>
                   <Input {...field} type="datetime-local" disabled={!editavel} />
                 </FormControl>
-                <p className="text-texto-muted text-xs">
-                  Vale o relógio do servidor, não o do celular de quem compra.
-                </p>
+                <p className="text-texto-muted text-xs">Horário de Brasília.</p>
                 <FormMessage />
               </FormItem>
             )}
@@ -249,6 +247,34 @@ export function FormularioDeOpcional({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Pedidos até</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" disabled={!editavel} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={formulario.control}
+            name="ultimo_vencimento"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Último vencimento</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" disabled={!editavel} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={formulario.control}
+            name="cancelavel_ate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cancelável até</FormLabel>
                 <FormControl>
                   <Input {...field} type="date" disabled={!editavel} />
                 </FormControl>

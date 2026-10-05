@@ -201,7 +201,9 @@ export default function MeuExtratoPage() {
         <Cartao rotulo="Minhas parcelas" className="min-w-0 px-5 py-2">
           {extrato.isPending ? <EsqueletoDeTabela linhas={5} colunas={5} /> : null}
 
-          {extrato.isError ? <ErroDaConsulta erro={extrato.error} /> : null}
+          {extrato.isError ? (
+            <ErroDaConsulta erro={extrato.error} aoTentarDeNovo={() => void extrato.refetch()} />
+          ) : null}
 
           {extrato.data && parcelas.length === 0 ? (
             // Três vazios diferentes: quem nunca teve parcela, quem filtrou e quem procurou. Dizer

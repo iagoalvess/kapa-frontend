@@ -79,7 +79,7 @@ export default function TurmaNoPainelPage() {
     return (
       <>
         <LinkDeVolta para={ROTAS.painelTurmas}>Turmas</LinkDeVolta>
-        <ErroDaConsulta erro={turma.error} />
+        <ErroDaConsulta erro={turma.error} aoTentarDeNovo={() => void turma.refetch()} />
       </>
     )
   }
@@ -228,7 +228,9 @@ function MembrosDaTurma({ turmaId }: { turmaId: string }) {
       descricao="Quem está na turma, com o papel de cada um. O CPF sai mascarado, como sai para a comissão."
     >
       {membros.isPending ? <EsqueletoDeTabela colunas={4} /> : null}
-      {membros.isError ? <ErroDaConsulta erro={membros.error} /> : null}
+      {membros.isError ? (
+        <ErroDaConsulta compacto erro={membros.error} aoTentarDeNovo={() => void membros.refetch()} />
+      ) : null}
       {membros.data && itens.length === 0 ? (
         <p className="text-muted-foreground text-sm">Ninguém entrou na turma ainda.</p>
       ) : null}

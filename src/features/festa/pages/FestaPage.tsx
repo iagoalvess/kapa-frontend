@@ -10,6 +10,7 @@ import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -133,7 +134,7 @@ export default function FestaPage() {
     else cancelar.mutate(item.id, { onSuccess: () => toast.info('Item cancelado.'), onError: avisarErro })
   }
 
-  if (itens.isError) return <ErroDaConsulta erro={itens.error} />
+  if (itens.isError) return <ErroDaConsulta erro={itens.error} aoTentarDeNovo={() => void itens.refetch()} />
 
   return (
     <>
@@ -323,10 +324,12 @@ export default function FestaPage() {
           {!aberto && detalhe.isPending && escolhido ? <EsqueletoDeCartao /> : null}
           {/* Link direto para um item que não existe mais — a comissão pode tê-lo excluído. */}
           {!aberto && detalhe.isError ? (
-            <Cartao titulo="Item não encontrado">
-              <p role="alert" className="text-muted-foreground text-sm">
-                Ele pode ter sido excluído pela comissão. Escolha um da lista.
-              </p>
+            <Cartao rotulo="Item não encontrado">
+              <EstadoDeErro
+                compacto
+                titulo="Item não encontrado"
+                descricao="Ele pode ter sido excluído pela comissão. Escolha um da lista."
+              />
             </Cartao>
           ) : null}
 

@@ -65,7 +65,7 @@ export function PixDeTeste({ chave, className }: { chave: ChavePix; className?: 
         {pix.isPending ? (
           <EsqueletoDeCartoes quantidade={1} altura="h-44" className="self-start md:grid-cols-1" />
         ) : pix.isError ? (
-          <ErroDaConsulta erro={pix.error} />
+          <ErroDaConsulta compacto erro={pix.error} aoTentarDeNovo={() => void pix.refetch()} />
         ) : (
           <div className="border-border motion-safe:animate-entrar self-start rounded-2xl border p-4">
             <QrCodePix copiaECola={pix.data.copia_e_cola} />

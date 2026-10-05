@@ -103,7 +103,9 @@ export default function ReguaPage() {
           </EsqueletoDeCartao>
         </div>
       ) : null}
-      {regua.isError ? <ErroDaConsulta erro={regua.error} /> : null}
+      {regua.isError ? (
+        <ErroDaConsulta erro={regua.error} aoTentarDeNovo={() => void regua.refetch()} />
+      ) : null}
 
       {regua.data ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">

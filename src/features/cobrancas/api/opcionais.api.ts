@@ -69,12 +69,17 @@ export function pedir({
   itemId,
   quantidade,
   parcelas,
+  observacao,
 }: {
   itemId: string
   quantidade: number
   parcelas: number
+  /** O detalhe livre — tamanho da beca, nome no convite (Sprint 48, D26). */
+  observacao?: string
 }) {
-  return api.post<Pedido>(PEDIDOS, { body: { item_de_cobranca_id: itemId, quantidade, parcelas } })
+  return api.post<Pedido>(PEDIDOS, {
+    body: { item_de_cobranca_id: itemId, quantidade, parcelas, observacao: observacao || undefined },
+  })
 }
 
 /** Muda a quantidade de um pedido próprio. Absoluta: repetir é um no-op. */
@@ -83,20 +88,23 @@ export function ajustarPedido({ pedidoId, quantidade }: { pedidoId: string; quan
 }
 
 /**
- * Cancela um pedido: o estoque volta e as parcelas em aberto são canceladas.
+ * Cancela um pedido, pela tesouraria — ou, pelo formando, pede o cancelamento à comissão (Sprint 48, D8): o pedido
+ * volta com `cancelamento_solicitado`.
  *
- * @param creditoEmCentavos Só a tesouraria, e só em pedido já pago: vira parcela negativa do
- *   próprio pedido, que abate o que a pessoa ainda deve (P5).
+ * @param creditoEmCentavos Só a tesouraria, e só em pedido já pago: vai para a lista "a devolver" (Sprint 42).
+ * @param motivo Por que o formando pede, se quiser dizer.
  */
 export function cancelarPedido({
   pedidoId,
   creditoEmCentavos = 0,
+  motivo,
 }: {
   pedidoId: string
   creditoEmCentavos?: number
+  motivo?: string
 }) {
   return api.post<Pedido>(`${PEDIDOS}/${pedidoId}/cancelar`, {
-    body: { credito_em_centavos: creditoEmCentavos },
+    body: { credito_em_centavos: creditoEmCentavos, motivo: motivo || undefined },
   })
 }
 

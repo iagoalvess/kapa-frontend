@@ -13,7 +13,7 @@ import { esquemaDoCancelamento, esquemaDoEstorno } from '../schemas/pagamento.sc
 import type { Parcela } from '../types/pagamentos.types'
 import { BotaoDeRecibo } from './BotaoDeRecibo'
 import { DialogoDeBaixaManual } from './DialogoDeBaixaManual'
-import { DialogoDeTexto } from './DialogoDeTexto'
+import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 
 /**
  * O que dá para fazer com uma parcela na tela Parcelas, conforme a situação e o papel:

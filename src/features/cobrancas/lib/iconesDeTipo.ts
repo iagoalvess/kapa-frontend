@@ -1,4 +1,5 @@
 import {
+  Award,
   BadgeCheck,
   CalendarDays,
   Camera,
@@ -10,8 +11,8 @@ import {
   PartyPopper,
   Receipt,
   Shirt,
+  Sparkles,
   Ticket,
-  UserPlus,
   UtensilsCrossed,
   Video,
 } from 'lucide-react'
@@ -35,7 +36,8 @@ export const ICONES_DE_TIPO: Record<TipoDeCobranca, LucideIcon> = {
   Vestuario: Shirt,
   Kit: Gift,
   Mesa: UtensilsCrossed,
-  Acompanhante: UserPlus,
   Joia: Gem,
   Outro: Package,
+  Festa: Sparkles,
+  Colacao: Award,
 }

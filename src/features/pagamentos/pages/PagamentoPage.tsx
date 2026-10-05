@@ -41,7 +41,9 @@ export default function PagamentoPage() {
 
       {parcela.isPending ? <EsqueletoDeCartao /> : null}
 
-      {parcela.isError ? <ErroDaConsulta erro={parcela.error} /> : null}
+      {parcela.isError ? (
+        <ErroDaConsulta erro={parcela.error} aoTentarDeNovo={() => void parcela.refetch()} />
+      ) : null}
 
       {parcela.data ? (
         <>

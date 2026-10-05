@@ -138,7 +138,9 @@ export default function CriarContaPage() {
               className="text-muted-foreground"
             />
 
-            {vigentes.isError ? <ErroDaConsulta erro={vigentes.error} /> : null}
+            {vigentes.isError ? (
+              <ErroDaConsulta compacto erro={vigentes.error} aoTentarDeNovo={() => void vigentes.refetch()} />
+            ) : null}
           </div>
 
           <ErroDoFormulario />

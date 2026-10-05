@@ -97,7 +97,7 @@ function CancelarCompra({ compra }: { compra: CompraNaGestao }) {
         <form onSubmit={enviar} noValidate className="grid gap-4">
           {convites.isPending ? <EsqueletoDeTexto linhas={3} /> : null}
           {convites.isError ? (
-            <ErroDaConsulta erro={convites.error} aoTentarDeNovo={() => void convites.refetch()} />
+            <ErroDaConsulta erro={convites.error} compacto aoTentarDeNovo={() => void convites.refetch()} />
           ) : null}
           {validos.length > 0 ? (
             <EscolhaDeConvites convites={validos} escolhidos={escolhidos} aoMudar={definirEscolhidos} />

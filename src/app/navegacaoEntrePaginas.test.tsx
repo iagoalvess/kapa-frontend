@@ -28,6 +28,7 @@ const adesao: Adesao = {
     carencia_em_dias: 0,
     percentual_de_desconto_por_antecipacao: 0,
     dias_minimos_para_desconto: 0,
+    cesta: null,
     itens: [],
     parcelas: [],
     total_em_centavos: 0,

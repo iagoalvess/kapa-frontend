@@ -1,5 +1,5 @@
 import { isRouteErrorResponse, useRouteError } from 'react-router'
-import mascoteAlerta from '@/assets/mascote/alerta.webp'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Button } from '@/components/ui/button'
 import { mensagemDoErro } from '@/lib/http/erros'
 
@@ -16,11 +16,12 @@ export function PaginaDeErro() {
   const detalhe = isRouteErrorResponse(erro) ? erro.statusText : mensagemDoErro(erro)
 
   return (
-    <main className="motion-safe:animate-entrar flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <img src={mascoteAlerta} alt="" className="w-40 drop-shadow-xl" />
-      <h1 className="text-2xl font-semibold">{titulo}</h1>
-      <p className="text-muted-foreground max-w-md text-sm">{detalhe}</p>
-      <Button onClick={() => globalThis.location.reload()}>Recarregar</Button>
+    <main className="flex min-h-full items-center justify-center p-6">
+      <EstadoDeErro titulo={titulo} descricao={detalhe} nivelDoTitulo={1}>
+        <Button className="rounded-full px-6" onClick={() => globalThis.location.reload()}>
+          Recarregar
+        </Button>
+      </EstadoDeErro>
     </main>
   )
 }

@@ -21,7 +21,7 @@ interface Props {
  */
 export function PreviaDaGrade({ simulacao, atualizando, erro }: Props) {
   if (erro) {
-    return <ErroDaConsulta erro={erro} />
+    return <ErroDaConsulta compacto erro={erro} />
   }
 
   if (!simulacao || simulacao.parcelas.length === 0) {

@@ -187,7 +187,9 @@ describe('PortariaPage', () => {
     const colacao: ListaDaPortaria = {
       ...lista,
       evento: { ...lista.evento, id: 'ev-colacao', tipo: 'Colacao', titulo: 'Colação de grau' },
-      convites: [convite({ id: 'c-9', codigo: 'MED27-KKKK', nome_do_convidado: 'Tia Rosa', origem: 'Cota' })],
+      convites: [
+        convite({ id: 'c-9', codigo: 'MED27-KKKK', nome_do_convidado: 'Tia Rosa', origem: 'Pacote' }),
+      ],
     }
     servidor.use(
       http.get(`${API}/api/v1/festa/portaria`, ({ request }) =>

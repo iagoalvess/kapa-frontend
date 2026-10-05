@@ -23,7 +23,7 @@ export function useDocumento(tipo: TipoDeDocumento, versao: string | undefined) 
   const consulta = versao === undefined ? vigentes : especifica
   const documento = versao === undefined ? vigentes.data?.find((d) => d.tipo === tipo) : especifica.data
 
-  return { documento, carregando: consulta.isPending, erro: consulta.error }
+  return { documento, carregando: consulta.isPending, erro: consulta.error, refetch: consulta.refetch }
 }
 
 /** Histórico e pendências de aceite de quem está logado. */

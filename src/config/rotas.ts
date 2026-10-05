@@ -30,6 +30,8 @@ export const ROTAS = {
   // O plano de cobrança da turma (Tesouraria); as parcelas que ele gera ficam embaixo (Gestão).
   cobrancas: '/cobrancas',
   parcelas: '/cobrancas/parcelas',
+  // O que a tesouraria cobra ou credita a um formando só (Sprint 48, D23) — porta de Parcelas, como Loja é de Pedidos.
+  lancamentos: '/cobrancas/lancamentos',
   // Quem pediu o quê dos opcionais (Gestão). Os opcionais em si ficam na tela de Plano: um
   // opcional é um item de cobrança, e dois itens de menu para a mesma tabela confundem quem cadastra.
   pedidos: '/cobrancas/pedidos',

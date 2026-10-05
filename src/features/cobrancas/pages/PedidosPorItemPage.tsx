@@ -165,7 +165,14 @@ export default function PedidosPorItemPage() {
       {/* A casca da `Planilha`, sem a paginação: o resumo não é uma `Pagina`. */}
       <section aria-label="Pedidos por item" className="bg-card shadow-cartao rounded-3xl px-5 py-2">
         {resumo.isPending ? <EsqueletoDeTabela colunas={7} /> : null}
-        {resumo.isError ? <ErroDaConsulta erro={resumo.error} className="py-4" /> : null}
+        {resumo.isError ? (
+          <ErroDaConsulta
+            compacto
+            erro={resumo.error}
+            className="py-4"
+            aoTentarDeNovo={() => void resumo.refetch()}
+          />
+        ) : null}
         {resumo.data && visiveis.length === 0 ? (
           <ListaVazia
             titulo={filtrando ? 'Nenhum item com esses filtros' : 'Nenhum item pedido ainda'}

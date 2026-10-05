@@ -19,13 +19,13 @@ import { useDocumento } from '../hooks/useLegal'
  */
 export function PaginaDeDocumento({ tipo }: { tipo: TipoDeDocumento }) {
   const { versao } = useParams()
-  const { documento, carregando, erro } = useDocumento(tipo, versao)
+  const { documento, carregando, erro, refetch } = useDocumento(tipo, versao)
 
   return (
     <LayoutDePaginaPublica>
       {carregando ? <EsqueletoDeTexto linhas={12} /> : null}
 
-      {erro ? <ErroDaConsulta erro={erro} /> : null}
+      {erro ? <ErroDaConsulta erro={erro} aoTentarDeNovo={() => void refetch()} /> : null}
 
       {documento ? (
         <div className="motion-safe:animate-entrar">

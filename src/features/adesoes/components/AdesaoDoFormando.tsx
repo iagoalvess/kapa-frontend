@@ -1,5 +1,5 @@
 import { PenLine } from 'lucide-react'
-import type { ComponentType } from 'react'
+import { type ComponentType, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
@@ -10,6 +10,7 @@ import { useMinhaAdesao } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
 import { FaltaParaAderir } from './FaltaParaAderir'
 import { LeituraEAceite } from './LeituraEAceite'
+import { SeletorDeCesta } from './SeletorDeCesta'
 import { TermoAssinado } from './TermoAssinado'
 
 /** O formulário de nome, CPF e nascimento; `aoSalvar` relê o que ainda falta. */
@@ -31,7 +32,10 @@ interface Props {
  * é `?ler=nova`, na URL: recarregar mantém a pessoa onde estava.
  */
 export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
-  const conteudo = useConteudoParaAdesao()
+  // A cesta mora aqui, e não na leitura: é ela que pede o conteúdo — e o hash — de novo a cada pacote marcado.
+  const [escolha, definirEscolha] = useState<string[]>([])
+  const [observacoes, definirObservacoes] = useState<Record<string, string>>({})
+  const conteudo = useConteudoParaAdesao(true, escolha)
   const minha = useMinhaAdesao()
   const [parametros, definirParametros] = useSearchParams()
   const { state } = useLocation()
@@ -43,7 +47,8 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       </EsqueletoDeCartao>
     )
 
-  if (minha.isError) return <ErroDaConsulta erro={minha.error} />
+  if (minha.isError)
+    return <ErroDaConsulta compacto erro={minha.error} aoTentarDeNovo={() => void minha.refetch()} />
 
   const { adesao, pendencias, menor_de_idade } = minha.data
 
@@ -51,9 +56,10 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
   // (403 em `termos/vigente`), e a prova do que ele aceitou não pode sumir junto com o acesso.
   if (adesao && conteudo.isError) return <TermoAssinado adesao={adesao} />
 
-  if (conteudo.isError) return <ErroDaConsulta erro={conteudo.error} />
+  if (conteudo.isError)
+    return <ErroDaConsulta compacto erro={conteudo.error} aoTentarDeNovo={() => void conteudo.refetch()} />
 
-  const { termo, plano, hash_do_conteudo, resumo } = conteudo.data
+  const { termo, plano, hash_do_conteudo, resumo, catalogo, cesta_contratada } = conteudo.data
   const novaVersao = adesao && termo && termo.versao > adesao.versao ? termo.versao : undefined
 
   if (adesao && !(novaVersao && parametros.get('ler') === 'nova'))
@@ -67,16 +73,38 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       />
     )
 
-  if (!termo || !plano || !hash_do_conteudo) return <FaltaParaAderir conteudo={conteudo.data} />
+  if (!termo || !plano || !hash_do_conteudo || catalogo.length === 0)
+    return <FaltaParaAderir conteudo={conteudo.data} />
 
   if (menor_de_idade) return <AdesaoComAComissao />
 
-  // Chave pelo hash: termo ou plano novo remonta a leitura do zero — rolagem e caixa marcada inclusas.
+  // Chave pelo termo e pelo catálogo: versão nova ou preço novo remonta a leitura do zero — rolagem e caixa marcada
+  // inclusas. A cesta não entra: marcar um pacote muda o hash, mas não o que a pessoa já leu.
+  const contratada = cesta_contratada.length > 0
   return (
     <LeituraEAceite
-      key={hash_do_conteudo}
+      key={`${termo.id}:${catalogo.map((pacote) => `${pacote.id}=${pacote.valor_em_centavos}`).join()}`}
       termo={termo}
       plano={plano}
+      cesta={
+        <SeletorDeCesta
+          catalogo={catalogo}
+          escolha={contratada ? cesta_contratada : escolha}
+          aoMudar={definirEscolha}
+          travada={contratada}
+          observacoes={observacoes}
+          aoObservar={(pacoteId, texto) => definirObservacoes((atuais) => ({ ...atuais, [pacoteId]: texto }))}
+        />
+      }
+      pacotes={contratada ? cesta_contratada : escolha}
+      observacoes={
+        contratada
+          ? []
+          : escolha
+              .filter((pacoteId) => observacoes[pacoteId]?.trim())
+              .map((pacoteId) => ({ pacote_id: pacoteId, texto: observacoes[pacoteId]!.trim() }))
+      }
+      calculando={conteudo.isPlaceholderData}
       resumo={resumo}
       hash={hash_do_conteudo}
       anterior={adesao}

@@ -1,3 +1,4 @@
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router'
@@ -55,16 +56,23 @@ export default function RedefinirSenhaPage() {
   if (linkInvalido) {
     return (
       <LayoutDeAutenticacao>
-        <h1 className={estilos.titulo}>Link inválido</h1>
-        <p className={estilos.subtitulo}>
-          Este link de redefinição expirou, já foi usado ou está incompleto. Peça um novo — ele chega em
-          instantes.
-        </p>
-        <Button asChild className={estilos.cta}>
-          <Link to={ROTAS.esqueciSenha} state={{ email }}>
-            Pedir um novo link
-          </Link>
-        </Button>
+        <EstadoDeErro
+          compacto
+          nivelDoTitulo={1}
+          titulo="Link inválido"
+          descricao={
+            <>
+              Este link de redefinição expirou, já foi usado ou está incompleto. Peça um novo — ele chega em
+              instantes.
+            </>
+          }
+        >
+          <Button asChild className="w-full rounded-full">
+            <Link to={ROTAS.esqueciSenha} state={{ email }}>
+              Pedir um novo link
+            </Link>
+          </Button>
+        </EstadoDeErro>
       </LayoutDeAutenticacao>
     )
   }

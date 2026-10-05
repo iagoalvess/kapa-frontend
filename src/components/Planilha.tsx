@@ -83,7 +83,14 @@ export function Planilha<T>({
       >
         {consulta.isPending ? <EsqueletoDeTabela colunas={5} /> : null}
 
-        {consulta.isError ? <ErroDaConsulta erro={consulta.error} className="py-4" /> : null}
+        {consulta.isError ? (
+          <ErroDaConsulta
+            compacto
+            erro={consulta.error}
+            className="py-4"
+            aoTentarDeNovo={() => void consulta.refetch()}
+          />
+        ) : null}
 
         {consulta.data && itens.length === 0 ? <ListaVazia {...vazio} /> : null}
 

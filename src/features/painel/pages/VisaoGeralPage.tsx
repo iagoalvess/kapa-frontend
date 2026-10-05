@@ -124,7 +124,9 @@ export default function VisaoGeralPage() {
         ]}
       />
 
-      {analytics.isError ? <ErroDaConsulta erro={analytics.error} /> : null}
+      {analytics.isError ? (
+        <ErroDaConsulta erro={analytics.error} aoTentarDeNovo={() => void analytics.refetch()} />
+      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Cartao
@@ -165,7 +167,9 @@ export default function VisaoGeralPage() {
           titulo="Últimos 12 meses"
           descricao="Cadastros, turmas novas e recebido do Kapa, mês a mês."
         >
-          {serie.isError ? <ErroDaConsulta erro={serie.error} /> : null}
+          {serie.isError ? (
+            <ErroDaConsulta compacto erro={serie.error} aoTentarDeNovo={() => void serie.refetch()} />
+          ) : null}
           {serie.isPending ? <EsqueletoDeDados linhas={6} /> : null}
           {serie.data ? (
             <Tabela

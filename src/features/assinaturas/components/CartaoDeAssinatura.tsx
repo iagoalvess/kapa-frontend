@@ -64,7 +64,7 @@ export function CartaoDeAssinatura() {
 
     return (
       <Cartao rotulo="Assinatura">
-        <ErroDaConsulta erro={assinatura.error} />
+        <ErroDaConsulta compacto erro={assinatura.error} aoTentarDeNovo={() => void assinatura.refetch()} />
       </Cartao>
     )
   }

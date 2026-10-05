@@ -18,17 +18,18 @@ export const ROTULOS_DO_EVENTO = { Festa: 'Festa', Colacao: 'Colação' } as con
 >
 
 /** Como a portaria enxerga um convite agora. Espelha `SituacaoNaPortaria`. */
-export type SituacaoNaPortaria = 'Valido' | 'SemTitular' | 'Validado' | 'Revogado'
+export type SituacaoNaPortaria = 'Valido' | 'SemTitular' | 'Validado' | 'Revogado' | 'Preso'
 
 export const ROTULOS_DE_SITUACAO = {
   Valido: 'Válido',
   SemTitular: 'Sem titular',
   Validado: 'Entrou',
   Revogado: 'Revogado',
+  Preso: 'Preso por atraso',
 } as const satisfies Record<SituacaoNaPortaria, string>
 
 /** De onde veio o direito ao convite (decisão 14). Espelha `OrigemDoConvite`. */
-type OrigemDoConvite = 'Comprado' | 'Cota' | 'Cortesia' | 'Loja'
+type OrigemDoConvite = 'Comprado' | 'Pacote' | 'Cortesia' | 'Loja'
 
 /** A página pública do convite. Espelha `ConvitePublicoDTO`. */
 export interface ConvitePublico {

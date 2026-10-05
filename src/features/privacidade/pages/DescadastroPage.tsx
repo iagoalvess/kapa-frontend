@@ -1,3 +1,4 @@
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Link, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
@@ -37,14 +38,21 @@ export default function DescadastroPage() {
   if (!token) {
     return (
       <LayoutDeAutenticacao>
-        <h1 className={estilos.titulo}>Link incompleto</h1>
-        <p className={estilos.subtitulo}>
-          Este link de descadastro chegou pela metade. Entre na sua conta e desligue as novidades em Minha
-          privacidade.
-        </p>
-        <Button asChild className={estilos.cta}>
-          <Link to={ROTAS.minhaPrivacidade}>Ir para Minha privacidade</Link>
-        </Button>
+        <EstadoDeErro
+          compacto
+          nivelDoTitulo={1}
+          titulo="Link incompleto"
+          descricao={
+            <>
+              Este link de descadastro chegou pela metade. Entre na sua conta e desligue as novidades em Minha
+              privacidade.
+            </>
+          }
+        >
+          <Button asChild className="w-full rounded-full">
+            <Link to={ROTAS.minhaPrivacidade}>Ir para Minha privacidade</Link>
+          </Button>
+        </EstadoDeErro>
       </LayoutDeAutenticacao>
     )
   }

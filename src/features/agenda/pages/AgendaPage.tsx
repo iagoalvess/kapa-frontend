@@ -125,7 +125,8 @@ export default function AgendaPage() {
     })
   }
 
-  if (agenda.isError) return <ErroDaConsulta erro={agenda.error} />
+  if (agenda.isError)
+    return <ErroDaConsulta erro={agenda.error} aoTentarDeNovo={() => void agenda.refetch()} />
 
   return (
     <>

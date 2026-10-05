@@ -1,5 +1,4 @@
-/** Os tipos de um item do plano — o que a turma inteira paga. */
-export const TIPOS_DO_PLANO = ['Mensalidade', 'Adesao', 'Rifa', 'ConviteExtra', 'Avulsa'] as const
+import { diaDeHoje } from '@/lib/formato'
 
 /**
  * Os tipos de um item opcional — o que cada formando compra para si. O convite extra é dos dois.
@@ -15,13 +14,39 @@ export const TIPOS_DOS_OPCIONAIS = [
   'Vestuario',
   'Kit',
   'Mesa',
-  'Acompanhante',
   'Joia',
   'Outro',
 ] as const
 
+/**
+ * Os tipos de um pacote do catálogo (Sprint 47) — o que cada formando escolhe na adesão. Todos menos o
+ * `Avulsa`, que é o gancho do valor negativo; a festa e a colação primeiro, que são os pacotes com faixa.
+ */
+export const TIPOS_DOS_PACOTES = [
+  'Festa',
+  'Colacao',
+  'FotoEAlbum',
+  'Filmagem',
+  'Beca',
+  'Vestuario',
+  'Kit',
+  'Mesa',
+  'Joia',
+  'ConviteExtra',
+  'Mensalidade',
+  'Adesao',
+  'Rifa',
+  'Outro',
+] as const
+
+/**
+ * Os tipos de um rateio extraordinário — o item da assembleia, que cobra quem já aderiu (Sprint 7): os do pacote e o
+ * `Avulsa`, que aceita valor negativo (a bolsa).
+ */
+export const TIPOS_DOS_RATEIOS = [...TIPOS_DOS_PACOTES, 'Avulsa'] as const
+
 /** O que um item cobra. Espelha `TipoDeCobranca`. */
-export type TipoDeCobranca = (typeof TIPOS_DO_PLANO)[number] | (typeof TIPOS_DOS_OPCIONAIS)[number]
+export type TipoDeCobranca = (typeof TIPOS_DOS_OPCIONAIS)[number] | (typeof TIPOS_DOS_RATEIOS)[number]
 
 /**
  * Como cada tipo aparece na tela. O valor do tipo é contrato da API e vem sem acento.
@@ -41,9 +66,10 @@ export const ROTULOS_DE_TIPO: Record<TipoDeCobranca, string> = {
   Vestuario: 'Vestuário',
   Kit: 'Kit',
   Mesa: 'Mesa',
-  Acompanhante: 'Acompanhante',
   Joia: 'Joia',
   Outro: 'Outro',
+  Festa: 'Festa',
+  Colacao: 'Colação',
 }
 
 /**
@@ -67,9 +93,10 @@ export const CORES_DE_TIPO: Record<TipoDeCobranca, string> = {
   Vestuario: 'bg-avatar-1',
   Kit: 'bg-avatar-7',
   Mesa: 'bg-avatar-8',
-  Acompanhante: 'bg-avatar-3',
   Joia: 'bg-avatar-7',
   Outro: 'bg-avatar-4',
+  Festa: 'bg-avatar-3',
+  Colacao: 'bg-avatar-1',
 }
 
 /** O nome do item na tela: a descrição, se a tesouraria deu uma; senão, o tipo. */
@@ -81,6 +108,28 @@ export const rotuloDoItem = ({
   /** Opcional porque também serve ao que a tela monta; da API chega `null`. */
   descricao?: string | null
 }) => descricao ?? ROTULOS_DE_TIPO[tipo]
+
+/** "1 convite", "15 convites". */
+const convites = (quantos: number) => `${quantos} ${quantos === 1 ? 'convite' : 'convites'}`
+
+/**
+ * "15 convites da festa e 3 da colação" — o que um pacote concede (Sprint 47), ou `null` se não concede convite.
+ * O mesmo texto do PDF do termo (`PacoteDaCesta.BeneficiosPorExtenso`).
+ */
+export function beneficiosPorExtenso({
+  convites_da_festa = 0,
+  convites_da_colacao = 0,
+}: {
+  convites_da_festa?: number
+  convites_da_colacao?: number
+}) {
+  if (convites_da_festa && convites_da_colacao)
+    return `${convites(convites_da_festa)} da festa e ${convites_da_colacao} da colação`
+  if (convites_da_festa) return `${convites(convites_da_festa)} da festa`
+  if (convites_da_colacao) return `${convites(convites_da_colacao)} da colação`
+
+  return null
+}
 
 /** `Vencida` é calculado pela API: aberta com vencimento passado. */
 export type StatusDaParcela = 'Aberta' | 'Paga' | 'Vencida' | 'Cancelada'
@@ -143,7 +192,18 @@ export interface Parcela {
    * devolução pelo painel do Mercado Pago é da comissão.
    */
   pelo_mercado_pago: boolean
+  /**
+   * Até quando a parcela está fora da régua e da inadimplência — há solicitação de cancelamento esperando a
+   * comissão (Sprint 48, D12). Nula, cobra normalmente. Enquanto vale, a vencida chega como `Aberta`.
+   */
+  suspensa_ate: string | null
 }
+
+/**
+ * Se o formando ainda pode pedir o cancelamento hoje (Sprint 48, D36): sem data, sempre; com, até o dia, inclusive.
+ * A API confere de novo — aqui é só para não oferecer o botão que ela recusaria.
+ */
+export const cancelavelHoje = (cancelavelAte: string | null) => !cancelavelAte || cancelavelAte >= diaDeHoje()
 
 /** Aberta ou vencida: ainda se deve. */
 export const emAberto = ({ status }: Pick<Parcela, 'status'>) => status === 'Aberta' || status === 'Vencida'

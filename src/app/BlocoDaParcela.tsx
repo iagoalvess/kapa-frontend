@@ -42,7 +42,8 @@ export function BlocoDaParcela() {
     .toSorted((a, b) => a.vencimento.localeCompare(b.vencimento))[0]
 
   if (extrato.isPending) return <EsqueletoDeTexto linhas={2} />
-  if (extrato.isError) return <ErroDaConsulta erro={extrato.error} />
+  if (extrato.isError)
+    return <ErroDaConsulta compacto erro={extrato.error} aoTentarDeNovo={() => void extrato.refetch()} />
 
   if (!proxima)
     return (
@@ -55,12 +56,12 @@ export function BlocoDaParcela() {
     )
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1rem_auto] lg:items-center lg:gap-3">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.62fr)_1rem_minmax(0,1fr)] lg:items-center lg:gap-3">
       <div className="grid gap-4">
         <div className="flex items-center gap-4">
           <WalletMinimal className="text-brand size-8 shrink-0" strokeWidth={1.6} aria-hidden />
           <Dica dica={`${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}>
-            <p className="text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl">
+            <p className="text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl lg:text-4xl 2xl:text-5xl">
               {formatarCentavos(valorNaLista(proxima))}
             </p>
           </Dica>
@@ -90,7 +91,7 @@ export function BlocoDaParcela() {
         <>
           <TracoDoInicio
             verticalNoDesktop
-            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-3"
+            className="col-span-full -my-2 h-4 w-full lg:col-span-1 lg:my-2 lg:h-auto lg:w-3 lg:self-stretch"
           />
           <aside aria-label="Parcela seguinte" className="grid gap-1 py-1">
             <p className="text-muted-foreground text-xs font-medium">

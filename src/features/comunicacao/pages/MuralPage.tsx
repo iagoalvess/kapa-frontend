@@ -10,6 +10,7 @@ import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDePeriodo, faixasDePublicacao } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -222,7 +223,9 @@ export default function MuralPage() {
           className={cn('gap-0 overflow-hidden p-0', id && 'max-lg:hidden')}
         >
           {avisos.isPending ? <EsqueletoDeTexto linhas={6} className="p-4" /> : null}
-          {avisos.isError ? <ErroDaConsulta erro={avisos.error} /> : null}
+          {avisos.isError ? (
+            <ErroDaConsulta erro={avisos.error} aoTentarDeNovo={() => void avisos.refetch()} />
+          ) : null}
 
           {avisos.data && itens.length === 0 ? (
             <MuralVazio filtrado={!!busca || !!de || filtro !== 'todos'} gestao={gestao} />
@@ -274,10 +277,12 @@ export default function MuralPage() {
           {/* Link direto para um aviso que não existe mais — ou que é só da comissão, e a API
               responde 404 sem confirmar que ele existe. */}
           {!aberto && umAviso.isError ? (
-            <Cartao titulo="Aviso não encontrado">
-              <p role="alert" className="text-muted-foreground text-sm">
-                Este aviso pode ter sido excluído ou não estar disponível para você. Escolha outro na lista.
-              </p>
+            <Cartao rotulo="Aviso não encontrado">
+              <EstadoDeErro
+                compacto
+                titulo="Aviso não encontrado"
+                descricao="Este aviso pode ter sido excluído ou não estar disponível para você. Escolha outro na lista."
+              />
             </Cartao>
           ) : null}
 

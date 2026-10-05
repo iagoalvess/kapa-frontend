@@ -465,7 +465,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
     nome_do_convidado: null,
     documento: null,
     convidado_de: null,
-    origem: 'Cota',
+    origem: 'Pacote',
     situacao: 'SemTitular',
     motivo_da_revogacao: null,
     entrada: null,

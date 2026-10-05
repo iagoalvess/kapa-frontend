@@ -8,10 +8,10 @@ import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { formatarData, formatarHora } from '@/lib/formato'
 import { type EventoDaTurma, ROTULOS_DE_TIPO, type TipoDeEvento } from '@/types/agenda'
 import { FormularioDoEvento } from './FormularioDoEvento'
-import { PainelDaCota } from './PainelDaCota'
+import { PainelDeConvites } from './PainelDeConvites'
 import { SeloDoEvento } from './SeloDoEvento'
 
-/** Só a festa e a colação têm cota de convites (Sprint 30; a festa em 01/10/2026). */
+/** Só a festa e a colação têm convites — os que os pacotes concedem (Sprint 47). */
 const ehEventoDeConvite = (tipo: TipoDeEvento): tipo is 'Festa' | 'Colacao' =>
   tipo === 'Festa' || tipo === 'Colacao'
 
@@ -39,7 +39,7 @@ interface Props {
  */
 export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFechar }: Props) {
   const editavel = useEscritaLiberada()
-  // A cota emite convites da colação: fora do módulo da festa, o painel nem aparece (Sprint 45).
+  // O painel é de convites: fora do módulo da festa, ele nem aparece (Sprint 45).
   const comCota = !usePlanoDaTurma().bloqueia(MODULOS.festa)
   const evento = aberto ? aberto.evento : undefined
   const mostrarFormulario = ehGestao && !somenteLeitura
@@ -89,7 +89,7 @@ export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFe
           </ListaDeDados>
 
           {ehGestao && comCota && evento && ehEventoDeConvite(evento.tipo) ? (
-            <PainelDaCota tipo={evento.tipo} editavel={editavel} />
+            <PainelDeConvites tipo={evento.tipo} editavel={editavel} />
           ) : null}
 
           <div className="ml-auto">

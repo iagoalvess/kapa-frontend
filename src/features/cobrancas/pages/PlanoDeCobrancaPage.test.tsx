@@ -41,6 +41,13 @@ const mensalidade = {
   item_da_festa_id: null,
   modo_de_venda: 'AoFormando',
   preco_publico_em_centavos: null,
+  pacote: true,
+  grupo: null,
+  convites_da_festa: 0,
+  convites_da_colacao: 0,
+  ultimo_vencimento: null,
+  cancelavel_ate: null,
+  alvo_do_rateio: [] as string[],
 } as const
 
 /** Como a API devolve: sem vigência ainda, `vigente_desde` vem nulo. */
@@ -126,13 +133,13 @@ describe('PlanoDeCobrancaPage', () => {
     )
   })
 
-  it('no diálogo do item novo, o resumo é a grade do servidor, com o valor por parcela virando total', async () => {
+  it('no diálogo do pacote novo, o resumo é a grade do servidor só dele, com o valor por parcela virando total', async () => {
     entrarComo(PAPEIS.tesoureiro)
     const simulacoes = servir(plano([]))
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Nova cobrança' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Novo pacote' }))
 
     const dialogo = await screen.findByRole('alertdialog')
     await userEvent.type(within(dialogo).getByLabelText('Valor de cada parcela'), '35000')
@@ -140,7 +147,7 @@ describe('PlanoDeCobrancaPage', () => {
     await waitFor(() =>
       expect(simulacoes.at(-1)?.itens).toEqual([
         expect.objectContaining({
-          tipo: 'Mensalidade',
+          tipo: 'Festa',
           valor_em_centavos: 840_000,
           numero_de_parcelas: 24,
           dia_de_vencimento: 10,
@@ -152,7 +159,7 @@ describe('PlanoDeCobrancaPage', () => {
     expect(within(dialogo).getByText(/em 24 parcelas/)).toBeInTheDocument()
   })
 
-  it('o Presidente coloca em vigor depois de ver quantos formandos e quanto no total', async () => {
+  it('o Presidente coloca o catálogo em vigor depois de ver quantos formandos há', async () => {
     entrarComo(PAPEIS.presidente)
     servir(plano())
     let vigorou = false
@@ -169,7 +176,7 @@ describe('PlanoDeCobrancaPage', () => {
 
     const confirmacao = await screen.findByRole('alertdialog')
     expect(confirmacao).toHaveTextContent('80 na turma')
-    expect(confirmacao).toHaveTextContent(reais(67_200_000))
+    expect(confirmacao).toHaveTextContent('passa a dever só o que escolheu')
     await userEvent.click(within(confirmacao).getByRole('button', { name: 'Colocar em vigor' }))
 
     await waitFor(() => expect(vigorou).toBe(true))
@@ -248,6 +255,37 @@ describe('PlanoDeCobrancaPage', () => {
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
   })
 
+  /** Sprint 48, D21: o preço novo vale para quem aderir depois; alcançar quem já aderiu é marcar, vendo quantos e quanto. */
+  it('mudar o preço de item em uso pergunta se aplica a quem já aderiu, e o padrão é não', async () => {
+    entrarComo(PAPEIS.tesoureiro)
+    servir(plano([{ ...mensalidade, em_uso: true }]))
+    const enviados: unknown[] = []
+    servidor.use(
+      http.get(`${PLANOS}/p-1/itens/i-1/alcance-do-preco`, () =>
+        HttpResponse.json({ formandos: 3, parcelas: 30, total_em_centavos: 72_000 }),
+      ),
+      http.put(`${PLANOS}/p-1/itens/i-1`, async ({ request }) => {
+        enviados.push(await request.json())
+        return HttpResponse.json(plano())
+      }),
+    )
+
+    renderizar(<PlanoDeCobrancaPage />)
+    const linha = await screen.findByRole('row', { name: /Mensalidade/ })
+    await userEvent.click(within(linha).getByRole('button', { name: 'Editar' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    const valor = within(dialogo).getByLabelText('Valor de cada parcela')
+    await userEvent.clear(valor)
+    await userEvent.type(valor, '37000')
+
+    expect(await within(dialogo).findByText(/Alcança 3 formandos, 30 parcelas a vencer/)).toBeInTheDocument()
+    expect(within(dialogo).getByRole('checkbox', { name: /também a quem já aderiu/ })).not.toBeChecked()
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Salvar' }))
+
+    await waitFor(() => expect(enviados).toHaveLength(1))
+    expect(enviados[0]).not.toHaveProperty('aplicar_aos_atuais')
+  })
+
   it('com gente já aderida, o item novo avisa que não a alcança — e o rateio cobra todo mundo', async () => {
     entrarComo(PAPEIS.tesoureiro)
     const vigente = { ...plano(), status: 'Vigente' as const, formandos_com_parcela: 62 }
@@ -262,14 +300,14 @@ describe('PlanoDeCobrancaPage', () => {
 
     renderizar(<PlanoDeCobrancaPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Nova cobrança' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Novo pacote' }))
     const dialogo = await screen.findByRole('alertdialog')
-    expect(within(dialogo).getByText(/62 formandos já aderiram e não serão cobrados/)).toBeInTheDocument()
+    expect(within(dialogo).getByText(/62 formandos já aderiram e não mudam de cesta/)).toBeInTheDocument()
 
     await userEvent.type(within(dialogo).getByLabelText('Valor de cada parcela'), '10000')
     await userEvent.clear(within(dialogo).getByLabelText('Parcelas'))
     await userEvent.type(within(dialogo).getByLabelText('Parcelas'), '1')
-    await userEvent.click(within(dialogo).getByLabelText('Cobrar também quem já aderiu'))
+    await userEvent.click(within(dialogo).getByLabelText(/é um rateio da assembleia/))
 
     expect(within(dialogo).getByText(/62 formandos já aderiram e serão cobrados/)).toBeInTheDocument()
 

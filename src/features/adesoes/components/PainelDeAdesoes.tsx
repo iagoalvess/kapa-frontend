@@ -149,6 +149,7 @@ export function PainelDeAdesoes({ resumo, versaoVigente, acaoPrincipal }: Props)
             <ColunaOrdenavel coluna="membro">Membro</ColunaOrdenavel>
             <ColunaOrdenavel coluna="papel">Papel</ColunaOrdenavel>
             <ColunaOrdenavel coluna="situacao">Situação</ColunaOrdenavel>
+            <th className="py-3 pr-4 font-normal">Cesta</th>
             <ColunaOrdenavel coluna="aceito_em">Aceito em</ColunaOrdenavel>
           </>
         }
@@ -192,6 +193,23 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
           <Selo tom="sucesso">Aderiu · v{formatarNumero(membro.versao)}</Selo>
         ) : (
           <Selo tom="cinza">Na v{formatarNumero(membro.versao)}</Selo>
+        )}
+      </td>
+      <td className="py-3 pr-4 text-sm">
+        {/* Sprint 48, D40: o detalhe livre de cada pacote — tamanho da beca, nome no convite. */}
+        {membro.cesta.length === 0 ? (
+          <span className="text-texto-muted">—</span>
+        ) : (
+          <ul className="grid gap-0.5">
+            {membro.cesta.map((pacote) => (
+              <li key={pacote.item_de_cobranca_id}>
+                {pacote.rotulo}
+                {pacote.observacao ? (
+                  <span className="text-muted-foreground"> · “{pacote.observacao}”</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         )}
       </td>
       <td className="text-muted-foreground py-3 pr-4 whitespace-nowrap tabular-nums">

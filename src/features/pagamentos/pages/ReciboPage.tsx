@@ -29,7 +29,9 @@ export default function ReciboPage() {
 
       {recibo.isPending ? <EsqueletoDeCartao /> : null}
 
-      {recibo.isError ? <ErroDaConsulta erro={recibo.error} /> : null}
+      {recibo.isError ? (
+        <ErroDaConsulta erro={recibo.error} aoTentarDeNovo={() => void recibo.refetch()} />
+      ) : null}
 
       {recibo.data ? <Recibo arquivo={recibo.data} /> : null}
     </>

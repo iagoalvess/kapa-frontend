@@ -21,4 +21,11 @@ export const chaves = {
   meusPedidos: ['cobrancas', 'pedidos', 'meus'] as const,
   pedidos: (filtro: FiltroDePedidos) => ['cobrancas', 'pedidos', 'lista', filtro] as const,
   resumoDosPedidos: ['cobrancas', 'pedidos', 'resumo'] as const,
+  /** A fila de solicitações de cancelamento (Sprint 48). Fica sob o prefixo: responder mexe em pedidos e parcelas. */
+  solicitacoes: (status?: string) => ['cobrancas', 'solicitacoes', status ?? null] as const,
+  lancamentos: ['cobrancas', 'lancamentos'] as const,
+  alcanceDoPreco: (planoId: string, itemId: string, valor: number) =>
+    ['cobrancas', 'alcance-do-preco', planoId, itemId, valor] as const,
+  alcanceDoRateio: (planoId: string, alvo: string[], valor: number) =>
+    ['cobrancas', 'alcance-do-rateio', planoId, alvo, valor] as const,
 }

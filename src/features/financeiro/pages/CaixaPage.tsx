@@ -81,7 +81,9 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
         ]}
       />
 
-      {caixa.isError ? <ErroDaConsulta erro={caixa.error} /> : null}
+      {caixa.isError ? (
+        <ErroDaConsulta erro={caixa.error} aoTentarDeNovo={() => void caixa.refetch()} />
+      ) : null}
 
       {/* Sem `items-start`: lado a lado, os dois cartões têm a mesma altura — o que passar a ser o
           mais alto puxa o outro, e não sobra vão cinza entre eles e os últimos lançamentos. */}

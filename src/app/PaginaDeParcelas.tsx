@@ -1,4 +1,4 @@
-import { MailCheck } from 'lucide-react'
+import { HandCoins, MailCheck } from 'lucide-react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Button } from '@/components/ui/button'
@@ -18,12 +18,18 @@ import type { Parcela } from '@/types/cobranca'
  * manual começa na tela Parcelas; Sprint 13: o disparo avulso, também).
  */
 export default function PaginaDeParcelas() {
+  const { tem } = usePapel()
+
   return (
     <ParcelasPage
       AcoesDaLinha={AcoesDaParcelaDaTurma}
       AcoesDaBarra={AcoesDaBarra}
       atalhosAdicionais={[
         { titulo: 'Avisos enviados', para: `${ROTAS.avisosEnviados}?origem=parcelas`, icone: MailCheck },
+        // Sprint 48, D23: a cobrança ou o crédito de um formando só — da tesouraria, como a rota.
+        ...(tem(PAPEIS.tesoureiro)
+          ? [{ titulo: 'Lançamentos avulsos', para: ROTAS.lancamentos, icone: HandCoins }]
+          : []),
       ]}
     />
   )

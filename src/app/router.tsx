@@ -3,6 +3,7 @@ import { PAPEIS, PERFIS } from '@/config/perfis'
 import { MODULOS } from '@/config/planos'
 import { ROTAS, rotaDaContaNoPainel, rotaDaTurmaNoPainel, rotaDoMapaDeMesas } from '@/config/rotas'
 import { ExigeAceites } from './guards/ExigeAceites'
+import { ExigeAdesao } from './guards/ExigeAdesao'
 import { ExigeAutenticacao } from './guards/ExigeAutenticacao'
 import { ExigeFormatura } from './guards/ExigeFormatura'
 import { ExigeModulo } from './guards/ExigeModulo'
@@ -203,307 +204,324 @@ export const router = createBrowserRouter([
                   {
                     Component: ExigeFormatura,
                     children: [
-                      // `handle.titulo` é o título que o `LayoutApp` mostra no topo da tela.
-                      // Caminho explícito, e não `index`: o início do app mora em `/inicio` desde a
-                      // Sprint 16, e é esse o `start_url` do app instalado e o destino dos links.
-                      { path: ROTAS.inicio, handle: { titulo: 'Início' }, Component: PaginaInicial },
-                      // Todo membro lê; o formulário é do Presidente, e a assinatura é da Gestão.
+                      // O formando que ainda não aderiu só passa pelo termo, pelo cadastro e pelo extrato (Sprint 47, D18).
                       {
-                        path: ROTAS.formatura,
-                        handle: { titulo: 'Dados da formatura' },
-                        lazy: pagina(() => import('./PaginaDaFormatura')),
-                      },
-                      // Todo membro tem o próprio cadastro — inclusive a comissão, que também se forma.
-                      {
-                        path: ROTAS.meuCadastro,
-                        handle: { titulo: 'Meus dados' },
-                        // Compõe o cadastro com a troca de senha, que é da conta.
-                        lazy: pagina(() => import('./PaginaDoMeuCadastro')),
-                      },
-                      // Todo membro adere — a comissão também paga a formatura. Compõe adesões e formandos.
-                      {
-                        path: ROTAS.adesao,
-                        handle: { titulo: 'Meu termo' },
-                        lazy: pagina(() => import('./PaginaDaAdesao')),
-                      },
-                      // Todo membro paga — a comissão também se forma. A parcela de outro a API responde 404.
-                      {
-                        path: ROTAS.extrato,
-                        handle: { titulo: 'Minhas parcelas' },
-                        lazy: pagina(() => import('@/features/pagamentos/pages/MeuExtratoPage')),
-                      },
-                      // Todo membro pede — a comissão também compra a foto. Compõe cobranças e
-                      // pagamentos: é daqui que "Pedir e pagar" e "Pagar" caem no PIX.
-                      {
-                        path: ROTAS.meusPedidos,
-                        handle: { titulo: 'Meus pedidos' },
-                        lazy: pagina(() => import('./PaginaDosMeusPedidos')),
-                      },
-                      // Todo membro compra convite — a comissão também leva a família. Um convite por convidado.
-                      {
-                        element: <ExigeModulo modulo={MODULOS.festa} />,
+                        Component: ExigeAdesao,
                         children: [
+                          // `handle.titulo` é o título que o `LayoutApp` mostra no topo da tela.
+                          // Caminho explícito, e não `index`: o início do app mora em `/inicio` desde a
+                          // Sprint 16, e é esse o `start_url` do app instalado e o destino dos links.
+                          { path: ROTAS.inicio, handle: { titulo: 'Início' }, Component: PaginaInicial },
+                          // Todo membro lê; o formulário é do Presidente, e a assinatura é da Gestão.
                           {
-                            path: ROTAS.meusConvites,
-                            handle: { titulo: 'Meus convites' },
-                            lazy: pagina(() => import('@/features/festa/pages/MeusConvitesPage')),
+                            path: ROTAS.formatura,
+                            handle: { titulo: 'Dados da formatura' },
+                            lazy: pagina(() => import('./PaginaDaFormatura')),
                           },
-                        ],
-                      },
-                      {
-                        path: `${ROTAS.extrato}/parcelas/:id/pagar`,
-                        handle: { titulo: 'Pagar parcela' },
-                        lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoPage')),
-                      },
-                      // O recibo de uma baixa — do próprio formando ou, pela gestão, de qualquer um. É o
-                      // destino do e-mail de pagamento confirmado (Sprint 22).
-                      {
-                        path: `${ROTAS.recibos}/:id`,
-                        handle: { titulo: 'Recibo' },
-                        lazy: pagina(() => import('@/features/pagamentos/pages/ReciboPage')),
-                      },
-                      // O mesmo caminho, para o PIX que cobre vários meses: um QR com a soma.
-                      {
-                        path: `${ROTAS.extrato}/pagar`,
-                        handle: { titulo: 'Pagar parcelas' },
-                        lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoEmLotePage')),
-                      },
-                      // Prestação de contas: todo membro lê, o formando inclusive. São somas e
-                      // contratos, sem nome de ninguém — quem paga a turma tem direito de ver no que
-                      // ela gasta. Lançar, pagar e cancelar continuam da Tesouraria, na própria API.
-                      {
-                        path: ROTAS.caixa,
-                        handle: { titulo: 'Caixa' },
-                        // Compõe financeiro e relatórios: a adimplência e o gasto por fornecedor
-                        // vêm do painel da turma.
-                        lazy: pagina(() => import('./PaginaDoCaixa')),
-                      },
-                      {
-                        path: ROTAS.despesas,
-                        handle: { titulo: 'Despesas' },
-                        lazy: pagina(() => import('@/features/financeiro/pages/DespesasPage')),
-                      },
-                      {
-                        path: ROTAS.outrasReceitas,
-                        handle: { titulo: 'Outras receitas' },
-                        lazy: pagina(() => import('@/features/financeiro/pages/OutrasReceitasPage')),
-                      },
-                      // As datas da turma: todo membro lê, a Gestão escreve. A colação e a festa
-                      // moram aqui desde a Sprint 19 — o cadastro da turma não as guarda mais.
-                      {
-                        path: ROTAS.agenda,
-                        handle: { titulo: 'Agenda' },
-                        lazy: pagina(() => import('@/features/agenda/pages/AgendaPage')),
-                      },
-                      // Orçamento da festa, mural e acervo: o módulo `mural`, que o gratuito e o
-                      // Essencial não têm — a rota abre a vitrine da área em vez do 403 (Sprint 45).
-                      {
-                        element: <ExigeModulo modulo={MODULOS.mural} />,
-                        children: [
-                          // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
-                          // escrita do formando, e o cartão nem oferece as ações a ele.
+                          // Todo membro tem o próprio cadastro — inclusive a comissão, que também se forma.
                           {
-                            path: ROTAS.festa,
-                            handle: { titulo: 'Festa' },
-                            lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                            path: ROTAS.meuCadastro,
+                            handle: { titulo: 'Meus dados' },
+                            // Compõe o cadastro com a troca de senha, que é da conta.
+                            lazy: pagina(() => import('./PaginaDoMeuCadastro')),
                           },
-                          // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
-                          // rota é a seleção: o link de um item continua sendo um link.
+                          // Todo membro adere — a comissão também paga a formatura. Compõe adesões e formandos.
                           {
-                            path: `${ROTAS.festa}/:id`,
-                            handle: { titulo: 'Festa' },
-                            lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                            path: ROTAS.adesao,
+                            handle: { titulo: 'Meu termo' },
+                            lazy: pagina(() => import('./PaginaDaAdesao')),
                           },
-                          // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao
-                          // formando; publicar, enviar e excluir são da Gestão, na própria API.
+                          // Todo membro paga — a comissão também se forma. A parcela de outro a API responde 404.
                           {
-                            path: ROTAS.mural,
-                            handle: { titulo: 'Mural' },
-                            lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                            path: ROTAS.extrato,
+                            handle: { titulo: 'Minhas parcelas' },
+                            lazy: pagina(() => import('@/features/pagamentos/pages/MeuExtratoPage')),
                           },
-                          // O aviso aberto é o mesmo mural, com ele selecionado na lista: o link de um
-                          // aviso continua sendo um link, e não há duas telas desenhando o mesmo texto.
+                          // Todo membro pede — a comissão também compra a foto. Compõe cobranças e
+                          // pagamentos: é daqui que "Pedir e pagar" e "Pagar" caem no PIX.
                           {
-                            path: `${ROTAS.mural}/:id`,
-                            handle: { titulo: 'Mural' },
-                            lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                            path: ROTAS.meusPedidos,
+                            handle: { titulo: 'Meus pedidos' },
+                            lazy: pagina(() => import('./PaginaDosMeusPedidos')),
                           },
-                          {
-                            path: ROTAS.documentos,
-                            handle: { titulo: 'Documentos' },
-                            lazy: pagina(() => import('@/features/comunicacao/pages/DocumentosPage')),
-                          },
-                        ],
-                      },
-                      // A despesa se corrige, paga e cancela na tela dela, como o cadastro do membro.
-                      {
-                        path: `${ROTAS.despesas}/:id`,
-                        handle: { titulo: 'Despesa' },
-                        lazy: pagina(() => import('@/features/financeiro/pages/DetalheDaDespesaPage')),
-                      },
-                      // Gestão (matriz da Sprint 1): Tesoureiro e Comissão veem; o Presidente passa sempre.
-                      {
-                        element: <ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />,
-                        children: [
-                          // As mesas do jantar: a comissão monta o mapa (P1 da Sprint 27). Módulo próprio, só do
-                          // Premium (29/09/2026).
-                          {
-                            element: <ExigeModulo modulo={MODULOS.mesas} />,
-                            children: [
-                              {
-                                path: ROTAS.mesas,
-                                handle: { titulo: 'Mesas' },
-                                lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
-                              },
-                              // O editor do salão precisa de largura para arrastar: página própria,
-                              // aberta pelo card lateral da lista (ver docs/menu-e-planos.md).
-                              {
-                                path: rotaDoMapaDeMesas,
-                                handle: { titulo: 'Mapa do salão' },
-                                lazy: pagina(() => import('@/features/festa/pages/MapaDasMesasPage')),
-                              },
-                            ],
-                          },
-                          // A festa em si — portaria e loja — é o módulo `festa` (Sprint 45, P1).
+                          // Todo membro compra convite — a comissão também leva a família. Um convite por convidado.
                           {
                             element: <ExigeModulo modulo={MODULOS.festa} />,
                             children: [
-                              // A porta da festa: qualquer membro da Gestão opera (P4 da Sprint 21).
                               {
-                                path: ROTAS.portaria,
-                                handle: { titulo: 'Portaria' },
-                                lazy: pagina(() => import('@/features/festa/pages/PortariaPage')),
-                              },
-                              // As compras da loja pública (Sprint 26): a lista da devolução é da comissão
-                              // inteira, como os pedidos.
-                              {
-                                path: ROTAS.comprasDaLoja,
-                                handle: { titulo: 'Loja' },
-                                lazy: pagina(() => import('@/features/loja/pages/ComprasDaLojaPage')),
+                                path: ROTAS.meusConvites,
+                                handle: { titulo: 'Meus convites' },
+                                lazy: pagina(() => import('@/features/festa/pages/MeusConvitesPage')),
                               },
                             ],
                           },
                           {
-                            path: ROTAS.membros,
-                            handle: { titulo: 'Membros' },
-                            lazy: pagina(() => import('@/features/membros/pages/MembrosPage')),
+                            path: `${ROTAS.extrato}/parcelas/:id/pagar`,
+                            handle: { titulo: 'Pagar parcela' },
+                            lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoPage')),
                           },
-                          // Gestão lê; corrigir é só do Presidente (a API decide).
+                          // O recibo de uma baixa — do próprio formando ou, pela gestão, de qualquer um. É o
+                          // destino do e-mail de pagamento confirmado (Sprint 22).
                           {
-                            path: `${ROTAS.membros}/:usuario_id`,
-                            handle: { titulo: 'Cadastro do membro' },
-                            lazy: pagina(() => import('@/features/formandos/pages/DetalheDoFormandoPage')),
+                            path: `${ROTAS.recibos}/:id`,
+                            handle: { titulo: 'Recibo' },
+                            lazy: pagina(() => import('@/features/pagamentos/pages/ReciboPage')),
                           },
-                          // Gestão acompanha; publicar o termo é só do Presidente (a API decide).
+                          // O mesmo caminho, para o PIX que cobre vários meses: um QR com a soma.
                           {
-                            path: ROTAS.adesoes,
-                            handle: { titulo: 'Adesões' },
-                            lazy: pagina(() => import('@/features/adesoes/pages/AdesoesPage')),
+                            path: `${ROTAS.extrato}/pagar`,
+                            handle: { titulo: 'Pagar parcelas' },
+                            lazy: pagina(() => import('@/features/pagamentos/pages/PagamentoEmLotePage')),
                           },
-                          // Contratar é só do Presidente (a API decide); a assinatura em si mora na página da formatura.
+                          // Prestação de contas: todo membro lê, o formando inclusive. São somas e
+                          // contratos, sem nome de ninguém — quem paga a turma tem direito de ver no que
+                          // ela gasta. Lançar, pagar e cancelar continuam da Tesouraria, na própria API.
                           {
-                            // Sem título no cabeçalho: a tela é a vitrine da landing, com o título dela no meio.
-                            path: ROTAS.planos,
-                            lazy: pagina(() => import('@/features/assinaturas/pages/PlanosPage')),
+                            path: ROTAS.caixa,
+                            handle: { titulo: 'Caixa' },
+                            // Compõe financeiro e relatórios: a adimplência e o gasto por fornecedor
+                            // vêm do painel da turma.
+                            lazy: pagina(() => import('./PaginaDoCaixa')),
                           },
                           {
-                            path: ROTAS.retornoDoCheckout,
-                            handle: { titulo: 'Pagamento' },
-                            lazy: pagina(() => import('@/features/assinaturas/pages/RetornoDoCheckoutPage')),
+                            path: ROTAS.despesas,
+                            handle: { titulo: 'Despesas' },
+                            lazy: pagina(() => import('@/features/financeiro/pages/DespesasPage')),
                           },
-                          // Balancete, exportações e a fila de PDFs — é aqui que se fecha a prestação de contas.
                           {
-                            element: <ExigeModulo modulo={MODULOS.relatorios} />,
+                            path: ROTAS.outrasReceitas,
+                            handle: { titulo: 'Outras receitas' },
+                            lazy: pagina(() => import('@/features/financeiro/pages/OutrasReceitasPage')),
+                          },
+                          // As datas da turma: todo membro lê, a Gestão escreve. A colação e a festa
+                          // moram aqui desde a Sprint 19 — o cadastro da turma não as guarda mais.
+                          {
+                            path: ROTAS.agenda,
+                            handle: { titulo: 'Agenda' },
+                            lazy: pagina(() => import('@/features/agenda/pages/AgendaPage')),
+                          },
+                          // Orçamento da festa, mural e acervo: o módulo `mural`, que o gratuito e o
+                          // Essencial não têm — a rota abre a vitrine da área em vez do 403 (Sprint 45).
+                          {
+                            element: <ExigeModulo modulo={MODULOS.mural} />,
                             children: [
+                              // O que a turma está comprando: todo membro lê, a Gestão escreve. A API recusa a
+                              // escrita do formando, e o cartão nem oferece as ações a ele.
                               {
-                                path: ROTAS.relatorios,
-                                handle: { titulo: 'Relatórios' },
-                                lazy: pagina(() => import('@/features/relatorios/pages/RelatoriosPage')),
+                                path: ROTAS.festa,
+                                handle: { titulo: 'Festa' },
+                                lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                              },
+                              // O item aberto é a mesma tela, com ele escolhido na lista — como o mural. A
+                              // rota é a seleção: o link de um item continua sendo um link.
+                              {
+                                path: `${ROTAS.festa}/:id`,
+                                handle: { titulo: 'Festa' },
+                                lazy: pagina(() => import('@/features/festa/pages/FestaPage')),
+                              },
+                              // Mural e acervo: todo membro lê e baixa. O que é só da comissão a API nem devolve ao
+                              // formando; publicar, enviar e excluir são da Gestão, na própria API.
+                              {
+                                path: ROTAS.mural,
+                                handle: { titulo: 'Mural' },
+                                lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                              },
+                              // O aviso aberto é o mesmo mural, com ele selecionado na lista: o link de um
+                              // aviso continua sendo um link, e não há duas telas desenhando o mesmo texto.
+                              {
+                                path: `${ROTAS.mural}/:id`,
+                                handle: { titulo: 'Mural' },
+                                lazy: pagina(() => import('@/features/comunicacao/pages/MuralPage')),
+                              },
+                              {
+                                path: ROTAS.documentos,
+                                handle: { titulo: 'Documentos' },
+                                lazy: pagina(() => import('@/features/comunicacao/pages/DocumentosPage')),
                               },
                             ],
                           },
+                          // A despesa se corrige, paga e cancela na tela dela, como o cadastro do membro.
                           {
-                            path: ROTAS.parcelas,
-                            handle: { titulo: 'Parcelas' },
-                            // Compõe cobranças e pagamentos: a baixa manual e o estorno abrem na linha da parcela.
-                            lazy: pagina(() => import('./PaginaDeParcelas')),
+                            path: `${ROTAS.despesas}/:id`,
+                            handle: { titulo: 'Despesa' },
+                            lazy: pagina(() => import('@/features/financeiro/pages/DetalheDaDespesaPage')),
                           },
-                          // Quem pediu o quê dos opcionais. Toda a Gestão vê: é ela que responde ao
-                          // formando que diz "pedi e não apareceu"; cancelar é da Tesouraria, na API.
+                          // Gestão (matriz da Sprint 1): Tesoureiro e Comissão veem; o Presidente passa sempre.
                           {
-                            path: ROTAS.pedidos,
-                            handle: { titulo: 'Pedidos' },
-                            lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPage')),
-                          },
-                          {
-                            path: ROTAS.pedidosPorItem,
-                            handle: { titulo: 'Pedidos por item' },
-                            lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPorItemPage')),
-                          },
-                          // O que a régua já enviou — é o que a comissão mostra quando alguém diz
-                          // que nunca foi avisado. Escrever a régua é da Tesouraria, abaixo.
-                          {
-                            element: <ExigeModulo modulo={MODULOS.avisos} />,
+                            element: <ExigePapel papeis={[PAPEIS.tesoureiro, PAPEIS.comissao]} />,
                             children: [
+                              // As mesas do jantar: a comissão monta o mapa (P1 da Sprint 27). Módulo próprio, só do
+                              // Premium (29/09/2026).
                               {
-                                path: ROTAS.avisosEnviados,
-                                handle: { titulo: 'Avisos enviados' },
+                                element: <ExigeModulo modulo={MODULOS.mesas} />,
+                                children: [
+                                  {
+                                    path: ROTAS.mesas,
+                                    handle: { titulo: 'Mesas' },
+                                    lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
+                                  },
+                                  // O editor do salão precisa de largura para arrastar: página própria,
+                                  // aberta pelo card lateral da lista (ver docs/menu-e-planos.md).
+                                  {
+                                    path: rotaDoMapaDeMesas,
+                                    handle: { titulo: 'Mapa do salão' },
+                                    lazy: pagina(() => import('@/features/festa/pages/MapaDasMesasPage')),
+                                  },
+                                ],
+                              },
+                              // A festa em si — portaria e loja — é o módulo `festa` (Sprint 45, P1).
+                              {
+                                element: <ExigeModulo modulo={MODULOS.festa} />,
+                                children: [
+                                  // A porta da festa: qualquer membro da Gestão opera (P4 da Sprint 21).
+                                  {
+                                    path: ROTAS.portaria,
+                                    handle: { titulo: 'Portaria' },
+                                    lazy: pagina(() => import('@/features/festa/pages/PortariaPage')),
+                                  },
+                                  // As compras da loja pública (Sprint 26): a lista da devolução é da comissão
+                                  // inteira, como os pedidos.
+                                  {
+                                    path: ROTAS.comprasDaLoja,
+                                    handle: { titulo: 'Loja' },
+                                    lazy: pagina(() => import('@/features/loja/pages/ComprasDaLojaPage')),
+                                  },
+                                ],
+                              },
+                              {
+                                path: ROTAS.membros,
+                                handle: { titulo: 'Membros' },
+                                lazy: pagina(() => import('@/features/membros/pages/MembrosPage')),
+                              },
+                              // Gestão lê; corrigir é só do Presidente (a API decide).
+                              {
+                                path: `${ROTAS.membros}/:usuario_id`,
+                                handle: { titulo: 'Cadastro do membro' },
                                 lazy: pagina(
-                                  () => import('@/features/notificacoes/pages/HistoricoDeAvisosPage'),
+                                  () => import('@/features/formandos/pages/DetalheDoFormandoPage'),
+                                ),
+                              },
+                              // Gestão acompanha; publicar o termo é só do Presidente (a API decide).
+                              {
+                                path: ROTAS.adesoes,
+                                handle: { titulo: 'Adesões' },
+                                lazy: pagina(() => import('@/features/adesoes/pages/AdesoesPage')),
+                              },
+                              // Contratar é só do Presidente (a API decide); a assinatura em si mora na página da formatura.
+                              {
+                                // Sem título no cabeçalho: a tela é a vitrine da landing, com o título dela no meio.
+                                path: ROTAS.planos,
+                                lazy: pagina(() => import('@/features/assinaturas/pages/PlanosPage')),
+                              },
+                              {
+                                path: ROTAS.retornoDoCheckout,
+                                handle: { titulo: 'Pagamento' },
+                                lazy: pagina(
+                                  () => import('@/features/assinaturas/pages/RetornoDoCheckoutPage'),
+                                ),
+                              },
+                              // Balancete, exportações e a fila de PDFs — é aqui que se fecha a prestação de contas.
+                              {
+                                element: <ExigeModulo modulo={MODULOS.relatorios} />,
+                                children: [
+                                  {
+                                    path: ROTAS.relatorios,
+                                    handle: { titulo: 'Relatórios' },
+                                    lazy: pagina(() => import('@/features/relatorios/pages/RelatoriosPage')),
+                                  },
+                                ],
+                              },
+                              {
+                                path: ROTAS.parcelas,
+                                handle: { titulo: 'Parcelas' },
+                                // Compõe cobranças e pagamentos: a baixa manual e o estorno abrem na linha da parcela.
+                                lazy: pagina(() => import('./PaginaDeParcelas')),
+                              },
+                              // Quem pediu o quê dos opcionais. Toda a Gestão vê: é ela que responde ao
+                              // formando que diz "pedi e não apareceu"; cancelar é da Tesouraria, na API.
+                              {
+                                path: ROTAS.pedidos,
+                                handle: { titulo: 'Pedidos' },
+                                lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPage')),
+                              },
+                              {
+                                path: ROTAS.pedidosPorItem,
+                                handle: { titulo: 'Pedidos por item' },
+                                lazy: pagina(() => import('@/features/cobrancas/pages/PedidosPorItemPage')),
+                              },
+                              // O que a régua já enviou — é o que a comissão mostra quando alguém diz
+                              // que nunca foi avisado. Escrever a régua é da Tesouraria, abaixo.
+                              {
+                                element: <ExigeModulo modulo={MODULOS.avisos} />,
+                                children: [
+                                  {
+                                    path: ROTAS.avisosEnviados,
+                                    handle: { titulo: 'Avisos enviados' },
+                                    lazy: pagina(
+                                      () => import('@/features/notificacoes/pages/HistoricoDeAvisosPage'),
+                                    ),
+                                  },
+                                ],
+                              },
+                              // Quem fez o quê com o dinheiro da turma. Gestão, e não todo membro: a
+                              // trilha nomeia as pessoas, e o que é público é o dashboard, onde tudo é
+                              // soma. Só leitura — não há ação nenhuma na tela.
+                              {
+                                element: <ExigeModulo modulo={MODULOS.auditoria} />,
+                                children: [
+                                  {
+                                    path: ROTAS.auditoria,
+                                    handle: { titulo: 'Histórico da turma' },
+                                    lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                          // Tesouraria: o Tesoureiro monta o plano; o Presidente passa sempre e é quem o põe em vigor.
+                          {
+                            element: <ExigePapel papeis={[PAPEIS.tesoureiro]} />,
+                            children: [
+                              {
+                                path: ROTAS.cobrancas,
+                                handle: { titulo: 'Plano de cobrança' },
+                                lazy: pagina(() => import('@/features/cobrancas/pages/PlanoDeCobrancaPage')),
+                              },
+                              {
+                                path: ROTAS.lancamentos,
+                                handle: { titulo: 'Lançamentos avulsos' },
+                                lazy: pagina(() => import('@/features/cobrancas/pages/LancamentosPage')),
+                              },
+                              // A fila dos avisos de pagamento: conferir em lote olhando o extrato do banco.
+                              {
+                                path: ROTAS.conferencia,
+                                handle: { titulo: 'Conferir pagamentos' },
+                                lazy: pagina(() => import('@/features/pagamentos/pages/ConferenciaPage')),
+                              },
+                              // Quem escreve o que a turma recebe é quem responde pelo caixa.
+                              {
+                                element: <ExigeModulo modulo={MODULOS.avisos} />,
+                                children: [
+                                  {
+                                    path: ROTAS.regua,
+                                    handle: { titulo: 'Lembretes automáticos' },
+                                    lazy: pagina(() => import('@/features/notificacoes/pages/ReguaPage')),
+                                  },
+                                ],
+                              },
+                              {
+                                path: ROTAS.fornecedores,
+                                handle: { titulo: 'Fornecedores' },
+                                lazy: pagina(() => import('@/features/financeiro/pages/FornecedoresPage')),
+                              },
+                              {
+                                path: `${ROTAS.fornecedores}/:id`,
+                                handle: { titulo: 'Fornecedor' },
+                                lazy: pagina(
+                                  () => import('@/features/financeiro/pages/DetalheDoFornecedorPage'),
                                 ),
                               },
                             ],
-                          },
-                          // Quem fez o quê com o dinheiro da turma. Gestão, e não todo membro: a
-                          // trilha nomeia as pessoas, e o que é público é o dashboard, onde tudo é
-                          // soma. Só leitura — não há ação nenhuma na tela.
-                          {
-                            element: <ExigeModulo modulo={MODULOS.auditoria} />,
-                            children: [
-                              {
-                                path: ROTAS.auditoria,
-                                handle: { titulo: 'Histórico da turma' },
-                                lazy: pagina(() => import('@/features/auditoria/pages/AuditoriaPage')),
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                      // Tesouraria: o Tesoureiro monta o plano; o Presidente passa sempre e é quem o põe em vigor.
-                      {
-                        element: <ExigePapel papeis={[PAPEIS.tesoureiro]} />,
-                        children: [
-                          {
-                            path: ROTAS.cobrancas,
-                            handle: { titulo: 'Plano de cobrança' },
-                            lazy: pagina(() => import('@/features/cobrancas/pages/PlanoDeCobrancaPage')),
-                          },
-                          // A fila dos avisos de pagamento: conferir em lote olhando o extrato do banco.
-                          {
-                            path: ROTAS.conferencia,
-                            handle: { titulo: 'Conferir pagamentos' },
-                            lazy: pagina(() => import('@/features/pagamentos/pages/ConferenciaPage')),
-                          },
-                          // Quem escreve o que a turma recebe é quem responde pelo caixa.
-                          {
-                            element: <ExigeModulo modulo={MODULOS.avisos} />,
-                            children: [
-                              {
-                                path: ROTAS.regua,
-                                handle: { titulo: 'Lembretes automáticos' },
-                                lazy: pagina(() => import('@/features/notificacoes/pages/ReguaPage')),
-                              },
-                            ],
-                          },
-                          {
-                            path: ROTAS.fornecedores,
-                            handle: { titulo: 'Fornecedores' },
-                            lazy: pagina(() => import('@/features/financeiro/pages/FornecedoresPage')),
-                          },
-                          {
-                            path: `${ROTAS.fornecedores}/:id`,
-                            handle: { titulo: 'Fornecedor' },
-                            lazy: pagina(() => import('@/features/financeiro/pages/DetalheDoFornecedorPage')),
                           },
                         ],
                       },

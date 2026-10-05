@@ -79,7 +79,7 @@ export default function MinhaPrivacidadePage() {
 
   if (dados.isPending) return <EsqueletoDeCartoes quantidade={4} />
 
-  if (dados.isError) return <ErroDaConsulta erro={dados.error} />
+  if (dados.isError) return <ErroDaConsulta erro={dados.error} aoTentarDeNovo={() => void dados.refetch()} />
 
   const { conta, turmas, consentimentos, comunicacoes } = dados.data
   const [ultimaNovidade] = comunicacoes.do_kapa.envios

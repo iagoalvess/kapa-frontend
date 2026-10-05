@@ -46,7 +46,7 @@ export default function DetalheDoFormandoPage() {
     return (
       <>
         {voltar}
-        <ErroDaConsulta erro={formando.error} />
+        <ErroDaConsulta erro={formando.error} aoTentarDeNovo={() => void formando.refetch()} />
       </>
     )
 

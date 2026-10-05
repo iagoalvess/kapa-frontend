@@ -25,6 +25,7 @@ import { AcoesDoPedido } from '../components/AcoesDoPedido'
 import { LateralDePedidos, OrientacoesDePedidos } from '../components/LateralDePedidos'
 import { LiberarConvites } from '../components/LiberarConvites'
 import { SituacaoDoPedido } from '../components/SituacaoDoPedido'
+import { SolicitacoesDeCancelamento } from '../components/SolicitacoesDeCancelamento'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
 const TAMANHO_DA_PAGINA = 20
@@ -131,6 +132,9 @@ export default function PedidosPage() {
         ]}
       />
 
+      {/* Sprint 48, D8: pacote e pedido só caem por aqui — o formando pede, a tesouraria responde. */}
+      <SolicitacoesDeCancelamento />
+
       <FiltrosDaPlanilha
         principal={
           <Chip
@@ -230,7 +234,15 @@ export default function PedidosPage() {
                   </div>
                 </th>
                 <td className="py-3 pr-4">
-                  {formatarNumero(pedido.quantidade)}× {rotuloDoItem(pedido)}
+                  <div className="grid">
+                    <span>
+                      {formatarNumero(pedido.quantidade)}× {rotuloDoItem(pedido)}
+                    </span>
+                    {/* Sprint 48, D26: o detalhe que o formando escreveu — tamanho, nome. */}
+                    {pedido.observacao ? (
+                      <span className="text-muted-foreground text-xs">“{pedido.observacao}”</span>
+                    ) : null}
+                  </div>
                 </td>
                 <td className="py-3 pr-4 text-right tabular-nums">
                   {formatarCentavos(pedido.total_em_centavos)}

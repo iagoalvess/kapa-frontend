@@ -79,7 +79,8 @@ export default function PaginaDaFormatura() {
       </>
     )
 
-  if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
+  if (formatura.isError)
+    return <ErroDaConsulta erro={formatura.error} aoTentarDeNovo={() => void formatura.refetch()} />
 
   const dados = formatura.data
 

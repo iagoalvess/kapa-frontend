@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import mascoteErro from '@/assets/mascote/erro.webp'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LogoKapa } from '@/components/layout/LogoKapa'
@@ -92,18 +92,21 @@ export default function ConvitePage() {
 
     return (
       <Moldura>
-        <p role="alert" className="text-danger-text text-center text-sm">
-          {mensagemDoErro(aceitar.error)}
-        </p>
-        {SEM_NOVA_TENTATIVA.has(codigo) ? (
-          <Button asChild variant="outline" className="h-11 w-full">
-            <Link to={ROTAS.inicio}>Ir para o início</Link>
-          </Button>
-        ) : (
-          <Button className="h-11 w-full" onClick={entrar}>
-            Tentar de novo
-          </Button>
-        )}
+        <EstadoDeErro
+          titulo="Não foi possível entrar na turma"
+          descricao={mensagemDoErro(aceitar.error)}
+          nivelDoTitulo={1}
+        >
+          {SEM_NOVA_TENTATIVA.has(codigo) ? (
+            <Button asChild className="rounded-full px-6">
+              <Link to={ROTAS.inicio}>Ir para o início</Link>
+            </Button>
+          ) : (
+            <Button className="rounded-full px-6" onClick={entrar}>
+              Tentar de novo
+            </Button>
+          )}
+        </EstadoDeErro>
       </Moldura>
     )
   }
@@ -216,28 +219,27 @@ function ConfirmeOEmail({
 
   return (
     <Moldura>
-      <p role="alert" className="text-center text-sm">
-        {mensagem}
-      </p>
-      <div className="grid gap-3">
-        <Button className="h-11 w-full" onClick={aoConfirmar}>
-          Já confirmei, entrar
-        </Button>
-        {reenviar.isSuccess ? (
-          <output className="text-muted-foreground text-center text-sm">
-            E-mail reenviado. Confira a caixa de entrada.
-          </output>
-        ) : (
-          <Button
-            variant="outline"
-            className="h-11 w-full"
-            disabled={reenviar.isPending || !email}
-            onClick={() => reenviar.mutate(email)}
-          >
-            {reenviar.isPending ? 'Enviando…' : 'Reenviar e-mail de confirmação'}
+      <EstadoDeErro titulo="Confirme seu e-mail" descricao={mensagem} nivelDoTitulo={1}>
+        <div className="grid gap-3">
+          <Button className="h-11 w-full" onClick={aoConfirmar}>
+            Já confirmei, entrar
           </Button>
-        )}
-      </div>
+          {reenviar.isSuccess ? (
+            <output className="text-muted-foreground text-center text-sm">
+              E-mail reenviado. Confira a caixa de entrada.
+            </output>
+          ) : (
+            <Button
+              variant="outline"
+              className="h-11 w-full"
+              disabled={reenviar.isPending || !email}
+              onClick={() => reenviar.mutate(email)}
+            >
+              {reenviar.isPending ? 'Enviando…' : 'Reenviar e-mail de confirmação'}
+            </Button>
+          )}
+        </div>
+      </EstadoDeErro>
     </Moldura>
   )
 }
@@ -249,13 +251,15 @@ function ConfirmeOEmail({
 function Indisponivel() {
   return (
     <Moldura>
-      <img src={mascoteErro} alt="" className="w-36 justify-self-center drop-shadow-lg" />
-      <p className="text-center text-lg font-semibold">
-        Este convite não está mais disponível. Peça um novo à comissão.
-      </p>
-      <Button asChild variant="outline" className="h-11 w-full">
-        <Link to={ROTAS.inicio}>Ir para a página inicial</Link>
-      </Button>
+      <EstadoDeErro
+        titulo="Convite indisponível"
+        descricao="Este convite não está mais disponível. Peça um novo à comissão."
+        nivelDoTitulo={1}
+      >
+        <Button asChild className="rounded-full px-6">
+          <Link to={ROTAS.inicio}>Ir para a página inicial</Link>
+        </Button>
+      </EstadoDeErro>
     </Moldura>
   )
 }

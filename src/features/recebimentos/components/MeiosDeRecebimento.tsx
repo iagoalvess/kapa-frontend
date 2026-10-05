@@ -54,7 +54,8 @@ export function MeiosDeRecebimento() {
       </EsqueletoDeCartao>
     )
 
-  if (consulta.isError) return <ErroDaConsulta erro={consulta.error} />
+  if (consulta.isError)
+    return <ErroDaConsulta compacto erro={consulta.error} aoTentarDeNovo={() => void consulta.refetch()} />
 
   const { conta } = consulta.data
   const escreve = ehPresidente && liberado

@@ -12,6 +12,7 @@ const convite = (mudancas: Partial<Opcional> = {}): Opcional => ({
   descricao: 'Convite extra',
   valor_em_centavos: 18_000,
   numero_de_parcelas: 2,
+  ultimo_vencimento: null,
   dia_de_vencimento: 10,
   primeiro_mes: '2026-09-01',
   limite_por_formando: null,

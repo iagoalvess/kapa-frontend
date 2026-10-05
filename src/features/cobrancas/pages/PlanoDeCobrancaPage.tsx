@@ -31,8 +31,12 @@ import { RegrasDoPlano } from '../components/RegrasDoPlano'
 import { ResumoDoPlano } from '../components/ResumoDoPlano'
 import { useEncerrarItem, usePlano, usePlanos, useRemoverItem } from '../hooks/usePlano'
 import { useSimulacao } from '../hooks/useSimulacao'
-import { dadosDe } from '../schemas/cobranca.schema'
-import { type ItemDeCobranca, type PlanoDeCobranca, rotuloDoItem } from '../types/cobrancas.types'
+import {
+  beneficiosPorExtenso,
+  type ItemDeCobranca,
+  type PlanoDeCobranca,
+  rotuloDoItem,
+} from '../types/cobrancas.types'
 import { IconeDoTipo } from '../components/IconeDoTipo'
 
 /**
@@ -49,7 +53,8 @@ export default function PlanoDeCobrancaPage() {
 
   if (planos.isPending) return <EsqueletoDoPlano />
 
-  if (planos.isError) return <ErroDaConsulta erro={planos.error} />
+  if (planos.isError)
+    return <ErroDaConsulta erro={planos.error} aoTentarDeNovo={() => void planos.refetch()} />
 
   const plano = planos.data[0]
 
@@ -59,13 +64,13 @@ export default function PlanoDeCobrancaPage() {
         <Cartao
           titulo="Plano de cobrança"
           icone={Coins}
-          descricao="A turma ainda não tem plano. Dê um nome e confira as regras de atraso; as cobranças vêm em seguida."
+          descricao="A turma ainda não tem plano. Dê um nome e confira as regras de atraso; os pacotes vêm em seguida."
         >
           <div className="flex items-center gap-4">
             <img src={mascoteCofrinho} alt="" className="w-20 shrink-0 drop-shadow-lg" />
             <p className="text-muted-foreground text-sm">
-              Mensalidade, adesão, rifa: as cobranças vêm depois, e a grade de um formando aparece ao lado
-              delas, parcela por parcela, antes de o Presidente colocar o plano em vigor.
+              Festa por faixa, foto, colação: os pacotes vêm depois. Cada formando monta a cesta dele na
+              adesão e deve só o que escolheu.
             </p>
           </div>
           <FormularioDoPlano editavel={editavel} />
@@ -89,14 +94,12 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
 
   if (plano.isPending) return <EsqueletoDoPlano />
 
-  if (plano.isError) return <ErroDaConsulta erro={plano.error} />
+  if (plano.isError) return <ErroDaConsulta erro={plano.error} aoTentarDeNovo={() => void plano.refetch()} />
 
   const emEdicao = dialogo === false ? undefined : dialogo.item
-  // Do plano, e não dos opcionais: o item opcional não cobra a turma e não entra na simulação.
-  const ativos = plano.data.itens.filter((item) => !item.encerrado_em && !item.opcional)
   return (
     <>
-      <ResumoDoPlano simulacao={gravado.data} />
+      <ResumoDoPlano plano={plano.data} formandos={gravado.data?.formandos} />
       <AtalhosDaPagina
         atalhos={[
           { titulo: 'Lembretes automáticos', para: ROTAS.regua, icone: BellRing },
@@ -115,7 +118,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
             icone: ReceiptText,
             dialogo: {
               titulo: 'Prévia das parcelas',
-              descricao: 'Parcelas e valores que serão cobrados de um formando.',
+              descricao: 'Parcelas e valores de cada pacote do catálogo.',
               conteudo: (
                 <PreviaDaGrade
                   simulacao={gravado.data}
@@ -154,11 +157,11 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
         <DialogoDeFormulario
           aberto={dialogo !== false}
           aoFechar={() => definirDialogo(false)}
-          titulo={emEdicao ? `Editar ${rotuloDoItem(emEdicao).toLowerCase()}` : 'Nova cobrança'}
+          titulo={emEdicao ? `Editar ${rotuloDoItem(emEdicao).toLowerCase()}` : 'Novo pacote'}
           descricao={
             emEdicao?.em_uso
-              ? 'Esta cobrança já gerou parcela: só o valor e a descrição mudam.'
-              : 'Tipo, valor, parcelas, dia de vencimento e primeiro mês.'
+              ? 'Este pacote já foi escolhido: só o valor e a descrição mudam.'
+              : 'O que o formando escolhe na adesão: preço, parcelas, faixa e os convites que concede.'
           }
           largura="largo"
         >
@@ -173,10 +176,10 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
           ) : (
             <FormularioDeItemNovo
               planoId={planoId}
-              itensDoPlano={ativos.map(dadosDe)}
               editavel={editavel}
               aoConcluir={() => definirDialogo(false)}
               jaAderiram={plano.data.formandos_com_parcela}
+              pacotes={plano.data.itens.filter((item) => item.pacote && !item.encerrado_em)}
             />
           )}
         </DialogoDeFormulario>
@@ -188,7 +191,7 @@ function TelaDoPlano({ planoId }: { planoId: string }) {
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao
             titulo="Prévia das parcelas"
-            descricao="Veja as parcelas e os valores que serão cobrados de um formando."
+            descricao="Veja as parcelas e os valores de cada pacote do catálogo."
           >
             <PreviaDaGrade simulacao={gravado.data} atualizando={gravado.isFetching} erro={gravado.error} />
           </Cartao>
@@ -275,13 +278,13 @@ function ListaDeItens({
   const encerrar = useEncerrarItem()
   const ocupado = remover.isPending || encerrar.isPending
 
-  // Os opcionais têm cartão próprio: aqui fica o que a turma inteira deve, que é o que a simulação soma.
+  // Os opcionais têm cartão próprio: aqui ficam os pacotes do catálogo e os rateios da assembleia.
   const doPlano = plano.itens.filter((item) => !item.opcional)
 
   if (doPlano.length === 0)
     return (
       <p className="text-muted-foreground text-sm">
-        Nenhuma cobrança ainda. Comece pela mensalidade, em “Nova cobrança”.
+        Nenhum pacote ainda. Comece pela festa, em “Novo pacote”: uma faixa por quantidade de pessoas.
       </p>
     )
 
@@ -295,7 +298,8 @@ function ListaDeItens({
       emLista
       cabecalho={
         <>
-          <th className="py-3 pr-4 font-normal">Cobrança</th>
+          <th className="py-3 pr-4 font-normal">Pacote</th>
+          <th className="py-3 pr-4 font-normal">Concede</th>
           <th className="py-3 pr-4 text-right font-normal">Valor</th>
           <th className="py-3 pr-4 text-right font-normal">Parcelas</th>
           <th className="py-3 pr-4 font-normal">Vence</th>
@@ -313,15 +317,27 @@ function ListaDeItens({
                 {/* A origem só existe no rateio extraordinário, e é a resposta a "por que isto foi
                     cobrado de quem já tinha aderido?" — fica junto do nome do item. */}
                 <div className="grid">
-                  {rotuloDoItem(item)}
+                  {item.grupo ? `${item.grupo} — ${rotuloDoItem(item)}` : rotuloDoItem(item)}
                   {item.origem_da_decisao ? (
                     <span className="text-muted-foreground text-xs font-normal">
                       Decisão da turma — {item.origem_da_decisao}
+                      {/* Sprint 48, D19: o rateio escopado diz de quem cobrou. */}
+                      {item.alvo_do_rateio.length > 0
+                        ? ` · de quem tem ${plano.itens
+                            .filter((pacote) => item.alvo_do_rateio.includes(pacote.id))
+                            .map((pacote) =>
+                              pacote.grupo
+                                ? `${pacote.grupo} — ${rotuloDoItem(pacote)}`
+                                : rotuloDoItem(pacote),
+                            )
+                            .join(', ')}`
+                        : null}
                     </span>
                   ) : null}
                 </div>
               </div>
             </td>
+            <td className="text-muted-foreground py-3 pr-4">{beneficiosPorExtenso(item) ?? '—'}</td>
             <td className="py-3 pr-4 text-right whitespace-nowrap">
               {formatarCentavos(item.valor_em_centavos)}
             </td>

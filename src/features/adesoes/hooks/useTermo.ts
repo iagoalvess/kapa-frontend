@@ -1,18 +1,25 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listarTermos, obterConteudoParaAdesao, publicarTermo } from '../api/adesoes.api'
 import { chaves } from './chaves'
 
 /**
- * O termo vigente, o plano vigente e o hash dos dois.
+ * O termo vigente, o catálogo, o plano com a cesta escolhida e o hash dos dois.
  *
  * Sem `staleTime`: o hash precisa ser o do conteúdo que está na tela agora, e o conteúdo muda
  * quando a comissão publica ou a tesouraria mexe no plano.
+ *
+ * Marcar um pacote pede o conteúdo de novo (o servidor é quem soma a cesta e calcula a grade); enquanto a resposta
+ * não chega, a tela segura a anterior (`keepPreviousData`) em vez de piscar o esqueleto — e quem decide se o
+ * aceite pode sair é `isPlaceholderData`, porque o hash na tela ainda é o da cesta anterior.
+ *
+ * @param pacotes A cesta escolhida; vazia mostra só o catálogo.
  */
-export function useConteudoParaAdesao(habilitado = true) {
+export function useConteudoParaAdesao(habilitado = true, pacotes: string[] = []) {
   return useQuery({
-    queryKey: chaves.conteudo(),
-    queryFn: ({ signal }) => obterConteudoParaAdesao(signal),
+    queryKey: chaves.conteudo(pacotes),
+    queryFn: ({ signal }) => obterConteudoParaAdesao(pacotes, signal),
     staleTime: 0,
+    placeholderData: keepPreviousData,
     enabled: habilitado,
   })
 }

@@ -39,7 +39,13 @@ export default function OperadoresPage() {
 
       {operadores.isPending ? <EsqueletoDeTexto linhas={8} className="mt-8" /> : null}
 
-      {operadores.isError ? <ErroDaConsulta erro={operadores.error} className="mt-8" /> : null}
+      {operadores.isError ? (
+        <ErroDaConsulta
+          erro={operadores.error}
+          className="mt-8"
+          aoTentarDeNovo={() => void operadores.refetch()}
+        />
+      ) : null}
 
       {operadores.data ? (
         <ul className="motion-safe:animate-entrar mt-8 grid gap-6">

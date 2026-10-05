@@ -30,7 +30,7 @@ export default function ReaceitePage() {
     return <EsqueletoDeCartoes quantidade={2} altura="h-14" forma="linha" className="md:grid-cols-1" />
 
   if (aceites.isError) {
-    return <ErroDaConsulta erro={aceites.error} />
+    return <ErroDaConsulta erro={aceites.error} aoTentarDeNovo={() => void aceites.refetch()} />
   }
 
   if (aceites.data.pendencias.length === 0) return <Navigate to={destino} replace />

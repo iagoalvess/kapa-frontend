@@ -4,13 +4,15 @@ import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
 import { ComoVoceQuerPagar } from '@/components/ComoVoceQuerPagar'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FormularioDeCartao } from '@/components/FormularioDeCartao'
 import { IconePix } from '@/components/IconePix'
 import { QrCodePix } from '@/components/QrCodePix'
 import { Button } from '@/components/ui/button'
 import { copiar } from '@/lib/copiar'
 import { formatarCentavos } from '@/lib/formato'
-import { avisarErro, ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
+import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import type { CartaoParaPagar } from '@/types/pagamento'
 import { type OpcaoDaCobranca, opcoesDaCobranca, usePagarNoCartao } from '../hooks/useCobranca'
 import type { CobrancaDaParcela, MeioDaCobranca, PeloMercadoPago } from '../types/pagamentos.types'
@@ -18,7 +20,13 @@ import { DadosDoRecebedor } from './DadosDoRecebedor'
 
 interface Props {
   /** A consulta da cobrança, como o hook a devolve. */
-  cobranca: { data?: CobrancaDaParcela; isPending: boolean; isError: boolean; error: Error | null }
+  cobranca: {
+    data?: CobrancaDaParcela
+    isPending: boolean
+    isError: boolean
+    error: Error | null
+    refetch?: () => unknown
+  }
   /** A opção que a pessoa está vendo agora. */
   escolhido?: OpcaoDaCobranca
   /** Trocar de opção, pela chave. */
@@ -55,12 +63,19 @@ export function ComoPagar({ cobranca, escolhido, aoEscolher, descricao, avisos, 
         <EsqueletoDeCartoes quantidade={1} altura="h-56" className="md:grid-cols-1" />
       ) : null}
 
-      {cobranca.isError ? (
-        <p role="alert" className="text-danger-text text-sm">
-          {semConta
-            ? 'A comissão ainda está configurando como a turma receberá pagamentos. Tente novamente mais tarde.'
-            : mensagemDoErro(cobranca.error)}
-        </p>
+      {cobranca.isError && semConta ? (
+        <EstadoDeErro
+          compacto
+          titulo="Recebimentos em configuração"
+          descricao="A comissão ainda está configurando como a turma receberá pagamentos. Tente novamente mais tarde."
+        />
+      ) : null}
+      {cobranca.isError && !semConta ? (
+        <ErroDaConsulta
+          compacto
+          erro={cobranca.error}
+          aoTentarDeNovo={cobranca.refetch ? () => void cobranca.refetch?.() : undefined}
+        />
       ) : null}
 
       {escolhido ? (

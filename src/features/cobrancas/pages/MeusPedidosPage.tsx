@@ -93,7 +93,9 @@ export default function MeusPedidosPage({
               <EsqueletoDeTabela colunas={2} />
             </EsqueletoDeCartao>
           ) : null}
-          {meus.isError ? <ErroDaConsulta erro={meus.error} /> : null}
+          {meus.isError ? (
+            <ErroDaConsulta erro={meus.error} aoTentarDeNovo={() => void meus.refetch()} />
+          ) : null}
 
           {telaGrande ? resumoDoPagamento : null}
 

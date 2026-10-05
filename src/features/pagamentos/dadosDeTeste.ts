@@ -17,6 +17,7 @@ export const parcelaDeTeste = (mudancas: Partial<Parcela> = {}): Parcela => ({
   de: 24,
   vencimento: '2026-10-10',
   valor_original_em_centavos: 35_000,
+  suspensa_ate: null,
   status: 'Aberta',
   em_conferencia: false,
   valor_pago_em_centavos: null,

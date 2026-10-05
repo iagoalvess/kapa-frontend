@@ -15,7 +15,8 @@ export function BlocoDaFesta() {
   const percentual = meta ? percentualDaMeta(meta.arrecadado_em_centavos, meta.custo_em_centavos) : 0
 
   if (consulta.isPending) return <EsqueletoDeTexto linhas={2} />
-  if (consulta.isError) return <ErroDaConsulta erro={consulta.error} />
+  if (consulta.isError)
+    return <ErroDaConsulta compacto erro={consulta.error} aoTentarDeNovo={() => void consulta.refetch()} />
 
   if (meta && meta.custo_em_centavos <= 0)
     return (

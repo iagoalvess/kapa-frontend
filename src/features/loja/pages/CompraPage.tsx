@@ -1,8 +1,8 @@
 import { toast } from 'sonner'
 import { Link, useParams } from 'react-router'
-import mascoteErro from '@/assets/mascote/erro.webp'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Selo, type TomDoSelo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
@@ -49,15 +49,17 @@ export default function CompraPage() {
     return (
       <MolduraDaLoja>
         {naoExiste ? (
-          <div className="grid justify-items-center gap-3 text-center">
-            <img src={mascoteErro} alt="" className="size-28" />
-            <h1 className="text-xl font-semibold">Compra não encontrada</h1>
-            <p className="text-muted-foreground text-sm">
-              Este endereço não vale mais: ele muda sempre que alguém pede para receber os convites de novo, e
-              deixa de abrir um mês depois da festa. Volte à loja da turma e toque em “Receber o link de
-              novo”.
-            </p>
-          </div>
+          <EstadoDeErro
+            titulo="Compra não encontrada"
+            descricao={
+              <>
+                Este endereço não vale mais: ele muda sempre que alguém pede para receber os convites de novo,
+                e deixa de abrir um mês depois da festa. Volte à loja da turma e toque em “Receber o link de
+                novo”.
+              </>
+            }
+            nivelDoTitulo={1}
+          />
         ) : (
           <ErroDaConsulta erro={compra.error} aoTentarDeNovo={() => void compra.refetch()} />
         )}

@@ -20,7 +20,8 @@ export function FeedDoMural() {
   const avisos = useAvisos({ fixado: true, pagina: 1, tamanho: QUANTOS })
   const itens = avisos.data?.itens ?? []
 
-  if (avisos.isError) return <ErroDaConsulta erro={avisos.error} />
+  if (avisos.isError)
+    return <ErroDaConsulta compacto erro={avisos.error} aoTentarDeNovo={() => void avisos.refetch()} />
   if (avisos.isPending) return <EsqueletoDeTexto linhas={3} />
 
   if (itens.length === 0)

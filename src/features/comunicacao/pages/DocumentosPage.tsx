@@ -225,7 +225,9 @@ export default function DocumentosPage() {
       />
 
       {documentos.isPending ? <EsqueletoDeCartoes altura="h-64" /> : null}
-      {documentos.isError ? <ErroDaConsulta erro={documentos.error} /> : null}
+      {documentos.isError ? (
+        <ErroDaConsulta erro={documentos.error} aoTentarDeNovo={() => void documentos.refetch()} />
+      ) : null}
       {filtrando && documentos.data && visiveis.length === 0 ? (
         <ListaVazia titulo="Nenhum documento encontrado" dica="Tente outra busca ou tire algum filtro." />
       ) : null}

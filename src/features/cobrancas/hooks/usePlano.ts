@@ -41,6 +41,7 @@ function useEscritaDoPlano<T>(escrever: (variaveis: T) => Promise<PlanoDeCobranc
       void queryClient.invalidateQueries({ queryKey: chaves.planos() })
       void queryClient.invalidateQueries({ queryKey: chaves.simulacoes })
       void queryClient.invalidateQueries({ queryKey: chaves.todasAsParcelas })
+      void queryClient.invalidateQueries({ queryKey: chaves.lancamentos })
     },
   })
 }

@@ -17,7 +17,7 @@ import type {
   StatusDoValorADevolver,
   ValorADevolver,
 } from '../../types/pagamentos.types'
-import { DialogoDeTexto } from '../DialogoDeTexto'
+import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 import { CelulaDoFormando } from './Formando'
 
 /** Como a lista diz de onde veio o dinheiro. */

@@ -13,6 +13,7 @@ import { COLUNAS, LATERAL, TERMO } from '../lib/colunasDoTermo'
 import type { Adesao } from '../types/adesoes.types'
 import { CartaoDeVersoes } from './CartaoDeVersoes'
 import { LeitorDeTermo } from './LeitorDeTermo'
+import { CartaoDaCesta } from './CartaoDaCesta'
 import { ResumoDoTermo } from './ResumoDoTermo'
 import { IndicadoresDoPlano, ResumoFinanceiroDaAdesao } from './ResumoFinanceiroDaAdesao'
 
@@ -91,6 +92,8 @@ export function TermoAssinado({
         </div>
 
         <div className={LATERAL}>
+          <CartaoDaCesta cestaAceita={adesao.plano.cesta} />
+
           <Cartao
             titulo="O que você aceitou pagar"
             descricao="O plano do dia do aceite. Mudanças posteriores no plano não mudam o que está aqui."

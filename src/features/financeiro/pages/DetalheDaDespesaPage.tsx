@@ -85,7 +85,7 @@ export default function DetalheDaDespesaPage() {
     return (
       <>
         {voltar}
-        <ErroDaConsulta erro={despesa.error} />
+        <ErroDaConsulta erro={despesa.error} aoTentarDeNovo={() => void despesa.refetch()} />
       </>
     )
 
@@ -281,7 +281,9 @@ function ParcelasDoLancamento({ despesa }: { despesa: Despesa }) {
     >
       {irmas.isPending ? <EsqueletoDeTabela linhas={4} colunas={5} /> : null}
 
-      {irmas.isError ? <ErroDaConsulta erro={irmas.error} /> : null}
+      {irmas.isError ? (
+        <ErroDaConsulta compacto erro={irmas.error} aoTentarDeNovo={() => void irmas.refetch()} />
+      ) : null}
 
       {itens.length > 0 ? (
         <Tabela

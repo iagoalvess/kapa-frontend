@@ -6,6 +6,7 @@ const TOM_DA_SITUACAO = {
   SemTitular: 'alerta',
   Validado: 'sucesso',
   Revogado: 'perigo',
+  Preso: 'alerta',
 } as const satisfies Record<SituacaoNaPortaria, TomDoSelo>
 
 /**

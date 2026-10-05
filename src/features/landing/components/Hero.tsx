@@ -65,11 +65,16 @@ export function Hero() {
             as parcelas dele e a comissão vê quem pagou.
           </p>
 
-          {/* No celular os dois lado a lado, do mesmo tamanho e sem ícone — o modelo do Visor (28/09/2026). */}
-          <div className="mt-7 grid w-full max-w-md grid-cols-2 gap-3 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center lg:[@media(max-height:700px)]:mt-5">
-            <Button asChild size="lg" variant="outline" className="h-11 rounded-xl text-sm max-sm:px-2">
+          {/* Em telas muito estreitas, empilha os CTAs para o play não apertar o texto. */}
+          <div className="mt-7 grid w-full max-w-md grid-cols-2 gap-3 max-[359px]:grid-cols-1 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center lg:[@media(max-height:700px)]:mt-5">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 rounded-xl pl-2 text-sm max-sm:gap-1.5 max-sm:pr-2 max-sm:text-xs"
+            >
               <a href="#como-funciona">
-                <span className="bg-brand-tint text-brand-text hidden size-7 place-items-center rounded-full sm:grid">
+                <span className="bg-brand-tint text-brand-text grid size-6 shrink-0 place-items-center rounded-full sm:size-7">
                   <Play className="size-3 fill-current" aria-hidden />
                 </span>
                 Ver como funciona

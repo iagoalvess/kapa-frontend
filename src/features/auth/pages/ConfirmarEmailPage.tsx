@@ -1,3 +1,4 @@
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Link, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
@@ -39,32 +40,38 @@ export default function ConfirmarEmailPage() {
   if (linkInvalido) {
     return (
       <LayoutDeAutenticacao>
-        <h1 className={estilos.titulo}>Link inválido</h1>
-        <p className={estilos.subtitulo}>
-          Este link de confirmação expirou ou está incompleto.
-          {email ? ' Podemos mandar outro para o mesmo e-mail.' : ' Entre na sua conta para pedir outro.'}
-        </p>
+        <EstadoDeErro
+          compacto
+          nivelDoTitulo={1}
+          titulo="Link inválido"
+          descricao={
+            <>
+              Este link de confirmação expirou ou está incompleto.
+              {email ? ' Podemos mandar outro para o mesmo e-mail.' : ' Entre na sua conta para pedir outro.'}
+            </>
+          }
+        >
+          {reenviar.isSuccess ? (
+            <Aviso>
+              Se o e-mail ainda não estiver confirmado, um novo link chega em <strong>{email}</strong> em
+              instantes.
+            </Aviso>
+          ) : null}
 
-        {reenviar.isSuccess ? (
-          <Aviso>
-            Se o e-mail ainda não estiver confirmado, um novo link chega em <strong>{email}</strong> em
-            instantes.
-          </Aviso>
-        ) : null}
-
-        {email && !reenviar.isSuccess ? (
-          <Button
-            disabled={reenviar.isPending}
-            onClick={() => reenviar.mutate(email)}
-            className={estilos.cta}
-          >
-            {reenviar.isPending ? 'Enviando…' : 'Enviar novo link'}
-          </Button>
-        ) : (
-          <Button asChild className={estilos.cta}>
-            <Link to={ROTAS.login}>Ir para o login</Link>
-          </Button>
-        )}
+          {email && !reenviar.isSuccess ? (
+            <Button
+              disabled={reenviar.isPending}
+              onClick={() => reenviar.mutate(email)}
+              className="w-full rounded-full"
+            >
+              {reenviar.isPending ? 'Enviando…' : 'Enviar novo link'}
+            </Button>
+          ) : (
+            <Button asChild className="w-full rounded-full">
+              <Link to={ROTAS.login}>Ir para o login</Link>
+            </Button>
+          )}
+        </EstadoDeErro>
       </LayoutDeAutenticacao>
     )
   }

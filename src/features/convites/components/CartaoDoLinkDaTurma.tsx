@@ -74,7 +74,7 @@ export function CartaoDoLinkDaTurma() {
       {convites.isPending ? (
         <EsqueletoDeTexto linhas={2} />
       ) : convites.isError ? (
-        <ErroDaConsulta erro={convites.error} />
+        <ErroDaConsulta compacto erro={convites.error} aoTentarDeNovo={() => void convites.refetch()} />
       ) : (
         <>
           {vigente ? (

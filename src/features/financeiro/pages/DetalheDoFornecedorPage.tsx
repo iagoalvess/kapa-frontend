@@ -63,7 +63,7 @@ export default function DetalheDoFornecedorPage() {
     return (
       <>
         {voltar}
-        <ErroDaConsulta erro={fornecedor.error} />
+        <ErroDaConsulta erro={fornecedor.error} aoTentarDeNovo={() => void fornecedor.refetch()} />
       </>
     )
 
@@ -162,7 +162,9 @@ function DespesasDoFornecedor({ fornecedor }: { fornecedor: Fornecedor }) {
     >
       {despesas.isPending ? <EsqueletoDeTabela linhas={4} colunas={5} /> : null}
 
-      {despesas.isError ? <ErroDaConsulta erro={despesas.error} /> : null}
+      {despesas.isError ? (
+        <ErroDaConsulta compacto erro={despesas.error} aoTentarDeNovo={() => void despesas.refetch()} />
+      ) : null}
 
       {despesas.data && itens.length === 0 ? (
         <p className="text-muted-foreground text-sm">

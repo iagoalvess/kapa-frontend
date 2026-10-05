@@ -28,7 +28,8 @@ export function DadosDoTitular({ aoSalvar }: { aoSalvar: () => void }) {
 
   if (perfil.isPending) return <EsqueletoDeTexto linhas={4} />
 
-  if (perfil.isError) return <ErroDaConsulta erro={perfil.error} />
+  if (perfil.isError)
+    return <ErroDaConsulta compacto erro={perfil.error} aoTentarDeNovo={() => void perfil.refetch()} />
 
   return <FormularioDoTitularDoTermo perfil={perfil.data} aoSalvar={aoSalvar} />
 }

@@ -23,6 +23,9 @@ const pedido = (mudancas: Partial<Pedido> = {}): Pedido => ({
   quitado: false,
   status: 'Confirmado',
   pedido_em: '2026-09-05T12:00:00Z',
+  observacao: null,
+  cancelavel_ate: null,
+  cancelamento_solicitado: false,
   ...mudancas,
 })
 

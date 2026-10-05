@@ -186,6 +186,7 @@ outra. O catálogo:
 | Precisa de                               | Use                                                  |
 | ---------------------------------------- | ---------------------------------------------------- |
 | Confirmar uma ação ("Excluir X?")        | `DialogoDeConfirmacao`                               |
+| Ação com texto (motivo, justificativa)   | `DialogoDeTexto`                                     |
 | Formulário num diálogo                   | `DialogoDeFormulario` + `AcoesDoFormulario` no pé    |
 | Rodapé de formulário (Cancelar/Salvar)   | `AcoesDoFormulario`                                  |
 | Erro do formulário inteiro (`root`)      | `ErroDoFormulario`                                   |

@@ -44,7 +44,9 @@ export default function SelecaoDeFormaturaPage() {
           <EsqueletoDeCartoes quantidade={2} altura="h-14" forma="linha" className="md:grid-cols-1" />
         ) : null}
 
-        {formaturas.isError ? <ErroDaConsulta erro={formaturas.error} /> : null}
+        {formaturas.isError ? (
+          <ErroDaConsulta erro={formaturas.error} aoTentarDeNovo={() => void formaturas.refetch()} />
+        ) : null}
 
         {formaturas.data?.map((formatura) => (
           <Button
@@ -64,7 +66,7 @@ export default function SelecaoDeFormaturaPage() {
           </Button>
         ))}
 
-        {selecionar.isError ? <ErroDaConsulta erro={selecionar.error} /> : null}
+        {selecionar.isError ? <ErroDaConsulta emLinha erro={selecionar.error} /> : null}
       </div>
     </>
   )

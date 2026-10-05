@@ -6,12 +6,12 @@ import {
   type DadosDoPlano,
   type ItemDeCobranca,
   type PlanoDeCobranca,
-  TIPOS_DO_PLANO,
+  TIPOS_DOS_RATEIOS,
 } from '../types/cobrancas.types'
 
 /*
-  Validação de **forma**. O que depende do plano — adesão única, item em uso — volta da API com o
-  código (`cobranca.adesao_duplicada`, `cobranca.item_em_uso`) e a mensagem pronta.
+  Validação de **forma**. O que depende do plano — item em uso, a última parcela depois do limite — volta
+  da API com o código (`cobranca.item_em_uso`, `cobranca.ultima_parcela_depois_do_limite`) e a mensagem pronta.
 
   Dinheiro é inteiro em centavos do campo à API: o `CampoDeMoeda` já entrega centavos, e a única
   conta aqui é "por parcela × parcelas" — multiplicação de inteiros, exata. A divisão (e o centavo
@@ -21,7 +21,8 @@ import {
 /** Acima destes, a tela avisa — sem travar (decisão de 14/09/2026). Base 10.000. */
 export const LIMITES_DE_MERCADO = { multa: 200, jurosAoMes: 100 } as const
 
-const TIPOS = TIPOS_DO_PLANO
+/** O pacote e o rateio no mesmo formulário: o tipo que a lista oferece depende da caixa do rateio. */
+const TIPOS = TIPOS_DOS_RATEIOS
 
 /** O mês de hoje no formato do `<input type="month">` — o piso do rateio. */
 export const mesCorrente = (hoje = new Date()) =>
@@ -40,6 +41,18 @@ export const esquemaDeItem = z
     /** Rateio extraordinário: o item cobra também quem já aderiu. */
     aplicar_a_quem_ja_aderiu: z.boolean(),
     origem_da_decisao: z.string().trim().max(200, 'A origem deve ter no máximo 200 caracteres.'),
+    /** Faixas do mesmo grupo se excluem na cesta: o formando escolhe uma (Sprint 47, D32). */
+    grupo: z.string().trim().max(60, 'O grupo deve ter no máximo 60 caracteres.'),
+    convites_da_festa: inteiroEmTexto(0, 100, 'De 0 a 100 convites.'),
+    convites_da_colacao: inteiroEmTexto(0, 100, 'De 0 a 100 convites.'),
+    /** `aaaa-mm-dd` ou vazio: até quando a última parcela pode vencer (D28). */
+    ultimo_vencimento: z.string(),
+    /** `aaaa-mm-dd` ou vazio: até quando o formando pode pedir o cancelamento (Sprint 48, D36). */
+    cancelavel_ate: z.string(),
+    /** No rateio, os pacotes de quem paga (D19); vazio é todos os que já aderiram. */
+    alvo: z.array(z.string()),
+    /** Ao mudar o preço de um item em uso: repactua também quem já aderiu (D21). O padrão é não. */
+    aplicar_aos_atuais: z.boolean(),
   })
   // O rateio cobra gente que não aceitou este item: sem a origem da decisão e com o primeiro mês
   // no passado, a API recusa — e é melhor dizer isso antes de a pessoa clicar.
@@ -69,9 +82,9 @@ function proximoMes(hoje = new Date()) {
   return `${mes.getFullYear()}-${String(mes.getMonth() + 1).padStart(2, '0')}`
 }
 
-/** O formulário vazio: mensalidade, por parcela, todo dia 10, a partir do mês que vem. */
+/** O formulário vazio: um pacote de festa, por parcela, todo dia 10, a partir do mês que vem. */
 export const itemEmBranco = (): FormularioDeItem => ({
-  tipo: 'Mensalidade',
+  tipo: 'Festa',
   descricao: '',
   modoDoValor: 'parcela',
   valor_em_centavos: 0,
@@ -80,6 +93,13 @@ export const itemEmBranco = (): FormularioDeItem => ({
   primeiro_mes: proximoMes(),
   aplicar_a_quem_ja_aderiu: false,
   origem_da_decisao: '',
+  grupo: '',
+  convites_da_festa: '0',
+  convites_da_colacao: '0',
+  ultimo_vencimento: '',
+  cancelavel_ate: '',
+  alvo: [],
+  aplicar_aos_atuais: false,
 })
 
 /**
@@ -104,8 +124,19 @@ export function paraDadosDoItem(formulario: FormularioDeItem): DadosDoItem {
     dia_de_vencimento: Number(formulario.dia_de_vencimento),
     primeiro_mes: `${formulario.primeiro_mes}-01`,
     ...(formulario.aplicar_a_quem_ja_aderiu
-      ? { aplicar_a_quem_ja_aderiu: true, origem_da_decisao: formulario.origem_da_decisao.trim() }
-      : {}),
+      ? {
+          aplicar_a_quem_ja_aderiu: true,
+          origem_da_decisao: formulario.origem_da_decisao.trim(),
+          ...(formulario.alvo.length > 0 ? { alvo: formulario.alvo } : {}),
+        }
+      : {
+          grupo: formulario.grupo.trim() || null,
+          convites_da_festa: Number(formulario.convites_da_festa),
+          convites_da_colacao: Number(formulario.convites_da_colacao),
+          ultimo_vencimento: formulario.ultimo_vencimento || null,
+          cancelavel_ate: formulario.cancelavel_ate || null,
+        }),
+    ...(formulario.aplicar_aos_atuais ? { aplicar_aos_atuais: true } : {}),
   }
 }
 
@@ -127,6 +158,13 @@ export function paraFormularioDeItem(item: DadosDoItem): FormularioDeItem {
     primeiro_mes: item.primeiro_mes.slice(0, 7),
     aplicar_a_quem_ja_aderiu: false,
     origem_da_decisao: item.origem_da_decisao ?? '',
+    grupo: item.grupo ?? '',
+    convites_da_festa: String(item.convites_da_festa ?? 0),
+    convites_da_colacao: String(item.convites_da_colacao ?? 0),
+    ultimo_vencimento: item.ultimo_vencimento ?? '',
+    cancelavel_ate: item.cancelavel_ate ?? '',
+    alvo: [],
+    aplicar_aos_atuais: false,
   }
 }
 

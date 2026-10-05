@@ -21,6 +21,7 @@ const ana: SituacaoDeAdesao = {
   adesao_id: 'ad-1',
   versao: 2,
   aceito_em: '2026-09-14T13:32:05Z',
+  cesta: [{ item_de_cobranca_id: 'i-1', rotulo: 'Beca', observacao: 'tamanho M' }],
 }
 const bruno: SituacaoDeAdesao = {
   usuario_id: 'u-2',
@@ -30,6 +31,7 @@ const bruno: SituacaoDeAdesao = {
   adesao_id: null,
   versao: null,
   aceito_em: null,
+  cesta: [],
 }
 const carla: SituacaoDeAdesao = {
   ...ana,

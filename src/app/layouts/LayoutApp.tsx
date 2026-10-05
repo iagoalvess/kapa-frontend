@@ -5,6 +5,7 @@ import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
 import { VoltaDaPagina } from '@/components/VoltaDaPagina'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
+import { useAdesaoObrigatoria } from '@/features/adesoes'
 import { useMeuPerfil } from '@/features/formandos'
 import { BuscaGlobal } from '@/features/busca'
 import { SinoDeNovidades } from '@/features/comunicacao'
@@ -41,6 +42,9 @@ export function LayoutApp() {
   const noPainel = useNoPainel()
   const telaGrande = useTelaGrande()
   const muralForaDoPlano = usePlanoDaTurma().bloqueia(MODULOS.mural)
+  // Antes da adesão o mural responde 403 (Sprint 47, D18): o sino só aparece para quem já pode lê-lo.
+  const adesao = useAdesaoObrigatoria()
+  const adesaoPendente = adesao.carregando || adesao.pendente
   const folha = useRef<HTMLDialogElement>(null)
   const fecharFolha = () => folha.current?.close()
   // O cadastro incompleto marca a porta dele, que é o avatar — e não um aviso no meio do Início.
@@ -121,7 +125,7 @@ export function LayoutApp() {
             {/* No celular ela mora na folha "Mais" (P2), e só uma existe por vez: o painel tem id fixo. */}
             {selecionada && telaGrande ? <BuscaGlobal /> : null}
             {/* O sino é do mural, e por isso só existe com uma turma na sessão — e com o mural no plano. */}
-            {selecionada && !muralForaDoPlano ? <SinoDeNovidades /> : null}
+            {selecionada && !muralForaDoPlano && !adesaoPendente ? <SinoDeNovidades /> : null}
             {/* O avatar abre o que é da conta — cadastro, privacidade, papel, plano e "Sair" —, e é
                 por isso que nada disso ocupa linha no menu da esquerda, que é o menu da turma. */}
             {usuario ? (

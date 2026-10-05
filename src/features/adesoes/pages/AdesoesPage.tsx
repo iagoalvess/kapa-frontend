@@ -53,7 +53,7 @@ export default function AdesoesPage() {
     return (
       <>
         {voltar}
-        <ErroDaConsulta erro={conteudo.error} />
+        <ErroDaConsulta erro={conteudo.error} aoTentarDeNovo={() => void conteudo.refetch()} />
       </>
     )
 

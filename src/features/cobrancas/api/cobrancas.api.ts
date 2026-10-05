@@ -1,7 +1,10 @@
 import { api } from '@/lib/http/cliente'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
 import type {
+  Alcance,
   DadosDoItem,
+  DadosDoLancamento,
+  Lancamento,
   DadosDoPlano,
   FiltroDeParcelas,
   Parcela,
@@ -9,6 +12,8 @@ import type {
   PlanoDeCobrancaResumo,
   ResumoDeParcelas,
   SimulacaoDoPlano,
+  SolicitacaoDeCancelamento,
+  StatusDaSolicitacao,
 } from '../types/cobrancas.types'
 
 const BASE = '/api/v1/cobrancas'
@@ -98,6 +103,72 @@ export function resumirParcelas(
 ) {
   return api.get<ResumoDeParcelas>(`${BASE}/parcelas/resumo`, {
     query: { usuario_id: filtro.usuario_id, de: filtro.de, ate: filtro.ate, busca: filtro.busca },
+    signal,
+  })
+}
+
+/** Quantos de quem já aderiu o preço novo alcançaria, e quanto muda — a pergunta da D21, sem gravar nada. */
+export function simularPreco(planoId: string, itemId: string, valorEmCentavos: number, signal?: AbortSignal) {
+  return api.get<Alcance>(`${PLANOS}/${planoId}/itens/${itemId}/alcance-do-preco`, {
+    query: { valor_em_centavos: valorEmCentavos },
+    signal,
+  })
+}
+
+/** Quantos formandos o rateio alcançaria hoje, e o total (D19). Alvo vazio é todos os que já aderiram. */
+export function simularRateio(
+  planoId: string,
+  alvo: string[],
+  valorEmCentavos: number,
+  signal?: AbortSignal,
+) {
+  return api.get<Alcance>(`${PLANOS}/${planoId}/alcance-do-rateio`, {
+    query: { alvo, valor_em_centavos: valorEmCentavos },
+    signal,
+  })
+}
+
+const SOLICITACOES = `${BASE}/solicitacoes-de-cancelamento`
+
+/** As solicitações de cancelamento da turma — a fila da comissão. */
+export function listarSolicitacoes(status: StatusDaSolicitacao | undefined, signal?: AbortSignal) {
+  return api.get<SolicitacaoDeCancelamento[]>(SOLICITACOES, { query: { status }, signal })
+}
+
+/** Aprova: cancela o pacote ou o pedido, e o já pago vai para "a devolver". Só a tesouraria. */
+export function aprovarSolicitacao(solicitacaoId: string) {
+  return api.post<SolicitacaoDeCancelamento>(`${SOLICITACOES}/${solicitacaoId}/aprovar`)
+}
+
+/** Recusa, com o motivo que o formando lê. A cobrança volta no mesmo dia. */
+export function recusarSolicitacao({ solicitacaoId, motivo }: { solicitacaoId: string; motivo: string }) {
+  return api.post<SolicitacaoDeCancelamento>(`${SOLICITACOES}/${solicitacaoId}/recusar`, { body: { motivo } })
+}
+
+/** Os lançamentos avulsos da turma (Sprint 48, D23). */
+export function listarLancamentos(signal?: AbortSignal) {
+  return api.get<Lancamento[]>(`${BASE}/avulsas`, { signal })
+}
+
+/** Lança uma cobrança ou um crédito no vínculo de um formando. */
+export function lancar(dados: DadosDoLancamento) {
+  return api.post<Lancamento>(`${BASE}/avulsas`, { body: dados })
+}
+
+/** Um formando ativo da turma, como o seletor do lançamento o mostra. */
+export interface FormandoDaTurma {
+  usuario_id: string
+  nome: string
+  nome_completo: string | null
+}
+
+/**
+ * Os membros ativos que batem com a busca — o seletor do lançamento avulso. O endpoint é o de Membros; a chamada mora
+ * aqui porque uma feature não importa de outra.
+ */
+export function buscarFormandos(busca: string, signal?: AbortSignal) {
+  return api.get<Pagina<FormandoDaTurma>>('/api/v1/formaturas/atual/membros', {
+    query: { busca: busca || undefined, ativo: true, tamanho: 20 },
     signal,
   })
 }

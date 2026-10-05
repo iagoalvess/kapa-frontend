@@ -80,6 +80,12 @@ const ROTULOS_DE_EVENTO: Record<string, string> = {
   'loja.compra_cancelada': 'Compra da loja cancelada',
   'loja.compra_devolvida': 'Devolução de compra registrada',
   'loja.pedido_de_cancelamento_recusado': 'Pedido de cancelamento recusado',
+  // Sprint 48: o ciclo de vida da cesta.
+  'cobranca.cancelamento_solicitado': 'Cancelamento pedido pelo formando',
+  'cobranca.cancelamento_aprovado': 'Cancelamento aprovado pela comissão',
+  'cobranca.cancelamento_recusado': 'Cancelamento recusado pela comissão',
+  'cobranca.lancamento_avulso': 'Lançamento avulso no formando',
+  'adesao.aditivo_aceito': 'Aditivo aceito pelo formando',
   // A turma vê que quem ativou a licença dela foi o suporte da Kapa, e não o Presidente (Sprint 16).
   // As outras ações do painel são da conta, e não aparecem na trilha de turma nenhuma.
   'suporte.assinatura_ativada': 'Licença ativada pelo suporte',

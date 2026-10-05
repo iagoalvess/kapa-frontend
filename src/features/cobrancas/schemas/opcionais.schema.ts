@@ -45,6 +45,10 @@ export const esquemaDeOpcional = z
     abertura_de_vendas: z.string(),
     /** `aaaa-mm-dd`; vazio, sem prazo. */
     pedidos_ate_dia: z.string(),
+    /** `aaaa-mm-dd`; vazio, nada é conferido. A última parcela do teto e a de cada pedido não passam dele (D28). */
+    ultimo_vencimento: z.string(),
+    /** `aaaa-mm-dd`; vazio, sem trava. Depois dele, o formando não pede mais o cancelamento (Sprint 48, D36). */
+    cancelavel_ate: z.string(),
     /** O item da festa que este item vende; vazio é "Nenhum". */
     item_da_festa_id: z.string(),
     /** Vitrine do formando ou loja pública (Sprint 26). */
@@ -87,6 +91,8 @@ export const opcionalEmBranco = (): FormularioDeOpcional => ({
   estoque: '',
   abertura_de_vendas: '',
   pedidos_ate_dia: '',
+  ultimo_vencimento: '',
+  cancelavel_ate: '',
   item_da_festa_id: '',
   modo_de_venda: 'AoFormando',
   preco_publico_em_centavos: 0,
@@ -115,6 +121,8 @@ export function paraDadosDoOpcional(formulario: FormularioDeOpcional, primeiroMe
     estoque: numero(formulario.estoque),
     abertura_de_vendas: deCampoDeDataHora(formulario.abertura_de_vendas) ?? undefined,
     pedidos_ate_dia: data(formulario.pedidos_ate_dia),
+    ultimo_vencimento: data(formulario.ultimo_vencimento),
+    cancelavel_ate: data(formulario.cancelavel_ate),
     item_da_festa_id: data(formulario.item_da_festa_id),
     modo_de_venda: formulario.modo_de_venda,
     preco_publico_em_centavos:
@@ -146,6 +154,8 @@ export function paraFormularioDoOpcional(item: ItemDeCobranca): FormularioDeOpci
     estoque: texto(item.estoque),
     abertura_de_vendas: paraCampoDeDataHora(item.abertura_de_vendas),
     pedidos_ate_dia: texto(item.pedidos_ate_dia),
+    ultimo_vencimento: texto(item.ultimo_vencimento),
+    cancelavel_ate: texto(item.cancelavel_ate),
     item_da_festa_id: texto(item.item_da_festa_id),
     modo_de_venda: item.modo_de_venda,
     preco_publico_em_centavos: item.preco_publico_em_centavos ?? 0,

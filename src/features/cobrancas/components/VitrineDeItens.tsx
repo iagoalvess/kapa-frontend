@@ -1,5 +1,8 @@
-import { Pencil, ShoppingCart } from 'lucide-react'
+import { Pencil, ShoppingCart, X } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { z } from 'zod'
+import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
@@ -17,8 +20,9 @@ import { contemBusca } from '@/lib/busca'
 import { formatarCentavos, formatarData, formatarDataHora, formatarNumero } from '@/lib/formato'
 import { ordenarPor } from '@/lib/ordenar'
 import { useOpcionais } from '../hooks/useOpcionais'
-import { useMeusPedidos } from '../hooks/usePedidos'
+import { useCancelarPedido, useMeusPedidos } from '../hooks/usePedidos'
 import {
+  cancelavelHoje,
   type Opcional,
   type Pedido,
   ROTULOS_DE_TIPO,
@@ -116,7 +120,8 @@ export function VitrineDeItens({ aoPedir }: { aoPedir?: (pedido: Pedido) => void
 
   if (opcionais.isPending) return <EsqueletoDeTabela colunas={3} />
 
-  if (opcionais.isError) return <ErroDaConsulta erro={opcionais.error} />
+  if (opcionais.isError)
+    return <ErroDaConsulta compacto erro={opcionais.error} aoTentarDeNovo={() => void opcionais.refetch()} />
 
   return (
     <>
@@ -239,25 +244,76 @@ function LinhaDaVitrine({ item, pedido, aoPedir }: { item: Opcional; pedido?: Pe
 
       <td className="py-3 pr-4">
         {meu ? (
-          <Selo tom="sucesso">
-            Você pediu {formatarNumero(meu.quantidade)}
-            {meu.quantidade === 1 ? ' unidade' : ' unidades'}
-          </Selo>
+          <div className="grid justify-items-start gap-1">
+            <Selo tom="sucesso">
+              Você pediu {formatarNumero(meu.quantidade)}
+              {meu.quantidade === 1 ? ' unidade' : ' unidades'}
+            </Selo>
+            {meu.cancelamento_solicitado ? <Selo tom="alerta">Cancelamento pedido à comissão</Selo> : null}
+          </div>
         ) : null}
       </td>
 
       <td className="py-3 text-right">
-        {item.aberto_a_pedido ? (
+        {item.aberto_a_pedido || meu ? (
           <AcoesDaLinha rotulo={`Ações de ${rotuloDoItem(item)}`}>
-            <AcaoDaLinha
-              rotulo={meu ? 'Mudar quantidade' : 'Pedir'}
-              icone={meu ? Pencil : ShoppingCart}
-              desabilitada={esgotado && !meu}
-              onClick={aoPedir}
-            />
+            {item.aberto_a_pedido ? (
+              <AcaoDaLinha
+                rotulo={meu ? 'Mudar quantidade' : 'Pedir'}
+                icone={meu ? Pencil : ShoppingCart}
+                desabilitada={(esgotado && !meu) || meu?.cancelamento_solicitado}
+                onClick={aoPedir}
+              />
+            ) : null}
+            {meu && !meu.cancelamento_solicitado && cancelavelHoje(meu.cancelavel_ate) ? (
+              <PedirCancelamento pedido={meu} />
+            ) : null}
           </AcoesDaLinha>
         ) : null}
       </td>
     </tr>
+  )
+}
+
+const esquemaDoMotivo = z.object({
+  motivo: z.string().trim().max(300, 'Escreva o motivo em até 300 caracteres.'),
+})
+
+/**
+ * O formando não cancela sozinho, nem sem nada pago (Sprint 48, D8): pede à comissão, que aprova ou recusa. Enquanto
+ * ela não responde — até 7 dias —, as parcelas do pedido saem da cobrança automática.
+ */
+function PedirCancelamento({ pedido }: { pedido: Pedido }) {
+  const cancelar = useCancelarPedido()
+
+  return (
+    <DialogoDeTexto
+      gatilho="Pedir cancelamento"
+      gatilhoIcone={{ icone: X, tom: 'perigo' }}
+      titulo={`Pedir o cancelamento de ${rotuloDoItem(pedido).toLowerCase()}?`}
+      descricao={
+        pedido.pago_em_centavos > 0
+          ? 'A comissão decide. Se aprovar, o pedido cai e o que você já pagou entra na lista de devolução da turma. Até a resposta, as parcelas dele não são cobradas.'
+          : 'A comissão decide. Até a resposta, as parcelas dele não são cobradas.'
+      }
+      campo="motivo"
+      rotulo="Motivo (opcional)"
+      esquema={esquemaDoMotivo}
+      confirmar="Pedir cancelamento"
+      confirmarOcupado="Enviando…"
+      ocupado={cancelar.isPending}
+      aoEnviar={(motivo, concluir, falhar) =>
+        cancelar.mutate(
+          { pedidoId: pedido.id, motivo },
+          {
+            onSuccess: () => {
+              toast.success('Pedido enviado à comissão. Ela responde em até 7 dias.')
+              concluir()
+            },
+            onError: falhar,
+          },
+        )
+      }
+    />
   )
 }

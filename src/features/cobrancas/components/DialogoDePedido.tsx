@@ -5,10 +5,11 @@ import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Select } from '@/components/Select'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { useAjustarPedido, usePedir } from '../hooks/usePedidos'
-import { gradeDoPedido } from '../lib/gradeDoPedido'
+import { gradeDoPedido, passaDoLimite } from '../lib/gradeDoPedido'
 import type { Opcional, Pedido } from '../types/cobrancas.types'
 
 /**
@@ -59,7 +60,9 @@ export function DialogoDePedido({
   const jaPedidas = pedido?.status === 'Confirmado' ? pedido.quantidade : 0
   const [quantidade, definirQuantidade] = useState(Math.max(1, jaPedidas))
   const [escolhidas, definirEscolhidas] = useState(1)
+  const [observacao, definirObservacao] = useState('')
   const idDasParcelas = useId()
+  const idDaObservacao = useId()
   // No pedido de pé a divisão é a dele; o teto só se aplica à escolha.
   const parcelas = jaPedidas > 0 && pedido ? pedido.parcelas : Math.min(escolhidas, item.numero_de_parcelas)
   const criar = usePedir()
@@ -88,7 +91,7 @@ export function DialogoDePedido({
 
     if (pedido && pedido.status === 'Confirmado')
       ajustar.mutate({ pedidoId: pedido.id, quantidade }, aoTerminar)
-    else criar.mutate({ itemId: item.id, quantidade, parcelas }, aoTerminar)
+    else criar.mutate({ itemId: item.id, quantidade, parcelas, observacao: observacao.trim() }, aoTerminar)
   }
 
   return (
@@ -161,6 +164,23 @@ export function DialogoDePedido({
           </div>
         ) : null}
 
+        {/* Sprint 48, D26: tamanho da beca, nome no convite — a comissão lê na lista de Pedidos. */}
+        {jaPedidas === 0 ? (
+          <div className="grid gap-2">
+            <label htmlFor={idDaObservacao} className="text-foreground w-fit font-medium">
+              Detalhe (opcional)
+            </label>
+            <Input
+              id={idDaObservacao}
+              value={observacao}
+              maxLength={300}
+              placeholder="Tamanho, nome, cor"
+              disabled={salvando}
+              onChange={(evento) => definirObservacao(evento.target.value)}
+            />
+          </div>
+        ) : null}
+
         <div className="bg-muted grid gap-1 rounded-xl px-4 py-3 text-sm">
           <p className="flex items-baseline justify-between gap-4">
             <span className="text-muted-foreground">Total</span>
@@ -186,6 +206,13 @@ export function DialogoDePedido({
             </ul>
           ) : null}
         </div>
+
+        {passaDoLimite(item, grade) ? (
+          <p role="alert" className="text-warning-text text-sm">
+            A última parcela passaria de {formatarData(item.ultimo_vencimento)}, o último vencimento deste
+            item. Escolha menos parcelas.
+          </p>
+        ) : null}
 
         <p className="text-texto-muted text-xs">
           O valor entra no seu extrato e é pago pelo mesmo PIX da turma.

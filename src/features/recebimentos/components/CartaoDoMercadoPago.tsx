@@ -71,7 +71,8 @@ export function CartaoDoMercadoPago() {
       </EsqueletoDeCartao>
     )
 
-  if (consulta.isError) return <ErroDaConsulta erro={consulta.error} />
+  if (consulta.isError)
+    return <ErroDaConsulta compacto erro={consulta.error} aoTentarDeNovo={() => void consulta.refetch()} />
 
   const { provedor } = consulta.data
   const escreve = ehPresidente && liberado

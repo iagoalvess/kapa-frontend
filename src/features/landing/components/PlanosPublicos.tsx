@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { CartaoDePlano } from '@/components/CartaoDePlano'
 import { Chip } from '@/components/Chip'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
+import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { ROTAS, urlDoApp } from '@/config/rotas'
@@ -69,17 +70,17 @@ export function PlanosPublicos() {
       )}
 
       {planos.isError ? (
-        <div className="mx-auto grid max-w-md justify-items-center gap-4 text-center">
-          <p className="text-muted-foreground">
-            A tabela de preços não carregou agora. Criar a turma continua de graça: comece com a sua comissão.
-          </p>
-          <Button asChild size="lg">
+        <EstadoDeErro
+          titulo="Não conseguimos carregar os planos"
+          descricao="A tabela de preços não carregou agora. Criar a turma continua de graça: comece com a sua comissão."
+        >
+          <Button asChild size="lg" className="rounded-full px-6">
             <a href={urlDoApp(ROTAS.criarConta)}>
               <GraduationCap className="size-4" aria-hidden />
               Criar minha turma grátis
             </a>
           </Button>
-        </div>
+        </EstadoDeErro>
       ) : planos.isPending ? (
         <EsqueletoDeCartoes quantidade={2} altura="h-[30rem]" />
       ) : (

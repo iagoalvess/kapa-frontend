@@ -34,6 +34,19 @@ export function gradeDoPedido(item: Opcional, quantidade: number, parcelas: numb
   }))
 }
 
+/**
+ * Se a grade passa do último vencimento do item (D28) — o aviso que o diálogo mostra antes de a API recusar com
+ * `cobranca.ultima_parcela_depois_do_limite`.
+ *
+ * @param item O item da vitrine.
+ * @param grade A grade de {@link gradeDoPedido}.
+ */
+export function passaDoLimite(item: Opcional, grade: { vencimento: Date }[]) {
+  const ultima = grade.at(-1)?.vencimento
+
+  return Boolean(item.ultimo_vencimento && ultima && ultima > new Date(`${item.ultimo_vencimento}T00:00:00`))
+}
+
 /** O mês em que a grade do pedido começa: o do item, ou o próximo vencimento que ainda acontece. */
 function primeiroVencimento(item: Opcional, hoje: Date) {
   const doItem = new Date(`${item.primeiro_mes}T00:00:00`)

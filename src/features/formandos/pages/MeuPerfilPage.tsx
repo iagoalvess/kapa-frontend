@@ -34,7 +34,8 @@ export default function MeuPerfilPage({ acoes }: { acoes?: ReactNode }) {
       </>
     )
 
-  if (perfil.isError) return <ErroDaConsulta erro={perfil.error} />
+  if (perfil.isError)
+    return <ErroDaConsulta erro={perfil.error} aoTentarDeNovo={() => void perfil.refetch()} />
 
   const dados = perfil.data
 

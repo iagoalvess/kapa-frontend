@@ -35,15 +35,18 @@ export function AcoesDoFormulario({
   form,
 }: Props) {
   return (
-    // Duas colunas iguais numa grade do tamanho do conteúdo: os dois botões ficam com a largura do
-    // maior ("Cancelar"), sem esticar pelo diálogo.
-    <div className="ml-auto grid w-fit grid-cols-2 gap-2">
-      <Button type="button" variant="outline" onClick={aoCancelar} disabled={ocupado}>
-        {rotuloDeCancelar}
-      </Button>
-      <Button type="submit" form={form} disabled={ocupado || desabilitado}>
-        {ocupado ? rotuloOcupado : rotulo}
-      </Button>
+    // A faixa tem a largura toda para cobrir o que rola por baixo quando o diálogo a fixa no pé
+    // (`DialogoDeFormulario`). Dentro, duas colunas iguais do tamanho do conteúdo: os dois botões ficam
+    // com a largura do maior ("Cancelar"), sem esticar pelo diálogo.
+    <div data-slot="acoes-do-formulario" className="flex justify-end">
+      <div className="grid w-fit grid-cols-2 gap-2">
+        <Button type="button" variant="outline" onClick={aoCancelar} disabled={ocupado}>
+          {rotuloDeCancelar}
+        </Button>
+        <Button type="submit" form={form} disabled={ocupado || desabilitado}>
+          {ocupado ? rotuloOcupado : rotulo}
+        </Button>
+      </div>
     </div>
   )
 }

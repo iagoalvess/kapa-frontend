@@ -134,12 +134,14 @@ export function HeroDaJornada({
         </div>
 
         <div className="relative flex shrink-0 items-center lg:col-start-3 lg:row-start-1 lg:justify-self-end">
-          <img
-            src={mascote}
-            alt=""
-            className="w-24 object-contain drop-shadow-lg sm:w-32 lg:w-40"
-            loading="lazy"
-          />
+          <span className="bg-brand-tint grid shrink-0 place-items-center rounded-full p-4 sm:p-5">
+            <img
+              src={mascote}
+              alt=""
+              className="w-24 object-contain drop-shadow-md sm:w-32 lg:w-40"
+              loading="lazy"
+            />
+          </span>
           <p className="font-hand text-brand-text hidden -rotate-6 text-center text-2xl leading-none sm:block">
             Juntos até a
             <br />

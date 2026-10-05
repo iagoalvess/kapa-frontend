@@ -35,7 +35,8 @@ export function PaginaInicial() {
   const temMural = usePlanoDaTurma().inclui(MODULOS.mural)
 
   if (formatura.isPending) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
-  if (formatura.isError) return <ErroDaConsulta erro={formatura.error} />
+  if (formatura.isError)
+    return <ErroDaConsulta erro={formatura.error} aoTentarDeNovo={() => void formatura.refetch()} />
 
   const turma = formatura.data
   const fim = turma.previsao_da_festa ?? turma.previsao_de_colacao
@@ -63,7 +64,7 @@ export function PaginaInicial() {
       <AvisoDeAdesao />
       {tem(PAPEIS.tesoureiro) ? <PrimeirosPassos turma={turma} /> : null}
 
-      <TracoDoInicio className="-my-4 hidden h-5 w-full lg:block" />
+      <TracoDoInicio className="-my-2 hidden h-4 w-full lg:block" />
 
       <div
         className={cn(
@@ -82,7 +83,7 @@ export function PaginaInicial() {
         {temDinheiro ? (
           <TracoDoInicio
             verticalNoDesktop
-            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-4"
+            className="col-span-full -my-2 h-4 w-full lg:col-span-1 lg:my-8 lg:h-auto lg:w-4"
           />
         ) : null}
 
@@ -97,11 +98,11 @@ export function PaginaInicial() {
         ) : null}
       </div>
 
-      <TracoDoInicio className="-my-3 h-4 w-full lg:-my-4 lg:h-5" />
+      <TracoDoInicio className="-my-2 h-4 w-full" />
 
       <GraficoDaArrecadacao />
 
-      <TracoDoInicio className="-my-2 h-4 w-full lg:-my-3 lg:h-5" />
+      <TracoDoInicio className="-my-2 h-4 w-full" />
 
       <div
         className={cn(
@@ -117,7 +118,7 @@ export function PaginaInicial() {
         {temRecados ? (
           <TracoDoInicio
             verticalNoDesktop
-            className="col-span-full h-3 w-full lg:col-span-1 lg:h-full lg:w-4"
+            className="col-span-full -my-2 h-4 w-full lg:col-span-1 lg:my-8 lg:h-auto lg:w-4"
           />
         ) : null}
 

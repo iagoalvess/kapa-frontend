@@ -77,7 +77,7 @@ export function CartaoDeConvitesPorEmail() {
       {convites.isPending ? (
         <EsqueletoDeTabela linhas={3} colunas={3} />
       ) : convites.isError ? (
-        <ErroDaConsulta erro={convites.error} />
+        <ErroDaConsulta compacto erro={convites.error} aoTentarDeNovo={() => void convites.refetch()} />
       ) : (
         <ListaDeConvites convites={convites.data.filter((convite) => !!convite.email)} />
       )}

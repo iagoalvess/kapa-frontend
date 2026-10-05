@@ -184,7 +184,9 @@ export default function PlanosPage() {
 
       {planos.isPending ? <EsqueletoDeCartoes quantidade={2} altura="h-[30rem]" /> : null}
 
-      {planos.isError ? <ErroDaConsulta erro={planos.error} /> : null}
+      {planos.isError ? (
+        <ErroDaConsulta erro={planos.error} aoTentarDeNovo={() => void planos.refetch()} />
+      ) : null}
 
       {planos.data && doCiclo.length === 0 ? (
         <p className="text-muted-foreground text-center text-sm">

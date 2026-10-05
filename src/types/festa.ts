@@ -186,34 +186,37 @@ export interface ResumoDosConvites {
   pedidos_com_parcela_depois_do_fechamento: number
 }
 
+/** Um formando com convite de pacote preso por parcela em atraso (Sprint 47, D24). Espelha `FormandoComConvitePresoDTO`. */
+export interface FormandoComConvitePreso {
+  vinculo_id: string
+  nome: string
+  convites: number
+}
+
 /**
- * O painel da cota de convites de um evento — a festa ou a colação —, na Gestão (Sprint 30; a festa
- * em 01/10/2026).
+ * O painel de convites de um evento — a festa ou a colação —, na Gestão (Sprint 47, sucessor da cota da Sprint 30).
  *
- * Mora em `types/` porque é convite da festa lido pela agenda. `excedente` é aviso, não bloqueio
- * (decisão 3): o número de formandos muda depois do cadastro. Espelha `PainelDaCotaDTO`.
+ * Mora em `types/` porque é convite da festa lido pela agenda. Os convites vêm dos pacotes das cestas e saem
+ * sozinhos; `excedente` é aviso, não bloqueio. Espelha `PainelDeConvitesDTO`.
  */
-export interface PainelDaCota {
+export interface PainelDeConvites {
   evento: EventoDoConvite
-  cota_por_formando: number | null
   capacidade: number | null
-  /** Quando a cota foi aberta pela primeira vez; nulo se nunca. */
-  aberta_em: string | null
   formandos_ativos: number
+  /** Convites que os pacotes das cestas concedem neste evento. */
+  beneficios: number
+  /** Comprados — pedido de convite extra e loja. */
+  extras: number
   cortesias: number
-  /** Cota × formandos ativos + cortesias. */
+  /** Benefícios + extras + cortesias. */
   lugares: number
   /** Quanto `lugares` passa da capacidade; zero se cabe. */
   excedente: number
+  /** Convites de pacote válidos — menos que os benefícios enquanto o evento não tem hora e local. */
   emitidos: number
   nomeados: number
   sem_nome: number
-}
-
-/** A cota como a tela a envia. Espelha `CotaRequestDTO`. */
-export interface DadosDaCota {
-  cota_por_formando: number | null
-  capacidade: number | null
+  presos: FormandoComConvitePreso[]
 }
 
 /** O documento do convidado (P5.1). Espelha `TipoDeDocumento`. */

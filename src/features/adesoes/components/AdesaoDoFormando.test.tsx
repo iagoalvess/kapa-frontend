@@ -49,6 +49,7 @@ const plano: PlanoAceito = {
     valor_em_centavos: 20_000,
   })),
   total_em_centavos: 240_000,
+  cesta: null,
 }
 
 const conteudo: ConteudoParaAdesao = {
@@ -61,6 +62,39 @@ const conteudo: ConteudoParaAdesao = {
   plano,
   hash_do_conteudo: HASH,
   resumo: null,
+  catalogo: [
+    {
+      id: 'pk-1',
+      grupo: null,
+      tipo: 'Mensalidade',
+      descricao: null,
+      valor_em_centavos: 240_000,
+      numero_de_parcelas: 12,
+      convites_da_festa: 0,
+      convites_da_colacao: 0,
+    },
+    {
+      id: 'pk-10',
+      grupo: 'Festa',
+      tipo: 'Festa',
+      descricao: '10 pessoas',
+      valor_em_centavos: 300_000,
+      numero_de_parcelas: 10,
+      convites_da_festa: 10,
+      convites_da_colacao: 0,
+    },
+    {
+      id: 'pk-15',
+      grupo: 'Festa',
+      tipo: 'Festa',
+      descricao: '15 pessoas',
+      valor_em_centavos: 420_000,
+      numero_de_parcelas: 10,
+      convites_da_festa: 15,
+      convites_da_colacao: 0,
+    },
+  ],
+  cesta_contratada: [],
 }
 
 const adesao: Adesao = {
@@ -107,6 +141,10 @@ function responder(minha: MinhaAdesao, conteudoDaTurma: ConteudoParaAdesao = con
       return HttpResponse.json(conteudoDaTurma)
     }),
     http.get(MINHA, () => HttpResponse.json(minha)),
+    // A cesta viva do termo assinado (Sprint 48): vazia, cai no quadro do termo.
+    http.get(`${env.VITE_API_URL}/api/v1/adesoes/minha-cesta`, () =>
+      HttpResponse.json({ pacotes: [], disponiveis: [] }),
+    ),
     http.post(CODIGO, () => {
       pedidos.codigo += 1
       return HttpResponse.json({ email: 'an*@kapa.dev', valido_por_minutos: 3 })
@@ -115,10 +153,15 @@ function responder(minha: MinhaAdesao, conteudoDaTurma: ConteudoParaAdesao = con
   return pedidos
 }
 
+/** Põe a mensalidade na cesta — sem pacote, a tela não deixa aceitar (Sprint 47, D33). */
+async function escolherAMensalidade() {
+  await userEvent.click(await screen.findByRole('checkbox', { name: /Mensalidade/ }))
+}
+
 /** O caminho até a confirmação: rolar o termo, marcar, aceitar (que pede o código) e digitá-lo no diálogo. */
 async function lerPedirCodigoEDigitar(codigo = '123456') {
   act(() => chegarAoFim?.())
-  await userEvent.click(screen.getByRole('checkbox'))
+  await userEvent.click(screen.getByRole('checkbox', { name: /Li o termo/ }))
   await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }))
   await userEvent.type(await screen.findByLabelText(/Código enviado para/), codigo)
 }
@@ -135,6 +178,7 @@ describe('AdesaoDoFormando', () => {
     responder({ adesao: null, pendencias: [], menor_de_idade: false })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+    await escolherAMensalidade()
 
     const resumo = await screen.findByRole('region', { name: 'O que você vai pagar' })
     const termo = screen.getByRole('region', { name: 'Texto do termo' })
@@ -200,14 +244,15 @@ describe('AdesaoDoFormando', () => {
 
     const aceitar = await screen.findByRole('button', { name: 'Aceitar' })
     expect(aceitar).toBeDisabled()
-    expect(screen.getByRole('checkbox')).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: /Li o termo/ })).toBeDisabled()
 
+    await escolherAMensalidade()
     await lerPedirCodigoEDigitar()
 
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar adesão' }))
 
     expect(await screen.findByRole('region', { name: 'Termo assinado' })).toBeInTheDocument()
-    expect(enviado).toEqual({ hash_do_conteudo: HASH, codigo: '123456' })
+    expect(enviado).toEqual({ hash_do_conteudo: HASH, codigo: '123456', pacotes: ['pk-1'] })
     expect(await screen.findByText('Parcelas no extrato: 12')).toBeInTheDocument()
   })
 
@@ -218,6 +263,7 @@ describe('AdesaoDoFormando', () => {
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
     await screen.findByRole('button', { name: 'Aceitar' })
+    await escolherAMensalidade()
     act(() => chegarAoFim?.())
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }))
 
@@ -249,22 +295,94 @@ describe('AdesaoDoFormando', () => {
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
     await screen.findByRole('button', { name: 'Aceitar' })
+    await escolherAMensalidade()
+    await waitFor(() => expect(pedidos.conteudo).toBe(2))
     await lerPedirCodigoEDigitar()
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar adesão' }))
 
-    await waitFor(() => expect(pedidos.conteudo).toBe(2))
+    await waitFor(() => expect(pedidos.conteudo).toBe(3))
   })
 
   it('sem termo nem plano, explica o que falta em vez de quebrar', async () => {
     responder(
       { adesao: null, pendencias: [], menor_de_idade: false },
-      { termo: null, plano: null, hash_do_conteudo: null, resumo: null },
+      { termo: null, plano: null, hash_do_conteudo: null, resumo: null, catalogo: [], cesta_contratada: [] },
     )
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
     expect(await screen.findByText(/ainda não publicou o termo/)).toBeInTheDocument()
     expect(screen.getByText(/ainda não tem plano de cobrança em vigor/)).toBeInTheDocument()
+  })
+
+  /** D32 e D33: a festa é uma faixa por vez, com "Não quero"; sem pacote nenhum, não há aceite. */
+  it('monta a cesta com uma faixa por grupo e só libera o aceite com ao menos um pacote', async () => {
+    const pedidos: string[][] = []
+    responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    servidor.use(
+      http.get(CONTEUDO, ({ request }) => {
+        pedidos.push(new URL(request.url).searchParams.getAll('pacotes'))
+        return HttpResponse.json(conteudo)
+      }),
+    )
+
+    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+    const festa = await screen.findByRole('group', { name: 'Festa' })
+    act(() => chegarAoFim?.())
+
+    expect(screen.getByRole('button', { name: 'Aceitar' })).toBeDisabled()
+    expect(within(festa).getByRole('radio', { name: 'Não quero' })).toBeChecked()
+
+    await userEvent.click(within(festa).getByRole('radio', { name: /10 pessoas/ }))
+    await userEvent.click(within(festa).getByRole('radio', { name: /15 pessoas/ }))
+
+    expect(within(festa).getByText('15 convites da festa')).toBeInTheDocument()
+    await waitFor(() => expect(pedidos.at(-1)).toEqual(['pk-15']))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Aceitar' })).toBeEnabled())
+  })
+
+  it('a re-adesão mostra a cesta contratada, travada', async () => {
+    responder(
+      { adesao: { ...adesao, versao: 1 }, pendencias: [], menor_de_idade: false },
+      { ...conteudo, termo: { ...conteudo.termo!, versao: 2 }, cesta_contratada: ['pk-15'] },
+    )
+
+    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Ler a versão 2' }))
+
+    const festa = await screen.findByRole('group', { name: 'Festa' })
+    expect(within(festa).getByRole('radio', { name: /15 pessoas/ })).toBeChecked()
+    expect(within(festa).getByRole('radio', { name: /15 pessoas/ })).toBeDisabled()
+  })
+
+  it('o termo assinado traz o quadro de escolhas', async () => {
+    responder({
+      adesao: {
+        ...adesao,
+        plano: {
+          ...plano,
+          cesta: [
+            {
+              item_id: 'pk-15',
+              grupo: 'Festa',
+              tipo: 'Festa',
+              descricao: '15 pessoas',
+              valor_em_centavos: 420_000,
+              convites_da_festa: 15,
+              convites_da_colacao: 0,
+            },
+          ],
+        },
+      },
+      pendencias: [],
+      menor_de_idade: false,
+    })
+
+    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+
+    const quadro = await screen.findByRole('region', { name: 'Quadro de escolhas' })
+    expect(within(quadro).getByText('Festa — 15 pessoas')).toBeInTheDocument()
+    expect(within(quadro).getByText('15 convites da festa')).toBeInTheDocument()
   })
 
   it('menor de 18 anos é encaminhado à comissão', async () => {

@@ -7,7 +7,7 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { usePapel } from '@/hooks/useSessao'
-import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
+import { formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { useVigorarPlano } from '../hooks/usePlano'
 import type { PlanoDeCobranca, SimulacaoDoPlano } from '../types/cobrancas.types'
@@ -31,7 +31,7 @@ interface Props {
  * As regras de atraso saíram daqui para o cartão lateral: são quatro números que quase nunca mudam,
  * e ocupando a largura da tela pesavam mais que os itens, que são o trabalho do dia.
  *
- * "Nova cobrança" mora no cabeçalho, como a ação de todo cartão do app: o formulário ficava aberto
+ * "Novo pacote" mora no cabeçalho, como a ação de todo cartão do app: o formulário ficava aberto
  * no pé do cartão o tempo todo, ocupando metade da tela para a coisa mais rara que se faz nela.
  */
 export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, children }: Props) {
@@ -39,7 +39,7 @@ export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, child
   const vigente = plano.status === 'Vigente'
 
   const descricao = vigente
-    ? `Em vigor desde ${formatarData(plano.vigente_desde)}. Mudar o valor de uma cobrança vale só para as parcelas que ainda não venceram.`
+    ? `Em vigor desde ${formatarData(plano.vigente_desde)}. Cada formando escolhe os pacotes dele na adesão; mudar o preço vale só para as parcelas que ainda não venceram.`
     : ehPresidente
       ? 'Confira as parcelas ao lado. Quando estiver tudo certo, coloque o plano em vigor.'
       : 'O plano está sendo preparado. Depois de conferir as parcelas, o presidente poderá colocá-lo em vigor.'
@@ -55,7 +55,7 @@ export function CartaoDoPlano({ plano, simulacao, editavel, aoIncluirItem, child
           <>
             <Button variant="outline" size="sm" onClick={aoIncluirItem}>
               <Plus aria-hidden />
-              Nova cobrança
+              Novo pacote
             </Button>
             {!vigente && ehPresidente ? <ColocarEmVigor plano={plano} simulacao={simulacao} /> : null}
           </>
@@ -98,7 +98,7 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
         titulo={`Colocar “${plano.nome}” em vigor?`}
         descricao={
           simulacao
-            ? `Cada formando que aderir passa a dever ${formatarCentavos(simulacao.total_por_formando)}, em ${formatarNumero(simulacao.parcelas.length)} parcelas. Hoje são ${formatarNumero(simulacao.formandos)} na turma: ${formatarCentavos(simulacao.total_da_turma)} no total.`
+            ? `O catálogo abre para a adesão: cada formando escolhe os pacotes dele e passa a dever só o que escolheu. Hoje são ${formatarNumero(simulacao.formandos)} na turma.`
             : null
         }
         rotuloDeCancelar="Revisar"
@@ -111,7 +111,7 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
         }
       >
         <p className="text-muted-foreground text-sm">
-          Depois de em vigor, o valor de uma cobrança ainda pode mudar — só para as parcelas que não venceram.
+          Depois de em vigor, o preço de um pacote ainda pode mudar — só para as parcelas que não venceram.
         </p>
       </DialogoDeConfirmacao>
       {semItens ? <TooltipContent>Inclua ao menos uma cobrança para colocar em vigor.</TooltipContent> : null}

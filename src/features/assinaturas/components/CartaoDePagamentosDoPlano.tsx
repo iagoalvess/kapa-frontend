@@ -28,7 +28,7 @@ export function CartaoDePagamentosDoPlano() {
   if (cobrancas.isError)
     return (
       <Cartao titulo="Pagamentos do plano">
-        <ErroDaConsulta erro={cobrancas.error} />
+        <ErroDaConsulta compacto erro={cobrancas.error} aoTentarDeNovo={() => void cobrancas.refetch()} />
       </Cartao>
     )
 

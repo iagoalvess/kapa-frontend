@@ -3,14 +3,17 @@ import type { PaginacaoRequest } from '@/types/paginacao'
 
 // Tipo, rótulo e parcela moram em `types/cobranca`: `adesoes` e `pagamentos` mostram os mesmos itens.
 export {
+  beneficiosPorExtenso,
+  cancelavelHoje,
   emAberto,
   type Parcela,
   ROTULOS_DE_TIPO,
   rotuloDoItem,
   type StatusDaParcela,
   type TipoDeCobranca,
-  TIPOS_DO_PLANO,
   TIPOS_DOS_OPCIONAIS,
+  TIPOS_DOS_PACOTES,
+  TIPOS_DOS_RATEIOS,
   type ValorDoDia,
 } from '@/types/cobranca'
 
@@ -45,6 +48,23 @@ export interface DadosDoItem {
   aplicar_a_quem_ja_aderiu?: boolean
   /** Onde a turma decidiu: "assembleia de 12/10". */
   origem_da_decisao?: string
+  /** Grupo de faixas do pacote ("Festa"); ausente, pacote avulso. Na cesta, uma faixa por grupo (Sprint 47). */
+  grupo?: string | null
+  /** Convites da festa que o pacote concede. */
+  convites_da_festa?: number
+  /** Convites da colação que o pacote concede. */
+  convites_da_colacao?: number
+  /** Até quando a última parcela pode vencer, `aaaa-mm-dd`; ausente, nada é conferido (D28). */
+  ultimo_vencimento?: string | null
+  /** Último dia para o formando pedir o cancelamento, `aaaa-mm-dd`; ausente, sem trava (Sprint 48, D36). */
+  cancelavel_ate?: string | null
+  /** No rateio, os pacotes de quem paga (Sprint 48, D19); vazio ou ausente, todos os que já aderiram. Só na inclusão. */
+  alvo?: string[]
+  /**
+   * Na alteração do preço de um item em uso: repactua também quem já aderiu, no que ainda não venceu (D21). Ausente,
+   * o preço novo vale só para quem aderir depois.
+   */
+  aplicar_aos_atuais?: boolean
 }
 
 /**
@@ -52,7 +72,10 @@ export interface DadosDoItem {
  *
  * Sem `aplicar_a_quem_ja_aderiu`: é ordem da inclusão, não dado do item, e a resposta não o traz.
  */
-export interface ItemDeCobranca extends Omit<DadosDoItem, 'aplicar_a_quem_ja_aderiu'> {
+export interface ItemDeCobranca extends Omit<
+  DadosDoItem,
+  'aplicar_a_quem_ja_aderiu' | 'alvo' | 'aplicar_aos_atuais'
+> {
   id: string
   encerrado_em: string | null
   /** Já gerou parcela: não se remove, só se encerra, e só o valor muda. */
@@ -79,6 +102,15 @@ export interface ItemDeCobranca extends Omit<DadosDoItem, 'aplicar_a_quem_ja_ade
   modo_de_venda: ModoDeVenda
   /** Preço de uma unidade na loja; nulo, o mesmo do formando (P4). */
   preco_publico_em_centavos: number | null
+  /** Pacote do catálogo: só cobra quem o escolhe na adesão (Sprint 47). Falso no opcional e no rateio. */
+  pacote: boolean
+  grupo: string | null
+  convites_da_festa: number
+  convites_da_colacao: number
+  ultimo_vencimento: string | null
+  cancelavel_ate: string | null
+  /** Os pacotes de quem o rateio cobrou; vazio é todos (D19). */
+  alvo_do_rateio: string[]
 }
 
 /**
@@ -103,6 +135,10 @@ export interface DadosDoOpcional {
   item_da_festa_id?: string
   modo_de_venda: ModoDeVenda
   preco_publico_em_centavos?: number
+  /** Até quando a última parcela pode vencer, `aaaa-mm-dd` — o teto do item e a divisão de cada pedido (D28). */
+  ultimo_vencimento?: string
+  /** Último dia para o formando pedir o cancelamento do pedido, `aaaa-mm-dd` (Sprint 48, D36). */
+  cancelavel_ate?: string
 }
 
 /** Um item da vitrine do formando. Espelha `OpcionalDTO`. */
@@ -132,6 +168,8 @@ export interface Opcional {
   item_da_festa_id: string | null
   /** Falso mostra a data da abertura no lugar do botão. */
   aberto_a_pedido: boolean
+  /** Até quando a última parcela do pedido pode vencer; a prévia avisa antes de a API recusar (D28). */
+  ultimo_vencimento: string | null
 }
 
 /** Confirmado ou cancelado — não há aprovação da comissão (P2). */
@@ -154,6 +192,12 @@ export interface Pedido {
   quitado: boolean
   status: StatusDoPedido
   pedido_em: string
+  /** O detalhe livre de quem pediu — tamanho da beca, nome no convite (Sprint 48, D26). */
+  observacao: string | null
+  /** Último dia para pedir o cancelamento; nulo, sem trava (D36). */
+  cancelavel_ate: string | null
+  /** Há solicitação de cancelamento esperando a comissão (D8). */
+  cancelamento_solicitado: boolean
 }
 
 /**
@@ -272,4 +316,64 @@ export interface ResumoDeParcelas {
   cancelada: SomaDeParcelas
   /** As vencidas pelo valor de hoje, com multa e juros. */
   vencido_atualizado_em_centavos: number
+}
+
+/** Quantos formandos uma operação alcança e quanto muda. Espelha `AlcanceDTO` (Sprint 48, D19/D21). */
+export interface Alcance {
+  formandos: number
+  /** Quantas parcelas mudam; zero no rateio. */
+  parcelas: number
+  /** Quanto a soma do que eles devem muda, em centavos. */
+  total_em_centavos: number
+}
+
+/** `Aberto` espera a comissão; `Aprovado` cancelou; `Recusado` voltou a cobrar. */
+export type StatusDaSolicitacao = 'Aberto' | 'Aprovado' | 'Recusado'
+
+/** Uma solicitação de cancelamento de pacote ou pedido (Sprint 48, D8). Espelha `SolicitacaoDeCancelamentoDTO`. */
+export interface SolicitacaoDeCancelamento {
+  id: string
+  usuario_id: string
+  nome: string
+  item_de_cobranca_id: string
+  tipo: TipoDeCobranca
+  descricao: string | null
+  grupo: string | null
+  /** O pedido avulso; nulo é pacote da cesta. */
+  pedido_id: string | null
+  motivo: string | null
+  pedido_em: string
+  /** Último dia do prazo de resposta — e da suspensão das parcelas (D37). */
+  resposta_ate: string
+  status: StatusDaSolicitacao
+  motivo_da_resposta: string | null
+  respondido_em: string | null
+  /** O que já entrou pelas parcelas do item — vai para "a devolver" se aprovar (D9). */
+  pago_em_centavos: number
+}
+
+/** Corpo de `POST /cobrancas/avulsas` (Sprint 48, D23). */
+export interface DadosDoLancamento {
+  usuario_id: string
+  descricao: string
+  /** Positivo cobra; negativo credita (bolsa, desconto). */
+  valor_em_centavos: number
+  numero_de_parcelas: number
+  /** `aaaa-mm-dd`. */
+  primeiro_vencimento: string
+}
+
+/** Um lançamento avulso, na lista da tesouraria. Espelha `LancamentoDTO`. */
+export interface Lancamento {
+  item_de_cobranca_id: string
+  plano_id: string
+  usuario_id: string
+  nome: string
+  descricao: string | null
+  valor_em_centavos: number
+  numero_de_parcelas: number
+  primeiro_vencimento: string
+  lancado_em: string
+  encerrado_em: string | null
+  pago_em_centavos: number
 }

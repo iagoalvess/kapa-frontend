@@ -170,7 +170,9 @@ export default function RelatoriosPage() {
         ocupado={exportar.isPending || solicitar.isPending}
       />
 
-      {balancete.isError ? <ErroDaConsulta erro={balancete.error} /> : null}
+      {balancete.isError ? (
+        <ErroDaConsulta erro={balancete.error} aoTentarDeNovo={() => void balancete.refetch()} />
+      ) : null}
       {/* O arranjo que vem: a evolução larga e a rosca ao lado, para a tela não saltar quando o
           balancete chegar. */}
       {balancete.isPending ? (
