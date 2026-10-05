@@ -66,12 +66,12 @@ export function Hero() {
           </p>
 
           {/* Em telas muito estreitas, empilha os CTAs para o play não apertar o texto. */}
-          <div className="mt-7 grid w-full max-w-md grid-cols-2 gap-3 max-[359px]:grid-cols-1 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center lg:[@media(max-height:700px)]:mt-5">
+          <div className="mt-7 grid w-full max-w-md grid-cols-2 gap-3 max-[359px]:w-auto max-[359px]:grid-cols-1 sm:flex sm:w-auto sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center lg:[@media(max-height:700px)]:mt-5">
             <Button
               asChild
               size="lg"
               variant="outline"
-              className="h-11 rounded-xl pl-2 text-sm max-sm:gap-1.5 max-sm:pr-2 max-sm:text-xs"
+              className="h-11 justify-start rounded-xl pl-2 text-sm max-sm:gap-1.5 max-sm:pr-2 max-sm:text-xs"
             >
               <a href="#como-funciona">
                 <span className="bg-brand-tint text-brand-text grid size-6 shrink-0 place-items-center rounded-full sm:size-7">
@@ -82,7 +82,7 @@ export function Hero() {
             </Button>
             <ChamadaPrincipal
               size="lg"
-              className="h-11 rounded-xl text-sm shadow-lg max-sm:px-2 max-sm:[&_svg]:hidden"
+              className="h-11 rounded-xl text-sm shadow-lg max-sm:gap-1.5 max-sm:px-2 max-sm:text-xs max-sm:has-[>svg]:px-2"
             />
           </div>
 

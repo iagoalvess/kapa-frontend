@@ -73,7 +73,10 @@ export function CabecalhoDaLanding() {
               <span className="hidden md:inline">{entrar.rotulo}</span>
             </a>
           </Button>
-          <ChamadaPrincipal curta className="max-sm:px-3 max-sm:[&_svg]:hidden" />
+          <ChamadaPrincipal
+            curta
+            className="max-sm:gap-1.5 max-sm:px-3 max-sm:text-xs max-sm:has-[>svg]:px-3"
+          />
           <Button
             variant="ghost"
             size="icon"
