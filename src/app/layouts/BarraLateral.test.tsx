@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
@@ -16,7 +16,9 @@ function comApi() {
     http.get(`${API}/formaturas/atual`, () =>
       HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Suspensa' }),
     ),
-    http.get(`${API}/adesoes/eu`, () => HttpResponse.json({ adesao: null })),
+    http.get(`${API}/adesoes/eu/situacao`, () =>
+      HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: true }),
+    ),
     http.get(`${API}/extrato/eu/pendencias`, () => HttpResponse.json({ vencidas_sem_aviso: 2 })),
   )
 }
@@ -50,6 +52,27 @@ describe('BarraLateral', () => {
     expect(menu.getAllByRole('link', { name: 'Pedidos' })).toHaveLength(1)
     expect(menu.getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/meus-pedidos')
     expect(menu.getByRole('link', { name: 'Formatura' })).toHaveAttribute('href', ROTAS.formatura)
+  })
+
+  /** Decisão do dono de 06/10/2026: antes de aderir, o menu do formando é o que a guarda `ExigeAdesao` abre. */
+  it('o formando sem adesão vê só o termo e as parcelas', async () => {
+    entrarComo('Formando')
+    comApi()
+    servidor.use(
+      http.get(`${API}/adesoes/eu/situacao`, () =>
+        HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false }),
+      ),
+    )
+
+    renderizar(<BarraLateral />)
+
+    const menu = within(screen.getByRole('navigation', { name: 'Principal' }))
+    expect(await menu.findByRole('link', { name: /^Meu termo/ })).toHaveAttribute('href', ROTAS.adesao)
+    await waitFor(() => expect(menu.queryByRole('link', { name: 'Formatura' })).not.toBeInTheDocument())
+    expect(menu.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+      ROTAS.adesao,
+      ROTAS.extrato,
+    ])
   })
 
   it('deixa os lembretes dentro do Plano para a tesouraria', () => {

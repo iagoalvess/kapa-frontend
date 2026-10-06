@@ -28,7 +28,7 @@ import { LogoKapa } from '@/components/layout/LogoKapa'
 import { env } from '@/config/env'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import { useAdesaoPendente } from '@/features/adesoes'
+import { useAdesaoObrigatoria, useAdesaoPendente } from '@/features/adesoes'
 import { ICONE_DE_PLANO_PADRAO, ICONES_DE_PLANO, MODULOS } from '@/config/planos'
 import { useSair } from '@/features/auth'
 import { useDespesasAtrasadas } from '@/features/financeiro'
@@ -342,6 +342,10 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
   // o selo some quando o trabalho é feito. Por isso "Parcelas" e "Adesões" não têm nenhum — numa
   // turma de oitenta pessoas eles nunca zerariam, e número sempre aceso ninguém mais lê.
   const adesaoPendente = useAdesaoPendente(selecionada && !desligadoEm)
+  // O formando sem adesão (Sprint 47, D18; menu decidido pelo dono em 06/10/2026) vê só o que a guarda
+  // `ExigeAdesao` deixa abrir: o termo e as parcelas — o cadastro mora no avatar. O resto seria porta que
+  // devolve para o termo. Enquanto a situação carrega, a própria guarda segura a tela.
+  const semAdesao = useAdesaoObrigatoria().pendente
   const { data: pendentesDeConferencia } = usePendentesDeConferencia(ehTesouraria)
   const { data: parcelasVencidas } = useParcelasVencidas(selecionada)
   const { data: despesasAtrasadas } = useDespesasAtrasadas(ehTesouraria)
@@ -394,6 +398,14 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
               aoNavegar={aoNavegar}
               adesaoPendente={false}
               parcelasVencidas={undefined}
+              mostrarPedidos={false}
+              mostrarConvites={false}
+            />
+          ) : semAdesao ? (
+            <Meu
+              aoNavegar={aoNavegar}
+              adesaoPendente={adesaoPendente}
+              parcelasVencidas={parcelasVencidas}
               mostrarPedidos={false}
               mostrarConvites={false}
             />

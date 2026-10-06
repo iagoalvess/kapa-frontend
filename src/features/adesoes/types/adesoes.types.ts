@@ -134,6 +134,19 @@ export interface CodigoEnviado {
 export type PendenciaDoCadastro = 'nomeCompleto' | 'cpf' | 'dataDeNascimento'
 
 /** A situação do próprio formando. Espelha `MinhaAdesaoDTO`. */
+/**
+ * Só o que a guarda de adesão e o ponto do menu perguntam, sem o termo nem a adesão. Espelha
+ * `SituacaoDaMinhaAdesaoDTO`.
+ */
+export interface SituacaoDaMinhaAdesao {
+  /** A turma publicou o termo — com ele, o formando que não aderiu é levado ao aceite. */
+  termo_publicado: boolean
+  /** Há plano de cobrança vigente; sem ele o termo ainda não pode ser aceito. */
+  plano_vigente: boolean
+  /** O próprio membro aderiu a alguma versão do termo. */
+  aderiu: boolean
+}
+
 export interface MinhaAdesao {
   adesao: Adesao | null
   pendencias: PendenciaDoCadastro[]

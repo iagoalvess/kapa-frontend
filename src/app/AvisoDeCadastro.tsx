@@ -11,14 +11,17 @@ import { TracoDoInicio } from './TracoDoInicio'
  * Nome completo, CPF e nascimento permitem aderir; o telefone permite o contato da comissão.
  * O aviso acompanha as pendências reais, inclusive o nascimento fora do indicador de essencial.
  *
- * Só consulta o cadastro com a turma ativa: fora dela a escrita está bloqueada, e o convite a
- * preencher seria uma porta que a API recusa.
+ * Só aparece com a turma ativa: fora dela a escrita está bloqueada, e o convite a preencher seria uma
+ * porta que a API recusa. A condição vale para o desenho, e não só para a consulta — o cadastro pode
+ * já estar no cache, carregado por outra tela, e o aviso apareceria numa turma encerrada.
  */
 export function AvisoDeCadastro() {
   const { data: turma } = useFormaturaAtual()
-  const { data: perfil } = useMeuPerfil(turma?.status === 'Ativa')
+  const ativa = turma?.status === 'Ativa'
+  const { data: perfil } = useMeuPerfil(ativa)
 
-  if (!perfil || (!perfil.essencial_pendente && !perfil.faltando?.includes('dataDeNascimento'))) return null
+  if (!ativa || !perfil || (!perfil.essencial_pendente && !perfil.faltando?.includes('dataDeNascimento')))
+    return null
 
   return (
     <>

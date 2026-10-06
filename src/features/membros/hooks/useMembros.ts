@@ -3,6 +3,7 @@ import { sessao } from '@/lib/http/sessao'
 import type { Papel } from '@/config/perfis'
 import {
   alterarPapel,
+  confirmarPresidente,
   desligarMembro,
   listarMembros,
   removerMembro,
@@ -85,6 +86,16 @@ export function useAlterarPapel() {
       if (ehOProprio(usuario_id)) await sessao.renovar()
       void queryClient.invalidateQueries({ queryKey: chaves.tudo })
     },
+  })
+}
+
+/** Confirma, pelo link do e-mail, a promoção a Presidente; a lista de membros recarrega. */
+export function useConfirmarPresidente() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: confirmarPresidente,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: chaves.tudo }),
   })
 }
 

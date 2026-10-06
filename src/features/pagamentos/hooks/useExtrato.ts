@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { obterExtrato, obterParcela, obterPendenciasDoExtrato } from '../api/pagamentos.api'
+import {
+  obterExtrato,
+  obterParcela,
+  obterPendenciasDoExtrato,
+  obterProximasParcelas,
+} from '../api/pagamentos.api'
 import { chaves } from './chaves'
 
 /** O extrato do próprio formando: em aberto, a próxima a pagar e todas as parcelas. */
@@ -33,6 +38,19 @@ export function useParcelasVencidas(habilitado = true) {
     queryFn: ({ signal }) => obterPendenciasDoExtrato(signal),
     enabled: habilitado,
     select: (pendencias) => pendencias.vencidas_sem_aviso,
+  })
+}
+
+/**
+ * A próxima parcela a pagar e a seguinte — o bloco "Sua parcela" do Início.
+ *
+ * Consulta própria, e não {@link useExtrato}: o Início mostra duas parcelas, e o extrato inteiro cresce
+ * com a turma (12 KB e subindo). Quem escolhe as duas é a API, pela mesma regra do `proxima` do extrato.
+ */
+export function useProximasParcelas() {
+  return useQuery({
+    queryKey: chaves.proximas(),
+    queryFn: ({ signal }) => obterProximasParcelas(signal),
   })
 }
 

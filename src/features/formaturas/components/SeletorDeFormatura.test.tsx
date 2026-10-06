@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
+import { ROTAS } from '@/config/rotas'
 import { sessao } from '@/lib/http/sessao'
 import { QueryClient } from '@tanstack/react-query'
 import { servidor } from '@/test/msw/server'
@@ -61,7 +62,7 @@ describe('SeletorDeFormatura', () => {
 
     const limpar = vi.spyOn(QueryClient.prototype, 'clear')
 
-    renderizar(<SeletorDeFormatura />)
+    const { router } = renderizar(<SeletorDeFormatura />, '/meus-pedidos')
 
     const seletor = await screen.findByLabelText('Formatura selecionada')
     await userEvent.selectOptions(seletor, 'f-2')
@@ -70,6 +71,8 @@ describe('SeletorDeFormatura', () => {
       expect(limpar).toHaveBeenCalled()
     })
     expect(sessao.estado().usuario?.formaturaId).toBe('f-2')
+    // A rota em que a pessoa estava é da turma anterior: a troca leva ao Início da nova.
+    await waitFor(() => expect(router.state.location.pathname).toBe(ROTAS.inicio))
   })
 
   /** O nome é texto livre ("Medicina 2027.1 — teste 1789…"); as opções mostram curso e turma. */

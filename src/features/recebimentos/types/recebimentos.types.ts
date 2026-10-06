@@ -87,7 +87,19 @@ export interface ProvedorDaTurma {
   provedor: ProvedorConectado | null
 }
 
-/** Para onde mandar o navegador do presidente autorizar o Kapa. Espelha `AutorizacaoDoProvedorDTO`. */
+/** O link de autorização foi para o e-mail de quem clicou. Espelha `AutorizacaoDoProvedorDTO`. */
 export interface AutorizacaoDoProvedor {
-  url: string
+  /** O e-mail, mascarado. */
+  enviada_para: string
+}
+
+/**
+ * O que a gravação dos meios deu. Espelha `GravacaoDaContaDTO`.
+ *
+ * Mudar o PIX ou a transferência só pede: `confirmacao_enviada_para` vem preenchido, a conta segue como estava,
+ * e a troca vale pelo link do e-mail. Mudar só o dinheiro vale na hora.
+ */
+export interface GravacaoDaConta {
+  conta: ContaDeRecebimento | null
+  confirmacao_enviada_para: string | null
 }

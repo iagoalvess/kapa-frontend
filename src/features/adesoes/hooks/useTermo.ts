@@ -5,20 +5,26 @@ import { chaves } from './chaves'
 /**
  * O termo vigente, o catálogo, o plano com a cesta escolhida e o hash dos dois.
  *
- * Sem `staleTime`: o hash precisa ser o do conteúdo que está na tela agora, e o conteúdo muda
- * quando a comissão publica ou a tesouraria mexe no plano.
- *
  * Marcar um pacote pede o conteúdo de novo (o servidor é quem soma a cesta e calcula a grade); enquanto a resposta
  * não chega, a tela segura a anterior (`keepPreviousData`) em vez de piscar o esqueleto — e quem decide se o
  * aceite pode sair é `isPlaceholderData`, porque o hash na tela ainda é o da cesta anterior.
  *
  * @param pacotes A cesta escolhida; vazia mostra só o catálogo.
+ * @param habilitado Falso não consulta — quem foi desligado não lê o termo vigente (403); fica com o assinado.
+ * @param habilitado Falso não consulta — quem foi desligado não lê o termo vigente (403); fica com o assinado.
+ * @param fresco Relê a cada montagem (`staleTime: 0`). Só quem aceita precisa: o hash tem de ser o do conteúdo que
+ *   está na tela agora, e ele muda quando a comissão publica ou a tesouraria mexe no plano. Quem só exibe o termo
+ *   fica no `staleTime` padrão.
  */
-export function useConteudoParaAdesao(habilitado = true, pacotes: string[] = []) {
+export function useConteudoParaAdesao({
+  habilitado = true,
+  pacotes = [],
+  fresco = false,
+}: { habilitado?: boolean; pacotes?: string[]; fresco?: boolean } = {}) {
   return useQuery({
     queryKey: chaves.conteudo(pacotes),
     queryFn: ({ signal }) => obterConteudoParaAdesao(pacotes, signal),
-    staleTime: 0,
+    staleTime: fresco ? 0 : undefined,
     placeholderData: keepPreviousData,
     enabled: habilitado,
   })

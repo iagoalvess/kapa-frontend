@@ -13,7 +13,10 @@ import { useReenviarConfirmacao } from '@/hooks/useReenviarConfirmacao'
 import { ehErroDaApi } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { Aviso, AvisoDeTermos, estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
+import { pediuCodigo } from '../api/auth.api'
+import { EtapaDoCodigo } from '../components/EtapaDoCodigo'
 import { useEntrar } from '../hooks/useAutenticacao'
+import type { CodigoDeEntrada } from '../types/auth.types'
 import { esquemaDeLogin, type FormularioDeLogin } from '../schemas/auth.schema'
 
 export default function LoginPage() {
@@ -23,6 +26,8 @@ export default function LoginPage() {
 
   // Login em duas etapas: com e-mail confirmado, a tela passa a pedir a senha.
   const [emailConfirmado, setEmailConfirmado] = useState<string | null>(null)
+  // Administrador e presidente: a senha certa leva a um terceiro passo, o código do e-mail.
+  const [pedidoDeCodigo, setPedidoDeCodigo] = useState<CodigoDeEntrada | null>(null)
 
   const formulario = useForm<FormularioDeLogin>({
     resolver: zodResolver(esquemaDeLogin),
@@ -46,6 +51,8 @@ export default function LoginPage() {
   }
 
   const trocarEmail = () => {
+    setPedidoDeCodigo(null)
+    formulario.resetField('senha')
     formulario.clearErrors('root')
     entrar.reset()
     reenviar.reset()
@@ -54,6 +61,9 @@ export default function LoginPage() {
 
   const entrarComSenha = formulario.handleSubmit((valores) => {
     entrar.mutate(valores, {
+      onSuccess: (resposta) => {
+        if (pediuCodigo(resposta)) setPedidoDeCodigo(resposta)
+      },
       onError: (erro) => {
         exibirErroNoFormulario(erro, formulario.setError)
         // Erro que a API aponta no e-mail só é visível na primeira etapa.
@@ -61,6 +71,13 @@ export default function LoginPage() {
       },
     })
   })
+
+  if (pedidoDeCodigo && emailConfirmado)
+    return (
+      <LayoutDeAutenticacao etapa="codigo">
+        <EtapaDoCodigo pedido={pedidoDeCodigo} email={emailConfirmado} aoVoltar={trocarEmail} />
+      </LayoutDeAutenticacao>
+    )
 
   return (
     <LayoutDeAutenticacao etapa={emailConfirmado ? 'senha' : 'email'}>

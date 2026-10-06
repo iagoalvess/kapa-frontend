@@ -18,7 +18,7 @@ function faixa(formatura: FormaturaDetalhe): { tom: keyof typeof TONS; texto: st
       return {
         tom: 'perigo',
         texto:
-          'O plano da turma venceu. Todos continuam vendo tudo, mas nada novo pode ser registrado até renovar.',
+          'O plano da turma venceu. Todos continuam vendo o que o plano incluía, mas nada novo pode ser registrado até renovar.',
         acao: 'Renovar plano',
       }
     case 'Encerrada':
@@ -35,7 +35,8 @@ function faixa(formatura: FormaturaDetalhe): { tom: keyof typeof TONS; texto: st
 /**
  * Banner fixo do `LayoutApp`, em toda tela, quando a formatura selecionada não está ativa.
  *
- * Cobra-se com banner, não com sequestro de dado: suspensa continua lendo tudo.
+ * Cobra-se com banner, não com sequestro de dado: suspensa continua lendo os módulos do plano que tinha
+ * (decisão do dono de 06/10/2026), e só a escrita para.
  *
  * O botão para os planos aparece só para o Presidente, que é quem contrata: para o resto da
  * comissão ele levaria a uma tela onde não há o que fazer.

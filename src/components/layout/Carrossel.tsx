@@ -84,7 +84,7 @@ export function Carrossel({ slides }: { slides: readonly Slide[] }) {
               <Cena />
             </div>
           </div>
-          <span className="border-brand/60 pointer-events-none absolute inset-y-4 left-[32%] -translate-x-1/2 border-l-2 border-dashed" />
+          <span className="carrossel-passaporte-picote pointer-events-none absolute left-[32%] -translate-x-1/2" />
         </div>
       </div>
       <p className="mt-6 min-h-[3.25em] px-3 text-center text-[15px] leading-relaxed font-medium text-pretty">

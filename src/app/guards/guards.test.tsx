@@ -69,7 +69,10 @@ function renderizarGuarda(guarda: React.ReactElement, rotaInicial = '/protegida'
     [
       {
         element: guarda,
-        children: [{ path: '/protegida', element: <p>conteúdo protegido</p> }],
+        children: [
+          { path: '/protegida', element: <p>conteúdo protegido</p> },
+          { path: `${ROTAS.recibos}/:id`, element: <p>um recibo</p> },
+        ],
       },
       { path: ROTAS.login, element: <p>tela de login</p> },
       { path: ROTAS.inicio, element: <p>tela inicial</p> },
@@ -248,6 +251,15 @@ describe('ExigeFormatura', () => {
     renderizarGuarda(<ExigeFormatura />, ROTAS.extrato)
     expect(screen.getByText('meu extrato')).toBeInTheDocument()
   })
+
+  /** O recibo é do titular (`TitularDoProprioHistorico`), como o extrato: a guarda não o desvia. */
+  it('deixa quem foi desligado abrir o próprio recibo', () => {
+    entrarDesligado()
+
+    renderizarGuarda(<ExigeFormatura />, `${ROTAS.recibos}/r-1`)
+
+    expect(screen.getByText('um recibo')).toBeInTheDocument()
+  })
 })
 
 /** Entra numa formatura com o papel pedido. */
@@ -324,6 +336,15 @@ function renderizarComAceites(
   )
 }
 
+/** Uma promessa que o teste cumpre quando quer — a resposta da API que demora. */
+function promessaControlada() {
+  let cumprir: (() => void) | undefined
+  const promessa = new Promise<void>((resolver) => {
+    cumprir = resolver
+  })
+  return { promessa, cumprir: () => cumprir?.() }
+}
+
 describe('ExigeAceites', () => {
   it('leva ao re-aceite quem tem versão nova pendente, guardando o destino', async () => {
     servidor.use(
@@ -341,6 +362,23 @@ describe('ExigeAceites', () => {
     renderizarComAceites()
 
     expect(await screen.findByText('conteúdo protegido')).toBeInTheDocument()
+  })
+
+  /** Sem cascata na abertura: o destino monta (e pede os dados dele) enquanto os aceites ainda carregam. */
+  it('mostra a tela enquanto as pendências carregam, e leva ao re-aceite se vier versão nova', async () => {
+    const { promessa: chegou, cumprir: responder } = promessaControlada()
+    servidor.use(
+      http.get(MEUS_ACEITES, async () => {
+        await chegou
+        return HttpResponse.json({ pendencias: [{ tipo: 'TermosDeUso', versao: '2' }] })
+      }),
+    )
+    entrar([PERFIS.usuario])
+    renderizarComAceites()
+
+    expect(await screen.findByText('conteúdo protegido')).toBeInTheDocument()
+    responder()
+    expect(await screen.findByText('re-aceite, voltar para /protegida?aba=1')).toBeInTheDocument()
   })
 
   /** Versão nova não bloqueia o produto: falhou a consulta, o aceite fica para o próximo acesso. */

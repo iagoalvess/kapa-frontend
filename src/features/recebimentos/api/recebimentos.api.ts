@@ -3,6 +3,7 @@ import type {
   AutorizacaoDoProvedor,
   ContaDeRecebimento,
   ContaDeRecebimentoDaTurma,
+  GravacaoDaConta,
   MeiosDaConta,
   ModoDeCobranca,
   PixDeTeste,
@@ -17,9 +18,17 @@ export function obterConta(signal?: AbortSignal) {
   return api.get<ContaDeRecebimentoDaTurma>(CONTA, { signal })
 }
 
-/** Cadastra ou troca os meios; mexer no PIX desfaz a conferência. Só o Presidente. */
+/**
+ * Cadastra ou troca os meios; mexer no PIX desfaz a conferência. Mudar o PIX ou a transferência só pede — o
+ * link vai ao e-mail do presidente. Só o Presidente.
+ */
 export function gravarConta(meios: MeiosDaConta) {
-  return api.put<ContaDeRecebimento>(CONTA, { body: meios })
+  return api.put<GravacaoDaConta>(CONTA, { body: meios })
+}
+
+/** Aplica a troca pedida, com o token do link do e-mail. Só quem pediu. */
+export function confirmarTroca(token: string) {
+  return api.post<ContaDeRecebimento>(`${CONTA}/confirmar`, { body: { token } })
 }
 
 /** O copia-e-cola de R$ 1,00 para a chave gravada. Só o Presidente. */
@@ -39,7 +48,7 @@ export function obterMercadoPago(signal?: AbortSignal) {
   return api.get<ProvedorDaTurma>(MERCADO_PAGO, { signal })
 }
 
-/** A página do Mercado Pago onde o presidente autoriza o Kapa na conta da turma. Só o Presidente. */
+/** Manda ao e-mail do presidente o link da página do Mercado Pago onde ele autoriza o Kapa. Só o Presidente. */
 export function autorizarMercadoPago() {
   return api.post<AutorizacaoDoProvedor>(`${MERCADO_PAGO}/autorizacao`)
 }

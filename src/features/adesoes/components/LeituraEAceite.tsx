@@ -27,7 +27,7 @@ import type {
   VersaoDoTermo,
   ObservacaoDoPacote,
 } from '../types/adesoes.types'
-import { CampoDeCodigo } from './CampoDeCodigo'
+import { CampoDeCodigo } from '@/components/CampoDeCodigo'
 import { CartaoDeVersoes } from './CartaoDeVersoes'
 import { LeitorDeTermo } from './LeitorDeTermo'
 import { ResumoDoTermo } from './ResumoDoTermo'

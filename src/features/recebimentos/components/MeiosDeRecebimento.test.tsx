@@ -46,7 +46,8 @@ const soDinheiro: ContaDeRecebimento = {
 
 /**
  * @param conta Ausente: a turma ainda não habilitou meio nenhum.
- * @param aoGravar Resposta do `PUT`; por padrão devolve a conta com PIX, como a API faz.
+ * @param aoGravar Resposta do `PUT`; por padrão, a troca pedida — com PIX, a API manda o link ao e-mail e a conta
+ *   segue como estava.
  */
 function comApi(conta?: ContaDeRecebimento, aoGravar?: () => Response) {
   const gravados: unknown[] = []
@@ -59,7 +60,9 @@ function comApi(conta?: ContaDeRecebimento, aoGravar?: () => Response) {
     ),
     http.put(CONTA, async ({ request }) => {
       gravados.push(await request.json())
-      return aoGravar ? aoGravar() : HttpResponse.json(gravada)
+      return aoGravar
+        ? aoGravar()
+        : HttpResponse.json({ conta: conta ?? null, confirmacao_enviada_para: 'he***@kapa.dev' })
     }),
     http.post(`${CONTA}/conferir`, () => HttpResponse.json(conferida)),
   )
@@ -70,7 +73,8 @@ function comApi(conta?: ContaDeRecebimento, aoGravar?: () => Response) {
 describe('MeiosDeRecebimento', () => {
   afterEach(() => sessao.encerrar())
 
-  it('o Presidente cadastra o PIX e recebe o teste de R$ 1,00, desenhado aqui mesmo', async () => {
+  /** Revisão de segurança de 05/10/2026: o PIX só vale pelo link do e-mail — antes dele, nada de QR de teste. */
+  it('o Presidente cadastra o PIX, e ele espera a confirmação por e-mail antes do teste de R$ 1,00', async () => {
     entrarComo('Presidente')
     const gravados = comApi()
 
@@ -98,8 +102,8 @@ describe('MeiosDeRecebimento', () => {
       ]),
     )
 
-    // Gravada e ainda não conferida: o QR de R$ 1,00 aparece para o Presidente testar.
-    expect(await screen.findByRole('img', { name: /QR/i })).toBeInTheDocument()
+    // Pedida, não gravada: a conta continua vazia até o link do e-mail, e não há chave para testar.
+    expect(screen.queryByRole('img', { name: /QR/i })).not.toBeInTheDocument()
   })
 
   /** Decisão 2 da Sprint 18: o meio existe quando o grupo dele está preenchido — não há bool solto. */
@@ -153,7 +157,7 @@ describe('MeiosDeRecebimento', () => {
     expect(screen.getByText(/Conferida em .* por Helena Araújo/)).toBeInTheDocument()
   })
 
-  it('alterar os meios diz que a comissão recebe e-mail antes de gravar', async () => {
+  it('alterar os meios diz que vale só pelo link do e-mail, e que a comissão é avisada', async () => {
     entrarComo('Presidente')
     comApi(conferida)
 
@@ -165,7 +169,8 @@ describe('MeiosDeRecebimento', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     const dialogo = await screen.findByRole('alertdialog')
-    expect(dialogo).toHaveTextContent('Todos da comissão recebem um e-mail')
+    expect(dialogo).toHaveTextContent('só vale depois que você confirmar pelo link no seu e-mail')
+    expect(dialogo).toHaveTextContent('todos da comissão recebem um e-mail')
     expect(within(dialogo).getByRole('button', { name: 'Revisar' })).toBeInTheDocument()
   })
 

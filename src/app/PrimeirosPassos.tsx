@@ -1,12 +1,8 @@
 import { ArrowRight, Check, Users } from 'lucide-react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Selo } from '@/components/Selo'
-import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import { useConteudoParaAdesao } from '@/features/adesoes'
-import { usePlanos } from '@/features/cobrancas'
-import { contar, useResumoDeMembros } from '@/features/membros'
-import { useContaDeRecebimento, useMercadoPago } from '@/features/recebimentos'
+import { usePrimeirosPassos } from '@/features/formaturas'
 import type { FormaturaDetalhe } from '@/types/formatura'
 import { Rotulo } from './RotuloDoBloco'
 import { TracoDoInicio } from './TracoDoInicio'
@@ -27,89 +23,64 @@ interface Passo {
  * falta e só some quando há cobrança, termo, recebimento e pelo menos um formando na turma.
  * Convidar alguém antes de preparar o restante não termina a configuração.
  *
+ * Quem decide cada passo é a API (`/formaturas/atual/primeiros-passos`), numa consulta só: antes o
+ * bloco pedia membros, planos, termo, conta e Mercado Pago — cinco chamadas mesmo com tudo pronto.
+ *
  * Um bloco de fio e rótulo, como o resto do Início — não um cartão: a tela não é uma grade de
  * superfícies, e a lista de passos se lê como as próximas datas.
  *
- * Só Presidente e Tesouraria o veem, pois as consultas financeiras exigem esses papéis. Enquanto os dados não
- * chegam (ou falham), não aparece: guia errado é pior que guia nenhum.
+ * Só Presidente e Tesouraria o montam (`PaginaInicial`), o mesmo recorte da API. Enquanto os dados
+ * não chegam (ou falham), não aparece: guia errado é pior que guia nenhum.
  *
- * @param turma A formatura da sessão: o status decide se o guia faz sentido, e `ja_contratou` marca
- *   o passo do plano.
+ * @param turma A formatura da sessão: fora de `Ativa` o guia não faz sentido, e nem consulta.
  */
 export function PrimeirosPassos({ turma }: { turma: FormaturaDetalhe }) {
-  const { data: resumo } = useResumoDeMembros()
-  const { data: planos } = usePlanos()
-  const { data: conteudo } = useConteudoParaAdesao()
-  const { data: recebimento } = useContaDeRecebimento()
-  const { data: mercadoPago } = useMercadoPago()
+  const ativa = turma.status === 'Ativa'
+  const { data: feitos } = usePrimeirosPassos(ativa)
 
-  if (
-    turma.status !== 'Ativa' ||
-    resumo === undefined ||
-    planos === undefined ||
-    conteudo === undefined ||
-    recebimento === undefined ||
-    mercadoPago === undefined
-  )
-    return null
-
-  const daGestao = [PAPEIS.presidente, PAPEIS.tesoureiro, PAPEIS.comissao].reduce(
-    (total, papel) => total + contar(resumo, { ativo: true, papel }),
-    0,
-  )
-  const formandos = contar(resumo, { ativo: true, papel: PAPEIS.formando })
-  const cobrancaEmVigor = planos.some((plano) => plano.status === 'Vigente')
-
-  const conta = recebimento.conta
-  const recebimentoPronto = Boolean(
-    mercadoPago.provedor?.cobranca_automatica_em ||
-    conta?.meios.transferencia ||
-    conta?.meios.dinheiro ||
-    (conta?.meios.pix && conta.conferida_em),
-  )
+  if (!ativa || feitos === undefined || feitos.concluidos) return null
 
   const passos: Passo[] = [
     {
       titulo: 'Monte a comissão',
-      feito: daGestao > 1,
+      feito: feitos.comissao_montada,
       para: ROTAS.formatura + '#convites',
       descricao: 'Opcional: divida as tarefas com a tesouraria e a comissão.',
       opcional: true,
     },
     {
       titulo: 'Monte o plano de cobrança',
-      feito: cobrancaEmVigor,
+      feito: feitos.plano_de_cobranca_em_vigor,
       para: ROTAS.cobrancas,
       descricao: 'Defina valores, parcelas e vencimentos e coloque o plano em vigor.',
     },
     {
       titulo: 'Publique o termo de adesão',
-      feito: Boolean(conteudo.termo),
+      feito: feitos.termo_publicado,
       para: ROTAS.adesoes,
       descricao: 'O presidente publica as condições que os formandos vão aceitar.',
     },
     {
       titulo: 'Configure os recebimentos',
-      feito: recebimentoPronto,
+      feito: feitos.recebimentos_configurados,
       para: ROTAS.formatura + '#recebimentos',
       descricao: 'O presidente define os meios de pagamento e confere o titular do PIX.',
     },
     {
       titulo: 'Contrate o plano',
-      feito: turma.ja_contratou,
+      feito: feitos.plano_contratado,
       para: ROTAS.planos,
       descricao: 'A assinatura permite a entrada dos formandos na turma.',
     },
     {
       titulo: 'Convide os formandos',
-      feito: formandos > 0,
+      feito: feitos.formandos_na_turma,
       para: ROTAS.formatura + '#convites',
       descricao: 'Envie convites por e-mail ou compartilhe o link e acompanhe a entrada.',
     },
   ]
   const necessarios = passos.filter((passo) => !passo.opcional)
   const concluidos = necessarios.filter((passo) => passo.feito).length
-  if (concluidos === necessarios.length) return null
 
   /*
     A numeração é só dos passos obrigatórios: o opcional ("Monte a comissão") não entra na conta do

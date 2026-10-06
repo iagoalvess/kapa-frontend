@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { beneficiosPorExtenso, rotuloDoItem } from '@/types/cobranca'
 import { useAceitarAditivo, useSimularAditivo, useSolicitarCodigoDoAditivo } from '../hooks/useCesta'
 import type { CodigoEnviado, PacoteDisponivel, PreviaDoAditivo } from '../types/adesoes.types'
-import { CampoDeCodigo } from './CampoDeCodigo'
+import { CampoDeCodigo } from '@/components/CampoDeCodigo'
 
 const nome = (pacote: Pick<PacoteDisponivel, 'grupo' | 'tipo' | 'descricao'>) =>
   pacote.grupo ? `${pacote.grupo} — ${rotuloDoItem(pacote)}` : rotuloDoItem(pacote)

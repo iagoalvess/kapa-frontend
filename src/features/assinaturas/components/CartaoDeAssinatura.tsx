@@ -35,8 +35,37 @@ import { SeloDeStatus } from './SeloDeStatus'
  *
  * Gestão lê; só o Presidente contrata e cancela. Quem não é da Gestão não deve montar este
  * cartão: a API responderia 403.
+ *
+ * A turma que nunca contratou (`ja_contratou` falso) está no gratuito, e o cartão diz isso sem
+ * consultar: perguntar pela assinatura dela só devolvia 404 `assinatura.nao_encontrada`. O checkout
+ * deixado pela metade é retomado em Planos, que lê a assinatura pendente.
+ *
+ * @param jaContratou O `ja_contratou` da formatura da sessão.
  */
-export function CartaoDeAssinatura() {
+export function CartaoDeAssinatura({ jaContratou }: { jaContratou: boolean }) {
+  return jaContratou ? <AssinaturaContratada /> : <PlanoGratuito />
+}
+
+/** O gratuito: o que ele dá, e a porta para Planos. */
+function PlanoGratuito() {
+  const { ehPresidente } = usePapel()
+
+  return (
+    <Cartao rotulo="Assinatura">
+      <h2 className="text-foreground text-xl leading-snug font-medium">Plano gratuito</h2>
+      {/* O que o grátis dá de verdade (Sprint 45): a frase antiga dizia que nada além do cadastro
+          funcionava, e a turma gratuita cobra, recebe e fecha o caixa. */}
+      <TextoDoCartao>
+        A comissão já usa cobranças, PIX, despesas e caixa. Para convidar formandos e liberar a festa,
+        contrate um plano.
+      </TextoDoCartao>
+      {ehPresidente ? <IrParaPlanos>Ver planos</IrParaPlanos> : null}
+    </Cartao>
+  )
+}
+
+/** A assinatura da turma que já contratou: status, plano, vigência e as ações do Presidente. */
+function AssinaturaContratada() {
   const assinatura = useAssinatura()
   const { ehPresidente } = usePapel()
 
@@ -49,18 +78,7 @@ export function CartaoDeAssinatura() {
 
   if (assinatura.isError) {
     if (ehErroDaApi(assinatura.error) && assinatura.error.codigo === 'assinatura.nao_encontrada')
-      return (
-        <Cartao rotulo="Assinatura">
-          <h2 className="text-foreground text-xl leading-snug font-medium">Plano gratuito</h2>
-          {/* O que o grátis dá de verdade (Sprint 45): a frase antiga dizia que nada além do cadastro
-              funcionava, e a turma gratuita cobra, recebe e fecha o caixa. */}
-          <TextoDoCartao>
-            A comissão já usa cobranças, PIX, despesas e caixa. Para convidar formandos e liberar a festa,
-            contrate um plano.
-          </TextoDoCartao>
-          {ehPresidente ? <IrParaPlanos>Ver planos</IrParaPlanos> : null}
-        </Cartao>
-      )
+      return <PlanoGratuito />
 
     return (
       <Cartao rotulo="Assinatura">

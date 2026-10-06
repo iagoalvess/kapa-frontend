@@ -55,10 +55,15 @@ const PROJECAO: ProjecaoDoCaixa = {
 }
 
 function comApi(consolidado: Caixa = CONSOLIDADO) {
+  const pedidos = { projecao: 0 }
   servidor.use(
     http.get(CAIXA, () => HttpResponse.json(consolidado)),
-    http.get(`${CAIXA}/projecao`, () => HttpResponse.json(PROJECAO)),
+    http.get(`${CAIXA}/projecao`, () => {
+      pedidos.projecao += 1
+      return HttpResponse.json(PROJECAO)
+    }),
   )
+  return pedidos
 }
 
 describe('CaixaPage', () => {
@@ -76,6 +81,18 @@ describe('CaixaPage', () => {
     expect(within(faixa).getByText(reais(8_830_000))).toBeInTheDocument()
     // O vencido não entra no "a receber": aparece como sinal ao lado dele.
     expect(within(faixa).getByText(`${reais(1_250_000)} em atraso`)).toBeInTheDocument()
+  })
+
+  it('o formando vê o caixa sem consultar a projeção nem desenhar o cartão dela', async () => {
+    entrarComo('Formando')
+    const pedidos = comApi()
+
+    renderizar(<CaixaPage />)
+
+    const faixa = await screen.findByRole('region', { name: 'Resumo do caixa' })
+    expect(await within(faixa).findByText(reais(18_450_000))).toBeInTheDocument()
+    expect(screen.queryByText('Entradas e saídas')).not.toBeInTheDocument()
+    expect(pedidos.projecao).toBe(0)
   })
 
   it('saldo negativo é sinalizado, e não só pela cor', async () => {

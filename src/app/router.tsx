@@ -218,6 +218,12 @@ export const router = createBrowserRouter([
                             handle: { titulo: 'Dados da formatura' },
                             lazy: pagina(() => import('./PaginaDaFormatura')),
                           },
+                          // O destino do link de confirmação por e-mail (revisão de segurança de 05/10/2026).
+                          {
+                            path: `${ROTAS.confirmar}/:tipo`,
+                            handle: { titulo: 'Confirmação' },
+                            lazy: pagina(() => import('./PaginaDeConfirmacao')),
+                          },
                           // Todo membro tem o próprio cadastro — inclusive a comissão, que também se forma.
                           {
                             path: ROTAS.meuCadastro,

@@ -1,13 +1,27 @@
 import { api } from '@/lib/http/cliente'
 import type { ParDeTokens } from '@/lib/http/sessao'
-import type { Credenciais, NovaConta } from '../types/auth.types'
+import type { CodigoDeEntrada, Credenciais, NovaConta } from '../types/auth.types'
 
 const BASE = '/api/v1/auth'
 
-/** Autentica e devolve o par de tokens. */
+/** Autentica e devolve o par de tokens — ou, para administrador e presidente, o pedido do código do e-mail. */
 export function entrar(credenciais: Credenciais) {
-  return api.post<ParDeTokens>(`${BASE}/login`, { body: credenciais, autenticar: false })
+  return api.post<ParDeTokens | CodigoDeEntrada>(`${BASE}/login`, { body: credenciais, autenticar: false })
 }
+
+/** O segundo passo do login: o código do e-mail troca o desafio pela sessão. */
+export function confirmarCodigo({ desafio, codigo }: { desafio: string; codigo: string }) {
+  return api.post<ParDeTokens>(`${BASE}/login/codigo`, { body: { desafio, codigo }, autenticar: false })
+}
+
+/** Manda o código de novo. */
+export function reenviarCodigo(desafio: string) {
+  return api.post<CodigoDeEntrada>(`${BASE}/login/codigo/reenviar`, { body: { desafio }, autenticar: false })
+}
+
+/** Se o login parou no segundo passo. */
+export const pediuCodigo = (resposta: ParDeTokens | CodigoDeEntrada): resposta is CodigoDeEntrada =>
+  'desafio' in resposta
 
 /** Cria a conta e já devolve a sessão — quem se cadastra entra direto. */
 export function registrar(conta: NovaConta) {

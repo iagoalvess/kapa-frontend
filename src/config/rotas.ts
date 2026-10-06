@@ -25,6 +25,8 @@ export const ROTAS = {
   formatura: '/formatura',
   // Lista com acesso e cadastro; o cadastro de um membro é `/formatura/membros/:usuario_id`.
   membros: '/formatura/membros',
+  // O link do e-mail que confirma a troca dos meios ou um novo Presidente: `/confirmar/meios|presidente?token=…`.
+  confirmar: '/confirmar',
   // O nome da rota é o nome da tela: "Meus dados", como o menu do avatar a chama.
   meuCadastro: '/meus-dados',
   // O plano de cobrança da turma (Tesouraria); as parcelas que ele gera ficam embaixo (Gestão).

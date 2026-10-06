@@ -302,7 +302,12 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
     alterar.mutate(
       { usuario_id: membro.usuario_id, papel },
       {
-        onSuccess: () => toast.success(`${nome} agora é ${ROTULOS_DE_PAPEL[papel]}.`),
+        onSuccess: ({ confirmacao_enviada_para }) =>
+          toast.success(
+            confirmacao_enviada_para
+              ? `Enviamos um link para ${confirmacao_enviada_para}. ${nome} vira Presidente depois que você confirmar por lá.`
+              : `${nome} agora é ${ROTULOS_DE_PAPEL[papel]}.`,
+          ),
         onError: avisarErro,
       },
     )

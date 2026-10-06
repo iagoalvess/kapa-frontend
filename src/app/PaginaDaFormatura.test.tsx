@@ -22,6 +22,7 @@ const formatura = {
   previsao_da_festa: null,
   status: 'Ativa',
   encerrada_em: null,
+  ja_contratou: false,
 }
 
 function entrarComo(papel: string) {
@@ -54,7 +55,7 @@ describe('PaginaDaFormatura', () => {
     expect(screen.queryByRole('region', { name: 'Assinatura' })).not.toBeInTheDocument()
   })
 
-  it('a Gestão vê assinatura, convites e quantos já estão na turma', async () => {
+  it('a Gestão vê assinatura (gratuito, sem consultar), convites e quantos já estão na turma', async () => {
     entrarComo(PAPEIS.tesoureiro)
     servidor.use(
       http.get(ATUAL, () => HttpResponse.json(formatura)),
@@ -65,9 +66,8 @@ describe('PaginaDaFormatura', () => {
         ]),
       ),
       http.get(`${ATUAL}/convites`, () => HttpResponse.json([])),
-      http.get(`${ATUAL}/assinatura`, () =>
-        HttpResponse.json({ status: 404, codigo: 'assinatura.nao_encontrada' }, { status: 404 }),
-      ),
+      // Sem `/assinatura` nem `/assinatura/cobrancas`: a turma que nunca contratou está no gratuito,
+      // e o MSW derrubaria o teste se a tela perguntasse.
     )
 
     renderizar(<PaginaDaFormatura />)

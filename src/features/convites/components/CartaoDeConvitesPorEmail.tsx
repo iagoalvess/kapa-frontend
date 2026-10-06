@@ -30,12 +30,13 @@ const SITUACOES: Record<StatusDoConvite, { texto: string; tom: TomDoSelo }> = {
 /**
  * O que quem está logado pode oferecer por e-mail agora.
  *
- * @param ehPresidente Só o Presidente convida para a comissão.
+ * @param ehPresidente Só o Presidente convida para a comissão. Presidente não se convida: entra como Comissão e é
+ *   promovido na tela de membros, com confirmação por e-mail (`convite.presidente_por_promocao`).
  * @param contratada Com plano pago em dia, formando também entra — no gratuito (e na turma que venceu) só a
  *   comissão, dentro das vagas do plano.
  */
 function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
-  const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao, PAPEIS.presidente]
+  const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao]
   if (!contratada) return ehPresidente ? comissao : []
 
   return ehPresidente ? [PAPEIS.formando, ...comissao] : [PAPEIS.formando]

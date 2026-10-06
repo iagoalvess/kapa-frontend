@@ -26,6 +26,8 @@
   --brand-wash: #fdf4ea;
   --brand-tint: #fbe6cc;
   --brand-soft: #f6c88e;
+  /* Picote dos ingressos, no mesmo tom dos criativos de Instagram. */
+  --brand-picote: #f2b77f;
   --brand: #f2994a;
   --brand-hover: #e0812f;
   --brand-border: #c2650f;
@@ -440,6 +442,21 @@
     radial-gradient(circle 14px at 32% 0, transparent 13.5px, #000 14px),
     radial-gradient(circle 14px at 32% 100%, transparent 13.5px, #000 14px);
   mask-composite: intersect;
+}
+
+/* Ritmo do criativo em meia escala (9px de traço, 7px de intervalo). `round` evita
+   traços cortados; dividir o intervalo entre as pontas mantém o respiro simétrico. */
+.carrossel-passaporte-picote {
+  inset-block: 23px;
+  width: 2.5px;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0 21.875%,
+    var(--brand-picote) 21.875% 78.125%,
+    transparent 78.125%
+  );
+  background-size: 100% 16px;
+  background-repeat: round;
 }
 
 .carrossel-passaporte-titulo {

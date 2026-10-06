@@ -1,12 +1,14 @@
-import { Fingerprint, LogOut, ShieldCheck, UserRound } from 'lucide-react'
+import { Fingerprint, Lock, LogOut, ShieldCheck, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
 import { PAPEIS } from '@/config/perfis'
+import { MODULOS } from '@/config/planos'
 import { ROTAS } from '@/config/rotas'
 import { BotaoDeInstalar, useSair } from '@/features/auth'
 import { FotoDoFormando, type PerfilDoFormando } from '@/features/formandos'
 import { SeletorDeFormatura } from '@/features/formaturas'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel } from '@/hooks/useSessao'
 import { cn } from '@/lib/utils'
 
@@ -56,6 +58,7 @@ export function MenuDaConta({
   // Mesmo recorte da rota da auditoria: `comCadastro` já exclui quem não tem turma na sessão e
   // quem foi desligado.
   const ehGestao = comCadastro && tem(PAPEIS.tesoureiro, PAPEIS.comissao)
+  const auditoriaTrancada = usePlanoDaTurma().bloqueia(MODULOS.auditoria)
   const fechar = () => document.getElementById(MENU)?.hidePopover()
   // O balão está em toda tela, e o que vive dentro dele só é consultado depois de aberto — ver
   // `SeletorDeFormatura`. Uma vez aberto, fica: fechar o menu não devolve a lista ao servidor.
@@ -130,6 +133,14 @@ export function MenuDaConta({
             <Link to={ROTAS.auditoria} onClick={fechar} className={estiloDoItem}>
               <Fingerprint strokeWidth={1.75} aria-hidden />
               Histórico da turma
+              {/* Fora do plano (a trilha é do Premium), o mesmo cadeado do menu da esquerda (Sprint 45, T1):
+                  o item continua e leva à vitrine da área. */}
+              {auditoriaTrancada ? (
+                <span className="text-texto-muted ml-auto shrink-0">
+                  <Lock className="size-3.5!" strokeWidth={2} aria-hidden />
+                  <span className="sr-only"> (fora do plano da turma)</span>
+                </span>
+              ) : null}
             </Link>
           ) : null}
 

@@ -73,8 +73,12 @@ export function FormularioDosMeios({ conta, aoConcluir }: Props) {
 
   const salvar = (novos: ValoresDosMeios) =>
     gravar.mutate(paraMeios(novos), {
-      onSuccess: () => {
-        toast.success(conta ? 'Meios salvos. A comissão foi avisada por e-mail.' : 'Meios salvos.')
+      onSuccess: ({ confirmacao_enviada_para }) => {
+        if (confirmacao_enviada_para)
+          toast.success(
+            `Enviamos um link para ${confirmacao_enviada_para}. A mudança só vale depois que você confirmar por lá.`,
+          )
+        else toast.success(conta ? 'Meios salvos. A comissão foi avisada por e-mail.' : 'Meios salvos.')
         aoConcluir?.()
       },
       onError: (erro) => exibirErroNoFormulario(erro, formulario.setError),
@@ -238,8 +242,9 @@ function Resumo({ valores }: { valores?: ValoresDosMeios }) {
   if (!valores?.pix_ativo)
     return (
       <>
-        A turma deixa de aceitar PIX, e os formandos passam a ver só os meios que sobraram. Todos da comissão
-        recebem um e-mail com o que mudou.
+        A turma deixa de aceitar PIX, e os formandos passam a ver só os meios que sobraram. Se o PIX ou a
+        transferência mudaram, a mudança só vale depois que você confirmar pelo link no seu e-mail; aí todos
+        da comissão recebem um e-mail com o que mudou.
       </>
     )
 
@@ -247,8 +252,9 @@ function Resumo({ valores }: { valores?: ValoresDosMeios }) {
     <>
       Os PIX passam a ir para a chave {TIPOS_DE_CHAVE[valores.pix.tipo_de_chave].rotulo}{' '}
       <strong className="text-foreground">{valores.pix.chave}</strong>, em nome de{' '}
-      <strong className="text-foreground">{valores.pix.nome_do_titular}</strong>. Todos da comissão recebem um
-      e-mail com o que mudou, e a chave volta a ficar a conferir se ela tiver mudado.
+      <strong className="text-foreground">{valores.pix.nome_do_titular}</strong>. Se o PIX ou a transferência
+      mudaram, a mudança só vale depois que você confirmar pelo link no seu e-mail; aí todos da comissão
+      recebem um e-mail com o que mudou, e a chave volta a ficar a conferir.
     </>
   )
 }

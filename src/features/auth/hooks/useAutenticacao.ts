@@ -4,7 +4,15 @@ import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { convitePendente } from '@/lib/convitePendente'
 import { type ParDeTokens, sessao } from '@/lib/http/sessao'
-import { aceitarConvite, entrar, registrar, sair } from '../api/auth.api'
+import {
+  aceitarConvite,
+  confirmarCodigo,
+  entrar,
+  pediuCodigo,
+  reenviarCodigo,
+  registrar,
+  sair,
+} from '../api/auth.api'
 
 /**
  * Guarda a sessão e, para quem chegou por um convite, já entra na turma — ainda nesta tela, com o
@@ -33,22 +41,43 @@ async function iniciarSessao(par: ParDeTokens, queryClient: QueryClient) {
   sessao.autenticar(sessaoFinal)
 }
 
-/**
- * Login. Em caso de sucesso guarda a sessão e devolve o usuário para onde ele tentava ir — o
- * `ExigeAutenticacao` deixa o caminho em `state.de` — ou para o início.
- */
-export function useEntrar() {
+/** Guarda a sessão e leva para onde a pessoa tentava ir — o `ExigeAutenticacao` deixa o caminho em `state.de`. */
+function useConcluirEntrada() {
   const navegar = useNavigate()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
   const queryClient = useQueryClient()
 
+  return async (par: ParDeTokens) => {
+    await iniciarSessao(par, queryClient)
+    navegar(destino, { replace: true })
+  }
+}
+
+/**
+ * Login. Com a sessão na resposta, entra; administrador e presidente param no segundo passo — a resposta é o
+ * pedido do código, e quem chamou mostra a etapa do código.
+ */
+export function useEntrar() {
+  const concluir = useConcluirEntrada()
+
   return useMutation({
     mutationFn: entrar,
-    onSuccess: async (par) => {
-      await iniciarSessao(par, queryClient)
-      navegar(destino, { replace: true })
+    onSuccess: async (resposta) => {
+      if (!pediuCodigo(resposta)) await concluir(resposta)
     },
   })
+}
+
+/** O segundo passo do login: o código do e-mail. */
+export function useConfirmarCodigo() {
+  const concluir = useConcluirEntrada()
+
+  return useMutation({ mutationFn: confirmarCodigo, onSuccess: concluir })
+}
+
+/** Manda o código de novo. */
+export function useReenviarCodigo() {
+  return useMutation({ mutationFn: reenviarCodigo })
 }
 
 /** Criação de conta. A API já devolve a sessão, então quem se cadastra entra direto. */

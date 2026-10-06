@@ -28,6 +28,14 @@ export interface PendenciasDoExtrato {
   vencidas_sem_aviso: number
 }
 
+/** As duas parcelas do Início, sem o extrato. Espelha `ProximasParcelasDTO`. */
+export interface ProximasParcelas {
+  /** A primeira a pagar — a mesma `proxima` do extrato; nula quando a pessoa está em dia. */
+  proxima: Parcela | null
+  /** A que vem depois dela, pela mesma regra. */
+  seguinte: Parcela | null
+}
+
 /** O PIX pronto para pagar. Espelha `PixParaPagarDTO`. */
 export interface PixParaPagar {
   copia_e_cola: string

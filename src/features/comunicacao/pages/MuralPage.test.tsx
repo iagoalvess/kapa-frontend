@@ -53,10 +53,28 @@ function comApi(avisos: Aviso[] = [fixado, interno]) {
       return HttpResponse.json(pagina(avisos, 20))
     }),
     http.get(`${AVISOS}/resumo`, () => HttpResponse.json(resumo)),
+    http.get(`${AVISOS}/novidades`, () => HttpResponse.json({ quantidade: 0, itens: [] })),
     http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
   )
 
   return pedidos
+}
+
+/** As novidades do sino e as marcações de visto que a tela fizer. */
+function comNovidades(quantidade: number) {
+  const marcacoes = { visto: 0 }
+
+  servidor.use(
+    http.get(`${AVISOS}/novidades`, () =>
+      HttpResponse.json({ quantidade, itens: quantidade > 0 ? [{ ...fixado }] : [] }),
+    ),
+    http.post(`${AVISOS}/novidades/visto`, () => {
+      marcacoes.visto += 1
+      return new HttpResponse(null, { status: 204 })
+    }),
+  )
+
+  return marcacoes
 }
 
 /** O cartão do aviso aberto, à direita da lista. */
@@ -85,6 +103,30 @@ describe('MuralPage', () => {
     expect(within(lista).getByRole('link', { name: /Ata da reunião interna/ })).toHaveTextContent(
       'Só comissão',
     )
+  })
+
+  it('não marca o mural como visto quando o sino não tem novidade', async () => {
+    entrarComo('Formando')
+    comApi()
+    const marcacoes = comNovidades(0)
+
+    renderizar(<MuralPage />)
+
+    await detalhe('Contrato do buffet assinado')
+    await new Promise((resolver) => setTimeout(resolver, 50))
+    expect(marcacoes.visto).toBe(0)
+  })
+
+  it('com novidade no sino, marca o mural como visto uma vez', async () => {
+    entrarComo('Formando')
+    comApi()
+    const marcacoes = comNovidades(2)
+
+    renderizar(<MuralPage />)
+
+    await waitFor(() => expect(marcacoes.visto).toBe(1))
+    await detalhe('Contrato do buffet assinado')
+    expect(marcacoes.visto).toBe(1)
   })
 
   it('com o id na rota, abre aquele aviso', async () => {

@@ -1,7 +1,7 @@
 import { api } from '@/lib/http/cliente'
 import type { ParDeTokens } from '@/lib/http/sessao'
 import type { FormaturaDetalhe } from '@/types/formatura'
-import type { DadosDaFormatura, FormaturaDoUsuario } from '../types/formaturas.types'
+import type { DadosDaFormatura, FormaturaDoUsuario, PrimeirosPassos } from '../types/formaturas.types'
 
 const BASE = '/api/v1/formaturas'
 
@@ -42,4 +42,9 @@ export function encerrarFormatura() {
 /** Descarta o rascunho selecionado, que nunca foi pago. Some da lista de todos. Só o Presidente. */
 export function descartarFormatura() {
   return api.post<void>(`${BASE}/atual/descartar`, { body: {} })
+}
+
+/** Os passos da comissão até a turma rodar, calculados pela API numa consulta só. Tesouraria. */
+export function obterPrimeirosPassos(signal?: AbortSignal) {
+  return api.get<PrimeirosPassos>(`${BASE}/atual/primeiros-passos`, { signal })
 }

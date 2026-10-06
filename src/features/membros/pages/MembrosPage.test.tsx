@@ -268,7 +268,7 @@ describe('MembrosPage', () => {
     servidor.use(
       http.put(`${MEMBROS}/u-2/papel`, async ({ request }) => {
         enviado = await request.json()
-        return new HttpResponse(null, { status: 204 })
+        return HttpResponse.json({ confirmacao_enviada_para: null })
       }),
     )
     entrarComo(PAPEIS.presidente)
@@ -288,7 +288,7 @@ describe('MembrosPage', () => {
     servidor.use(
       http.put(`${MEMBROS}/u-1/papel`, () => {
         chamou = true
-        return new HttpResponse(null, { status: 204 })
+        return HttpResponse.json({ confirmacao_enviada_para: null })
       }),
     )
     entrarComo(PAPEIS.presidente)

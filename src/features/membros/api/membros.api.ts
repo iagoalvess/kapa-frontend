@@ -2,6 +2,7 @@ import type { Papel } from '@/config/perfis'
 import { api } from '@/lib/http/cliente'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
 import type {
+  AlteracaoDePapel,
   ContagemDeMembros,
   DesligarMembro,
   FiltroDeMembros,
@@ -32,9 +33,14 @@ export function resumirMembros(signal?: AbortSignal) {
   return api.get<ContagemDeMembros[]>(`${BASE}/resumo`, { signal })
 }
 
-/** Troca o papel de um membro. Só o Presidente. */
+/** Troca o papel de um membro. Para Presidente, só pede: o link vai ao e-mail de quem pediu. Só o Presidente. */
 export function alterarPapel({ usuario_id, papel }: { usuario_id: string; papel: Papel }) {
-  return api.put<void>(`${BASE}/${usuario_id}/papel`, { body: { papel } })
+  return api.put<AlteracaoDePapel>(`${BASE}/${usuario_id}/papel`, { body: { papel } })
+}
+
+/** Aplica a promoção a Presidente pedida, com o token do link do e-mail. Só quem pediu. */
+export function confirmarPresidente(token: string) {
+  return api.post<void>(`${BASE}/presidente/confirmar`, { body: { token } })
 }
 
 /** Desativa o vínculo de um membro, preservando o histórico dele. Só o Presidente. */

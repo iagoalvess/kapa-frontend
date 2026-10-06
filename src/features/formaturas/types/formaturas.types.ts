@@ -31,3 +31,18 @@ export interface DadosDaFormatura {
   ano: number
   semestre: number
 }
+
+/** Os passos da comissão até a turma estar rodando. Espelha `PrimeirosPassosDTO`. */
+export interface PrimeirosPassos {
+  /** Mais de uma pessoa ativa na gestão. Opcional: não entra em `concluidos`. */
+  comissao_montada: boolean
+  plano_de_cobranca_em_vigor: boolean
+  termo_publicado: boolean
+  /** Cobrança automática, transferência, dinheiro ou PIX de titular conferido. */
+  recebimentos_configurados: boolean
+  /** O mesmo `ja_contratou` da formatura. */
+  plano_contratado: boolean
+  formandos_na_turma: boolean
+  /** Todos os obrigatórios feitos: o bloco não aparece. */
+  concluidos: boolean
+}

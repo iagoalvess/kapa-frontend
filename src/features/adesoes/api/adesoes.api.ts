@@ -10,6 +10,7 @@ import type {
   FiltroDeAdesoes,
   MinhaAdesao,
   ResumoDeAdesoes,
+  SituacaoDaMinhaAdesao,
   SituacaoDeAdesao,
   TermoPublicado,
   VersaoDoTermo,
@@ -28,6 +29,11 @@ export function obterConteudoParaAdesao(pacotes: string[], signal?: AbortSignal)
 /** A própria adesão mais recente e o que falta no cadastro para aderir. */
 export function obterMinhaAdesao(signal?: AbortSignal) {
   return api.get<MinhaAdesao>(`${BASE}/eu`, { signal })
+}
+
+/** Se há termo e plano para aceitar e se a pessoa já aderiu — sem baixar o termo nem a adesão. */
+export function obterSituacaoDaAdesao(signal?: AbortSignal) {
+  return api.get<SituacaoDaMinhaAdesao>(`${BASE}/eu/situacao`, { signal })
 }
 
 /** Pede o código de seis dígitos do aceite; a resposta diz em que e-mail ele caiu. */

@@ -14,14 +14,12 @@ export function useMercadoPago() {
 }
 
 /**
- * Começa a conexão: a API devolve a página de autorização do Mercado Pago, e o navegador vai para lá.
- * Volta sozinho para a tela da turma, com `?mercado_pago=conectado` — quem lê é o cartão.
+ * Começa a conexão: a API manda o link da página de autorização do Mercado Pago ao e-mail do presidente — a
+ * sessão sozinha não conecta conta nenhuma. De lá, o navegador volta para a tela da turma com
+ * `?mercado_pago=conectado`, e quem lê é o cartão.
  */
 export function useConectarMercadoPago() {
-  return useMutation({
-    mutationFn: autorizarMercadoPago,
-    onSuccess: ({ url }) => globalThis.location.assign(url),
-  })
+  return useMutation({ mutationFn: autorizarMercadoPago })
 }
 
 /** Desconecta: a turma volta a não ter Mercado Pago no cache. */

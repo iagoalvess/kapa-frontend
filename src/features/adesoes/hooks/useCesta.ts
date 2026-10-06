@@ -8,9 +8,17 @@ import {
 } from '../api/adesoes.api'
 import { chaves } from './chaves'
 
-/** A própria cesta e o que o aditivo pode acrescentar (Sprint 48). */
-export function useMinhaCesta() {
-  return useQuery({ queryKey: chaves.cesta(), queryFn: ({ signal }) => obterMinhaCesta(signal) })
+/**
+ * A própria cesta e o que o aditivo pode acrescentar (Sprint 48).
+ *
+ * @param habilitado Falso não consulta — quem foi desligado não tem cesta viva, e a API responderia 403.
+ */
+export function useMinhaCesta(habilitado = true) {
+  return useQuery({
+    queryKey: chaves.cesta(),
+    queryFn: ({ signal }) => obterMinhaCesta(signal),
+    enabled: habilitado,
+  })
 }
 
 /** A prévia do aditivo. Mutação, e não consulta: é o clique de "Ver o aditivo" que a pede, e o hash é dela. */

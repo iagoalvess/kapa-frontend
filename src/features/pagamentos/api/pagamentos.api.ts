@@ -11,6 +11,7 @@ import type {
   Informe,
   Parcela,
   PendenciasDoExtrato,
+  ProximasParcelas,
   CobrancaDaParcela,
   ResultadoDaConferencia,
   SituacaoDoCartao,
@@ -54,6 +55,11 @@ export function obterExtrato(signal?: AbortSignal) {
  */
 export function obterPendenciasDoExtrato(signal?: AbortSignal) {
   return api.get<PendenciasDoExtrato>(`${BASE}/extrato/eu/pendencias`, { signal })
+}
+
+/** A próxima parcela a pagar e a seguinte — o Início, sem o extrato inteiro. */
+export function obterProximasParcelas(signal?: AbortSignal) {
+  return api.get<ProximasParcelas>(`${BASE}/extrato/eu/proximas`, { signal })
 }
 
 /** Uma parcela, com o valor de hoje. O dono, ou a gestão. */

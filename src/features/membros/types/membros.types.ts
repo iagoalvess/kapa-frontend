@@ -97,3 +97,8 @@ export interface DesligarMembro {
   /** Cancela também o que já venceu e não foi pago. */
   cancelar_atraso: boolean
 }
+
+/** O que a troca de papel deu. Para Presidente, só pede: o link vai ao e-mail de quem pediu. Espelha `AlteracaoDePapelDTO`. */
+export interface AlteracaoDePapel {
+  confirmacao_enviada_para: string | null
+}

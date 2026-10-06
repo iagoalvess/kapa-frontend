@@ -6,6 +6,7 @@ import { PAPEIS } from '@/config/perfis'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { entrarComo, renderizar } from '@/test/utils'
+import type { PrimeirosPassos as PrimeirosPassosDaTurma } from '@/features/formaturas/types/formaturas.types'
 import type { FormaturaDetalhe } from '@/types/formatura'
 import { PrimeirosPassos } from './PrimeirosPassos'
 
@@ -25,38 +26,24 @@ const turma: FormaturaDetalhe = {
   ja_contratou: false,
 }
 
-const contagem = (papel: string, quantidade: number) => ({
-  papel,
-  ativo: true,
-  desligado: false,
-  essencial_pendente: false,
-  quantidade,
-})
+const NENHUM: PrimeirosPassosDaTurma = {
+  comissao_montada: false,
+  plano_de_cobranca_em_vigor: false,
+  termo_publicado: false,
+  recebimentos_configurados: false,
+  plano_contratado: false,
+  formandos_na_turma: false,
+  concluidos: false,
+}
 
-/** Responde as duas consultas do guia e conta quantas já voltaram, para o teste saber que os dados chegaram. */
-function responder(resumo: object[], planos: object[], pronto = false) {
+/** Responde a consulta única do guia e conta quantas vezes ela foi feita. */
+function responder(passos: Partial<PrimeirosPassosDaTurma>) {
   const estado = { respondidas: 0 }
 
   servidor.use(
-    http.get(`${base}/api/v1/formaturas/atual/membros/resumo`, () => {
+    http.get(`${base}/api/v1/formaturas/atual/primeiros-passos`, () => {
       estado.respondidas += 1
-      return HttpResponse.json(resumo)
-    }),
-    http.get(`${base}/api/v1/cobrancas/planos`, () => {
-      estado.respondidas += 1
-      return HttpResponse.json(planos)
-    }),
-    http.get(`${base}/api/v1/adesoes/termos/vigente`, () => {
-      estado.respondidas += 1
-      return HttpResponse.json({ termo: pronto ? { id: 't-1' } : null })
-    }),
-    http.get(`${base}/api/v1/recebimentos/conta`, () => {
-      estado.respondidas += 1
-      return HttpResponse.json({ conta: pronto ? { meios: { dinheiro: { nome: 'Presidente' } } } : null })
-    }),
-    http.get(`${base}/api/v1/recebimentos/conta/mercado-pago`, () => {
-      estado.respondidas += 1
-      return HttpResponse.json({ provedor: null })
+      return HttpResponse.json({ ...NENHUM, ...passos })
     }),
   )
 
@@ -68,7 +55,7 @@ describe('Primeiros passos', () => {
 
   it('lista o que falta, na ordem do caminho, e leva a cada porta', async () => {
     entrarComo(PAPEIS.presidente)
-    responder([contagem(PAPEIS.presidente, 1)], [])
+    responder({})
 
     renderizar(<PrimeirosPassos turma={turma} />)
 
@@ -87,16 +74,20 @@ describe('Primeiros passos', () => {
 
   it('some quando todos os passos estão cumpridos', async () => {
     entrarComo(PAPEIS.presidente)
-    const consultas = responder(
-      [contagem(PAPEIS.presidente, 2), contagem(PAPEIS.formando, 3)],
-      [{ id: 'p-1', nome: 'Plano', status: 'Vigente', vigente_desde: '2099-01-01' }],
-      true,
-    )
+    const consultas = responder({
+      comissao_montada: true,
+      plano_de_cobranca_em_vigor: true,
+      termo_publicado: true,
+      recebimentos_configurados: true,
+      plano_contratado: true,
+      formandos_na_turma: true,
+      concluidos: true,
+    })
 
     renderizar(<PrimeirosPassos turma={{ ...turma, ja_contratou: true }} />)
 
-    // Só faz sentido afirmar a ausência depois que as duas consultas voltaram.
-    await waitFor(() => expect(consultas.respondidas).toBe(5))
+    // Só faz sentido afirmar a ausência depois que a consulta voltou.
+    await waitFor(() => expect(consultas.respondidas).toBe(1))
     await waitFor(() =>
       expect(screen.queryByRole('region', { name: 'Primeiros passos' })).not.toBeInTheDocument(),
     )
@@ -104,7 +95,7 @@ describe('Primeiros passos', () => {
 
   it('continua orientando depois da entrada do primeiro formando, se falta termo ou recebimento', async () => {
     entrarComo(PAPEIS.presidente)
-    responder([contagem(PAPEIS.presidente, 1), contagem(PAPEIS.formando, 1)], [{ status: 'Vigente' }])
+    responder({ plano_de_cobranca_em_vigor: true, plano_contratado: true, formandos_na_turma: true })
     renderizar(<PrimeirosPassos turma={{ ...turma, ja_contratou: true }} />)
     const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
     expect(within(guia).getByRole('link', { name: 'Publique o termo de adesão' })).toHaveAttribute(
@@ -121,24 +112,29 @@ describe('Primeiros passos', () => {
 
   it('não exige uma comissão extra para encerrar a configuração', async () => {
     entrarComo(PAPEIS.presidente)
-    const consultas = responder(
-      [contagem(PAPEIS.presidente, 1), contagem(PAPEIS.formando, 1)],
-      [{ status: 'Vigente' }],
-      true,
-    )
+    const consultas = responder({
+      plano_de_cobranca_em_vigor: true,
+      termo_publicado: true,
+      recebimentos_configurados: true,
+      plano_contratado: true,
+      formandos_na_turma: true,
+      concluidos: true,
+    })
     renderizar(<PrimeirosPassos turma={{ ...turma, ja_contratou: true }} />)
-    await waitFor(() => expect(consultas.respondidas).toBe(5))
+    await waitFor(() => expect(consultas.respondidas).toBe(1))
     await waitFor(() =>
       expect(screen.queryByRole('region', { name: 'Primeiros passos' })).not.toBeInTheDocument(),
     )
   })
 
-  it('não aparece com a turma fora de atividade', () => {
+  it('não aparece nem consulta com a turma fora de atividade', async () => {
     entrarComo(PAPEIS.presidente)
-    responder([contagem(PAPEIS.presidente, 1)], [])
+    const consultas = responder({})
 
     renderizar(<PrimeirosPassos turma={{ ...turma, status: 'Suspensa' }} />)
 
+    await new Promise((resolver) => setTimeout(resolver, 50))
     expect(screen.queryByRole('region', { name: 'Primeiros passos' })).not.toBeInTheDocument()
+    expect(consultas.respondidas).toBe(0)
   })
 })

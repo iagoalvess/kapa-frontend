@@ -59,19 +59,25 @@ describe('Página inicial', () => {
         HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 0 }),
       ),
       http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(ARRECADACAO)),
-      http.get(`${base}/api/v1/extrato/eu`, () => HttpResponse.json({ proxima: null })),
+      http.get(`${base}/api/v1/extrato/eu/proximas`, () =>
+        HttpResponse.json({ proxima: null, seguinte: null }),
+      ),
       http.get(`${base}/api/v1/comunicacao/avisos`, () => HttpResponse.json(pagina([]))),
-      // Consultas do guia de primeiros passos e do aviso de cadastro, que só a Gestão aciona.
-      http.get(`${base}/api/v1/formaturas/atual/membros/resumo`, () => HttpResponse.json([])),
-      http.get(`${base}/api/v1/cobrancas/planos`, () => HttpResponse.json([])),
-      http.get(`${base}/api/v1/adesoes/eu`, () =>
-        HttpResponse.json({ adesao: null, pendencias: [], menor_de_idade: false }),
+      // O guia de primeiros passos (só a Tesouraria) e a situação da adesão (o aviso do termo).
+      http.get(`${base}/api/v1/formaturas/atual/primeiros-passos`, () =>
+        HttpResponse.json({
+          comissao_montada: false,
+          plano_de_cobranca_em_vigor: false,
+          termo_publicado: false,
+          recebimentos_configurados: false,
+          plano_contratado: false,
+          formandos_na_turma: false,
+          concluidos: false,
+        }),
       ),
-      http.get(`${base}/api/v1/adesoes/termos/vigente`, () =>
-        HttpResponse.json({ termo: null, plano: null, hash_do_conteudo: null }),
+      http.get(`${base}/api/v1/adesoes/eu/situacao`, () =>
+        HttpResponse.json({ termo_publicado: false, plano_vigente: false, aderiu: false }),
       ),
-      http.get(`${base}/api/v1/recebimentos/conta`, () => HttpResponse.json({ conta: null })),
-      http.get(`${base}/api/v1/recebimentos/conta/mercado-pago`, () => HttpResponse.json({ provedor: null })),
       http.get(`${base}/api/v1/formandos/eu`, () =>
         HttpResponse.json({ essencial_pendente: false, completude: 100 }),
       ),
@@ -187,9 +193,7 @@ describe('Página inicial', () => {
     const parcela = vencidaDeTeste()
     const seguinte = parcelaDeTeste({ id: 'pa-seguinte', numero: 3, vencimento: '2026-09-10' })
     servidor.use(
-      http.get(`${base}/api/v1/extrato/eu`, () =>
-        HttpResponse.json({ proxima: parcela, parcelas: [parcela, seguinte], em_aberto_em_centavos: 71_120 }),
-      ),
+      http.get(`${base}/api/v1/extrato/eu/proximas`, () => HttpResponse.json({ proxima: parcela, seguinte })),
     )
     renderizar(<PaginaInicial />)
 
@@ -203,7 +207,7 @@ describe('Página inicial', () => {
 
   it('mostra falha de consulta sem afirmar que o usuário está em dia', async () => {
     servidor.use(
-      http.get(`${base}/api/v1/extrato/eu`, () =>
+      http.get(`${base}/api/v1/extrato/eu/proximas`, () =>
         HttpResponse.json({ mensagem: 'Falha ao consultar parcelas' }, { status: 500 }),
       ),
     )
@@ -216,19 +220,6 @@ describe('Página inicial', () => {
   it('a comissão nova vê o guia de primeiros passos no topo', async () => {
     entrarComo(PAPEIS.presidente)
     responderTurma({ ...turma, status: 'Ativa', ja_contratou: false })
-    servidor.use(
-      http.get(`${base}/api/v1/formaturas/atual/membros/resumo`, () =>
-        HttpResponse.json([
-          {
-            papel: PAPEIS.presidente,
-            ativo: true,
-            desligado: false,
-            essencial_pendente: false,
-            quantidade: 1,
-          },
-        ]),
-      ),
-    )
     renderizar(<PaginaInicial />)
 
     const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
@@ -242,8 +233,8 @@ describe('Página inicial', () => {
   it('explica que o aceite gera as parcelas e abre o termo disponível', async () => {
     responderTurma({ ...turma, status: 'Ativa' })
     servidor.use(
-      http.get(`${base}/api/v1/adesoes/termos/vigente`, () =>
-        HttpResponse.json({ termo: { id: 't-1' }, hash_do_conteudo: 'hash' }),
+      http.get(`${base}/api/v1/adesoes/eu/situacao`, () =>
+        HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false }),
       ),
     )
     renderizar(<PaginaInicial />)

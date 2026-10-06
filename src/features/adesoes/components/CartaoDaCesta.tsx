@@ -8,6 +8,7 @@ import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData } from '@/lib/formato'
 import { beneficiosPorExtenso, cancelavelHoje, rotuloDoItem } from '@/types/cobranca'
 import { useMinhaCesta, useSolicitarCancelamentoDoPacote } from '../hooks/useCesta'
@@ -32,11 +33,16 @@ const nomeDoPacote = (pacote: Pick<PacoteNaCesta, 'grupo' | 'tipo' | 'descricao'
  * @param cestaAceita O quadro do termo assinado, para quando a cesta viva não responde.
  */
 export function CartaoDaCesta({ cestaAceita }: { cestaAceita: PacoteDaCesta[] | null }) {
-  const cesta = useMinhaCesta()
+  const { desligadoEm } = useFormaturaAtiva()
+  const cesta = useMinhaCesta(!desligadoEm)
   const editavel = useEscritaLiberada()
   const [acrescentando, definirAcrescentando] = useState(0)
 
-  if (cesta.isError || (cesta.data && cesta.data.pacotes.length === 0 && !cesta.data.disponiveis.length))
+  if (
+    desligadoEm ||
+    cesta.isError ||
+    (cesta.data && cesta.data.pacotes.length === 0 && !cesta.data.disponiveis.length)
+  )
     return <QuadroDeEscolhas cesta={cestaAceita} />
 
   if (!cesta.data) return null

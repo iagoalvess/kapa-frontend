@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
+import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { reais, renderizar } from '@/test/utils'
 import { useExtrato } from '@/features/pagamentos'
@@ -383,6 +384,35 @@ describe('AdesaoDoFormando', () => {
     const quadro = await screen.findByRole('region', { name: 'Quadro de escolhas' })
     expect(within(quadro).getByText('Festa — 15 pessoas')).toBeInTheDocument()
     expect(within(quadro).getByText('15 convites da festa')).toBeInTheDocument()
+  })
+
+  it('quem foi desligado vê o termo assinado sem consultar o termo vigente nem a cesta viva', async () => {
+    const corpo = {
+      sub: 'u-9',
+      name: 'Ana',
+      formatura_id: 'f-1',
+      papel: 'Formando',
+      desligado_em: '2026-09-16T12:00:00Z',
+    }
+    sessao.autenticar({
+      access_token: `c.${btoa(JSON.stringify(corpo))}.a`,
+      expira_em: new Date(Date.now() + 900_000).toISOString(),
+    })
+    let cesta = 0
+    const pedidos = responder({ adesao, pendencias: [], menor_de_idade: false })
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/adesoes/minha-cesta`, () => {
+        cesta += 1
+        return HttpResponse.json({ pacotes: [], disponiveis: [] })
+      }),
+    )
+
+    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+
+    expect(await screen.findByText(/Versão 1, aceita em 14\/09\/2026/)).toBeInTheDocument()
+    expect(pedidos.conteudo).toBe(0)
+    expect(cesta).toBe(0)
+    sessao.encerrar()
   })
 
   it('menor de 18 anos é encaminhado à comissão', async () => {

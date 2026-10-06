@@ -5,6 +5,8 @@ export const chaves = {
   tudo: ['adesoes'] as const,
   conteudo: (pacotes: string[] = []) => ['adesoes', 'conteudo', pacotes] as const,
   minha: () => ['adesoes', 'minha'] as const,
+  /** Sob `minha`: aderir e publicar já invalidam `adesoes` inteiro, e a guarda solta a pessoa junto. */
+  minhaSituacao: () => ['adesoes', 'minha', 'situacao'] as const,
   /** A cesta viva do formando (Sprint 48) — o aditivo e o cancelamento a mudam. */
   cesta: () => ['adesoes', 'cesta'] as const,
   termos: () => ['adesoes', 'termos'] as const,

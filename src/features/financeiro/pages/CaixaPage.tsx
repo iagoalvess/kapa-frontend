@@ -21,6 +21,7 @@ import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData } from '@/lib/formato'
+import { cn } from '@/lib/utils'
 import { fatiaDaCategoria, fatiaDaOutraReceita } from '@/types/financeiro'
 import { useCaixa, useProjecao } from '../hooks/useCaixa'
 
@@ -44,8 +45,11 @@ import { useCaixa, useProjecao } from '../hooks/useCaixa'
  */
 export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
   const { tem } = usePapel()
+  const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const caixa = useCaixa()
-  const projecao = useProjecao()
+  // A projeção é da Gestão (é com ela que a comissão decide contratar): o formando nem pede, e o cartão
+  // dela não aparece para ele — antes a consulta voltava 403 e o cartão ficava vazio, sem erro.
+  const projecao = useProjecao(ehGestao)
   const dados = caixa.data
 
   return (
@@ -88,41 +92,47 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
       {/* Sem `items-start`: lado a lado, os dois cartões têm a mesma altura — o que passar a ser o
           mais alto puxa o outro, e não sobra vão cinza entre eles e os últimos lançamentos. */}
       <div className="grid gap-5 lg:grid-cols-3">
-        <Cartao
-          titulo="Entradas e saídas"
-          icone={TrendingUp}
-          descricao="Mês a mês. Os meses à frente são projeção: o que ainda vence, não o que já aconteceu."
-          className="lg:col-span-2"
-        >
-          {projecao.isPending ? <EsqueletoDeGrafico /> : null}
+        {ehGestao ? (
+          <Cartao
+            titulo="Entradas e saídas"
+            icone={TrendingUp}
+            descricao="Mês a mês. Os meses à frente são projeção: o que ainda vence, não o que já aconteceu."
+            className="lg:col-span-2"
+          >
+            {projecao.isPending ? <EsqueletoDeGrafico /> : null}
 
-          {projecao.data ? (
-            <div className="motion-safe:animate-entrar grid gap-4">
-              <GraficoDeCaixa meses={projecao.data.meses} />
+            {projecao.data ? (
+              <div className="motion-safe:animate-entrar grid gap-4">
+                <GraficoDeCaixa meses={projecao.data.meses} />
 
-              <dl className="border-border grid gap-3 border-t pt-4 sm:grid-cols-3">
-                <div className="grid gap-0.5">
-                  <dt className="text-muted-foreground text-sm">Saldo hoje</dt>
-                  <dd className="text-foreground text-lg font-medium tabular-nums">
-                    {formatarCentavos(projecao.data.saldo_em_centavos)}
-                  </dd>
-                </div>
-                <div className="grid gap-0.5">
-                  <dt className="text-muted-foreground text-sm">Saldo se todos pagarem</dt>
-                  <dd className="text-foreground text-lg font-medium tabular-nums">
-                    {formatarCentavos(dados?.saldo_projetado_em_centavos)}
-                  </dd>
-                </div>
-                <div className="grid gap-0.5">
-                  <dt className="text-muted-foreground text-sm">Fora da projeção (em atraso)</dt>
-                  <dd className="text-danger-text text-lg font-medium tabular-nums">
-                    {formatarCentavos(projecao.data.em_atraso_em_centavos)}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          ) : null}
-        </Cartao>
+                <dl className="border-border grid gap-3 border-t pt-4 sm:grid-cols-3">
+                  <div className="grid gap-0.5">
+                    <dt className="text-muted-foreground text-sm">Saldo hoje</dt>
+                    <dd className="text-foreground text-lg font-medium tabular-nums">
+                      {formatarCentavos(projecao.data.saldo_em_centavos)}
+                    </dd>
+                  </div>
+                  <div className="grid gap-0.5">
+                    <dt className="text-muted-foreground text-sm">Saldo se todos pagarem</dt>
+                    <dd className="text-foreground text-lg font-medium tabular-nums">
+                      {formatarCentavos(dados?.saldo_projetado_em_centavos)}
+                    </dd>
+                  </div>
+                  <div className="grid gap-0.5">
+                    <dt className="text-muted-foreground text-sm">Fora da projeção (em atraso)</dt>
+                    <dd className="text-danger-text text-lg font-medium tabular-nums">
+                      {formatarCentavos(projecao.data.em_atraso_em_centavos)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
+
+            {projecao.isError ? (
+              <ErroDaConsulta compacto erro={projecao.error} aoTentarDeNovo={() => void projecao.refetch()} />
+            ) : null}
+          </Cartao>
+        ) : null}
 
         {/* `grid-rows-[auto_1fr]`: o conteúdo fica com a altura que sobra do cartão, e a rosca a
             usa para se centrar — senão o cartão, esticado pelo gráfico ao lado, vazava embaixo. */}
@@ -130,7 +140,7 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
           titulo="Gastos por categoria"
           icone={PiggyBank}
           descricao="O que já saiu e o que ainda vai sair, do maior para o menor."
-          className="lg:grid-rows-[auto_1fr]"
+          className={cn('lg:grid-rows-[auto_1fr]', !ehGestao && 'lg:col-span-3')}
         >
           {caixa.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
 
@@ -206,7 +216,7 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
             <>
               {/* Parcelas nomeia quem deve: é da Gestão, e para o formando o link cairia na guarda.
                   Despesas, não — ela diz no que a turma gastou, e isso todo membro lê. */}
-              {tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? (
+              {ehGestao ? (
                 <Button asChild variant="outline" size="sm">
                   <LinkDaPagina to={ROTAS.parcelas}>Ver parcelas</LinkDaPagina>
                 </Button>

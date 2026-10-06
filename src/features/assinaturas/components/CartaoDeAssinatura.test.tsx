@@ -45,7 +45,7 @@ describe('CartaoDeAssinatura', () => {
     entrarComo(PAPEIS.tesoureiro)
     servidor.use(http.get(ASSINATURA, () => HttpResponse.json(ativa)))
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
 
     expect(await screen.findByText('Plano Premium')).toBeInTheDocument()
     expect(screen.getByText(/R\$\s?49,90/)).toBeInTheDocument()
@@ -69,7 +69,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
     await usuario.click(await screen.findByRole('button', { name: 'Cancelar renovação' }))
 
     const primeira = screen.getByRole('alertdialog')
@@ -87,6 +87,16 @@ describe('CartaoDeAssinatura', () => {
     await expect.poll(() => cancelamentos).toBe(1)
   })
 
+  it('no gratuito, mostra o plano gratuito sem consultar a assinatura', () => {
+    entrarComo(PAPEIS.presidente)
+
+    // Nenhum handler declarado: uma consulta à assinatura derrubaria o teste.
+    renderizar(<CartaoDeAssinatura jaContratou={false} />)
+
+    expect(screen.getByText('Plano gratuito')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
+  })
+
   it('sem assinatura, o Presidente é levado aos planos', async () => {
     entrarComo(PAPEIS.presidente)
     servidor.use(
@@ -95,7 +105,7 @@ describe('CartaoDeAssinatura', () => {
       ),
     )
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
 
     expect(await screen.findByText('Plano gratuito')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
@@ -113,7 +123,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
     await usuario.click(await screen.findByRole('button', { name: 'Trocar para o PIX' }))
     const dialogo = screen.getByRole('alertdialog')
     expect(within(dialogo).getByText(/débito automático no cartão é cancelado agora/)).toBeInTheDocument()
@@ -132,7 +142,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
     expect(await screen.findByText('Próximo PIX')).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Pagar renovação' }))
 
@@ -148,7 +158,7 @@ describe('CartaoDeAssinatura', () => {
       ),
     )
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
 
     expect(await screen.findByText(/o plano passa a ser o Essencial/)).toBeInTheDocument()
   })
@@ -167,7 +177,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura />)
+    renderizar(<CartaoDeAssinatura jaContratou />)
     await usuario.click(await screen.findByRole('button', { name: 'Manter o Premium' }))
 
     await expect.poll(() => pedido).toEqual({ plano_codigo: 'premium' })

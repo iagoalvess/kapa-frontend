@@ -71,7 +71,7 @@ describe('CartaoDeConvitesPorEmail', () => {
     await screen.findByText(/Para convidar formandos, contrate um plano/)
     await waitFor(() => {
       const papeis = within(screen.getByLabelText('Papel do convidado')).getAllByRole('option')
-      expect(papeis.map((opcao) => opcao.textContent)).toEqual(['Tesoureiro', 'Comissão', 'Presidente'])
+      expect(papeis.map((opcao) => opcao.textContent)).toEqual(['Tesoureiro', 'Comissão'])
     })
     expect(screen.getByRole('button', { name: 'Enviar convite' })).toBeEnabled()
   })

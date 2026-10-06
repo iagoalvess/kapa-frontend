@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -26,9 +26,7 @@ function comApi(provedor: ProvedorConectado | null = null) {
       HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' }),
     ),
     http.get(MERCADO_PAGO, () => HttpResponse.json({ provedor })),
-    http.post(`${MERCADO_PAGO}/autorizacao`, () =>
-      HttpResponse.json({ url: '#autorizacao-do-mercado-pago' }),
-    ),
+    http.post(`${MERCADO_PAGO}/autorizacao`, () => HttpResponse.json({ enviada_para: 'pr***@kapa.dev' })),
   )
 }
 
@@ -39,16 +37,18 @@ describe('CartaoDoMercadoPago', () => {
   })
 
   /** Sprint 25, OAuth: conectar é mandar o navegador à página de autorização que a API devolve. */
-  it('o presidente conecta indo para a autorização do Mercado Pago, com o passo a passo do Kapinha', async () => {
+  /** Revisão de segurança de 05/10/2026: o link de autorização vai ao e-mail, e a tela não sai do lugar. */
+  it('o presidente pede a conexão e o link vai ao e-mail, com o passo a passo do Kapinha', async () => {
     entrarComo('Presidente')
     comApi()
+    const antes = globalThis.location.href
 
     renderizar(<CartaoDoMercadoPago />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Conectar Mercado Pago' }))
 
-    // A URL é só um âncora aqui: o jsdom navega por hash, e é assim que dá para ver a ida ao Mercado Pago.
-    await expect.poll(() => globalThis.location.hash).toBe('#autorizacao-do-mercado-pago')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled())
+    expect(globalThis.location.href).toBe(antes)
     await userEvent.click(screen.getByText('Como conectar? O Kapinha explica'))
     expect(screen.getByText(/o dinheiro fica na conta Mercado Pago até você/)).toBeVisible()
   })

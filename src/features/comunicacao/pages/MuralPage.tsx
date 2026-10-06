@@ -29,7 +29,13 @@ import { DetalheDoAviso } from '../components/DetalheDoAviso'
 import { EditorDeAviso } from '../components/EditorDeAviso'
 import { LateralDoMural } from '../components/LateralDoMural'
 import { LinhaDoMural } from '../components/LinhaDoMural'
-import { useAviso, useAvisos, useMarcarMuralVisto, useResumoDoMural } from '../hooks/useAvisos'
+import {
+  useAviso,
+  useAvisos,
+  useMarcarMuralVisto,
+  useNovidadesDoMural,
+  useResumoDoMural,
+} from '../hooks/useAvisos'
 import { LIMITE_DE_FIXADOS, type ResumoDoMural } from '../types/comunicacao.types'
 import { useTamanhoDaPagina } from '@/hooks/useTelaGrande'
 
@@ -102,16 +108,18 @@ export default function MuralPage() {
   const resumo = useResumoDoMural()
   const itens = avisos.data?.itens ?? []
 
-  // Abrir o mural é o que zera o sino: uma vez por visita, e não a cada filtro ou página.
+  // Abrir o mural é o que zera o sino: uma vez por visita, e não a cada filtro ou página — e só se
+  // o sino tiver o que zerar. Sem novidade, marcar visto era um POST e uma releitura do sino por nada.
+  const novidades = useNovidadesDoMural().data?.quantidade ?? 0
   const marcarVisto = useMarcarMuralVisto()
   const jaMarcou = useRef(false)
 
   useEffect(() => {
-    if (jaMarcou.current) return
+    if (jaMarcou.current || novidades === 0) return
 
     jaMarcou.current = true
     marcarVisto.mutate()
-  }, [marcarVisto])
+  }, [marcarVisto, novidades])
 
   // Sem id na rota, o primeiro da lista é o que abre — o mural nunca fica com a direita vazia.
   const escolhido = id ?? itens[0]?.id

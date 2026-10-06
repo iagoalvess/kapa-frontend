@@ -109,8 +109,8 @@ export default function PaginaDaFormatura() {
               {tesouraria ? <CartaoDoMercadoPago /> : null}
             </div>
             <div className="grid gap-5">
-              <CartaoDeAssinatura />
-              <CartaoDePagamentosDoPlano />
+              <CartaoDeAssinatura jaContratou={dados.ja_contratou} />
+              <CartaoDePagamentosDoPlano jaContratou={dados.ja_contratou} />
               <CartaoDoLinkDaTurma />
               {tesouraria ? <ComoODinheiroChega /> : null}
               <CicloDaFormatura formatura={dados} />

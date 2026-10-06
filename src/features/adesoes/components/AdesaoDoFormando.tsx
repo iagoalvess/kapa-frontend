@@ -6,6 +6,7 @@ import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { ROTAS } from '@/config/rotas'
+import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { useMinhaAdesao } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
 import { FaltaParaAderir } from './FaltaParaAderir'
@@ -35,25 +36,31 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
   // A cesta mora aqui, e não na leitura: é ela que pede o conteúdo — e o hash — de novo a cada pacote marcado.
   const [escolha, definirEscolha] = useState<string[]>([])
   const [observacoes, definirObservacoes] = useState<Record<string, string>>({})
-  const conteudo = useConteudoParaAdesao(true, escolha)
+  // Quem foi desligado lê só o termo que assinou: o vigente e a cesta viva dariam 403 (P5 da Sprint 15).
+  const { desligadoEm } = useFormaturaAtiva()
+  const conteudo = useConteudoParaAdesao({ habilitado: !desligadoEm, pacotes: escolha, fresco: true })
   const minha = useMinhaAdesao()
   const [parametros, definirParametros] = useSearchParams()
   const { state } = useLocation()
 
-  if (conteudo.isPending || minha.isPending)
-    return (
-      <EsqueletoDeCartao>
-        <EsqueletoDeTexto linhas={6} />
-      </EsqueletoDeCartao>
-    )
+  if (minha.isPending) return <Esqueleto />
 
   if (minha.isError)
     return <ErroDaConsulta compacto erro={minha.error} aoTentarDeNovo={() => void minha.refetch()} />
 
+  if (desligadoEm)
+    return minha.data.adesao ? (
+      <TermoAssinado adesao={minha.data.adesao} />
+    ) : (
+      <p className="text-muted-foreground text-sm">Você saiu da turma sem ter aderido ao termo.</p>
+    )
+
+  if (conteudo.isPending) return <Esqueleto />
+
   const { adesao, pendencias, menor_de_idade } = minha.data
 
-  // O termo assinado não depende do vigente da turma. Quem foi desligado lê o dele e não o dela
-  // (403 em `termos/vigente`), e a prova do que ele aceitou não pode sumir junto com o acesso.
+  // O termo assinado não depende do vigente da turma: se ele falhar, a prova do que a pessoa aceitou
+  // continua na tela.
   if (adesao && conteudo.isError) return <TermoAssinado adesao={adesao} />
 
   if (conteudo.isError)
@@ -113,6 +120,15 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       aoRecarregar={() => void conteudo.refetch()}
       aoAderir={() => definirParametros({}, { state })}
     />
+  )
+}
+
+/** O desenho que vem, enquanto a adesão ou o termo carregam. */
+function Esqueleto() {
+  return (
+    <EsqueletoDeCartao>
+      <EsqueletoDeTexto linhas={6} />
+    </EsqueletoDeCartao>
   )
 }
 

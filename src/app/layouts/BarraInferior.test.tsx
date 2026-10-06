@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,6 +15,9 @@ function comApi({ vencidas = 0, aConferir = 0 } = {}) {
   servidor.use(
     http.get(`${API}/extrato/eu/pendencias`, () => HttpResponse.json({ vencidas_sem_aviso: vencidas })),
     http.get(`${API}/informes`, () => HttpResponse.json({ itens: [], total: aConferir })),
+    http.get(`${API}/adesoes/eu/situacao`, () =>
+      HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: true }),
+    ),
   )
 }
 
@@ -43,6 +46,23 @@ describe('BarraInferior', () => {
       'Agenda /agenda',
       'Mais',
     ])
+  })
+
+  /** Decisão do dono de 06/10/2026: sem adesão, a barra leva só ao que a guarda `ExigeAdesao` abre. */
+  it('leva o formando sem adesão só ao termo e às parcelas', async () => {
+    entrarComo('Formando')
+    comApi()
+    servidor.use(
+      http.get(`${API}/adesoes/eu/situacao`, () =>
+        HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false }),
+      ),
+    )
+
+    renderizar(<BarraInferior aoAbrirMais={() => {}} />)
+
+    await waitFor(() =>
+      expect(destinos()).toEqual(['Termo a assinar /meu-termo', 'Parcelas /minhas-parcelas', 'Mais']),
+    )
   })
 
   it('leva a tesouraria a Início, Conferir, Caixa e Mural', () => {

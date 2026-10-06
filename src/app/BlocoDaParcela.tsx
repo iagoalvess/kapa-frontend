@@ -6,9 +6,9 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Button } from '@/components/ui/button'
 import { rotaDoPagamento } from '@/config/rotas'
-import { useExtrato } from '@/features/pagamentos'
+import { useProximasParcelas } from '@/features/pagamentos'
 import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
-import { emAberto, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { TracoDoInicio } from './TracoDoInicio'
 
 /**
@@ -31,19 +31,19 @@ function prazo(vencimento: string) {
 /**
  * A próxima parcela do próprio formando, com atalho para pagar e um resumo compacto da seguinte.
  *
+ * As duas vêm prontas de `/extrato/eu/proximas`: o extrato inteiro fica para Minhas parcelas.
+ *
  * Quem está em dia vê o mascote e uma linha dizendo isso: "nada a pagar" é uma boa notícia que vale a
  * pena dar.
  */
 export function BlocoDaParcela() {
-  const extrato = useExtrato()
-  const proxima = extrato.data?.proxima
-  const segundaProxima = (extrato.data?.parcelas ?? [])
-    .filter((parcela) => emAberto(parcela) && !parcela.em_conferencia && parcela.id !== proxima?.id)
-    .toSorted((a, b) => a.vencimento.localeCompare(b.vencimento))[0]
+  const proximas = useProximasParcelas()
+  const proxima = proximas.data?.proxima
+  const segundaProxima = proximas.data?.seguinte
 
-  if (extrato.isPending) return <EsqueletoDeTexto linhas={2} />
-  if (extrato.isError)
-    return <ErroDaConsulta compacto erro={extrato.error} aoTentarDeNovo={() => void extrato.refetch()} />
+  if (proximas.isPending) return <EsqueletoDeTexto linhas={2} />
+  if (proximas.isError)
+    return <ErroDaConsulta compacto erro={proximas.error} aoTentarDeNovo={() => void proximas.refetch()} />
 
   if (!proxima)
     return (

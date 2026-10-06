@@ -1,5 +1,7 @@
+import { useNavigate } from 'react-router'
 import { Select } from '@/components/Select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { ROTAS } from '@/config/rotas'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { avisarErro } from '@/lib/http/erros'
 import { useMinhasFormaturas, useSelecionarFormatura } from '../hooks/useFormaturas'
@@ -28,6 +30,9 @@ export function descreverTurma(formatura: FormaturaDoUsuario) {
  * A troca é o `Select` do sistema: a opção fechada já mostra curso, instituição e turma, o que
  * separa duas turmas de nome parecido — escolher a errada abre o caixa de outra formatura.
  *
+ * Trocou, vai para o Início da turma nova: a rota em que a pessoa estava (um pedido, uma parcela, um
+ * aviso) é da turma anterior, e na nova ela não existe ou é outra coisa.
+ *
  * @param habilitado Falso não consulta a lista. O menu do avatar está em toda tela, e quase todo
  *   mundo tem uma turma só — sem isto, toda tela pedia `/formaturas/minhas` para desenhar um
  *   seletor fechado que, na maioria das contas, nem aparece.
@@ -36,6 +41,7 @@ export function SeletorDeFormatura({ habilitado = true }: { habilitado?: boolean
   const { formaturaId } = useFormaturaAtiva()
   const formaturas = useMinhasFormaturas(habilitado)
   const selecionar = useSelecionarFormatura()
+  const navegar = useNavigate()
 
   const atual = formaturas.data?.find((formatura) => formatura.id === formaturaId)
   if (!formaturas.data || !atual || formaturas.data.length === 1) return null
@@ -50,7 +56,12 @@ export function SeletorDeFormatura({ habilitado = true }: { habilitado?: boolean
             className="h-9 w-full truncate text-sm font-medium"
             value={atual.id}
             disabled={selecionar.isPending}
-            onChange={(evento) => selecionar.mutate(evento.target.value, { onError: avisarErro })}
+            onChange={(evento) =>
+              selecionar.mutate(evento.target.value, {
+                onSuccess: () => void navegar(ROTAS.inicio),
+                onError: avisarErro,
+              })
+            }
           >
             {formaturas.data.map((formatura) => (
               <option key={formatura.id} value={formatura.id}>

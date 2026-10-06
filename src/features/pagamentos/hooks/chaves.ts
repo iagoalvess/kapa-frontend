@@ -6,6 +6,8 @@ export const chaves = {
   extrato: () => ['pagamentos', 'extrato'] as const,
   /** Sob `extrato`: quem invalida o extrato depois de um aviso já apaga o selo do menu junto. */
   pendencias: () => ['pagamentos', 'extrato', 'pendencias'] as const,
+  /** Sob `extrato` pelo mesmo motivo: o aviso e a baixa que mudam o extrato mudam a parcela do Início. */
+  proximas: () => ['pagamentos', 'extrato', 'proximas'] as const,
   parcela: (parcelaId: string) => ['pagamentos', 'parcela', parcelaId] as const,
   cobranca: (parcelaId: string) => ['pagamentos', 'cobranca', parcelaId] as const,
   cobrancaDeVarias: (parcelaIds: string[]) => ['pagamentos', 'cobranca', parcelaIds] as const,

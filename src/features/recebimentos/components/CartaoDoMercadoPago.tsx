@@ -76,7 +76,14 @@ export function CartaoDoMercadoPago() {
 
   const { provedor } = consulta.data
   const escreve = ehPresidente && liberado
-  const conectarAgora = () => conectar.mutate(undefined, { onError: avisarErro })
+  const conectarAgora = () =>
+    conectar.mutate(undefined, {
+      onSuccess: ({ enviada_para }) =>
+        toast.success(
+          `Enviamos para ${enviada_para} o link para autorizar no Mercado Pago. Ele vale 15 minutos.`,
+        ),
+      onError: avisarErro,
+    })
 
   return (
     <Cartao
@@ -89,7 +96,7 @@ export function CartaoDoMercadoPago() {
           <AcoesDaConta aoTrocar={conectarAgora} trocando={conectar.isPending} />
         ) : (
           <Button size="sm" onClick={conectarAgora} disabled={conectar.isPending}>
-            {conectar.isPending ? 'Abrindo o Mercado Pago…' : 'Conectar Mercado Pago'}
+            {conectar.isPending ? 'Enviando o link…' : 'Conectar Mercado Pago'}
           </Button>
         )
       }

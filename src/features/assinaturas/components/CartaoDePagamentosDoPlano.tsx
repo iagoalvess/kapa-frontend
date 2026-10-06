@@ -13,9 +13,15 @@ import { useCobrancasDoPlano } from '../hooks/useAssinatura'
  * subida de plano, com o que foi estornado.
  *
  * Mora ao lado do cartão da assinatura, na coluna lateral — sem ícone no título. Turma que nunca pagou não vê
- * cartão nenhum: uma tabela vazia no gratuito só ocupa lugar.
+ * cartão nenhum: uma tabela vazia no gratuito só ocupa lugar — e nem consulta.
+ *
+ * @param jaContratou O `ja_contratou` da formatura da sessão; falso, não há pagamento a listar.
  */
-export function CartaoDePagamentosDoPlano() {
+export function CartaoDePagamentosDoPlano({ jaContratou }: { jaContratou: boolean }) {
+  return jaContratou ? <PagamentosDoPlano /> : null
+}
+
+function PagamentosDoPlano() {
   const cobrancas = useCobrancasDoPlano()
 
   if (cobrancas.isPending)

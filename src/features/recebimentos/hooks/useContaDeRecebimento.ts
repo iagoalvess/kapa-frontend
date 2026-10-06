@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { conferirConta, gravarConta, obterConta, obterPixDeTeste } from '../api/recebimentos.api'
+import {
+  conferirConta,
+  confirmarTroca,
+  gravarConta,
+  obterConta,
+  obterPixDeTeste,
+} from '../api/recebimentos.api'
 import type { ContaDeRecebimento } from '../types/recebimentos.types'
 import { chaves } from './chaves'
 
@@ -37,5 +43,22 @@ function useEscritaDaConta<T>(escrever: (variaveis: T) => Promise<ContaDeRecebim
   })
 }
 
-export const useGravarConta = () => useEscritaDaConta(gravarConta)
 export const useConferirConta = () => useEscritaDaConta(conferirConta)
+export const useConfirmarTroca = () => useEscritaDaConta(confirmarTroca)
+
+/**
+ * Grava os meios. A conta só vai para o cache quando a troca já valeu — pedida, ela espera o link do e-mail e
+ * a tela continua mostrando a conta de antes.
+ */
+export function useGravarConta() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: gravarConta,
+    onSuccess: ({ conta, confirmacao_enviada_para }) => {
+      if (confirmacao_enviada_para) return
+      queryClient.setQueryData(chaves.conta(), { conta })
+      void queryClient.invalidateQueries({ queryKey: chaves.pixDeTeste() })
+    },
+  })
+}

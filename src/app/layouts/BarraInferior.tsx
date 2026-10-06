@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   CalendarDays,
   Ellipsis,
+  FileSignature,
   House,
   type LucideIcon,
   Megaphone,
@@ -12,6 +13,7 @@ import { NavLink, useLocation } from 'react-router'
 import { PAPEIS } from '@/config/perfis'
 import { MODULOS } from '@/config/planos'
 import { ROTAS } from '@/config/rotas'
+import { useAdesaoObrigatoria } from '@/features/adesoes'
 import { useParcelasVencidas, usePendentesDeConferencia } from '@/features/pagamentos'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
@@ -89,27 +91,34 @@ export function BarraInferior({ aoAbrirMais }: { aoAbrirMais?: () => void }) {
     pendente: parcelasVencidas ? 'vencidas' : undefined,
   }
 
+  // O formando sem adesão fica com o que a guarda `ExigeAdesao` abre: o termo e as parcelas (o mesmo recorte da
+  // barra lateral). O Início, o mural e a agenda o devolveriam ao termo.
+  const semAdesao = useAdesaoObrigatoria().pendente
+  const termo: Destino = { rotulo: 'Termo', para: ROTAS.adesao, icone: FileSignature, pendente: 'a assinar' }
+
   const destinos: Destino[] = noPainel
     ? [...MENU_DO_PAINEL]
     : desligadoEm
       ? [inicio, minhasParcelas]
-      : ehGestao
-        ? [
-            inicio,
-            ehTesouraria
-              ? {
-                  rotulo: 'Conferir',
-                  para: ROTAS.conferencia,
-                  icone: BadgeCheck,
-                  pendente: pendentesDeConferencia ? 'a conferir' : undefined,
-                }
-              : { rotulo: 'Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
-            { rotulo: 'Caixa', para: ROTAS.caixa, icone: PiggyBank },
-            muralTrancado ? agenda : mural,
-          ]
-        : muralTrancado
-          ? [inicio, minhasParcelas, agenda]
-          : [inicio, minhasParcelas, mural, agenda]
+      : semAdesao
+        ? [termo, minhasParcelas]
+        : ehGestao
+          ? [
+              inicio,
+              ehTesouraria
+                ? {
+                    rotulo: 'Conferir',
+                    para: ROTAS.conferencia,
+                    icone: BadgeCheck,
+                    pendente: pendentesDeConferencia ? 'a conferir' : undefined,
+                  }
+                : { rotulo: 'Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
+              { rotulo: 'Caixa', para: ROTAS.caixa, icone: PiggyBank },
+              muralTrancado ? agenda : mural,
+            ]
+          : muralTrancado
+            ? [inicio, minhasParcelas, agenda]
+            : [inicio, minhasParcelas, mural, agenda]
 
   const naBarra = destinos.some(
     ({ para, secao }) => pathname === para || (secao && pathname.startsWith(`${para}/`)),
