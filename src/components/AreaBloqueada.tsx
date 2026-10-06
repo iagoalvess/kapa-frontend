@@ -1,10 +1,11 @@
 import { Check, Lock } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import { AcaoDeUpgrade } from '@/components/AcaoDeUpgrade'
 import { Cartao } from '@/components/Cartao'
 import { AREAS_DO_PLANO, type AreaDoPlano, type Modulo } from '@/config/planos'
 import { usePlanoQueLibera } from '@/hooks/usePlanoDaTurma'
+import { avisarPaywall } from '@/lib/upgrade'
 
 /**
  * A tela de uma área que o plano da turma não inclui: a maquete da área ao fundo e, por cima, o que ela
@@ -19,6 +20,8 @@ import { usePlanoQueLibera } from '@/hooks/usePlanoDaTurma'
 export function AreaBloqueada({ modulo, previa }: { modulo: Modulo; previa?: ReactNode }) {
   const area = AREAS_DO_PLANO[modulo]
   const plano = usePlanoQueLibera(modulo)
+
+  useEffect(() => avisarPaywall(`modulo.${modulo}`), [modulo])
 
   return (
     <div className="relative isolate grid min-h-[48rem] place-items-center overflow-hidden rounded-3xl">

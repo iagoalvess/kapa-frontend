@@ -1,3 +1,16 @@
+import { api } from '@/lib/http/cliente'
+
+/**
+ * Avisa a API que a turma viu o paywall — a etapa do funil entre criar a turma e abrir o checkout.
+ *
+ * Fogo e esquece: analytics nunca trava nem quebra a tela, então a falha é engolida.
+ *
+ * @param motivo O código do diálogo, ou `modulo.{codigo}` para a área trancada.
+ */
+export function avisarPaywall(motivo: string) {
+  api.post(`/api/v1/formaturas/atual/plano/paywall/${encodeURIComponent(motivo)}`).catch(() => {})
+}
+
 /**
  * Os códigos da API que querem dizer "o plano da turma não cobre isto" (Sprint 45).
  *
@@ -48,6 +61,7 @@ const avisar = () => {
 export const upgrade = {
   pedir(pedido: PedidoDeUpgrade) {
     atual = pedido
+    avisarPaywall(pedido.codigo)
     avisar()
   },
 
