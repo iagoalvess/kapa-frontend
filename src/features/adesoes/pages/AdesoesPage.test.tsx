@@ -41,6 +41,17 @@ const carla: SituacaoDeAdesao = {
   versao: 1,
 }
 
+/** Um plano em vigor, sem pacotes: publicar o termo só exige que ele exista (06/10/2026). */
+const PLANO_EM_VIGOR = {
+  percentual_de_multa: 0,
+  percentual_de_juros_ao_mes: 0,
+  carencia_em_dias: 0,
+  percentual_de_desconto_por_antecipacao: 0,
+  dias_minimos_para_desconto: 0,
+  itens: [],
+  parcelas: [],
+}
+
 function responder() {
   const pedidos: URLSearchParams[] = []
   const lembrados: string[] = []
@@ -136,7 +147,7 @@ describe('AdesoesPage', () => {
             conteudo: '# Termo',
             vigente_desde: '2026-09-14T12:00:00Z',
           },
-          plano: null,
+          plano: PLANO_EM_VIGOR,
           hash_do_conteudo: null,
           resumo: vigente === 2 ? 'Você paga 12 parcelas.' : null,
         }),
@@ -158,6 +169,7 @@ describe('AdesoesPage', () => {
     expect(screen.queryByRole('region', { name: 'Resumo do termo por IA' })).not.toBeInTheDocument()
     await userEvent.clear(texto)
     await userEvent.type(texto, '# Termo novo')
+    expect(screen.getByRole('button', { name: 'Publicar versão 3' })).toBeEnabled()
     await userEvent.click(screen.getByRole('button', { name: 'Publicar versão 3' }))
     await userEvent.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Publicar' }),
@@ -166,6 +178,24 @@ describe('AdesoesPage', () => {
     await waitFor(() => expect(screen.queryByLabelText('Texto do termo')).not.toBeInTheDocument())
     expect(publicado).toEqual({ conteudo: '# Termo novo' })
     expect(await screen.findByRole('region', { name: 'Resumo das adesões' })).toHaveTextContent('Versão 3')
+  })
+
+  /** O termo é assinado com os pacotes do plano: sem plano em vigor, o editor abre mas não publica. */
+  it('não deixa publicar o termo sem plano de cobrança em vigor', async () => {
+    entrarComo('Presidente')
+    responder()
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
+        HttpResponse.json({ id: 'f-1', status: 'Ativa' }),
+      ),
+      http.get(`${BASE}/termos`, () => HttpResponse.json([])),
+    )
+
+    renderizar(<AdesoesPage />, '/?editar=termo')
+
+    expect(await screen.findByLabelText('Texto do termo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publicar versão 3' })).toBeDisabled()
+    expect(screen.getByText(/sem ele, o termo não pode ser publicado/)).toBeInTheDocument()
   })
 
   it('filtra quem falta pela URL', async () => {

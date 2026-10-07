@@ -157,6 +157,21 @@ describe('MeuExtratoPage', () => {
     expect(screen.getByRole('link', { name: 'termo da turma' })).toHaveAttribute('href', '/meu-termo')
   })
 
+  it('quem quitou tudo lê "Quitado" e vê a grade inteira, não um vazio', async () => {
+    const paga = pagaDeTeste()
+    responder({ em_aberto_em_centavos: 0, proxima: null, parcelas: [paga] })
+
+    renderizar(<MeuExtratoPage />)
+
+    expect(await screen.findByRole('region', { name: 'Tudo quitado' })).toHaveTextContent(
+      reais(paga.valor_pago_em_centavos ?? paga.valor_original_em_centavos),
+    )
+    expect(screen.getByRole('region', { name: 'Resumo do extrato' })).toHaveTextContent(
+      'Próxima parcelaQuitado',
+    )
+    expect(screen.getByText('Mostrando 1 de 1 parcelas')).toBeInTheDocument()
+  })
+
   /** Um PIX cobrindo dois meses: escolher é só o passo 1, e o QR da soma está na tela seguinte. */
   it('escolhe as parcelas do mesmo pagamento e leva o PIX da soma para a tela de pagar', async () => {
     responder()

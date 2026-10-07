@@ -19,6 +19,9 @@ interface Props {
   ehGestao: boolean
   /** Falso trava as escritas — formatura fora de `Ativa`. */
   editavel: boolean
+  /** Só a Tesouraria lança despesa, e é ela quem contrata. */
+  podeContratar: boolean
+  aoContratar: (proposta: Proposta) => void
 }
 
 /**
@@ -31,8 +34,11 @@ interface Props {
  * O voto é um por formando por item: clicar em outra proposta **muda** o seu voto, não soma um
  * segundo. Clicar na que já é sua tira o voto — é o mesmo gesto do "curtir" de qualquer lugar, e
  * evita ter um "tirar meu voto" solto na tela.
+ *
+ * "Contratar esta" é o atalho do "Contratar" do item: o lançamento da despesa já abre com o título e
+ * o preço da escolhida. O do item continua para quem não usa propostas.
  */
-export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
+export function Propostas({ item, propostas, ehGestao, editavel, podeContratar, aoContratar }: Props) {
   const [cadastro, definirCadastro] = useState<false | { proposta?: Proposta }>(false)
   const [excluindo, definirExcluindo] = useState<Proposta | false>(false)
   const votar = useVotar()
@@ -120,7 +126,12 @@ export function Propostas({ item, propostas, ehGestao, editavel }: Props) {
                 </Dica>
 
                 {aberta && ehGestao && editavel ? (
-                  <span className="ml-auto flex gap-1">
+                  <span className="ml-auto flex items-center gap-1">
+                    {podeContratar ? (
+                      <Button size="sm" onClick={() => aoContratar(proposta)}>
+                        Contratar esta
+                      </Button>
+                    ) : null}
                     <Button
                       size="icon"
                       variant="ghost"

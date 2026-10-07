@@ -1,11 +1,7 @@
-import { PenLine } from 'lucide-react'
 import { type ComponentType, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
-import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { ROTAS } from '@/config/rotas'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import { useMinhaAdesao } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
@@ -14,7 +10,7 @@ import { LeituraEAceite } from './LeituraEAceite'
 import { SeletorDeCesta } from './SeletorDeCesta'
 import { TermoAssinado } from './TermoAssinado'
 
-/** O formulário de nome, CPF e nascimento; `aoSalvar` relê o que ainda falta. */
+/** O formulário de nome e CPF; `aoSalvar` relê o que ainda falta. */
 type FormularioDoTitular = ComponentType<{ aoSalvar: () => void }>
 
 interface Props {
@@ -26,8 +22,9 @@ interface Props {
 }
 
 /**
- * A adesão do próprio formando, em um dos quatro momentos: já aderiu (vê o termo assinado); falta o
- * termo ou o plano da turma; tem menos de 18 anos; ou pode ler e aceitar.
+ * A adesão do próprio formando, em um dos três momentos: já aderiu (vê o termo assinado); falta o
+ * termo ou o plano da turma; ou pode ler e aceitar. A idade não é conferida aqui: é a declaração dos
+ * Termos de Uso (06/10).
  *
  * Quem aderiu a uma versão anterior continua nela — a comissão decide se pede readesão. Ler a nova
  * é `?ler=nova`, na URL: recarregar mantém a pessoa onde estava.
@@ -57,7 +54,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
 
   if (conteudo.isPending) return <Esqueleto />
 
-  const { adesao, pendencias, menor_de_idade } = minha.data
+  const { adesao, pendencias } = minha.data
 
   // O termo assinado não depende do vigente da turma: se ele falhar, a prova do que a pessoa aceitou
   // continua na tela.
@@ -82,8 +79,6 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
 
   if (!termo || !plano || !hash_do_conteudo || catalogo.length === 0)
     return <FaltaParaAderir conteudo={conteudo.data} />
-
-  if (menor_de_idade) return <AdesaoComAComissao />
 
   // Chave pelo termo e pelo catálogo: versão nova ou preço novo remonta a leitura do zero — rolagem e caixa marcada
   // inclusas. A cesta não entra: marcar um pacote muda o hash, mas não o que a pessoa já leu.
@@ -129,41 +124,5 @@ function Esqueleto() {
     <EsqueletoDeCartao>
       <EsqueletoDeTexto linhas={6} />
     </EsqueletoDeCartao>
-  )
-}
-
-/**
- * Decisão de 14/09/2026: quem tem menos de 18 anos não adere pela plataforma.
- *
- * Mesmo desenho do vazio de {@link FaltaParaAderir}: coluna centralizada, sem cartão — a tela é uma
- * orientação, não um formulário.
- */
-function AdesaoComAComissao() {
-  return (
-    <section className="grid gap-8 py-6 sm:py-10">
-      <header className="mx-auto grid max-w-xl justify-items-center gap-4 text-center">
-        <img src={mascoteLendo} alt="" className="w-28 drop-shadow-lg" />
-        <div className="grid gap-2">
-          <p className="text-brand-text flex items-center justify-center gap-2 text-sm font-semibold tracking-wide uppercase">
-            <PenLine className="size-4" strokeWidth={1.75} aria-hidden />
-            Termo de adesão
-          </p>
-          <h1 className="text-foreground text-2xl font-semibold text-balance sm:text-3xl">
-            A sua adesão é feita com a comissão.
-          </h1>
-          <p className="text-muted-foreground text-lg text-pretty">
-            O termo é um contrato com valores, e quem tem menos de 18 anos o assina junto com o responsável
-            legal. Por isso a adesão não é feita pela plataforma: procure a comissão da turma.
-          </p>
-          <p className="text-muted-foreground text-pretty">
-            Se a data de nascimento do seu cadastro estiver errada, corrija em{' '}
-            <LinkDaPagina to={ROTAS.meuCadastro} className="text-foreground font-medium underline">
-              Meu cadastro
-            </LinkDaPagina>
-            .
-          </p>
-        </div>
-      </header>
-    </section>
   )
 }

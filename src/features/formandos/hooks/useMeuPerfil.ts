@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   atualizarMeuPerfil,
   baixarFoto,
-  consultarCep,
   corrigirPerfil,
   enviarFoto,
   obterMeuPerfil,
@@ -73,9 +72,4 @@ export function useFoto(arquivoId: string | null | undefined, usuario_id?: strin
     enabled: Boolean(arquivoId),
     staleTime: Infinity,
   })
-}
-
-/** Endereço pelo CEP. Mutação, e não consulta: dispara quando o CEP é digitado, uma vez. */
-export function useConsultarCep() {
-  return useMutation({ mutationFn: (cep: string) => consultarCep(cep) })
 }

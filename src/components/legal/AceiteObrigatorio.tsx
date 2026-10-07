@@ -15,8 +15,8 @@ interface Props extends Omit<ComponentProps<'input'>, 'type' | 'value' | 'onChan
  * documento —, e não quantas caixas o usuário marcou.
  *
  * O link abre em **nova aba**, e não num modal: formulário perdido por ler os termos é cadastro
- * não enviado. Checkbox nativo, sem biblioteca — o `accent-brand` pinta a marca e o navegador
- * cuida de teclado e leitor de tela.
+ * não enviado. Checkbox nativo, sem biblioteca — o desenho da marca vem da base do `index.css`, e o
+ * navegador cuida de teclado e leitor de tela.
  *
  * Dentro de `<FormControl>` recebe `id` e `aria-*` do formulário e passa para o input.
  *
@@ -31,7 +31,7 @@ export function AceiteObrigatorio({ tipos, checked, onChange, ...resto }: Props)
         type="checkbox"
         checked={checked}
         onChange={(evento) => onChange(evento.target.checked)}
-        className="accent-brand mt-0.5 size-4 shrink-0"
+        className="mt-0.5 size-4 shrink-0"
         {...resto}
       />
       <span>

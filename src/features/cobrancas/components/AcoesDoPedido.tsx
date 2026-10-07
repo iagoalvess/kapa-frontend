@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { AcaoDaLinha } from '@/components/AcoesDaLinha'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CampoDeMoeda } from '@/components/CampoDeMoeda'
+import { InfoDoCampo } from '@/components/InfoDoCampo'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { PAPEIS } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -68,15 +69,17 @@ export function AcoesDoPedido({ pedido }: { pedido: Pedido }) {
         <form onSubmit={enviar} noValidate className="grid gap-4">
           {pago ? (
             <div className="grid gap-2 text-sm">
-              <label htmlFor={campoDoCredito} className="text-foreground w-fit font-medium">
-                Crédito a devolver
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label htmlFor={campoDoCredito} className="text-foreground w-fit font-medium">
+                  Crédito a devolver
+                </label>
+                <InfoDoCampo sobre="Crédito a devolver">
+                  Vai para a lista &ldquo;A devolver&rdquo; da Conferência. Quando a comissão fizer o PIX de
+                  volta, registre lá com o comprovante e a saída entra no caixa. Para reter parte, lance um
+                  crédito menor que o pago.
+                </InfoDoCampo>
+              </div>
               <CampoDeMoeda id={campoDoCredito} value={credito} onChange={definirCredito} />
-              <p className="text-texto-muted text-xs">
-                Vai para a lista &ldquo;A devolver&rdquo; da Conferência. Quando a comissão fizer o PIX de
-                volta, registre lá com o comprovante e a saída entra no caixa — reter parte é lançar um
-                crédito menor que o pago.
-              </p>
             </div>
           ) : null}
 

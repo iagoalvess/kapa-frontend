@@ -9,19 +9,18 @@ import {
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
-import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeGrafico } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
-import { GraficoDeCaixa } from '@/components/GraficoDeCaixa'
+import { GraficoDeCaixa, temMovimento } from '@/components/GraficoDeCaixa'
 import { GraficoDeRosca } from '@/components/GraficoDeRosca'
+import { GraficoVazio } from '@/components/GraficoVazio'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData } from '@/lib/formato'
-import { cn } from '@/lib/utils'
 import { fatiaDaCategoria, fatiaDaOutraReceita } from '@/types/financeiro'
 import { useCaixa, useProjecao } from '../hooks/useCaixa'
 
@@ -47,9 +46,9 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
   const { tem } = usePapel()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const caixa = useCaixa()
-  // A projeção é da Gestão (é com ela que a comissão decide contratar): o formando nem pede, e o cartão
-  // dela não aparece para ele — antes a consulta voltava 403 e o cartão ficava vazio, sem erro.
-  const projecao = useProjecao(ehGestao)
+  // Todo membro pede: a API devolve ao formando só os meses que já passaram, sem previsto (06/10). A
+  // projeção em si — o que ainda vence e o planejamento das despesas — continua da Gestão.
+  const projecao = useProjecao()
   const dados = caixa.data
 
   return (
@@ -92,19 +91,29 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
       {/* Sem `items-start`: lado a lado, os dois cartões têm a mesma altura — o que passar a ser o
           mais alto puxa o outro, e não sobra vão cinza entre eles e os últimos lançamentos. */}
       <div className="grid gap-5 lg:grid-cols-3">
-        {ehGestao ? (
-          <Cartao
-            titulo="Entradas e saídas"
-            icone={TrendingUp}
-            descricao="Mês a mês. Os meses à frente são projeção: o que ainda vence, não o que já aconteceu."
-            className="lg:col-span-2"
-          >
-            {projecao.isPending ? <EsqueletoDeGrafico /> : null}
+        {/* O cartão fica para todo mundo: sem ele, a rosca ao lado ganhava a linha inteira e quebrava a
+            legenda. */}
+        <Cartao
+          titulo="Entradas e saídas"
+          icone={TrendingUp}
+          descricao={
+            ehGestao
+              ? 'Mês a mês. Os meses à frente são projeção: o que ainda vence, não o que já aconteceu.'
+              : 'Mês a mês, até hoje: o que entrou e o que saiu.'
+          }
+          className="lg:col-span-2"
+        >
+          {projecao.isPending ? <EsqueletoDeGrafico /> : null}
 
-            {projecao.data ? (
-              <div className="motion-safe:animate-entrar grid gap-4">
+          {projecao.data ? (
+            <div className="motion-safe:animate-entrar grid gap-4">
+              {projecao.data.meses.some(temMovimento) ? (
                 <GraficoDeCaixa meses={projecao.data.meses} />
+              ) : (
+                <GraficoVazio>Nenhuma entrada ou saída ainda. O mês a mês aparece aqui.</GraficoVazio>
+              )}
 
+              {ehGestao ? (
                 <dl className="border-border grid gap-3 border-t pt-4 sm:grid-cols-3">
                   <div className="grid gap-0.5">
                     <dt className="text-muted-foreground text-sm">Saldo hoje</dt>
@@ -125,14 +134,14 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
                     </dd>
                   </div>
                 </dl>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
+          ) : null}
 
-            {projecao.isError ? (
-              <ErroDaConsulta compacto erro={projecao.error} aoTentarDeNovo={() => void projecao.refetch()} />
-            ) : null}
-          </Cartao>
-        ) : null}
+          {projecao.isError ? (
+            <ErroDaConsulta compacto erro={projecao.error} aoTentarDeNovo={() => void projecao.refetch()} />
+          ) : null}
+        </Cartao>
 
         {/* `grid-rows-[auto_1fr]`: o conteúdo fica com a altura que sobra do cartão, e a rosca a
             usa para se centrar — senão o cartão, esticado pelo gráfico ao lado, vazava embaixo. */}
@@ -140,17 +149,14 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
           titulo="Gastos por categoria"
           icone={PiggyBank}
           descricao="O que já saiu e o que ainda vai sair, do maior para o menor."
-          className={cn('lg:grid-rows-[auto_1fr]', !ehGestao && 'lg:col-span-3')}
+          className="lg:grid-rows-[auto_1fr]"
         >
           {caixa.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
 
           {dados?.por_categoria.length === 0 ? (
-            <div className="grid justify-items-center gap-2 py-4 text-center">
-              <img src={mascoteCofrinho} alt="" className="w-24 drop-shadow-lg" />
-              <p className="text-muted-foreground text-sm">
-                Nenhuma despesa lançada ainda. O que a turma contratar aparece aqui.
-              </p>
-            </div>
+            <GraficoVazio forma="rosca">
+              Nenhuma despesa lançada ainda. O que a turma contratar aparece aqui.
+            </GraficoVazio>
           ) : null}
 
           {dados && dados.por_categoria.length > 0 ? (
@@ -182,9 +188,9 @@ export function CaixaPage({ Complemento }: { Complemento?: ComponentType }) {
           {caixa.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
 
           {dados && !dados.outras_receitas_por_categoria.some((linha) => linha.recebido_em_centavos > 0) ? (
-            <p className="text-muted-foreground text-sm">
+            <GraficoVazio forma="rosca">
               Nenhuma outra receita recebida ainda. Patrocínio, evento, doação e rendimento aparecem aqui.
-            </p>
+            </GraficoVazio>
           ) : null}
 
           {dados?.outras_receitas_por_categoria.some((linha) => linha.recebido_em_centavos > 0) ? (

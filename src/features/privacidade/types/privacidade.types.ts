@@ -6,18 +6,6 @@ import type { ConsentimentoDoUsuario } from '@/types/legal'
   a API escreve o nulo (ver `backend/docs/contrato.md`).
 */
 
-/** Endereço do formando, como o portal de privacidade o lê. */
-interface EnderecoDoTitular {
-  /** Só os 8 dígitos. */
-  cep: string | null
-  logradouro: string | null
-  numero: string | null
-  complemento: string | null
-  bairro: string | null
-  cidade: string | null
-  uf: string | null
-}
-
 /** Contato de emergência, como o portal de privacidade o lê. */
 interface EmergenciaDoTitular {
   nome: string | null
@@ -47,14 +35,8 @@ interface DadosDaConta {
 /** O cadastro de uma turma, campo a campo. */
 interface PerfilExportado {
   nome_completo: string | null
-  nome_no_diploma: string | null
   cpf: string | null
-  rg: string | null
-  matricula: string | null
   telefone: string | null
-  data_de_nascimento: string | null
-  observacoes: string | null
-  endereco: EnderecoDoTitular
   contato_de_emergencia: EmergenciaDoTitular
   tem_foto: boolean
   completude: number

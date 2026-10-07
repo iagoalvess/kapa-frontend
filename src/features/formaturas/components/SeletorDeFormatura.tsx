@@ -16,7 +16,7 @@ const turma = ({ ano, semestre }: FormaturaDoUsuario) =>
  * Escolher a errada mostra o caixa de outra turma. Parte vazia (turma anterior ao cadastro
  * completo) some da descrição.
  */
-export function descreverTurma(formatura: FormaturaDoUsuario) {
+function descreverTurma(formatura: FormaturaDoUsuario) {
   return [formatura.curso, formatura.instituicao, turma(formatura)].filter(Boolean).join(' · ')
 }
 

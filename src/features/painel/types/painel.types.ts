@@ -200,3 +200,27 @@ export interface UsuarioNoSuporte {
 
 /** As ações que o painel executa sobre uma conta. O caminho é o próprio nome no backend. */
 export type AcaoNaConta = 'reenviar-confirmacao' | 'redefinir-senha' | 'desbloquear'
+
+/** Um cupom de desconto da primeira cobrança (Sprint 51). Espelha `CupomDTO`. */
+export interface Cupom {
+  id: string
+  codigo: string
+  /** De 1 a 50. */
+  percentual: number
+  /** Último instante em que vale, em UTC. */
+  valido_ate: string
+  limite_de_usos: number
+  usos: number
+  /** Falso depois de desativado. */
+  ativo: boolean
+  criado_em: string
+}
+
+/** Corpo do cupom novo. Espelha `NovoCupomRequestDTO`. */
+export interface NovoCupom {
+  codigo: string
+  percentual: number
+  /** `aaaa-mm-dd`, o último dia em que vale. */
+  valido_ate: string
+  limite_de_usos: number
+}

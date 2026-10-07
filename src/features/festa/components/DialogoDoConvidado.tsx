@@ -5,8 +5,9 @@ import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { CamposDoConvidado } from '@/components/CamposDoConvidado'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useEmitirCortesia, useNomearConvidado } from '../hooks/useConvitesDaFesta'
 import {
@@ -138,11 +139,10 @@ function Formulario({
             name="motivo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Motivo</FormLabel>
+                <RotuloComInfo info="Fica na auditoria, com o seu nome.">Motivo</RotuloComInfo>
                 <FormControl>
                   <Input {...field} placeholder="Paraninfo da turma" />
                 </FormControl>
-                <p className="text-texto-muted text-xs">Fica na auditoria, com o seu nome.</p>
                 <FormMessage />
               </FormItem>
             )}

@@ -16,7 +16,7 @@ import { ColunaOrdenavel, Tabela } from '@/components/Planilha'
 import { ROTAS } from '@/config/rotas'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import { aPagar, emAberto, type Parcela, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { aPagar, emAberto, type Parcela, quitouTudo, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import { DialogoDeEscolhaDeParcelas } from '../components/DialogoDeEscolhaDeParcelas'
 import {
   LateralDoExtrato,
@@ -98,11 +98,13 @@ export default function MeuExtratoPage() {
   const { parametros, pagina: paginaNaUrl, busca, atualizar } = useFiltrosDaUrl()
 
   const situacaoNaUrl = parametros.get('situacao')
+  const quitado = quitouTudo(extrato.data?.parcelas ?? [])
   // Sem `?situacao=` a tela abre no que ainda vai vencer — é o que o formando vem ver. Por isso
-  // "Todas" é explícito na URL: apagar o parâmetro voltaria ao padrão no F5.
+  // "Todas" é explícito na URL: apagar o parâmetro voltaria ao padrão no F5. Quem quitou tudo não
+  // tem nada a vencer: abre na grade inteira, e não num vazio que parece "sem parcelas".
   const situacao = ehSituacao(situacaoNaUrl)
     ? situacaoNaUrl
-    : situacaoNaUrl === 'todas'
+    : situacaoNaUrl === 'todas' || quitado
       ? undefined
       : 'a-vencer'
   const deNaUrl = parametros.get('de')
@@ -157,43 +159,42 @@ export default function MeuExtratoPage() {
 
       {!telaGrande && extrato.data ? <ResumoDaProximaParcela extrato={extrato.data} /> : null}
 
-      {todas.length > 0 ? (
-        <FiltrosDaPlanilha
-          acaoPrincipal={<DialogoDeEscolhaDeParcelas parcelas={todas.filter(aPagar)} />}
-          busca={{
-            valor: busca,
-            rotulo: 'Buscar parcela',
-            aoBuscar: (termo) => atualizar({ busca: termo }),
-          }}
-          filtrosAvancados={
-            <BotaoDeFiltros id="filtros-do-extrato" ligados={de || ate ? 1 : 0}>
-              <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
-            </BotaoDeFiltros>
-          }
-          principal={
-            <Chip
-              tom="claro"
-              ativo={!situacao}
-              contagem={todas.length}
-              onClick={() => atualizar({ situacao: 'todas' })}
-            >
-              Todas
-            </Chip>
-          }
-          legenda="Situação"
-          filtros={Object.entries(FILTROS).map(([valor, { rotulo }]) => (
-            <Chip
-              key={valor}
-              ativo={situacao === valor}
-              contagem={contar(valor as Situacao)}
-              onClick={() => atualizar({ situacao: situacao === valor ? 'todas' : valor })}
-            >
-              {rotulo}
-            </Chip>
-          ))}
-          contagem={{ mostrando: parcelas.length, total: todas.length, unidade: 'parcelas' }}
-        />
-      ) : null}
+      {/* Sempre à vista, como nas listas da gestão: sem parcela, a barra continua no lugar e o vazio diz por quê. */}
+      <FiltrosDaPlanilha
+        acaoPrincipal={<DialogoDeEscolhaDeParcelas parcelas={todas.filter(aPagar)} />}
+        busca={{
+          valor: busca,
+          rotulo: 'Buscar parcela',
+          aoBuscar: (termo) => atualizar({ busca: termo }),
+        }}
+        filtrosAvancados={
+          <BotaoDeFiltros id="filtros-do-extrato" ligados={de || ate ? 1 : 0}>
+            <FiltroDePeriodo de={de} ate={ate} aoMudar={atualizar} />
+          </BotaoDeFiltros>
+        }
+        principal={
+          <Chip
+            tom="claro"
+            ativo={!situacao}
+            contagem={todas.length}
+            onClick={() => atualizar({ situacao: 'todas' })}
+          >
+            Todas
+          </Chip>
+        }
+        legenda="Situação"
+        filtros={Object.entries(FILTROS).map(([valor, { rotulo }]) => (
+          <Chip
+            key={valor}
+            ativo={situacao === valor}
+            contagem={contar(valor as Situacao)}
+            onClick={() => atualizar({ situacao: situacao === valor ? 'todas' : valor })}
+          >
+            {rotulo}
+          </Chip>
+        ))}
+        contagem={{ mostrando: parcelas.length, total: todas.length, unidade: 'parcelas' }}
+      />
 
       {/* Sem título nem descrição, como as listas da gestão: o `h1` da tela já diz "Minhas
           parcelas", e o passo a passo do PIX está na tela de pagamento. */}

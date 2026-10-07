@@ -1,33 +1,37 @@
 import {
   Activity,
   BadgeCheck,
+  BarChart3,
   CalendarClock,
-  CalendarRange,
+  Filter,
   GraduationCap,
   HandCoins,
-  MailCheck,
+  type LucideIcon,
   PiggyBank,
+  Receipt,
   ReceiptText,
   Repeat,
+  School,
   Undo2,
-  UserRoundX,
+  UserPlus,
   Users,
   Wallet,
 } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeDados, EsqueletoDeGrafico } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDePeriodo, faixasDeAnalise } from '@/components/FiltroDePeriodo'
 import { GraficoDeRosca } from '@/components/GraficoDeRosca'
-import { Dado, ListaDeDados } from '@/components/ListaDeDados'
-import { Tabela } from '@/components/Planilha'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
-import { ehDia, formatarCentavos, formatarMesAno, formatarNumero } from '@/lib/formato'
+import { ehDia, formatarCentavos, formatarMesLongo, formatarMoedaCurta, formatarNumero } from '@/lib/formato'
 import { ehOpcao } from '@/lib/opcao'
+import { BarrasHorizontais } from '../components/BarrasHorizontais'
+import { BarrasMensais } from '../components/BarrasMensais'
 import { LICENCAS } from '../components/SeloDeStatus'
 import { useAnalytics, useSerieMensal } from '../hooks/usePainel'
-import type { AnalyticsDaPlataforma } from '../types/painel.types'
+import type { AnalyticsDaPlataforma, MesDaPlataforma } from '../types/painel.types'
 
 /**
  * O nome de cada recurso de `recurso.acao`, como a tela o chama. Recurso novo aparece com o nome cru até
@@ -52,12 +56,24 @@ const RECURSOS = {
   pagamento: 'Pagamentos',
   perfil: 'Cadastro',
   privacidade: 'Privacidade',
+  plano: 'Plano da turma',
   produto: 'Opcionais',
   recebimento: 'Recebimento',
   relatorio: 'Relatórios',
   suporte: 'Suporte do Kapa',
   usuario: 'Usuários',
 } as const
+
+/** Quantos recursos ganham barra própria; o resto vira "Outros", como as fatias da rosca. */
+const RECURSOS_NO_RANKING = 8
+
+/** `1 turma`, `3 turmas`. */
+const plural = (quantidade: number, um: string, varios: string) =>
+  `${formatarNumero(quantidade)} ${quantidade === 1 ? um : varios}`
+
+/** O valor médio por parcela, ou um traço sem parcela nenhuma. */
+const media = (valor: number, parcelas: number) =>
+  parcelas > 0 ? formatarCentavos(Math.round(valor / parcelas)) : '—'
 
 /**
  * A Visão geral do painel do Kapa (Sprint 44): como a plataforma está no período.
@@ -68,6 +84,10 @@ const RECURSOS = {
  *
  * O período vive na URL (`de`/`ate`); sem ele, valem os últimos 30 dias — a mesma regra da API. A série de doze
  * meses não depende do período: é a linha do tempo que dá contexto aos números dele.
+ *
+ * Cada número tem a forma que responde à pergunta dele (07/10/2026): o tempo em colunas mês a mês, a composição na
+ * rosca, o ranking e o funil em barras deitadas, e o valor único em bloco com a nota que diz contra o quê. Médias,
+ * ticket e porcentagens são contas sobre o que a API já manda — nenhum endpoint novo.
  */
 export default function VisaoGeralPage() {
   const { parametros, atualizar } = useFiltrosDaUrl()
@@ -82,6 +102,24 @@ export default function VisaoGeralPage() {
   const serie = useSerieMensal()
   const dados = analytics.data
   const meses = serie.data ?? []
+
+  /** Os doze meses, do mais antigo ao atual, no formato das colunas. */
+  const colunas = (valor: (mes: MesDaPlataforma) => number) =>
+    meses.map((mes) => {
+      const dia = `${mes.ano}-${String(mes.mes).padStart(2, '0')}-01`
+      const longo = formatarMesLongo(dia)
+
+      // O eixo leva só o mês, em três letras: "jan. de 26" não cabe numa coluna. O ano fica na dica.
+      return { chave: dia, rotulo: longo.slice(0, 3), rotuloLongo: longo, valor: valor(mes) }
+    })
+
+  /** O miolo de um cartão da série mensal: o erro, o esqueleto ou as colunas. */
+  const serieMensal = (conteudo: () => ReactNode) => {
+    if (serie.isError)
+      return <ErroDaConsulta compacto erro={serie.error} aoTentarDeNovo={() => void serie.refetch()} />
+
+    return serie.data ? conteudo() : <EsqueletoDeGrafico />
+  }
 
   return (
     <>
@@ -128,7 +166,24 @@ export default function VisaoGeralPage() {
         <ErroDaConsulta erro={analytics.error} aoTentarDeNovo={() => void analytics.refetch()} />
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Cartao
+          icone={BarChart3}
+          titulo="Receita do Kapa por mês"
+          descricao="As assinaturas pagas nos últimos 12 meses. O mês atual vem em destaque."
+          className="lg:col-span-2"
+        >
+          {serieMensal(() => (
+            <BarrasMensais
+              legenda="Recebido do Kapa por mês"
+              meses={colunas((mes) => mes.recebido_em_centavos)}
+              formatar={formatarCentavos}
+              formatarEixo={(valor) => formatarMoedaCurta(valor)}
+              alta
+            />
+          ))}
+        </Cartao>
+
         <Cartao
           icone={Wallet}
           titulo="Receita do Kapa"
@@ -138,146 +193,199 @@ export default function VisaoGeralPage() {
         </Cartao>
 
         <Cartao
-          icone={GraduationCap}
-          titulo="Turmas por licença"
-          descricao={
-            dados
-              ? `${formatarNumero(dados.formaturas.novas_no_periodo)} novas no período · ${formatarNumero(dados.formaturas.membros_por_turma_media, 1)} membros por turma em média (mediana ${formatarNumero(dados.formaturas.membros_por_turma_mediana, 1)})`
-              : 'O plano em vigor de cada turma, ou o status da que parou.'
-          }
-          className="lg:grid-rows-[auto_1fr]"
+          icone={UserPlus}
+          titulo="Cadastros por mês"
+          descricao="Contas novas na plataforma, com turma ou não."
         >
-          {dados ? (
-            <GraficoDeRosca
-              contagem
-              rotuloDoTotal="turmas"
-              fatias={dados.formaturas.por_licenca.map((linha) => ({
-                chave: linha.licenca,
-                rotulo: ehOpcao(linha.licenca, LICENCAS) ? LICENCAS[linha.licenca].rotulo : linha.licenca,
-                valor: linha.turmas,
-              }))}
+          {serieMensal(() => (
+            <BarrasMensais
+              legenda="Cadastros por mês"
+              meses={colunas((mes) => mes.cadastros)}
+              formatar={(valor) => formatarNumero(valor)}
             />
-          ) : (
-            <EsqueletoDeGrafico forma="rosca" />
-          )}
+          ))}
         </Cartao>
 
         <Cartao
-          icone={CalendarRange}
-          titulo="Últimos 12 meses"
-          descricao="Cadastros, turmas novas e recebido do Kapa, mês a mês."
+          icone={School}
+          titulo="Turmas novas por mês"
+          descricao="Turmas criadas, pagantes ou no gratuito."
         >
-          {serie.isError ? (
-            <ErroDaConsulta compacto erro={serie.error} aoTentarDeNovo={() => void serie.refetch()} />
-          ) : null}
-          {serie.isPending ? <EsqueletoDeDados linhas={6} /> : null}
-          {serie.data ? (
-            <Tabela
-              legenda="Cadastros, turmas novas e recebido do Kapa por mês"
-              cabecalho={
-                <>
-                  <th className="py-3 pr-4 font-normal">Mês</th>
-                  <th className="py-3 pr-4 text-right font-normal">Cadastros</th>
-                  <th className="py-3 pr-4 text-right font-normal">Turmas novas</th>
-                  <th className="py-3 text-right font-normal">Recebido</th>
-                </>
-              }
-            >
-              {serie.data.toReversed().map((mes) => (
-                <tr key={`${mes.ano}-${mes.mes}`} className="border-b last:border-0">
-                  <th scope="row" className="py-2.5 pr-4 text-left font-normal">
-                    {formatarMesAno(`${mes.ano}-${String(mes.mes).padStart(2, '0')}-01`)}
-                  </th>
-                  <td className="py-2.5 pr-4 text-right">{formatarNumero(mes.cadastros)}</td>
-                  <td className="py-2.5 pr-4 text-right">{formatarNumero(mes.turmas_novas)}</td>
-                  <td className="py-2.5 text-right">{formatarCentavos(mes.recebido_em_centavos)}</td>
-                </tr>
-              ))}
-            </Tabela>
-          ) : null}
+          {serieMensal(() => (
+            <BarrasMensais
+              legenda="Turmas novas por mês"
+              meses={colunas((mes) => mes.turmas_novas)}
+              formatar={(valor) => formatarNumero(valor)}
+            />
+          ))}
+        </Cartao>
+
+        <Cartao
+          icone={Filter}
+          titulo="Funil das contas"
+          descricao={
+            dados
+              ? `Quantas das contas cadastradas chegaram a cada passo — a porcentagem é sobre o total. ${formatarNumero(dados.contas.no_periodo)} contas novas no período.`
+              : 'Quantas das contas cadastradas chegaram a cada passo — a porcentagem é sobre o total.'
+          }
+        >
+          {dados ? <FunilDasContas contas={dados.contas} /> : <EsqueletoDeDados linhas={3} />}
+        </Cartao>
+
+        <Cartao
+          icone={GraduationCap}
+          titulo="Turmas por licença"
+          descricao="O plano em vigor de cada turma, ou o status da que parou."
+        >
+          {dados ? <TurmasPorLicenca formaturas={dados.formaturas} /> : <EsqueletoDeGrafico forma="rosca" />}
         </Cartao>
 
         <Cartao
           icone={Activity}
           titulo="Uso por recurso"
           descricao="Ações gravadas no período, da mais usada à menos. Só conta o que grava: abrir uma tela não entra."
+          className="lg:col-span-2"
         >
           {dados ? <UsoPorRecurso uso={dados.uso} /> : <EsqueletoDeDados linhas={6} />}
-        </Cartao>
-
-        <Cartao icone={Users} titulo="Contas" descricao="Quem se cadastrou na plataforma, turma ou não.">
-          {dados ? <ContasDaPlataforma contas={dados.contas} /> : <EsqueletoDeDados linhas={4} />}
         </Cartao>
 
         <Cartao
           icone={PiggyBank}
           titulo="Dinheiro das turmas"
           descricao="As parcelas de todas as turmas, somadas. É caixa das comissões, não receita do Kapa."
+          className="lg:col-span-3"
         >
-          {dados ? <DinheiroDasTurmas turmas={dados.turmas} /> : <EsqueletoDeDados linhas={4} />}
+          {dados ? <DinheiroDasTurmas turmas={dados.turmas} /> : <EsqueletoDeDados linhas={2} />}
         </Cartao>
       </div>
     </>
   )
 }
 
+/** Um número com rótulo e uma nota miúda — os blocos de dentro dos cartões. */
+function Metrica({
+  icone: Icone,
+  rotulo,
+  valor,
+  nota,
+}: {
+  icone: LucideIcon
+  rotulo: string
+  valor: string
+  nota?: string
+}) {
+  return (
+    <div className="bg-muted/50 grid content-start gap-1 rounded-xl p-4">
+      <dt className="text-muted-foreground flex items-center gap-2 text-sm">
+        <Icone aria-hidden className="size-4 shrink-0" />
+        {rotulo}
+      </dt>
+      <dd className="text-foreground text-xl font-medium tabular-nums">{valor}</dd>
+      {nota ? <dd className="text-texto-muted text-xs">{nota}</dd> : null}
+    </div>
+  )
+}
+
+/**
+ * O MRR em destaque, com a projeção anual, e embaixo o que entrou, o que vence, o que voltou e o ticket. O estornado
+ * vem como parte do recebido: um número solto não diz se é muito.
+ */
 function ReceitaDoKapa({ kapa }: { kapa: AnalyticsDaPlataforma['kapa'] }) {
+  const estornoSobreRecebido =
+    kapa.recebido_em_centavos > 0
+      ? Math.round((kapa.estornado_em_centavos / kapa.recebido_em_centavos) * 100)
+      : 0
+
   return (
-    <ListaDeDados>
-      <Dado icone={Repeat} rotulo="Assinaturas que renovam">
-        {formatarNumero(kapa.assinaturas)}
-      </Dado>
-      <Dado icone={Wallet} rotulo="MRR">
-        {formatarCentavos(kapa.mrr_em_centavos)}
-      </Dado>
-      <Dado icone={HandCoins} rotulo="Recebido no período">
-        {formatarCentavos(kapa.recebido_em_centavos)}
-      </Dado>
-      <Dado icone={CalendarClock} rotulo="A vencer em 30 dias">
-        {formatarCentavos(kapa.a_vencer_em_centavos)}
-      </Dado>
-      <Dado icone={Undo2} rotulo="Estornado no período">
-        {formatarCentavos(kapa.estornado_em_centavos)}
-      </Dado>
-    </ListaDeDados>
+    <div className="grid gap-5">
+      <div className="grid gap-1">
+        <p className="text-muted-foreground text-sm">MRR</p>
+        <p className="text-foreground text-4xl font-semibold tabular-nums">
+          {formatarCentavos(kapa.mrr_em_centavos)}
+        </p>
+        <p className="text-texto-muted text-sm">
+          {formatarCentavos(kapa.mrr_em_centavos * 12)} por ano no ritmo de hoje ·{' '}
+          {formatarNumero(kapa.assinaturas)}{' '}
+          {kapa.assinaturas === 1 ? 'assinatura renova' : 'assinaturas renovam'}
+        </p>
+      </div>
+      <dl className="grid grid-cols-2 gap-3">
+        <Metrica
+          icone={HandCoins}
+          rotulo="Recebido"
+          valor={formatarCentavos(kapa.recebido_em_centavos)}
+          nota="no período"
+        />
+        <Metrica
+          icone={CalendarClock}
+          rotulo="A vencer"
+          valor={formatarCentavos(kapa.a_vencer_em_centavos)}
+          nota="nos próximos 30 dias"
+        />
+        <Metrica
+          icone={Undo2}
+          rotulo="Estornado"
+          valor={formatarCentavos(kapa.estornado_em_centavos)}
+          nota={kapa.estornado_em_centavos > 0 ? `${estornoSobreRecebido}% do recebido` : 'nada no período'}
+        />
+        <Metrica
+          icone={Receipt}
+          rotulo="Ticket médio"
+          valor={
+            kapa.assinaturas > 0 ? formatarCentavos(Math.round(kapa.mrr_em_centavos / kapa.assinaturas)) : '—'
+          }
+          nota="MRR por assinatura"
+        />
+      </dl>
+    </div>
   )
 }
 
-function DinheiroDasTurmas({ turmas }: { turmas: AnalyticsDaPlataforma['turmas'] }) {
+/** A rosca das licenças e, embaixo, quantas pagam — a conversão do gratuito é a pergunta do painel. */
+function TurmasPorLicenca({ formaturas }: { formaturas: AnalyticsDaPlataforma['formaturas'] }) {
+  const conversao = formaturas.total > 0 ? Math.round((formaturas.pagantes / formaturas.total) * 100) : 0
+
   return (
-    <ListaDeDados>
-      <Dado icone={HandCoins} rotulo="Pago no período">
-        {formatarCentavos(turmas.pago_em_centavos)}
-      </Dado>
-      <Dado icone={BadgeCheck} rotulo="Parcelas pagas">
-        {formatarNumero(turmas.parcelas_pagas)}
-      </Dado>
-      <Dado icone={ReceiptText} rotulo="A receber hoje">
-        {formatarCentavos(turmas.a_receber_em_centavos)}
-      </Dado>
-      <Dado icone={CalendarClock} rotulo="Parcelas em aberto">
-        {formatarNumero(turmas.parcelas_a_receber)}
-      </Dado>
-    </ListaDeDados>
+    <div className="grid gap-5">
+      <GraficoDeRosca
+        contagem
+        rotuloDoTotal="turmas"
+        fatias={formaturas.por_licenca.map((linha) => ({
+          chave: linha.licenca,
+          rotulo: ehOpcao(linha.licenca, LICENCAS) ? LICENCAS[linha.licenca].rotulo : linha.licenca,
+          valor: linha.turmas,
+        }))}
+      />
+      <div className="grid gap-1.5">
+        <div className="flex items-baseline justify-between gap-3 text-sm">
+          <span className="text-foreground">Pagam o Kapa</span>
+          <span className="text-foreground font-medium tabular-nums">{conversao}%</span>
+        </div>
+        <div aria-hidden className="bg-muted h-2 overflow-hidden rounded-full">
+          <div className="bg-brand h-full rounded-full" style={{ width: `${conversao}%` }} />
+        </div>
+        <p className="text-texto-muted text-xs">
+          {formatarNumero(formaturas.novas_no_periodo)} novas no período ·{' '}
+          {formatarNumero(formaturas.membros_por_turma_media, 1)} membros por turma em média (mediana{' '}
+          {formatarNumero(formaturas.membros_por_turma_mediana, 1)})
+        </p>
+      </div>
+    </div>
   )
 }
 
-function ContasDaPlataforma({ contas }: { contas: AnalyticsDaPlataforma['contas'] }) {
+/** Cadastrou, confirmou o e-mail, entrou numa turma: cada passo como parte do primeiro. */
+function FunilDasContas({ contas }: { contas: AnalyticsDaPlataforma['contas'] }) {
   return (
-    <ListaDeDados>
-      <Dado icone={Users} rotulo="Cadastradas">
-        {formatarNumero(contas.total)}
-      </Dado>
-      <Dado icone={CalendarRange} rotulo="Novas no período">
-        {formatarNumero(contas.no_periodo)}
-      </Dado>
-      <Dado icone={MailCheck} rotulo="Com e-mail confirmado">
-        {formatarNumero(contas.confirmadas)}
-      </Dado>
-      <Dado icone={UserRoundX} rotulo="Sem turma">
-        {formatarNumero(contas.sem_turma)}
-      </Dado>
-    </ListaDeDados>
+    <BarrasHorizontais
+      funil
+      formatar={(valor) => formatarNumero(valor)}
+      itens={[
+        { chave: 'cadastradas', rotulo: 'Cadastradas', valor: contas.total },
+        { chave: 'confirmadas', rotulo: 'Com e-mail confirmado', valor: contas.confirmadas },
+        { chave: 'em-turma', rotulo: 'Numa turma', valor: Math.max(0, contas.total - contas.sem_turma) },
+      ]}
+    />
   )
 }
 
@@ -285,28 +393,60 @@ function UsoPorRecurso({ uso }: { uso: AnalyticsDaPlataforma['uso'] }) {
   if (uso.length === 0)
     return <p className="text-muted-foreground text-sm">Nenhuma ação gravada no período.</p>
 
+  const resto = uso.slice(RECURSOS_NO_RANKING)
+
   return (
-    <Tabela
-      legenda="Ações gravadas por recurso no período"
-      cabecalho={
-        <>
-          <th className="py-3 pr-4 font-normal">Recurso</th>
-          <th className="py-3 pr-4 text-right font-normal">Ações</th>
-          <th className="py-3 pr-4 text-right font-normal">Turmas</th>
-          <th className="py-3 text-right font-normal">Pessoas</th>
-        </>
-      }
-    >
-      {uso.map((linha) => (
-        <tr key={linha.recurso} className="border-b last:border-0">
-          <th scope="row" className="py-2.5 pr-4 text-left font-normal">
-            {ehOpcao(linha.recurso, RECURSOS) ? RECURSOS[linha.recurso] : linha.recurso}
-          </th>
-          <td className="py-2.5 pr-4 text-right">{formatarNumero(linha.eventos)}</td>
-          <td className="py-2.5 pr-4 text-right">{formatarNumero(linha.turmas)}</td>
-          <td className="py-2.5 text-right">{formatarNumero(linha.usuarios)}</td>
-        </tr>
-      ))}
-    </Tabela>
+    <BarrasHorizontais
+      formatar={(valor) => formatarNumero(valor)}
+      itens={[
+        ...uso.slice(0, RECURSOS_NO_RANKING).map((linha) => ({
+          chave: linha.recurso,
+          rotulo: ehOpcao(linha.recurso, RECURSOS) ? RECURSOS[linha.recurso] : linha.recurso,
+          valor: linha.eventos,
+          detalhe: `${plural(linha.turmas, 'turma', 'turmas')} · ${plural(linha.usuarios, 'pessoa', 'pessoas')}`,
+        })),
+        ...(resto.length > 0
+          ? [
+              {
+                chave: 'outros',
+                rotulo: `Outros (${resto.length})`,
+                valor: resto.reduce((soma, linha) => soma + linha.eventos, 0),
+              },
+            ]
+          : []),
+      ]}
+    />
+  )
+}
+
+/** O pago e o que falta, cada um com a média por parcela — o tamanho da parcela diz o perfil das turmas. */
+function DinheiroDasTurmas({ turmas }: { turmas: AnalyticsDaPlataforma['turmas'] }) {
+  return (
+    <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <Metrica
+        icone={HandCoins}
+        rotulo="Pago no período"
+        valor={formatarCentavos(turmas.pago_em_centavos)}
+        nota={`${formatarNumero(turmas.parcelas_pagas)} ${turmas.parcelas_pagas === 1 ? 'parcela paga' : 'parcelas pagas'}`}
+      />
+      <Metrica
+        icone={BadgeCheck}
+        rotulo="Média da parcela paga"
+        valor={media(turmas.pago_em_centavos, turmas.parcelas_pagas)}
+        nota="no período"
+      />
+      <Metrica
+        icone={ReceiptText}
+        rotulo="A receber hoje"
+        valor={formatarCentavos(turmas.a_receber_em_centavos)}
+        nota={`${formatarNumero(turmas.parcelas_a_receber)} ${turmas.parcelas_a_receber === 1 ? 'parcela em aberto' : 'parcelas em aberto'}`}
+      />
+      <Metrica
+        icone={CalendarClock}
+        rotulo="Média da parcela em aberto"
+        valor={media(turmas.a_receber_em_centavos, turmas.parcelas_a_receber)}
+        nota="hoje"
+      />
+    </dl>
   )
 }

@@ -8,15 +8,12 @@ export function useCaixa() {
 }
 
 /**
- * O fluxo mês a mês: realizado até hoje, projetado até a colação.
- *
- * @param habilitado Só a Gestão consulta: a projeção traz o planejamento das despesas, e para o
- *   formando — que abre o Caixa pelo menu — a API responde 403.
+ * O fluxo mês a mês: realizado até hoje, projetado até a colação. Para quem não é da Gestão a API devolve
+ * só o realizado — o planejamento das despesas é da comissão.
  */
-export function useProjecao(habilitado: boolean) {
+export function useProjecao() {
   return useQuery({
     queryKey: chaves.projecao,
     queryFn: ({ signal }) => obterProjecao(signal),
-    enabled: habilitado,
   })
 }

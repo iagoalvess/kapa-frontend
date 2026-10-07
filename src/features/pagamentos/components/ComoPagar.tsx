@@ -197,7 +197,10 @@ function DaComissao({
         <DadosDoRecebedor pix={meio.pix} />
         <QrCodePix copiaECola={meio.pix.copia_e_cola} destaque />
         <Avisos>
-          <li>Confira se o seu banco mostra este nome antes de confirmar.</li>
+          <li>
+            Confira se o seu banco mostra este nome{meio.pix.banco_do_titular ? ' e este banco' : ''} antes de
+            confirmar.
+          </li>
           <li>O valor, {formatarCentavos(valorEmCentavos)}, vale para hoje.</li>
           {avisos}
         </Avisos>

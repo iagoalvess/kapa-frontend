@@ -13,14 +13,15 @@ import { Button } from '@/components/ui/button'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { usePapel } from '@/hooks/useSessao'
-import { formatarData } from '@/lib/formato'
+import { formatarCentavos, formatarData } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import type { MeioDePagamento } from '@/types/pagamento'
 import { CICLOS, maiorDesconto, type Plano } from '@/types/plano'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useAssinatura, useTrocarPlano } from '../hooks/useAssinatura'
+import { CampoDeCupom, comDesconto } from '../components/CampoDeCupom'
 import { useCheckout } from '../hooks/useCheckout'
-import type { CicloDeCobranca } from '../types/assinaturas.types'
+import type { CicloDeCobranca, CupomAplicavel } from '../types/assinaturas.types'
 
 /** Os dois meios do plano (Sprint 37), com a frase que diz como cada um cobra. */
 const MEIOS_DO_PLANO = [
@@ -68,6 +69,7 @@ export default function PlanosPage() {
   const trocar = useTrocarPlano()
   const [meio, definirMeio] = useState<MeioDePagamento>('Cartao')
   const [escolhido, definirEscolhido] = useState<Plano | null>(null)
+  const [cupom, definirCupom] = useState<CupomAplicavel | null>(null)
 
   const ciclo: CicloDeCobranca = parametros.get('ciclo') === 'Mensal' ? 'Mensal' : 'Anual'
   const doCiclo = planos.data?.filter((plano) => plano.ciclo === ciclo) ?? []
@@ -92,7 +94,10 @@ export default function PlanosPage() {
    */
   function escolher(plano: Plano) {
     if (!atual) {
-      checkout.mutate({ planoCodigo: plano.codigo, meio }, { onError: avisarErro })
+      checkout.mutate(
+        { planoCodigo: plano.codigo, meio, cupomCodigo: cupom?.codigo },
+        { onError: avisarErro },
+      )
       return
     }
     definirEscolhido(plano)
@@ -179,6 +184,8 @@ export default function PlanosPage() {
           <p className="text-muted-foreground text-sm text-pretty">
             {MEIOS_DO_PLANO.find((opcao) => opcao.chave === meio)?.explicacao}
           </p>
+          {/* Cupom só na primeira contratação (Sprint 51): a turma que já pagou recebe "inválido" da API. */}
+          {motivo ? null : <CampoDeCupom aplicado={cupom} aoAplicar={definirCupom} />}
         </div>
       )}
 
@@ -235,6 +242,14 @@ export default function PlanosPage() {
                           : `Contratar ${plano.nome}`}
                 </Button>
                 {aviso && !ehAtual ? <p className="text-texto-muted text-center text-xs">{aviso}</p> : null}
+                {cupom && !atual ? (
+                  <p className="text-muted-foreground text-center text-sm">
+                    Primeira cobrança com o cupom: <s>{formatarCentavos(plano.preco_em_centavos)}</s>{' '}
+                    <b className="text-foreground font-semibold">
+                      {formatarCentavos(comDesconto(plano.preco_em_centavos, cupom.percentual))}
+                    </b>
+                  </p>
+                ) : null}
               </CartaoDePlano>
             )
           })}

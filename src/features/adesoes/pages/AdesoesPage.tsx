@@ -78,7 +78,8 @@ export default function AdesoesPage() {
   if (!plano)
     pendencias.push({
       chave: 'plano',
-      texto: 'A turma ainda não tem plano de cobrança em vigor — sem ele, ninguém consegue aderir.',
+      texto:
+        'A turma ainda não tem plano de cobrança em vigor — sem ele, o termo não pode ser publicado e ninguém consegue aderir.',
       acao: tem(PAPEIS.tesoureiro) ? { rotulo: 'Montar o plano', para: ROTAS.cobrancas } : undefined,
     })
   if (!termo && !editando)
@@ -134,6 +135,7 @@ export default function AdesoesPage() {
         <EditorDoTermo
           key={termo?.id ?? 'primeira'}
           vigente={termo}
+          planoEmVigor={Boolean(plano)}
           aoConcluir={termo ? () => editor(false) : undefined}
         />
       ) : (

@@ -68,19 +68,6 @@ describe('Aviso de cadastro', () => {
     )
   })
 
-  it('avisa quando falta nascimento mesmo com o essencial preenchido', async () => {
-    entrarComo(PAPEIS.formando)
-    responder(false)
-    servidor.use(
-      http.get(`${base}/api/v1/formandos/eu`, () =>
-        HttpResponse.json({ essencial_pendente: false, completude: 90, faltando: ['dataDeNascimento'] }),
-      ),
-    )
-    renderizar(<AvisoDeCadastro />)
-    expect(await screen.findByRole('link', { name: 'Completar cadastro' })).toBeInTheDocument()
-    expect(screen.getByText(/data de nascimento permitem aceitar/)).toBeInTheDocument()
-  })
-
   it('não aparece em turma encerrada, mesmo com o cadastro já no cache', async () => {
     entrarComo(PAPEIS.formando)
     const consultas = responder(true, 'Encerrada')

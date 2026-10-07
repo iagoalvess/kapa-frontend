@@ -121,7 +121,7 @@ export function DialogoDoAditivo({
                     type="checkbox"
                     checked={marcado}
                     onChange={() => alternar(pacote)}
-                    className="accent-brand size-4 shrink-0"
+                    className="size-4 shrink-0"
                   />
                   <span className="grid min-w-0 flex-1">
                     <span className="text-foreground font-medium">{nome(pacote)}</span>

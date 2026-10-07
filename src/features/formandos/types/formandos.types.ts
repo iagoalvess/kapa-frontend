@@ -3,28 +3,10 @@ import type { Papel } from '@/config/perfis'
 /** Seção de dados pessoais. Espelha `DadosPessoaisDTO`. */
 interface DadosPessoais {
   nome_completo: string | null
-  nome_no_diploma: string | null
   /** Só os 11 dígitos. */
   cpf: string | null
-  rg: string | null
-  matricula: string | null
   /** Em E.164: `+5541998765432`. */
   telefone: string | null
-  /** `aaaa-mm-dd`. */
-  data_de_nascimento: string | null
-  observacoes: string | null
-}
-
-/** Seção de endereço. Espelha `DadosDeEnderecoDTO`. */
-interface DadosDeEndereco {
-  /** Só os 8 dígitos. */
-  cep: string | null
-  logradouro: string | null
-  numero: string | null
-  complemento: string | null
-  bairro: string | null
-  cidade: string | null
-  uf: string | null
 }
 
 /** Seção de contato de emergência. Espelha `DadosDeEmergenciaDTO`. */
@@ -35,17 +17,7 @@ interface DadosDeEmergencia {
 }
 
 /** Itens que a completude conta, como a API os nomeia em `faltando`. */
-export type ItemDoCadastro =
-  | 'nomeCompleto'
-  | 'nomeNoDiploma'
-  | 'cpf'
-  | 'rg'
-  | 'matricula'
-  | 'telefone'
-  | 'dataDeNascimento'
-  | 'endereco'
-  | 'contatoDeEmergencia'
-  | 'foto'
+export type ItemDoCadastro = 'nomeCompleto' | 'cpf' | 'telefone' | 'contatoDeEmergencia' | 'foto'
 
 /** O cadastro inteiro. Espelha `PerfilDoFormandoDTO`. */
 export interface PerfilDoFormando {
@@ -55,7 +27,6 @@ export interface PerfilDoFormando {
   email: string
   papel: Papel
   pessoais: DadosPessoais
-  endereco: DadosDeEndereco
   contato_de_emergencia: DadosDeEmergencia
   /** Baixado por `/arquivos/{id}/conteudo` — só o dono consegue. */
   foto_arquivo_id: string | null
@@ -72,6 +43,5 @@ export interface PerfilDoFormando {
  */
 export interface AtualizarPerfil {
   pessoais?: DadosPessoais
-  endereco?: DadosDeEndereco
   contato_de_emergencia?: DadosDeEmergencia
 }

@@ -46,7 +46,7 @@ export function CampoDeMarcar<T extends FieldValues>({
               onBlur={field.onBlur}
               name={field.name}
               ref={field.ref}
-              className="accent-primary size-4 shrink-0"
+              className="size-4 shrink-0"
             />
             {rotulo}
           </label>

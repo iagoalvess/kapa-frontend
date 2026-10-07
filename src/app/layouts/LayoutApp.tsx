@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils'
 import { BarraInferior } from './BarraInferior'
 import { BarraLateral } from './BarraLateral'
 import { MenuDaConta } from './MenuDaConta'
+import { BarraDeNavegacao } from './BarraDeNavegacao'
 import { useNoPainel } from './menuDoPainel'
 
 /**
@@ -54,6 +55,7 @@ export function LayoutApp() {
 
   return (
     <div className="flex min-h-full">
+      <BarraDeNavegacao />
       {/* Primeiro elemento focável da página: quem navega por teclado pula a navegação inteira
           em vez de tabular por ela em toda troca de tela. */}
       <a

@@ -6,32 +6,15 @@ import type { ItemDoCadastro, PerfilDoFormando } from '../types/formandos.types'
 /** Como cada item de `faltando` aparece na tela. */
 const ROTULOS_DOS_ITENS: Record<ItemDoCadastro, string> = {
   nomeCompleto: 'Nome completo',
-  nomeNoDiploma: 'Nome no diploma',
   cpf: 'CPF',
-  rg: 'RG',
-  matricula: 'Matrícula',
   telefone: 'Telefone',
-  dataDeNascimento: 'Data de nascimento',
-  endereco: 'Endereço',
   contatoDeEmergencia: 'Contato de emergência',
   foto: 'Foto',
 }
 
 // Classes escritas por extenso: o Tailwind só gera o que encontra literalmente no código. A API
-// conta dez itens, então a completude anda de 10 em 10.
-const LARGURAS = [
-  'w-0',
-  'w-1/10',
-  'w-2/10',
-  'w-3/10',
-  'w-4/10',
-  'w-5/10',
-  'w-6/10',
-  'w-7/10',
-  'w-8/10',
-  'w-9/10',
-  'w-full',
-] as const
+// conta cinco itens, então a completude anda de 20 em 20.
+const LARGURAS = ['w-0', 'w-1/5', 'w-2/5', 'w-3/5', 'w-4/5', 'w-full'] as const
 
 /**
  * Quanto do cadastro está preenchido, o que falta e, para a comissão, o aviso do essencial.
@@ -54,7 +37,7 @@ export function IndicadorDeCompletude({
   proprio?: boolean
   acoes?: ReactNode
 }) {
-  const indice = Math.min(10, Math.max(0, Math.round(perfil.completude / 10)))
+  const indice = Math.min(5, Math.max(0, Math.round(perfil.completude / 20)))
 
   return (
     <div className="grid gap-3">

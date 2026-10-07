@@ -7,6 +7,7 @@ import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { CamposDaGrade } from './CamposDaGrade'
@@ -104,7 +105,10 @@ export function FormularioDeOpcional({
             name="tipo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo</FormLabel>
+                {/* O tipo não é rótulo: é ele que decide se o pagamento vira convite da festa. */}
+                <RotuloComInfo info="“Convite extra” é o que emite convite da festa quando o pedido é quitado.">
+                  Tipo
+                </RotuloComInfo>
                 <FormControl>
                   <Select {...field} disabled={travaAGrade}>
                     {TIPOS_DOS_OPCIONAIS.map((valor) => (
@@ -114,10 +118,6 @@ export function FormularioDeOpcional({
                     ))}
                   </Select>
                 </FormControl>
-                {/* O tipo não é rótulo: é ele que decide se o pagamento vira convite da festa. */}
-                <p className="text-texto-muted text-xs">
-                  “Convite extra” é o que emite convite da festa quando o pedido é quitado.
-                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -128,17 +128,15 @@ export function FormularioDeOpcional({
             name="modo_de_venda"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Onde se vende</FormLabel>
+                <RotuloComInfo info="Na loja, qualquer pessoa com o link compra sem conta e paga na hora pelo Mercado Pago da turma. O item sai da vitrine dos formandos.">
+                  Onde se vende
+                </RotuloComInfo>
                 <FormControl>
                   <Select {...field} disabled={!editavel}>
                     <option value="AoFormando">Aos formandos, no app</option>
                     <option value="Publica">Na loja pública, por link</option>
                   </Select>
                 </FormControl>
-                <p className="text-texto-muted text-xs">
-                  Na loja, qualquer pessoa com o link compra sem conta e paga na hora pelo Mercado Pago da
-                  turma. O item sai da vitrine dos formandos.
-                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -150,11 +148,10 @@ export function FormularioDeOpcional({
               name="preco_publico_em_centavos"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preço na loja</FormLabel>
+                  <RotuloComInfo info="Zero, vale o mesmo preço dos formandos.">Preço na loja</RotuloComInfo>
                   <FormControl>
                     <CampoDeMoeda {...field} disabled={!editavel} />
                   </FormControl>
-                  <p className="text-texto-muted text-xs">Zero, vale o mesmo preço dos formandos.</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -207,7 +204,9 @@ export function FormularioDeOpcional({
             name="estoque"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unidades disponíveis</FormLabel>
+                <RotuloComInfo info="É o que cabe no salão. Vazio, a venda não tem teto.">
+                  Unidades disponíveis
+                </RotuloComInfo>
                 <FormControl>
                   <Input
                     {...field}
@@ -218,9 +217,6 @@ export function FormularioDeOpcional({
                     placeholder="Sem teto"
                   />
                 </FormControl>
-                <p className="text-texto-muted text-xs">
-                  É o que cabe no salão. Vazio, a venda não tem teto.
-                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -231,11 +227,10 @@ export function FormularioDeOpcional({
             name="abertura_de_vendas"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vendas abrem em</FormLabel>
+                <RotuloComInfo info="Horário de Brasília.">Vendas abrem em</RotuloComInfo>
                 <FormControl>
                   <Input {...field} type="datetime-local" disabled={!editavel} />
                 </FormControl>
-                <p className="text-texto-muted text-xs">Horário de Brasília.</p>
                 <FormMessage />
               </FormItem>
             )}
@@ -288,7 +283,9 @@ export function FormularioDeOpcional({
             name="item_da_festa_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Item da festa</FormLabel>
+                <RotuloComInfo info="Ligado, o cartão da festa passa a mostrar o preço daqui vezes os pedidos confirmados.">
+                  Item da festa
+                </RotuloComInfo>
                 <FormControl>
                   <Select {...field} disabled={!editavel}>
                     <option value="">Nenhum</option>
@@ -299,9 +296,6 @@ export function FormularioDeOpcional({
                     ))}
                   </Select>
                 </FormControl>
-                <p className="text-texto-muted text-xs">
-                  Ligado, o cartão da festa passa a mostrar o preço daqui vezes os pedidos confirmados.
-                </p>
                 <FormMessage />
               </FormItem>
             )}

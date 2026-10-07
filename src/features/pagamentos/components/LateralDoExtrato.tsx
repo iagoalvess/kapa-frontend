@@ -5,7 +5,7 @@ import { WalletMinimal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROTAS, rotaDoPagamento } from '@/config/rotas'
 import { formatarCentavos, formatarData } from '@/lib/formato'
-import { aPagar, rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { aPagar, quitouTudo, rotuloDoItem, valorNaLista } from '@/types/cobranca'
 import type { Extrato } from '../types/pagamentos.types'
 
 /**
@@ -69,6 +69,20 @@ export function ParcelasEmConferencia({ extrato }: { extrato: Extrato }) {
 
 export function ResumoDaProximaParcela({ extrato }: { extrato: Extrato }) {
   const { proxima } = extrato
+  if (quitouTudo(extrato.parcelas)) {
+    const pago = extrato.parcelas
+      .filter((parcela) => parcela.status === 'Paga')
+      .reduce((soma, parcela) => soma + valorNaLista(parcela), 0)
+
+    return (
+      <CartaoDeValor
+        titulo="Tudo quitado"
+        rotulo="Total pago"
+        valor={formatarCentavos(pago)}
+        nota="Você pagou todas as suas parcelas."
+      />
+    )
+  }
   if (!proxima) {
     return (
       <CartaoDeValor

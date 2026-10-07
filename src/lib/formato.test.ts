@@ -3,7 +3,6 @@ import {
   diaDeHoje,
   diasAte,
   formatarCentavos,
-  formatarCep,
   formatarCnpj,
   formatarCpf,
   formatarData,
@@ -81,7 +80,6 @@ describe('formato', () => {
     expect(formatarCnpj('11222333000181')).toBe('11.222.333/0001-81')
     expect(formatarCnpj('12abc34501de35')).toBe('12.ABC.345/01DE-35')
     expect(formatarCnpj('123')).toBe('123')
-    expect(formatarCep('80000000')).toBe('80000-000')
     expect(formatarTelefone('+5541998765432')).toBe('(41) 99876-5432')
     expect(formatarTelefone('+554133334444')).toBe('(41) 3333-4444')
     // A API grava E.164: telefone de fora do Brasil não tem máscara nacional.

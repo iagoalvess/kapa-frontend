@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button'
 import { ROTAS, urlDoSite } from '@/config/rotas'
 import {
   formatarCentavos,
-  formatarCep,
   formatarCpf,
   formatarData,
   formatarDataHora,
@@ -41,19 +40,6 @@ import {
   useSolicitacoes,
   useSolicitar,
 } from '../hooks/usePrivacidade'
-import type { MeusDadosDaTurma } from '../types/privacidade.types'
-
-/** O endereço numa linha só, como ele sairia num envelope. */
-function endereco(turma: MeusDadosDaTurma) {
-  const { endereco: e } = turma.perfil ?? {}
-
-  if (!e?.logradouro) return null
-
-  const rua = [e.logradouro, e.numero, e.complemento].filter(Boolean).join(', ')
-  const cidade = [e.bairro, e.cidade && e.uf ? `${e.cidade}/${e.uf}` : e.cidade].filter(Boolean).join(' — ')
-
-  return [rua, cidade, e.cep ? `CEP ${formatarCep(e.cep)}` : null].filter(Boolean).join(' · ')
-}
 
 /**
  * O portal do titular: o que a Kapa guarda sobre você, e o que você pode fazer a respeito.
@@ -200,11 +186,6 @@ export default function MinhaPrivacidadePage() {
                 {turma.perfil?.telefone ? (
                   <Dado icone={BellRing} rotulo="Telefone">
                     {formatarTelefone(turma.perfil.telefone)}
-                  </Dado>
-                ) : null}
-                {endereco(turma) ? (
-                  <Dado icone={UserRound} rotulo="Endereço">
-                    {endereco(turma)}
                   </Dado>
                 ) : null}
                 {turma.perfil?.contato_de_emergencia.nome ? (

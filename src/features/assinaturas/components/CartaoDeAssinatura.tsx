@@ -113,6 +113,11 @@ function AssinaturaContratada() {
           {MEIOS_DE_PAGAMENTO[dados.meio].rotulo}
           {dados.meio === 'Cartao' ? ', automático' : ', a cada ciclo'}
         </Item>
+        {dados.cupom ? (
+          <Item rotulo="Cupom">
+            {dados.cupom.codigo}: {dados.cupom.percentual}% na primeira cobrança
+          </Item>
+        ) : null}
       </dl>
 
       <Situacao assinatura={dados} presidente={ehPresidente} />

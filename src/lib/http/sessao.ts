@@ -16,6 +16,8 @@ export interface ParDeTokens {
 export interface EstadoDaSessao {
   readonly usuario: UsuarioAutenticado | null
   readonly autenticado: boolean
+  /** A sessão acabou pelo "Sair": a guarda não guarda a tela atual para devolver a quem entrar depois. */
+  readonly saiu?: boolean
 }
 
 const VAZIO: EstadoDaSessao = { usuario: null, autenticado: false }
@@ -70,11 +72,13 @@ export const sessao = {
    *
    * Não apaga o cookie — ele é `HttpOnly` e só o servidor consegue, no `/auth/logout`. Quem faz
    * logout de verdade é a feature de autenticação.
+   *
+   * @param saiu `true` no "Sair": a próxima conta a entrar nesta aba não volta para a tela de quem saiu.
    */
-  encerrar() {
+  encerrar(saiu = false) {
     accessToken = null
     renovacaoEmCurso = null
-    publicar(VAZIO)
+    publicar(saiu ? { ...VAZIO, saiu } : VAZIO)
   },
 
   /**

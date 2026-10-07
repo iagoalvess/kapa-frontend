@@ -131,7 +131,7 @@ export interface CodigoEnviado {
 }
 
 /** O que o cadastro precisa ter para aderir, como a API os nomeia. */
-export type PendenciaDoCadastro = 'nomeCompleto' | 'cpf' | 'dataDeNascimento'
+export type PendenciaDoCadastro = 'nomeCompleto' | 'cpf'
 
 /** A situação do próprio formando. Espelha `MinhaAdesaoDTO`. */
 /**
@@ -150,8 +150,6 @@ export interface SituacaoDaMinhaAdesao {
 export interface MinhaAdesao {
   adesao: Adesao | null
   pendencias: PendenciaDoCadastro[]
-  /** Menos de 18 anos pela data de nascimento: a adesão é com a comissão, fora da plataforma. */
-  menor_de_idade: boolean
 }
 
 /** Um membro no painel de adesões. Espelha `SituacaoDeAdesaoDTO`. */

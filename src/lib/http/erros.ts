@@ -1,10 +1,11 @@
 import { toast } from 'sonner'
+import { linkDeSuporte } from '@/lib/suporte'
 import { ehCodigoDeUpgrade, upgrade } from '@/lib/upgrade'
 
 /**
  * Corpo de erro da API, no formato RFC 9457 (ProblemDetails).
  *
- * `codigo` e `traceId` são extensões que o backend sempre envia. Ver `docs/decisoes.md`.
+ * `codigo` e `trace_id` são extensões que o backend sempre envia. Ver `docs/decisoes.md`.
  */
 export interface ProblemDetails {
   type?: string
@@ -13,7 +14,8 @@ export interface ProblemDetails {
   detail?: string
   instance?: string
   codigo?: string
-  traceId?: string
+  /** O `RequestId` da requisição — o que o suporte procura no Grafana. Snake_case, como todo o contrato. */
+  trace_id?: string
   errors?: Record<string, string[]>
   /** O que a tela precisa além do código — o "já validado às 22h14 por Ana" da portaria. */
   dados?: unknown
@@ -50,7 +52,7 @@ export class ErroDaApi extends Error {
     this.name = 'ErroDaApi'
     this.status = status
     this.codigo = problema.codigo ?? `http.${status}`
-    this.traceId = problema.traceId
+    this.traceId = problema.trace_id
     this.erros = problema.errors ?? {}
     this.dados = problema.dados ?? null
     this.repetirEm = repetirEm
@@ -108,5 +110,29 @@ export function pedirUpgradeSeForDoPlano(erro: unknown): boolean {
 export function avisarErro(erro: unknown) {
   if (pedirUpgradeSeForDoPlano(erro)) return
 
-  toast.error(mensagemDoErro(erro))
+  const codigo = codigoParaOSuporte(erro)
+  // Falha do servidor não é coisa que a pessoa resolve tentando de novo: o aviso leva o código e o caminho
+  // para contar ao suporte, já com o código no e-mail.
+  toast.error(
+    mensagemDoErro(erro),
+    codigo
+      ? {
+          description: `Código do erro: ${codigo}`,
+          action: { label: 'Reportar', onClick: () => globalThis.location.assign(linkDeSuporte({ codigo })) },
+        }
+      : undefined,
+  )
+}
+
+/**
+ * O código que vale mandar ao suporte: o `trace_id` de uma falha do servidor (5xx).
+ *
+ * Recusa de regra (4xx) não ganha código — ela diz o que fazer, e não é bug. Falha de rede não tem
+ * requisição que chegou ao servidor para procurar.
+ *
+ * @param erro O que a operação lançou.
+ * @returns O código, ou `undefined` quando não há o que reportar.
+ */
+export function codigoParaOSuporte(erro: unknown) {
+  return erro instanceof ErroDaApi && erro.status >= 500 ? erro.traceId : undefined
 }

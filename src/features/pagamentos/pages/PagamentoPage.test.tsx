@@ -49,13 +49,14 @@ describe('PagamentoPage', () => {
 
     const recebedor = await screen.findByRole('region', { name: 'Quem recebe' })
     expect(recebedor).toHaveTextContent('Comissão Medicina 2027 · CPF ***.982.247-**')
+    expect(recebedor).toHaveTextContent('Nubank')
     expect(recebedor).toHaveTextContent('Titularidade conferida pela comissão em 14/09/2026')
     const copiar = screen.getByRole('button', { name: 'Copiar' })
     const qr = screen.getByRole('img', { name: 'QR Code do PIX' })
     expect(recebedor.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(copiar.compareDocumentPosition(qr) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(
-      screen.getByText('Confira se o seu banco mostra este nome antes de confirmar.'),
+      screen.getByText('Confira se o seu banco mostra este nome e este banco antes de confirmar.'),
     ).toBeInTheDocument()
   })
 

@@ -490,6 +490,62 @@
     @apply border-border outline-ring/50;
   }
 
+  /*
+    Caixa de marcar e radio desenhados com a marca, e não os nativos com `accent-color`: com um destaque claro
+    como o laranja, o Chrome escurece o anel do radio e põe o check preto sobre o fundo laranja, para dar
+    contraste (06/10/2026). Aqui o check é branco, como o texto sobre `--brand` em todo o produto. Na camada
+    base, para o `size-*` de cada tela continuar mandando no tamanho.
+  */
+  input[type='checkbox'],
+  input[type='radio'] {
+    appearance: none;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--text-muted);
+    background-color: var(--card);
+    cursor: pointer;
+    transition:
+      background-color var(--default-transition-duration) var(--default-transition-timing-function),
+      border-color var(--default-transition-duration) var(--default-transition-timing-function),
+      border-width var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+
+  input[type='checkbox'] {
+    border-radius: 0.25rem;
+  }
+
+  input[type='checkbox']:checked {
+    border-color: var(--brand);
+    background-color: var(--brand);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3.5 8.5 3 3 6-7'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+  }
+
+  input[type='radio'] {
+    border-radius: 999px;
+  }
+
+  /* Marcado, um anel grosso da marca em volta do miolo branco. */
+  input[type='radio']:checked {
+    border-width: 5px;
+    border-color: var(--brand);
+  }
+
+  input[type='checkbox']:focus-visible,
+  input[type='radio']:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  input[type='checkbox']:disabled,
+  input[type='radio']:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
   }
@@ -605,9 +661,31 @@
   }
 }
 
+/*
+  A barra do topo enquanto a próxima tela carrega (`BarraDeNavegacao`): o mesmo trilho do aviso de carregamento.
+  Entra apagada e só aparece depois de 150 ms, para a navegação instantânea não piscar.
+*/
+[data-barra-de-navegacao] {
+  background-color: var(--brand-tint);
+  background-image: linear-gradient(to right, var(--brand) 0 100%);
+  background-repeat: no-repeat;
+  background-size: 28% 100%;
+  opacity: 0;
+  animation:
+    correndo-no-aviso 1.6s ease-in-out infinite,
+    aparecer-a-barra 0s linear 150ms forwards;
+}
+
+@keyframes aparecer-a-barra {
+  to {
+    opacity: 1;
+  }
+}
+
 /* Sem movimento: o trilho fica cheio e apagado, dizendo que há algo em andamento. */
 @media (prefers-reduced-motion: reduce) {
-  [data-sonner-toast][data-type='loading'] [data-content]::after {
+  [data-sonner-toast][data-type='loading'] [data-content]::after,
+  [data-barra-de-navegacao] {
     animation: none;
     background-size: 100% 100%;
     opacity: 0.4;

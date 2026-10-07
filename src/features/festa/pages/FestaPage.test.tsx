@@ -109,6 +109,16 @@ function comApi(
   )
 }
 
+/** Uma proposta do buffet, para as ações que moram nela. */
+const buffetSabor: Proposta = {
+  id: 'p-1',
+  titulo: 'Buffet Sabor',
+  valor_em_centavos: 55_000_00,
+  o_que_inclui: null,
+  votos: 0,
+  meu_voto: false,
+}
+
 /** O painel da direita, que é onde o item aberto é desenhado. */
 const detalhe = (titulo: string) => screen.findByRole('region', { name: titulo })
 
@@ -190,29 +200,32 @@ describe('FestaPage', () => {
     expect(screen.queryByRole('link', { name: 'Abrir mesas' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Abrir portaria' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Contratar/ })).not.toBeInTheDocument()
   })
 
   it('só a Tesouraria contrata: a Comissão cria e edita, mas não lança despesa', async () => {
     entrarComo('Comissao')
-    comApi()
+    comApi(undefined, { 'i-1': [buffetSabor] })
 
     renderizar(<FestaPage />)
 
     const buffet = await detalhe('Buffet')
     expect(within(buffet).getByRole('button', { name: 'Editar' })).toBeInTheDocument()
-    expect(within(buffet).queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
+    expect(within(buffet).getByText('Buffet Sabor')).toBeInTheDocument()
+    expect(within(buffet).queryByRole('button', { name: /Contratar/ })).not.toBeInTheDocument()
   })
 
   it('item sem despesa oferece excluir; com despesa, cancelar', async () => {
     entrarComo('Tesoureiro')
-    comApi()
+    comApi(undefined, { 'i-1': [buffetSabor] })
 
     renderizar(<FestaPage />)
 
     const buffet = await detalhe('Buffet')
     expect(within(buffet).getByRole('button', { name: 'Excluir' })).toBeInTheDocument()
+    // O do item serve a quem não usa propostas; "Contratar esta" é o atalho de cada uma.
     expect(within(buffet).getByRole('button', { name: 'Contratar' })).toBeInTheDocument()
+    expect(await within(buffet).findByRole('button', { name: 'Contratar esta' })).toBeInTheDocument()
   })
 
   it('cancelar avisa que as despesas já lançadas continuam no caixa', async () => {
@@ -230,7 +243,7 @@ describe('FestaPage', () => {
 
     const espaco = await detalhe('Espaço')
     // Contratado já: contratar de novo seria um segundo contrato para o mesmo item.
-    expect(within(espaco).queryByRole('button', { name: 'Contratar' })).not.toBeInTheDocument()
+    expect(within(espaco).queryByRole('button', { name: /Contratar/ })).not.toBeInTheDocument()
     expect(within(espaco).queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
 
     await userEvent.click(within(espaco).getByRole('button', { name: 'Cancelar' }))

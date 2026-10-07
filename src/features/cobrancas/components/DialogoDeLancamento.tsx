@@ -7,16 +7,9 @@ import { CampoDeMoeda } from '@/components/CampoDeMoeda'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { diaDeHoje, formatarCentavos, formatarNumero } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useFormandosDaTurma, useLancar } from '../hooks/useLancamentos'
@@ -149,11 +142,10 @@ export function DialogoDeLancamento({ aberto, aoFechar }: { aberto: boolean; aoF
               name="numero_de_parcelas"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Parcelas</FormLabel>
+                  <RotuloComInfo info="Mensais, no mesmo dia do primeiro vencimento.">Parcelas</RotuloComInfo>
                   <FormControl>
                     <Input {...field} inputMode="numeric" />
                   </FormControl>
-                  <FormDescription>Mensais, no mesmo dia do primeiro vencimento.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -54,7 +54,7 @@ describe('ReguaPage', () => {
     entrarComo('Tesoureiro')
     servidor.use(
       http.get(REGRAS, () =>
-        HttpResponse.json({ ...REGUA, regras: [degrau('r-2', 0), degrau('r-1', -5, { ativa: false })] }),
+        HttpResponse.json({ ...REGUA, regras: [degrau('r-2', 3), degrau('r-1', -2, { ativa: false })] }),
       ),
       historico(),
       http.get(FORMATURA, () => HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' })),
@@ -65,11 +65,11 @@ describe('ReguaPage', () => {
     expect(screen.getByRole('link', { name: 'Plano de cobrança' })).toHaveAttribute('href', '/cobrancas')
     // O lembrete vem antes do vencimento, mesmo tendo chegado depois da API.
     const linhas = await screen.findAllByRole('row')
-    expect(linhas[1]).toHaveTextContent('5 dias antes do vencimento')
+    expect(linhas[1]).toHaveTextContent('2 dias antes do vencimento')
     expect(linhas[1]).toHaveTextContent('Lembrete')
     expect(linhas[1]).toHaveTextContent('Desligado')
-    expect(linhas[2]).toHaveTextContent('No vencimento')
-    expect(linhas[2]).toHaveTextContent('Vence hoje')
+    expect(linhas[2]).toHaveTextContent('3 dias após o vencimento')
+    expect(linhas[2]).toHaveTextContent('Em atraso')
     expect(linhas[2]).toHaveTextContent('Ativo')
 
     // O assunto some da tela quando o editor é a única forma de lê-lo.

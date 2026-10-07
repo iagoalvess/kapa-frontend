@@ -14,7 +14,7 @@ import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
-import { useItensDaFesta } from '@/hooks/useItensDaFesta'
+import { useDetalheDoItem, useItensDaFesta } from '@/hooks/useItensDaFesta'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { usePapel } from '@/hooks/useSessao'
@@ -107,11 +107,19 @@ export default function DespesasPage() {
   const itemNaUrl = parametros.get('item')
   const itensDaFesta =
     useItensDaFesta(lancamento !== false || itemNaUrl !== null).data?.filter((item) => !item.cancelado) ?? []
-  const contratando = itemNaUrl ? itensDaFesta.find((item) => item.id === itemNaUrl) : undefined
+  // "Contratar esta" leva também `&proposta=<id>`: o diálogo espera a proposta chegar, para não
+  // abrir com o previsto do item e trocar de valor na frente de quem lê.
+  const propostaNaUrl = parametros.get('proposta')
+  const detalhe = useDetalheDoItem(propostaNaUrl && itemNaUrl ? itemNaUrl : '')
+  const proposta = detalhe.data?.propostas.find((candidata) => candidata.id === propostaNaUrl)
+  const contratando =
+    itemNaUrl && (!propostaNaUrl || !detalhe.isPending)
+      ? itensDaFesta.find((item) => item.id === itemNaUrl)
+      : undefined
 
   const fecharLancamento = () => {
     definirLancamento(false)
-    if (itemNaUrl) atualizar({ item: null })
+    if (itemNaUrl) atualizar({ item: null, proposta: null })
   }
 
   // A página pedida deixou de existir (filtro mais estreito): volta para a última que existe.
@@ -280,6 +288,7 @@ export default function DespesasPage() {
         fornecedores={fornecedores}
         itensDaFesta={itensDaFesta}
         contratando={contratando}
+        proposta={proposta}
         aoFechar={fecharLancamento}
       />
     </>

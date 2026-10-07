@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
@@ -83,16 +83,15 @@ describe('CaixaPage', () => {
     expect(within(faixa).getByText(`${reais(1_250_000)} em atraso`)).toBeInTheDocument()
   })
 
-  it('o formando vê o caixa sem consultar a projeção nem desenhar o cartão dela', async () => {
+  it('o formando vê o mês a mês até hoje, sem os saldos do planejamento', async () => {
     entrarComo('Formando')
     const pedidos = comApi()
 
     renderizar(<CaixaPage />)
 
-    const faixa = await screen.findByRole('region', { name: 'Resumo do caixa' })
-    expect(await within(faixa).findByText(reais(18_450_000))).toBeInTheDocument()
-    expect(screen.queryByText('Entradas e saídas')).not.toBeInTheDocument()
-    expect(pedidos.projecao).toBe(0)
+    expect(await screen.findByText('Mês a mês, até hoje: o que entrou e o que saiu.')).toBeInTheDocument()
+    await waitFor(() => expect(pedidos.projecao).toBe(1))
+    expect(screen.queryByText('Saldo se todos pagarem')).not.toBeInTheDocument()
   })
 
   it('saldo negativo é sinalizado, e não só pela cor', async () => {

@@ -1,6 +1,7 @@
 import { CalendarClock, CircleCheck, Hourglass, Wallet } from 'lucide-react'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
+import { quitouTudo } from '@/types/cobranca'
 import type { Extrato } from '../types/pagamentos.types'
 
 /**
@@ -38,7 +39,9 @@ export function ResumoDoExtrato({ extrato }: { extrato: Extrato | undefined }) {
               ? formatarCentavos(
                   proxima.valor_do_dia?.total_em_centavos ?? proxima.valor_original_em_centavos,
                 )
-              : 'Nada a pagar',
+              : quitouTudo(parcelas)
+                ? 'Quitado'
+                : 'Nada a pagar',
           // A data embaixo, e não ao lado: na coluna estreita o "em" sobrava sozinho no fim da linha.
           nota: proxima ? `vence em ${formatarData(proxima.vencimento)}` : undefined,
           // A situação da próxima, no lugar do chip que ficava ao lado do valor: só a vencida pede ação.

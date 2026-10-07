@@ -308,8 +308,11 @@ export default function FestaPage() {
               editavel={editavel}
               podeContratar={podeContratar}
               aoEditar={() => definirCadastro({ item: aberto.item })}
-              aoContratar={() =>
-                void navegar(`${ROTAS.despesas}?item=${aberto.item.id}`, { state: estadoComOrigem })
+              aoContratar={(proposta) =>
+                void navegar(
+                  `${ROTAS.despesas}?item=${aberto.item.id}${proposta ? `&proposta=${proposta.id}` : ''}`,
+                  { state: estadoComOrigem },
+                )
               }
               aoCancelar={() => definirConfirmando({ item: aberto.item, acao: 'cancelar' })}
               aoReativar={() =>

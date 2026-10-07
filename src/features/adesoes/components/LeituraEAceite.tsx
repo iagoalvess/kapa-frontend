@@ -36,7 +36,6 @@ import { IndicadoresDoPlano, ResumoFinanceiroDaAdesao } from './ResumoFinanceiro
 const ROTULOS_DE_PENDENCIA: Record<PendenciaDoCadastro, string> = {
   nomeCompleto: 'nome completo',
   cpf: 'CPF',
-  dataDeNascimento: 'data de nascimento',
 }
 
 /**
@@ -203,7 +202,7 @@ export function LeituraEAceite({
                                 name={field.name}
                                 ref={field.ref}
                                 disabled={!leuAteOFim}
-                                className="accent-brand mt-0.5 size-4 shrink-0"
+                                className="mt-0.5 size-4 shrink-0"
                               />
                               Li o termo e aceito aderir à formatura nessas condições, com a cesta que
                               escolhi.

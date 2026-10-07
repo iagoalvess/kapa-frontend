@@ -232,6 +232,14 @@ export const pagaEmParte = (parcela: Parcela) =>
  */
 const ehCredito = (parcela: Parcela) => parcela.valor_original_em_centavos < 0
 
+/**
+ * O formando pagou tudo: tem parcela paga e nenhuma devida. Crédito em aberto não conta — é a turma
+ * que deve a ele, não o contrário. Sem parcela nenhuma não é quitado: é quem ainda não aderiu.
+ */
+export const quitouTudo = (parcelas: Parcela[]) =>
+  parcelas.some((parcela) => parcela.status === 'Paga') &&
+  !parcelas.some((parcela) => emAberto(parcela) && !ehCredito(parcela))
+
 /** A parcela que o botão "Pagar" aceita: devida, sem aviso na fila e com valor a pagar. */
 export const aPagar = (parcela: Parcela) =>
   emAberto(parcela) && !parcela.em_conferencia && !ehCredito(parcela)

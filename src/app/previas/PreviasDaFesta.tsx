@@ -444,6 +444,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
       validado_por_usuario_id: 'u-portaria',
     },
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
   {
     id: 'p2',
@@ -457,6 +458,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
     motivo_da_revogacao: null,
     entrada: null,
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
   {
     id: 'p3',
@@ -470,6 +472,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
     motivo_da_revogacao: null,
     entrada: null,
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
   {
     id: 'p4',
@@ -483,6 +486,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
     motivo_da_revogacao: null,
     entrada: null,
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
   {
     id: 'p5',
@@ -496,6 +500,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
     motivo_da_revogacao: 'Convite reemitido',
     entrada: null,
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
   {
     id: 'p6',
@@ -514,6 +519,7 @@ const CONVITES_DA_PORTARIA: ConviteNaPortaria[] = [
       validado_por_usuario_id: 'u-portaria',
     },
     entrou_sem_rede_duas_vezes: false,
+    observacoes: null,
   },
 ]
 

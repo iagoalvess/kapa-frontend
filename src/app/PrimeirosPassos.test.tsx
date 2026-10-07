@@ -72,6 +72,33 @@ describe('Primeiros passos', () => {
     )
   })
 
+  /** O termo é assinado com os pacotes do plano: sem plano em vigor, a API recusa publicá-lo (06/10/2026). */
+  it('tranca o termo até o plano de cobrança entrar em vigor', async () => {
+    entrarComo(PAPEIS.presidente)
+    responder({})
+
+    renderizar(<PrimeirosPassos turma={turma} />)
+
+    const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
+    expect(within(guia).queryByRole('link', { name: 'Publique o termo de adesão' })).not.toBeInTheDocument()
+    expect(within(guia).getByText(/Publique o termo de adesão/)).toBeInTheDocument()
+    expect(within(guia).getByText('Depois que o plano de cobrança estiver em vigor.')).toBeInTheDocument()
+    expect(within(guia).queryByRole('link', { name: 'Convide os formandos' })).not.toBeInTheDocument()
+  })
+
+  it('libera o termo quando o plano está em vigor', async () => {
+    entrarComo(PAPEIS.presidente)
+    responder({ plano_de_cobranca_em_vigor: true })
+
+    renderizar(<PrimeirosPassos turma={turma} />)
+
+    const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
+    expect(within(guia).getByRole('link', { name: 'Publique o termo de adesão' })).toHaveAttribute(
+      'href',
+      '/adesoes',
+    )
+  })
+
   it('some quando todos os passos estão cumpridos', async () => {
     entrarComo(PAPEIS.presidente)
     const consultas = responder({

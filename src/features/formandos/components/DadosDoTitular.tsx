@@ -18,7 +18,7 @@ import type { PerfilDoFormando } from '../types/formandos.types'
 import { Campo } from './FormularioDePerfil'
 
 /**
- * Nome completo, CPF e data de nascimento, pedidos na própria tela da adesão — em vez de mandar a
+ * Nome completo e CPF, pedidos na própria tela da adesão — em vez de mandar a
  * pessoa ao cadastro e perder a adesão no caminho. Grava no cadastro (`PUT /formandos/eu`).
  *
  * @param aoSalvar Depois de gravar: a adesão relê o que ainda falta.
@@ -65,19 +65,12 @@ function FormularioDoTitularDoTermo({
           rotulo="Nome completo"
           autoComplete="name"
         />
-        <div className="grid items-start gap-4 sm:grid-cols-2">
-          <Campo<FormularioDoTitular>
-            nome="pessoais.cpf"
-            rotulo="CPF"
-            inputMode="numeric"
-            placeholder="000.000.000-00"
-          />
-          <Campo<FormularioDoTitular>
-            nome="pessoais.data_de_nascimento"
-            rotulo="Data de nascimento"
-            type="date"
-          />
-        </div>
+        <Campo<FormularioDoTitular>
+          nome="pessoais.cpf"
+          rotulo="CPF"
+          inputMode="numeric"
+          placeholder="000.000.000-00"
+        />
 
         <ErroDoFormulario />
 

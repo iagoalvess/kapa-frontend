@@ -115,6 +115,7 @@ export const ROTAS = {
   painelVisaoGeral: '/painel/visao-geral',
   painelTurmas: '/painel/turmas',
   painelContas: '/painel/contas',
+  painelCupons: '/painel/cupons',
   // O endereço do painel até a Sprint 44: redireciona para `/painel`, para não deixar link morto.
   suporteAntigo: '/suporte',
 } as const

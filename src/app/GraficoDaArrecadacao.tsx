@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { GraficoVazio } from '@/components/GraficoVazio'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { useArrecadacao } from '@/hooks/useArrecadacao'
@@ -101,9 +102,9 @@ export function GraficoDaArrecadacao() {
       ) : null}
 
       {arrecadacao.data && maior === 0 ? (
-        <p className="text-muted-foreground mt-4 text-sm">
+        <GraficoVazio className="mt-4">
           Nenhum pagamento entrou ainda. Quando a turma começar a pagar, a evolução aparece aqui.
-        </p>
+        </GraficoVazio>
       ) : null}
 
       {arrecadacao.data && maior > 0 ? (

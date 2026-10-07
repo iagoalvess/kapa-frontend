@@ -1,7 +1,7 @@
 import { api } from '@/lib/http/cliente'
 import type { CobrancaDoPlano } from '@/types/assinatura'
 import type { MeioDePagamento } from '@/types/pagamento'
-import type { Assinatura, Checkout, Troca } from '../types/assinaturas.types'
+import type { Assinatura, Checkout, CupomAplicavel, Troca } from '../types/assinaturas.types'
 
 const BASE = '/api/v1/formaturas/atual/assinatura'
 
@@ -16,8 +16,26 @@ export function obterAssinatura(signal?: AbortSignal) {
  * Não ativa nada: quem ativa a turma é o webhook do provedor, quando o pagamento confirma. No cartão a página
  * cadastra a recorrência; no PIX, é o PIX do primeiro ciclo.
  */
-export function iniciarCheckout({ planoCodigo, meio }: { planoCodigo: string; meio: MeioDePagamento }) {
-  return api.post<Checkout>(`${BASE}/checkout`, { body: { plano_codigo: planoCodigo, meio } })
+export function iniciarCheckout({
+  planoCodigo,
+  meio,
+  cupomCodigo,
+}: {
+  planoCodigo: string
+  meio: MeioDePagamento
+  cupomCodigo?: string
+}) {
+  return api.post<Checkout>(`${BASE}/checkout`, {
+    body: { plano_codigo: planoCodigo, meio, cupom_codigo: cupomCodigo ?? null },
+  })
+}
+
+/**
+ * Confere o cupom antes do checkout (Sprint 51). Inexistente, vencido, esgotado e turma que já pagou respondem o
+ * mesmo 400 `cupom.invalido`. Só o código vai para a API: o preço cobrado é sempre o do servidor.
+ */
+export function consultarCupom(codigo: string) {
+  return api.get<CupomAplicavel>(`${BASE}/cupom/${encodeURIComponent(codigo.trim())}`)
 }
 
 /** Cancela a renovação. A vigência paga continua. Só o Presidente. */

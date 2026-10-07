@@ -1,6 +1,6 @@
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
-import type { ItemDaFesta } from '@/types/festa'
+import type { ItemDaFesta, Proposta } from '@/types/festa'
 import type { Despesa, Fornecedor } from '../types/financeiro.types'
 import { FormularioDeDespesa } from './FormularioDeDespesa'
 
@@ -11,8 +11,10 @@ interface Props {
   fornecedores: Fornecedor[]
   /** Itens da festa, para o seletor do vínculo. */
   itensDaFesta: ItemDaFesta[]
-  /** Item vindo do botão "Contratar" do cartão da festa: o formulário abre preenchido por ele. */
+  /** Item vindo do "Contratar esta" de uma proposta da festa: o formulário abre preenchido por ele. */
   contratando?: ItemDaFesta
+  /** A proposta escolhida: título e preço do lançamento vêm dela. */
+  proposta?: Proposta
   /** Depois de salvar, cancelar ou apertar Esc. */
   aoFechar: () => void
 }
@@ -23,7 +25,14 @@ interface Props {
  * O formulário remonta a cada abertura (a chave), então corrigir uma linha e depois lançar outra
  * não deixa valor da vez anterior no campo.
  */
-export function DialogoDeDespesa({ aberto, fornecedores, itensDaFesta, contratando, aoFechar }: Props) {
+export function DialogoDeDespesa({
+  aberto,
+  fornecedores,
+  itensDaFesta,
+  contratando,
+  proposta,
+  aoFechar,
+}: Props) {
   const editavel = useEscritaLiberada()
   const despesa = aberto ? aberto.despesa : undefined
 
@@ -31,21 +40,28 @@ export function DialogoDeDespesa({ aberto, fornecedores, itensDaFesta, contratan
     <DialogoDeFormulario
       aberto={!!aberto}
       aoFechar={aoFechar}
-      titulo={despesa ? 'Editar despesa' : contratando ? `Contratar ${contratando.titulo}` : 'Nova despesa'}
+      titulo={
+        despesa
+          ? 'Editar despesa'
+          : contratando
+            ? `Contratar ${proposta ? proposta.titulo : contratando.titulo}`
+            : 'Nova despesa'
+      }
       descricao={
         despesa
           ? 'As mudanças valem apenas para esta despesa. Você pode corrigir uma despesa paga, mas não cancelá-la.'
           : contratando
-            ? 'Os dados do item já estão preenchidos. Informe o fornecedor, as parcelas e os vencimentos do contrato.'
+            ? 'Os dados da proposta já estão preenchidos. Informe o fornecedor, as parcelas e os vencimentos do contrato.'
             : 'Se o pagamento for parcelado, cada vencimento aparecerá separadamente. Se já foi pago, anexe o comprovante.'
       }
       largura="largo"
     >
       <FormularioDeDespesa
-        key={despesa?.id ?? contratando?.id ?? 'nova'}
+        key={despesa?.id ?? proposta?.id ?? contratando?.id ?? 'nova'}
         fornecedores={fornecedores}
         itensDaFesta={itensDaFesta}
         contratando={contratando}
+        proposta={proposta}
         editando={despesa}
         editavel={editavel}
         aoConcluir={aoFechar}

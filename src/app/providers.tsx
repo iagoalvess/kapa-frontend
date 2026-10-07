@@ -53,6 +53,8 @@ export function App() {
             icon: 'shrink-0',
             title: 'text-foreground text-sm font-medium',
             description: 'text-muted-foreground text-[13px]',
+            actionButton:
+              'text-brand-text ml-auto shrink-0 cursor-pointer text-sm font-semibold hover:underline',
           },
         }}
       />

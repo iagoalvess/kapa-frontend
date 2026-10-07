@@ -1,8 +1,6 @@
 import { api } from '@/lib/http/cliente'
 import type { AtualizarPerfil, PerfilDoFormando } from '../types/formandos.types'
 
-export { consultarCep } from '@/lib/http/cep'
-
 const BASE = '/api/v1/formandos'
 
 // `eu`, e não o id: quem é "eu" a API tira do token — não há id no caminho para alguém trocar.

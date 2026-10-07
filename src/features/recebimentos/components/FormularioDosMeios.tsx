@@ -40,6 +40,7 @@ type CampoDeTexto =
   | 'pix.chave'
   | 'pix.nome_do_titular'
   | 'pix.cidade'
+  | 'pix.banco'
   | 'transferencia.banco'
   | 'transferencia.agencia'
   | 'transferencia.conta'
@@ -148,6 +149,12 @@ export function FormularioDosMeios({ conta, aoConcluir }: Props) {
               placeholder="Curitiba"
               autoComplete="address-level2"
             />
+            <Campo
+              controle={controle}
+              nome="pix.banco"
+              rotulo="Banco da chave (opcional)"
+              placeholder="Nubank, Banco do Brasil…"
+            />
           </div>
         </Meio>
 
@@ -252,9 +259,14 @@ function Resumo({ valores }: { valores?: ValoresDosMeios }) {
     <>
       Os PIX passam a ir para a chave {TIPOS_DE_CHAVE[valores.pix.tipo_de_chave].rotulo}{' '}
       <strong className="text-foreground">{valores.pix.chave}</strong>, em nome de{' '}
-      <strong className="text-foreground">{valores.pix.nome_do_titular}</strong>. Se o PIX ou a transferência
-      mudaram, a mudança só vale depois que você confirmar pelo link no seu e-mail; aí todos da comissão
-      recebem um e-mail com o que mudou, e a chave volta a ficar a conferir.
+      <strong className="text-foreground">{valores.pix.nome_do_titular}</strong>
+      {valores.pix.banco.trim() ? (
+        <>
+          , no <strong className="text-foreground">{valores.pix.banco.trim()}</strong>
+        </>
+      ) : null}
+      . Se o PIX ou a transferência mudaram, a mudança só vale depois que você confirmar pelo link no seu
+      e-mail; aí todos da comissão recebem um e-mail com o que mudou, e a chave volta a ficar a conferir.
     </>
   )
 }

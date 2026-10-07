@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -82,8 +82,31 @@ describe('VisaoGeralPage', () => {
     interceptar()
     renderizar(<VisaoGeralPage />, '/painel/visao-geral')
 
-    expect(await screen.findByRole('rowheader', { name: 'Pagamentos' })).toBeInTheDocument()
+    expect(await screen.findByText('Pagamentos')).toBeInTheDocument()
     expect(screen.getByText(/não receita do Kapa/)).toBeInTheDocument()
     expect(screen.getByText('Dinheiro das turmas')).toBeInTheDocument()
+  })
+
+  /** As contas da tela saem do que a API manda: conversão, ticket, médias e o funil. */
+  it('mostra as contas derivadas e o funil', async () => {
+    interceptar()
+    renderizar(<VisaoGeralPage />, '/painel/visao-geral')
+
+    // 5 pagantes de 12 turmas.
+    const conversao = (await screen.findByText('Pagam o Kapa')).parentElement as HTMLElement
+    expect(within(conversao).getByText('42%')).toBeInTheDocument()
+    // O funil: 100 e 111 de 120 contas.
+    expect(screen.getByText('83%')).toBeInTheDocument()
+    expect(screen.getByText('93%')).toBeInTheDocument()
+    // MRR de R$ 249,50 por 5 assinaturas.
+    const ticket = screen.getByText('Ticket médio').parentElement as HTMLElement
+    expect(within(ticket).getByText(/R\$\s?49,90/)).toBeInTheDocument()
+    // R$ 12.000,00 pagos em 40 parcelas; R$ 90.000,00 em 300 em aberto.
+    for (const rotulo of ['Média da parcela paga', 'Média da parcela em aberto']) {
+      const media = screen.getByText(rotulo).parentElement as HTMLElement
+      expect(within(media).getByText(/R\$\s?300,00/)).toBeInTheDocument()
+    }
+    expect(screen.getByText('Numa turma')).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Recebido do Kapa por mês' })).toBeInTheDocument()
   })
 })

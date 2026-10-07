@@ -25,35 +25,13 @@ const perfil = {
   papel: 'Formando',
   pessoais: {
     nome_completo: 'Ana Souza',
-    nome_no_diploma: null,
     cpf: '52998224725',
-    rg: null,
-    matricula: null,
     telefone: '+5541998765432',
-    data_de_nascimento: null,
-    observacoes: null,
-  },
-  endereco: {
-    cep: null,
-    logradouro: null,
-    numero: null,
-    complemento: null,
-    bairro: null,
-    cidade: null,
-    uf: null,
   },
   contato_de_emergencia: { nome: null, telefone: null, parentesco: null },
   foto_arquivo_id: null,
-  completude: 30,
-  faltando: [
-    'nomeNoDiploma',
-    'rg',
-    'matricula',
-    'dataDeNascimento',
-    'endereco',
-    'contatoDeEmergencia',
-    'foto',
-  ],
+  completude: 60,
+  faltando: ['contatoDeEmergencia', 'foto'],
   essencial_pendente: false,
 }
 
@@ -97,8 +75,8 @@ describe('MeuPerfilPage', () => {
     const pessoais = await screen.findByRole('region', { name: 'Dados pessoais' })
     expect(within(pessoais).getByText('529.982.247-25')).toBeInTheDocument()
     expect(within(pessoais).getByText('(41) 99876-5432')).toBeInTheDocument()
-    expect(screen.getByText('30% preenchido')).toBeInTheDocument()
-    expect(screen.getByText(/Falta: Nome no diploma, RG/)).toBeInTheDocument()
+    expect(screen.getByText('60% preenchido')).toBeInTheDocument()
+    expect(screen.getByText('Falta: Contato de emergência, Foto.')).toBeInTheDocument()
   })
 
   /** Salvar uma seção não pode reenviar (nem apagar) as outras. */
@@ -109,7 +87,6 @@ describe('MeuPerfilPage', () => {
         HttpResponse.json({
           adesao: null,
           pendencias: pendente ? ['nomeCompleto'] : [],
-          menor_de_idade: false,
         }),
       ),
       http.put(EU, () => {
@@ -134,19 +111,21 @@ describe('MeuPerfilPage', () => {
     servidor.use(
       http.put(EU, async ({ request }) => {
         enviado = (await request.json()) as Record<string, unknown>
-        return HttpResponse.json({ ...perfil, endereco: { numero: '10' } })
+        return HttpResponse.json({ ...perfil, contato_de_emergencia: { nome: 'Marta' } })
       }),
     )
 
     renderizar(<MeuPerfilPage />)
-    const endereco = await editar('Endereço')
-    await userEvent.type(within(endereco).getByLabelText('Número'), '10')
-    await userEvent.click(within(endereco).getByRole('button', { name: 'Salvar' }))
+    const emergencia = await editar('Contato de emergência')
+    await userEvent.type(within(emergencia).getByLabelText('Nome'), 'Marta')
+    await userEvent.click(within(emergencia).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(enviado).toBeDefined())
-    expect(Object.keys(enviado!)).toEqual(['endereco'])
-    expect(enviado!.endereco).toMatchObject({ numero: '10', cep: null, logradouro: null })
-    await waitFor(() => expect(screen.queryByRole('form', { name: 'Endereço' })).not.toBeInTheDocument())
+    expect(Object.keys(enviado!)).toEqual(['contato_de_emergencia'])
+    expect(enviado!.contato_de_emergencia).toMatchObject({ nome: 'Marta', telefone: null, parentesco: null })
+    await waitFor(() =>
+      expect(screen.queryByRole('form', { name: 'Contato de emergência' })).not.toBeInTheDocument(),
+    )
   })
 
   /** O dígito verificador é do backend; o erro volta com o campo apontado e acende embaixo dele. */
@@ -172,41 +151,6 @@ describe('MeuPerfilPage', () => {
     await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
     expect(await within(pessoais).findByText('CPF inválido. Confira os 11 dígitos.')).toBeInTheDocument()
-  })
-
-  it('preenche o endereço pelo CEP e deixa os campos editáveis', async () => {
-    servidor.use(
-      http.get('https://viacep.com.br/ws/80010000/json/', () =>
-        HttpResponse.json({
-          logradouro: 'Rua XV de Novembro',
-          bairro: 'Centro',
-          localidade: 'Curitiba',
-          uf: 'PR',
-        }),
-      ),
-    )
-
-    renderizar(<MeuPerfilPage />)
-    const endereco = await editar('Endereço')
-    await userEvent.type(within(endereco).getByLabelText('CEP'), '80010-000')
-
-    await waitFor(() =>
-      expect(within(endereco).getByLabelText('Logradouro')).toHaveValue('Rua XV de Novembro'),
-    )
-    expect(within(endereco).getByLabelText('Cidade')).toHaveValue('Curitiba')
-    expect(within(endereco).getByLabelText('Logradouro')).toBeEnabled()
-  })
-
-  it('CEP que o ViaCEP não conhece pede o endereço à mão', async () => {
-    servidor.use(
-      http.get('https://viacep.com.br/ws/99999999/json/', () => HttpResponse.json({ erro: 'true' })),
-    )
-
-    renderizar(<MeuPerfilPage />)
-    const endereco = await editar('Endereço')
-    await userEvent.type(within(endereco).getByLabelText('CEP'), '99999-999')
-
-    expect(await within(endereco).findByText(/Preencha o endereço à mão/)).toBeInTheDocument()
   })
 
   /** A lista do que falta já diz tudo; o aviso do essencial é da comissão, não do próprio. */

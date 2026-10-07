@@ -24,6 +24,7 @@ const convite = (
   motivo_da_revogacao: null,
   entrada: null,
   entrou_sem_rede_duas_vezes: false,
+  observacoes: null,
   ...partes,
 })
 

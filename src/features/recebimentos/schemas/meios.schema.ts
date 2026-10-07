@@ -87,6 +87,7 @@ export const esquemaDosMeios = z
       chave: z.string(),
       nome_do_titular: z.string(),
       cidade: z.string(),
+      banco: z.string(),
     }),
     transferencia_ativo: z.boolean(),
     transferencia: z.object({
@@ -118,6 +119,9 @@ export const esquemaDosMeios = z
       if (!valores.pix.cidade.trim()) adicionar(['pix', 'cidade'], 'Informe a cidade do titular.')
       else if (valores.pix.cidade.trim().length > 100)
         adicionar(['pix', 'cidade'], 'A cidade deve ter no máximo 100 caracteres.')
+
+      if (valores.pix.banco.trim().length > TAMANHO_DO_CAMPO)
+        adicionar(['pix', 'banco'], `O banco deve ter no máximo ${TAMANHO_DO_CAMPO} caracteres.`)
     }
 
     if (valores.transferencia_ativo)
@@ -161,7 +165,7 @@ export const SEM_MEIO = 'Escolha ao menos um meio de recebimento para a turma.'
 /** O corpo do `PUT`: meio desligado vai `null`, que é como o backend lê "a turma não aceita". */
 export function paraMeios(valores: FormularioDosMeios): MeiosDaConta {
   return {
-    pix: valores.pix_ativo ? valores.pix : null,
+    pix: valores.pix_ativo ? { ...valores.pix, banco: valores.pix.banco.trim() || null } : null,
     transferencia: valores.transferencia_ativo ? valores.transferencia : null,
     dinheiro: valores.dinheiro_ativo
       ? { nome: valores.dinheiro.nome, onde: valores.dinheiro.onde.trim() || null }
@@ -196,8 +200,9 @@ export function paraFormularioDosMeios(conta?: ContaDeRecebimento | null): Formu
           chave: chaveParaExibir(meios.pix.tipo_de_chave, meios.pix.chave),
           nome_do_titular: meios.pix.nome_do_titular,
           cidade: meios.pix.cidade,
+          banco: meios.pix.banco ?? '',
         }
-      : { tipo_de_chave: 'Cpf', chave: '', nome_do_titular: '', cidade: '' },
+      : { tipo_de_chave: 'Cpf', chave: '', nome_do_titular: '', cidade: '', banco: '' },
     transferencia_ativo: Boolean(meios?.transferencia),
     transferencia: meios?.transferencia ?? {
       banco: '',

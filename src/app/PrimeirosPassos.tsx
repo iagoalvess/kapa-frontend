@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Users } from 'lucide-react'
+import { ArrowRight, Check, Lock, Users } from 'lucide-react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Selo } from '@/components/Selo'
 import { ROTAS } from '@/config/rotas'
@@ -14,6 +14,8 @@ interface Passo {
   para: string
   descricao: string
   opcional?: boolean
+  /** O que falta antes deste passo, quando falta: o passo fica trancado e diz o porquê no lugar da descrição. */
+  esperaPor?: string
 }
 
 /**
@@ -59,6 +61,10 @@ export function PrimeirosPassos({ turma }: { turma: FormaturaDetalhe }) {
       feito: feitos.termo_publicado,
       para: ROTAS.adesoes,
       descricao: 'O presidente publica as condições que os formandos vão aceitar.',
+      // O termo é assinado com os pacotes do plano: a API recusa publicá-lo sem plano em vigor (06/10/2026).
+      esperaPor: feitos.plano_de_cobranca_em_vigor
+        ? undefined
+        : 'Depois que o plano de cobrança estiver em vigor.',
     },
     {
       titulo: 'Configure os recebimentos',
@@ -77,6 +83,11 @@ export function PrimeirosPassos({ turma }: { turma: FormaturaDetalhe }) {
       feito: feitos.formandos_na_turma,
       para: ROTAS.formatura + '#convites',
       descricao: 'Envie convites por e-mail ou compartilhe o link e acompanhe a entrada.',
+      // Formando só entra com termo, plano em vigor e assinatura (D34 da Sprint 47 e as vagas do plano).
+      esperaPor:
+        feitos.plano_de_cobranca_em_vigor && feitos.termo_publicado && feitos.plano_contratado
+          ? undefined
+          : 'Depois do plano de cobrança, do termo e da contratação.',
     },
   ]
   const necessarios = passos.filter((passo) => !passo.opcional)
@@ -112,6 +123,22 @@ export function PrimeirosPassos({ turma }: { turma: FormaturaDetalhe }) {
                   <span className="text-muted-foreground min-w-0 flex-1 text-[15px]">{passo.titulo}</span>
                   {passo.opcional ? <Selo tom="cinza">Opcional</Selo> : null}
                   <span className="sr-only">Concluído</span>
+                </div>
+              ) : passo.esperaPor ? (
+                // Trancado não é link: levaria a uma tela em que a ação ainda é recusada.
+                <div className="flex min-w-0 items-center gap-3 py-3.5">
+                  <span
+                    aria-hidden
+                    className="bg-muted text-texto-muted grid size-7 shrink-0 place-items-center rounded-full"
+                  >
+                    <Lock className="size-3.5" strokeWidth={1.75} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="text-muted-foreground block text-[15px] font-semibold">
+                      {numero}. {passo.titulo}
+                    </span>
+                    <span className="text-texto-muted mt-1 block text-sm">{passo.esperaPor}</span>
+                  </span>
                 </div>
               ) : (
                 // O passo pendente é o próprio link: um "Fazer" ao lado repetiria o título, e dois

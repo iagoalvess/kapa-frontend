@@ -354,13 +354,6 @@ export function formatarCnpj(cnpj: string | null | undefined) {
     : cnpj
 }
 
-/** CEP como `80000-000`. O que não tiver 8 dígitos sai como veio. */
-export function formatarCep(cep: string | null | undefined) {
-  if (!cep) return ''
-  const d = cep.replace(/\D/g, '')
-  return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : cep
-}
-
 /**
  * Telefone brasileiro como `(41) 99876-5432`; de outro país, em E.164 como veio.
  *

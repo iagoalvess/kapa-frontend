@@ -1,8 +1,8 @@
 import { Gauge, Handshake } from 'lucide-react'
-import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeGrafico } from '@/components/Esqueleto'
 import { GraficoDeRosca } from '@/components/GraficoDeRosca'
+import { GraficoVazio } from '@/components/GraficoVazio'
 import { fatiaDoFornecedor } from '@/types/financeiro'
 import { useDashboardPublico } from '../hooks/useDashboard'
 import { MedidorDeAdimplencia } from './MedidorDeAdimplencia'
@@ -40,12 +40,9 @@ export function AdimplenciaEFornecedores() {
         {painel.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
 
         {dados?.por_fornecedor.length === 0 ? (
-          <div className="grid justify-items-center gap-2 py-4 text-center">
-            <img src={mascoteCofrinho} alt="" className="w-24 drop-shadow-lg" />
-            <p className="text-muted-foreground text-sm">
-              Nada saiu para fornecedor ainda. O que a turma pagar aparece aqui.
-            </p>
-          </div>
+          <GraficoVazio forma="rosca">
+            Nada saiu para fornecedor ainda. O que a turma pagar aparece aqui.
+          </GraficoVazio>
         ) : null}
 
         {dados && dados.por_fornecedor.length > 0 ? (

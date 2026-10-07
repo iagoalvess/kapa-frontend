@@ -1,4 +1,4 @@
-import { GraduationCap, LayoutDashboard, type LucideIcon, UsersRound } from 'lucide-react'
+import { GraduationCap, LayoutDashboard, type LucideIcon, TicketPercent, UsersRound } from 'lucide-react'
 import { PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
 import { useFormaturaAtiva, usePerfil } from '@/hooks/useSessao'
@@ -12,11 +12,12 @@ interface DestinoDoPainel {
   secao?: boolean
 }
 
-/** O menu do painel (Sprint 44): Visão geral · Turmas · Contas. Sem Equipe nesta sprint (P5). */
+/** O menu do painel (Sprint 44): Visão geral · Turmas · Contas · Cupons (Sprint 51). Sem Equipe (P5). */
 export const MENU_DO_PAINEL: readonly DestinoDoPainel[] = [
   { rotulo: 'Visão geral', para: ROTAS.painelVisaoGeral, icone: LayoutDashboard },
   { rotulo: 'Turmas', para: ROTAS.painelTurmas, icone: GraduationCap, secao: true },
   { rotulo: 'Contas', para: ROTAS.painelContas, icone: UsersRound, secao: true },
+  { rotulo: 'Cupons', para: ROTAS.painelCupons, icone: TicketPercent },
 ]
 
 /**

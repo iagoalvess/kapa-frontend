@@ -35,6 +35,7 @@ const convite = (id: string, nome: string | null, extra: Partial<MeuConvite> = {
   email_do_convidado: null,
   emitido_em: '2027-09-23T12:00:00Z',
   validado_em: null,
+  observacoes: null,
   ...extra,
 })
 

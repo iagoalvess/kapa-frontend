@@ -189,6 +189,11 @@ export const router = createBrowserRouter([
                         handle: { titulo: 'Conta' },
                         lazy: pagina(() => import('@/features/painel/pages/ContaNoPainelPage')),
                       },
+                      {
+                        path: ROTAS.painelCupons,
+                        handle: { titulo: 'Cupons' },
+                        lazy: pagina(() => import('@/features/painel/pages/CuponsDoPainelPage')),
+                      },
                       // Os endereços do painel até a Sprint 44 — favorito e link antigo não morrem.
                       { path: ROTAS.suporteAntigo, element: <Navigate to={ROTAS.painelTurmas} replace /> },
                       {

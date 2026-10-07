@@ -23,6 +23,15 @@ export interface Assinatura {
   proximo_plano: Plano | null
   /** A troca para o cartão espera a autorização na página do Mercado Pago. */
   cartao_aguardando_autorizacao: boolean
+  /** O cupom da primeira cobrança (Sprint 51); nulo sem cupom. */
+  cupom: CupomAplicavel | null
+}
+
+/** Cupom que vale para a turma. Espelha `CupomAplicavelDTO` — o desconto é só na primeira cobrança. */
+export interface CupomAplicavel {
+  codigo: string
+  /** De 1 a 50. */
+  percentual: number
 }
 
 /** O que a troca de plano ou de meio deu. Espelha `TrocaDTO`; a assinatura nova se relê da API. */

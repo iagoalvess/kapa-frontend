@@ -1,4 +1,5 @@
 import type { Control, FieldValues, Path } from 'react-hook-form'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { Select } from '@/components/Select'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -52,7 +53,9 @@ export function CamposDaGrade<T extends ValoresDaGrade>({
         name={'dia_de_vencimento' as Path<T>}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Vence todo dia</FormLabel>
+            <RotuloComInfo info="Nos meses mais curtos, os dias 29, 30 e 31 caem no último dia do mês.">
+              Vence todo dia
+            </RotuloComInfo>
             <FormControl>
               <Select {...field} disabled={travado}>
                 {DIAS.map((dia) => (

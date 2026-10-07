@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData, formatarDataHora } from '@/lib/formato'
-import { AvisoDeTitularidade } from './AvisoDeTitularidade'
 import { FormularioDosMeios } from './FormularioDosMeios'
 import { PixDeTeste } from './PixDeTeste'
 import { useContaDeRecebimento } from '../hooks/useContaDeRecebimento'
@@ -69,7 +68,6 @@ export function MeiosDeRecebimento() {
       icone={Wallet}
       descricao="O que a turma aceita, e o que o formando vê na hora de pagar."
     >
-      <AvisoDeTitularidade />
       <FormularioDosMeios
         key={conta?.atualizada_em ?? 'primeira'}
         conta={conta}
@@ -125,6 +123,11 @@ function CartaoDosMeios({ conta, aoTrocar }: { conta: ContaDeRecebimento; aoTroc
           <Dado icone={MapPin} rotulo="Cidade">
             {pix.cidade}
           </Dado>
+          {pix.banco ? (
+            <Dado icone={Landmark} rotulo="Banco">
+              {pix.banco}
+            </Dado>
+          ) : null}
           <Dado icone={BadgeCheck} rotulo="PIX de teste">
             {conta.conferida_em
               ? `Conferida em ${formatarData(conta.conferida_em)}${conta.conferida_por ? ` por ${conta.conferida_por}` : ''}`

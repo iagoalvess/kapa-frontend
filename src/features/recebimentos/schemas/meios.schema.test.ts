@@ -8,6 +8,7 @@ const valido: FormularioDosMeios = {
     chave: '529.982.247-25',
     nome_do_titular: 'Ana Souza',
     cidade: 'Curitiba',
+    banco: '',
   },
   transferencia_ativo: false,
   transferencia: { banco: '', agencia: '', conta: '', tipo_de_conta: 'Corrente', titular: '' },
@@ -75,5 +76,14 @@ describe('esquemaDosMeios', () => {
     expect(meios.transferencia).toBeNull()
     expect(meios.dinheiro).toEqual({ nome: 'Ana Souza', onde: null })
     expect(meios.pix?.chave).toBe('529.982.247-25')
+    expect(meios.pix?.banco).toBeNull()
+  })
+
+  /** O banco da chave é opcional: vazio vai nulo, e só o tamanho é conferido. */
+  it('banco da chave é opcional e tem limite de tamanho', () => {
+    expect(paraMeios({ ...valido, pix: { ...valido.pix, banco: '  Nubank ' } }).pix?.banco).toBe('Nubank')
+    expect(conferir({ pix: { ...valido.pix, banco: 'x'.repeat(101) } }).map((i) => i.path.join('.'))).toEqual(
+      ['pix.banco'],
+    )
   })
 })

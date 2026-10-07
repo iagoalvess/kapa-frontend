@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { diaDeHoje } from '@/lib/formato'
 import { inteiroEmTexto } from '@/lib/esquemas'
 import { CATEGORIAS_DE_DESPESA, CATEGORIAS_DE_OUTRA_RECEITA } from '@/types/financeiro'
-import type { ItemDaFesta } from '@/types/festa'
+import type { ItemDaFesta, Proposta } from '@/types/festa'
 import type {
   DadosDaDespesa,
   DadosDaOutraReceita,
@@ -186,12 +186,15 @@ export type FormularioDePagamento = z.infer<typeof esquemaDePagamento>
  *
  * O valor vem do custo do item, e não do valor por formando: o que a turma deve ao fotógrafo é o
  * preço vezes quantos compraram, não o preço de um.
+ *
+ * Vindo de "Contratar esta" numa proposta, o título e o preço são os dela: a turma votou naquele
+ * orçamento, não no previsto do item. Proposta sem preço deixa o previsto.
  */
-export const despesaParaContratar = (item: ItemDaFesta): FormularioDeDespesa => ({
+export const despesaParaContratar = (item: ItemDaFesta, proposta?: Proposta): FormularioDeDespesa => ({
   ...despesaEmBranco(),
-  descricao: item.titulo,
+  descricao: (proposta ? `${item.titulo} · ${proposta.titulo}` : item.titulo).slice(0, 200),
   categoria: item.categoria,
-  valor_em_centavos: item.custo_previsto_em_centavos,
+  valor_em_centavos: proposta?.valor_em_centavos || item.custo_previsto_em_centavos,
   item_da_festa_id: item.id,
 })
 

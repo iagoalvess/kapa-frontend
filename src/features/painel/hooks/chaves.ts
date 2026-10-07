@@ -10,4 +10,5 @@ export const chaves = {
   membros: (id: string, paginacao: PaginacaoRequest) =>
     ['painel', 'turma', id, 'membros', paginacao] as const,
   conta: (id: string) => ['painel', 'conta', id] as const,
+  cupons: ['painel', 'cupons'] as const,
 }

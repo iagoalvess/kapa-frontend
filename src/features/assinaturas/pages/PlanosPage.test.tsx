@@ -69,6 +69,7 @@ function comFormatura(
             meio: 'Cartao',
             proximo_plano: null,
             cartao_aguardando_autorizacao: false,
+            cupom: null,
             ...assinatura,
           })
         : HttpResponse.json(
@@ -103,7 +104,7 @@ describe('PlanosPage', () => {
     await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
-    expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao' })
+    expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao', cupom_codigo: null })
   })
 
   /** Sprint 37: o meio escolhido vai no checkout — no PIX, a página do provedor é a do PIX do primeiro ciclo. */
@@ -125,7 +126,48 @@ describe('PlanosPage', () => {
     await usuario.click(screen.getByRole('button', { name: 'Contratar Essencial' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#pix')
-    expect(pedido).toEqual({ plano_codigo: 'essencial', meio: 'Pix' })
+    expect(pedido).toEqual({ plano_codigo: 'essencial', meio: 'Pix', cupom_codigo: null })
+  })
+
+  /** Sprint 51: o cupom conferido mostra o preço da primeira cobrança, e só o código vai no checkout. */
+  it('aplica o cupom e contrata com ele', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    let pedido: unknown
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/cupom/:codigo`, ({ params }) =>
+        params.codigo === 'PILOTO50'
+          ? HttpResponse.json({ codigo: 'PILOTO50', percentual: 50 })
+          : HttpResponse.json(
+              { codigo: 'cupom.invalido', errors: { cupom_codigo: ['Cupom inválido ou expirado.'] } },
+              { status: 400 },
+            ),
+      ),
+      http.post(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/checkout`, async ({ request }) => {
+        pedido = await request.json()
+        return HttpResponse.json({ url: '#provedor' })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
+    await usuario.click(await screen.findByRole('button', { name: 'Tenho um cupom' }))
+    await usuario.type(screen.getByLabelText('Cupom'), 'errado1')
+    await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
+    expect(await screen.findByText('Cupom inválido ou expirado.')).toBeInTheDocument()
+
+    await usuario.clear(screen.getByLabelText('Cupom'))
+    await usuario.type(screen.getByLabelText('Cupom'), 'piloto50')
+    await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
+
+    expect(await screen.findByText(/50% de desconto na primeira cobrança/)).toBeInTheDocument()
+    // Premium a R$ 49,90: metade arredondada a favor da turma.
+    expect(screen.getByText(/R\$\s?24,95/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
+
+    await expect
+      .poll(() => pedido)
+      .toEqual({ plano_codigo: 'premium', meio: 'Cartao', cupom_codigo: 'PILOTO50' })
   })
 
   it('quem não é Presidente vê os planos com o motivo junto ao botão', async () => {

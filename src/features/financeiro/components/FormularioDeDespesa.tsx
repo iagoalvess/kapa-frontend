@@ -22,7 +22,7 @@ import {
   paraFormularioDeDespesa,
   paraNovaDespesa,
 } from '../schemas/financeiro.schema'
-import type { ItemDaFesta } from '@/types/festa'
+import type { ItemDaFesta, Proposta } from '@/types/festa'
 import {
   type CategoriaDeDespesa,
   type Despesa,
@@ -37,6 +37,8 @@ interface Props {
   itensDaFesta: ItemDaFesta[]
   /** Item já escolhido: o botão "Contratar" do cartão da festa abre o formulário preenchido por ele. */
   contratando?: ItemDaFesta
+  /** Proposta do item escolhida em "Contratar esta": título e preço vêm dela. */
+  proposta?: Proposta
   /** Despesa em edição; ausente, o formulário lança uma nova. */
   editando?: Despesa
   /** Falso trava os campos — formatura fora de `Ativa`. */
@@ -60,6 +62,7 @@ export function FormularioDeDespesa({
   fornecedores,
   itensDaFesta,
   contratando,
+  proposta,
   editando,
   editavel,
   aoConcluir,
@@ -75,7 +78,7 @@ export function FormularioDeDespesa({
     defaultValues: editando
       ? paraFormularioDeDespesa(editando)
       : contratando
-        ? despesaParaContratar(contratando)
+        ? despesaParaContratar(contratando, proposta)
         : despesaEmBranco(),
   })
 

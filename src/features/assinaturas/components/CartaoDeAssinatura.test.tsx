@@ -28,6 +28,7 @@ const ativa = {
   meio: 'Cartao',
   proximo_plano: null,
   cartao_aguardando_autorizacao: false,
+  cupom: null,
 }
 
 function entrarComo(papel: string) {

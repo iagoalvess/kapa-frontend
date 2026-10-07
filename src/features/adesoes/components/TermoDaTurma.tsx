@@ -3,6 +3,7 @@ import { FilePenLine } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Cartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EditorDeMarkdown } from '@/components/EditorDeMarkdown'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
@@ -23,14 +24,20 @@ import type { VersaoDoTermo } from '../types/adesoes.types'
  * Sem o resumo por IA aqui: ele é da vigente, e quem escreve a próxima não precisa dele no caminho
  * (pedido do produto em 24/09). A comissão o vê em "Visualizar", como a turma vê.
  *
+ * Sem plano de cobrança em vigor o editor abre, mas não publica: o termo é assinado com os pacotes do plano, e a
+ * API recusa com `adesao.termo_sem_plano_vigente` (06/10/2026). Quem diz o que fazer é a pendência da página.
+ *
  * @param vigente A versão atual, que vira o ponto de partida; sem ela, o modelo com colchetes.
+ * @param planoEmVigor Se a turma tem plano de cobrança em vigor — sem ele, o botão de publicar fica travado.
  * @param aoConcluir Depois de publicar ou desistir.
  */
 export function EditorDoTermo({
   vigente,
+  planoEmVigor,
   aoConcluir,
 }: {
   vigente: VersaoDoTermo | null
+  planoEmVigor: boolean
   aoConcluir?: () => void
 }) {
   const publicar = usePublicarTermo()
@@ -87,18 +94,28 @@ export function EditorDoTermo({
                   Cancelar
                 </Button>
               ) : null}
-              <DialogoDeConfirmacao
-                gatilho={
-                  <Button type="button" disabled={publicar.isPending}>
-                    {publicar.isPending ? 'Publicando…' : `Publicar versão ${proxima}`}
+              {/* Travado não abre confirmação nenhuma: a `Dica` só envolve o botão aqui, porque o gatilho do diálogo
+                  recebe o clique por `asChild`, e um componente no meio o engoliria. */}
+              {planoEmVigor ? (
+                <DialogoDeConfirmacao
+                  gatilho={
+                    <Button type="button" disabled={publicar.isPending}>
+                      {publicar.isPending ? 'Publicando…' : `Publicar versão ${proxima}`}
+                    </Button>
+                  }
+                  titulo={`Publicar a versão ${proxima}?`}
+                  descricao="A nova versão vale para quem ainda não aderiu. Quem já aderiu mantém a versão que aceitou. Para pedir um novo aceite, avise essas pessoas na tela de adesões."
+                  rotuloDeCancelar="Revisar"
+                  rotulo="Publicar"
+                  aoConfirmar={() => void enviar()}
+                />
+              ) : (
+                <Dica dica="Ponha o plano de cobrança em vigor antes de publicar.">
+                  <Button type="button" disabled>
+                    {`Publicar versão ${proxima}`}
                   </Button>
-                }
-                titulo={`Publicar a versão ${proxima}?`}
-                descricao="A nova versão vale para quem ainda não aderiu. Quem já aderiu mantém a versão que aceitou. Para pedir um novo aceite, avise essas pessoas na tela de adesões."
-                rotuloDeCancelar="Revisar"
-                rotulo="Publicar"
-                aoConfirmar={() => void enviar()}
-              />
+                </Dica>
+              )}
             </div>
           </form>
         </Form>

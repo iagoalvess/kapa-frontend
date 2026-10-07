@@ -1,4 +1,5 @@
-import type { ReactElement, ReactNode } from 'react'
+import { Slot } from '@radix-ui/react-slot'
+import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 /**
@@ -15,24 +16,29 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
  *
  * Botão desabilitado não recebe o ponteiro, então aqui ele é embrulhado num `<span>` que carrega o
  * hover — como no `AcaoDaLinha`. Use com gatilhos de largura própria (ícone, botão de canto).
+ *
+ * O resto das props (e a `ref`) vai para o gatilho: dentro de outro `asChild` — o gatilho de um
+ * `DialogoDeConfirmacao` —, quem clona a `Dica` passa o `onClick` e a `ref` a ela, e sem repassá-los o
+ * clique morria aqui (06/10/2026).
  */
 export function Dica({
   dica,
   children,
   className,
+  ...gatilho
 }: {
   dica?: ReactNode
   children: ReactElement
   /** Ajustes do balão — largura máxima, quebra de texto longo. */
   className?: string
-}) {
-  if (dica === undefined || dica === null || dica === '') return children
+} & ComponentProps<typeof TooltipTrigger>) {
+  if (dica === undefined || dica === null || dica === '') return <Slot {...gatilho}>{children}</Slot>
 
   const desabilitado = Boolean((children.props as { disabled?: boolean }).disabled)
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger asChild {...gatilho}>
         {desabilitado ? <span className="inline-flex">{children}</span> : children}
       </TooltipTrigger>
       <TooltipContent className={className}>{dica}</TooltipContent>

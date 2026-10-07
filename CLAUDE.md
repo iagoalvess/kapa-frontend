@@ -192,6 +192,7 @@ outra. O catálogo:
 | Erro do formulário inteiro (`root`)      | `ErroDoFormulario`                                   |
 | Pré-carregamento de uma consulta         | `Esqueleto*` (`Esqueleto.tsx`)                       |
 | Erro de consulta                         | `ErroDaConsulta` (`EstadoDaConsulta.tsx`)            |
+| Gráfico sem dado (não some, fica vazio)  | `GraficoVazio` (`forma="rosca"` para a rosca)        |
 | Lista paginada de gestão                 | `Planilha` + `ColunaOrdenavel` + `FiltrosDaPlanilha` |
 | Lista que a API manda inteira (paginar)  | `paginar` (`lib/paginar`) + `Paginacao`, 10 por pág. |
 | Tamanho da página (5 no celular)         | `useTamanhoDaPagina` (`hooks/useTelaGrande`)         |

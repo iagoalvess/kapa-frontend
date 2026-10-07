@@ -50,7 +50,7 @@ export function EscolhaDeConvites({
                   : escolhidos.filter((id) => id !== convite.id),
               )
             }
-            className="accent-primary size-4 shrink-0"
+            className="size-4 shrink-0"
           />
           <span className="grid min-w-0 flex-1">
             <span className="font-medium">

@@ -11,6 +11,8 @@ export interface ChavePix {
   chave: string
   nome_do_titular: string
   cidade: string
+  /** Banco da chave, como o app do pagador mostra; opcional — é mais uma coisa para o formando conferir. */
+  banco: string | null
 }
 
 /** Com quem o formando fala para pagar em espécie. Espelha `DinheiroDTO`. */

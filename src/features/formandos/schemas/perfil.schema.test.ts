@@ -10,57 +10,39 @@ const perfil: PerfilDoFormando = {
   papel: 'Formando',
   pessoais: {
     nome_completo: 'Ana Souza',
-    nome_no_diploma: null,
     cpf: null,
-    rg: '12.345.678-9',
-    matricula: null,
     telefone: '+5541998765432',
-    data_de_nascimento: null,
-    observacoes: null,
-  },
-  endereco: {
-    cep: null,
-    logradouro: null,
-    numero: null,
-    complemento: null,
-    bairro: null,
-    cidade: null,
-    uf: null,
   },
   contato_de_emergencia: { nome: null, telefone: null, parentesco: null },
   foto_arquivo_id: null,
-  completude: 30,
-  faltando: ['cpf', 'dataDeNascimento'],
+  completude: 40,
+  faltando: ['cpf', 'contatoDeEmergencia', 'foto'],
   essencial_pendente: true,
 }
 
 describe('dados do titular para a adesão', () => {
-  /** Seção enviada é seção substituída: mandar só os três campos apagaria o resto do que já estava lá. */
+  /** Seção enviada é seção substituída: mandar só nome e CPF apagaria o telefone que já estava lá. */
   it('mandam a seção pessoal inteira, com o que o cadastro já tinha', () => {
     const corpo = comDadosDoTitular(perfil, {
-      pessoais: { nome_completo: 'Ana Souza', cpf: '529.982.247-25', data_de_nascimento: '2000-05-20' },
+      pessoais: { nome_completo: 'Ana Souza', cpf: '529.982.247-25' },
     })
 
     expect(corpo.pessoais).toMatchObject({
       nome_completo: 'Ana Souza',
       cpf: '529.982.247-25',
-      data_de_nascimento: '2000-05-20',
       telefone: '(41) 99876-5432',
-      rg: '12.345.678-9',
-      matricula: null,
     })
   })
 
-  it('exigem os três campos, ao contrário do cadastro', () => {
+  it('exigem nome e CPF, ao contrário do cadastro', () => {
     const resultado = esquemaDoTitular.safeParse({
-      pessoais: { nome_completo: '', cpf: '123', data_de_nascimento: '' },
+      pessoais: { nome_completo: '', cpf: '123' },
     })
 
     expect(resultado.success).toBe(false)
     expect(resultado.error?.issues.map((issue) => issue.path.join('.'))).toEqual([
       'pessoais.nome_completo',
       'pessoais.cpf',
-      'pessoais.data_de_nascimento',
     ])
   })
 })

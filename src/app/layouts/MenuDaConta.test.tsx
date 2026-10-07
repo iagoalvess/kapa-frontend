@@ -27,6 +27,18 @@ describe('MenuDaConta', () => {
     expect(historico()).toHaveTextContent('(fora do plano da turma)')
   })
 
+  it('separa os pedidos ao suporte em problema, dúvida e sugestão', () => {
+    entrarComo(PAPEIS.formando)
+
+    renderizar(<MenuDaConta usuario={USUARIO} comCadastro cadastroPendente={false} />)
+
+    for (const rotulo of ['Algo não funcionou', 'Tirar uma dúvida', 'Dar uma sugestão'])
+      expect(screen.getByText(rotulo).closest('a')).toHaveAttribute(
+        'href',
+        'mailto:suporte@kapaformaturas.com.br',
+      )
+  })
+
   it('no plano que inclui a auditoria, o histórico aparece sem cadeado', () => {
     entrarComo(PAPEIS.presidente)
 

@@ -56,8 +56,13 @@ export function PixDeTeste({ chave, className }: { chave: ChavePix; className?: 
             </Passo>
             <Passo numero={2}>Antes de confirmar o pagamento, veja o nome que o banco mostra.</Passo>
             <Passo numero={3}>
-              Se for <strong className="text-foreground font-medium">{chave.nome_do_titular}</strong>, a chave
-              está certa. Se aparecer outro nome, não pague: troque a chave.
+              Se for <strong className="text-foreground font-medium">{chave.nome_do_titular}</strong>
+              {chave.banco ? (
+                <>
+                  , no <strong className="text-foreground font-medium">{chave.banco}</strong>
+                </>
+              ) : null}
+              , a chave está certa. Se aparecer outro nome, não pague: troque a chave.
             </Passo>
           </ol>
         </div>

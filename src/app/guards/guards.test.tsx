@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS, PERFIS } from '@/config/perfis'
 import { ROTAS } from '@/config/rotas'
-import { DialogoDeSenha } from '@/features/auth'
+import { DialogoDeSenha, useSair } from '@/features/auth'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { convitePendente } from '@/lib/convitePendente'
 import { sessao } from '@/lib/http/sessao'
@@ -91,6 +91,20 @@ function Login() {
   return <p>{useEstadoDeNavegacao('aviso') ?? 'sem aviso'}</p>
 }
 
+/** Login de mentira: mostra para onde ele devolveria depois de entrar. */
+function LoginComDestino() {
+  return <p>{`destino: ${useEstadoDeNavegacao('de') ?? 'nenhum'}`}</p>
+}
+
+function BotaoDeSair() {
+  const sair = useSair()
+  return (
+    <button type="button" onClick={() => sair.mutate()}>
+      Sair
+    </button>
+  )
+}
+
 afterEach(() => {
   sessao.encerrar()
 })
@@ -165,6 +179,41 @@ describe('ExigeAutenticacao', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     expect(await screen.findByText(/Senha alterada/)).toBeInTheDocument()
+  })
+})
+
+describe('Sair', () => {
+  /**
+   * Se a sessão cai antes de a navegação para o login terminar, o `ExigeAutenticacao` da tela atual
+   * redireciona com o `state` dele, e a próxima conta a entrar cai na tela da anterior.
+   */
+  it('não leva a tela de quem saiu para a próxima conta que entrar', async () => {
+    servidor.use(
+      http.post(`${env.VITE_API_URL}/api/v1/auth/logout`, () => new HttpResponse(null, { status: 204 })),
+    )
+    entrar([PERFIS.usuario])
+
+    const router = createMemoryRouter(
+      [
+        {
+          element: <ExigeAutenticacao />,
+          children: [{ path: ROTAS.minhaPrivacidade, element: <BotaoDeSair /> }],
+        },
+        { element: <SomenteVisitante />, children: [{ path: ROTAS.login, element: <LoginComDestino /> }] },
+        { path: ROTAS.inicio, element: <p>tela inicial</p> },
+      ],
+      { initialEntries: [ROTAS.minhaPrivacidade] },
+    )
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sair' }))
+
+    expect(await screen.findByText('destino: nenhum')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(ROTAS.login)
   })
 })
 

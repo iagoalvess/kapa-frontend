@@ -1,4 +1,14 @@
-import { Fingerprint, Lock, LogOut, ShieldCheck, UserRound } from 'lucide-react'
+import {
+  CircleAlert,
+  CircleHelp,
+  Fingerprint,
+  Lightbulb,
+  Lock,
+  LogOut,
+  type LucideIcon,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/Avatar'
@@ -10,6 +20,7 @@ import { FotoDoFormando, type PerfilDoFormando } from '@/features/formandos'
 import { SeletorDeFormatura } from '@/features/formaturas'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel } from '@/hooks/useSessao'
+import { EMAIL_DE_SUPORTE, linkDeSuporte, type TipoDePedido } from '@/lib/suporte'
 import { cn } from '@/lib/utils'
 
 /** Um menu da conta por tela — o header é único. */
@@ -17,6 +28,13 @@ const MENU = 'menu-da-conta'
 
 const formaDoItem =
   'flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] lg:min-h-0 [&_svg]:size-4.5 [&_svg]:shrink-0'
+
+/** Os pedidos ao suporte, na ordem de quem mais precisa: quem está travado vem primeiro. */
+const PEDIDOS: { tipo: TipoDePedido; rotulo: string; icone: LucideIcon }[] = [
+  { tipo: 'problema', rotulo: 'Algo não funcionou', icone: CircleAlert },
+  { tipo: 'duvida', rotulo: 'Tirar uma dúvida', icone: CircleHelp },
+  { tipo: 'sugestao', rotulo: 'Dar uma sugestão', icone: Lightbulb },
+]
 
 const estiloDoItem = cn(
   formaDoItem,
@@ -143,6 +161,26 @@ export function MenuDaConta({
               ) : null}
             </Link>
           ) : null}
+
+          {/* O canal do suporte antes do go-live (06/10/2026): um e-mail com o tipo no assunto e a página, a turma
+              e o papel já escritos. O link é montado no clique, para levar a página em que a pessoa está agora. */}
+          <div className="border-border grid gap-0.5 border-t pt-1">
+            <p className="text-texto-muted px-3 pt-1.5 pb-0.5 text-xs">Suporte</p>
+            {PEDIDOS.map(({ tipo, rotulo, icone: Icone }) => (
+              <a
+                key={tipo}
+                href={`mailto:${EMAIL_DE_SUPORTE}`}
+                onClick={(evento) => {
+                  evento.currentTarget.href = linkDeSuporte({ tipo })
+                  fechar()
+                }}
+                className={estiloDoItem}
+              >
+                <Icone strokeWidth={1.75} aria-hidden />
+                {rotulo}
+              </a>
+            ))}
+          </div>
 
           {/* Some sozinho onde não há o que instalar — no computador, e no app já instalado. */}
           <BotaoDeInstalar className={estiloDoItem} />

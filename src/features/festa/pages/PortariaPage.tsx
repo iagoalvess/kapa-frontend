@@ -460,5 +460,6 @@ function paraEdicao(convite: ConviteNaPortaria): MeuConvite {
     email_do_convidado: null,
     emitido_em: '',
     validado_em: convite.entrada?.validado_em ?? null,
+    observacoes: convite.observacoes,
   }
 }

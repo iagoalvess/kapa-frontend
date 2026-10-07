@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { iniciarCheckout, pagarCiclo } from '../api/assinaturas.api'
+import { consultarCupom, iniciarCheckout, pagarCiclo } from '../api/assinaturas.api'
 
 /** Leva o navegador à página do Mercado Pago. Fora do React: a navegação sai do app. */
 export function irParaOProvedor(url: string) {
@@ -25,4 +25,9 @@ export function usePagarCiclo() {
     mutationFn: pagarCiclo,
     onSuccess: ({ url }) => irParaOProvedor(url),
   })
+}
+
+/** Confere o cupom digitado. Mutação, e não consulta: só roda no "Aplicar", e o erro vai para o campo. */
+export function useConsultarCupom() {
+  return useMutation({ mutationFn: consultarCupom })
 }

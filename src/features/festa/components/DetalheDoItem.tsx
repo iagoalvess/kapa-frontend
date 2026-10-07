@@ -23,7 +23,8 @@ interface Props {
   /** Só a Tesouraria lança despesa, e é ela quem contrata. */
   podeContratar: boolean
   aoEditar: () => void
-  aoContratar: () => void
+  /** Sem proposta, contrata pelo previsto do item; com ("Contratar esta"), pelo título e preço dela. */
+  aoContratar: (proposta?: Proposta) => void
   aoCancelar: () => void
   aoReativar: () => void
   aoExcluir: () => void
@@ -97,7 +98,7 @@ export function DetalheDoItem({
             ) : (
               <>
                 {podeContratar && item.quantidade_de_despesas === 0 ? (
-                  <Button size="sm" onClick={aoContratar}>
+                  <Button size="sm" onClick={() => aoContratar()}>
                     Contratar
                   </Button>
                 ) : null}
@@ -192,7 +193,14 @@ export function DetalheDoItem({
         ) : null}
       </ListaDeDados>
 
-      <Propostas item={item} propostas={propostas} ehGestao={ehGestao} editavel={editavel} />
+      <Propostas
+        item={item}
+        propostas={propostas}
+        ehGestao={ehGestao}
+        editavel={editavel}
+        podeContratar={podeContratar}
+        aoContratar={aoContratar}
+      />
     </Cartao>
   )
 }

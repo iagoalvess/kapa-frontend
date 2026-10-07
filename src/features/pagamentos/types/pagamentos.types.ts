@@ -49,6 +49,8 @@ export interface PixParaPagar {
    * nulo a cada troca de chave, que é o que faz o aviso reaparecer sozinho.
    */
   conferida_em: string | null
+  /** O banco que o app do pagador deve mostrar; nulo quando a comissão não informou. */
+  banco_do_titular: string | null
 }
 
 /**

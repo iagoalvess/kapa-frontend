@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { CamposDaGrade } from './CamposDaGrade'
@@ -222,6 +223,26 @@ export function FormularioDeItem({
               </FormItem>
             )}
           />
+
+          {/* Ao lado do primeiro, e não no bloco do pacote: os dois vencimentos são a mesma pergunta — de
+              quando até quando —, e separados deixavam um buraco à direita do primeiro. */}
+          {rateio || editando?.origem_da_decisao ? null : (
+            <FormField
+              control={formulario.control}
+              name="ultimo_vencimento"
+              render={({ field }) => (
+                <FormItem>
+                  <RotuloComInfo opcional info="A última parcela não pode vencer depois desta data.">
+                    Último vencimento
+                  </RotuloComInfo>
+                  <FormControl>
+                    <Input {...field} type="date" disabled={!editavel} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         {rateio || editando?.origem_da_decisao ? null : (
@@ -247,11 +268,11 @@ export function FormularioDeItem({
           </div>
         ) : null}
 
-        <p className="text-texto-muted text-xs">
-          {editando?.em_uso
-            ? 'Este pacote já foi escolhido: só o valor e a descrição mudam.'
-            : 'Dias 29, 30 e 31 caem no último dia nos meses mais curtos.'}
-        </p>
+        {editando?.em_uso ? (
+          <p className="text-texto-muted text-xs">
+            Este pacote já foi escolhido: só o valor e a descrição mudam.
+          </p>
+        ) : null}
 
         {resumo}
 
@@ -281,7 +302,9 @@ export function FormularioDeItem({
                   name="origem_da_decisao"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Onde a turma decidiu</FormLabel>
+                      <RotuloComInfo info="Fica gravado na cobrança e é a prova da decisão. Só use quando a decisão obrigar a turma toda e o termo de adesão previr cobranças extraordinárias.">
+                        Onde a turma decidiu
+                      </RotuloComInfo>
                       <FormControl>
                         <Input {...field} placeholder="Assembleia de 12/10" />
                       </FormControl>
@@ -289,10 +312,6 @@ export function FormularioDeItem({
                     </FormItem>
                   )}
                 />
-                <p className="text-texto-muted text-xs">
-                  Fica gravado na cobrança e é a prova da decisão. Só use quando a decisão obrigar a turma
-                  toda e o termo de adesão previr cobranças extraordinárias.
-                </p>
 
                 <AlvoDoRateio
                   control={formulario.control}
@@ -316,7 +335,8 @@ export function FormularioDeItem({
 }
 
 /**
- * O que só o pacote tem (Sprint 47): o grupo de faixas, os convites que ele concede e o último vencimento.
+ * O que só o pacote tem (Sprint 47): o grupo de faixas, o prazo de cancelamento e os convites que ele concede. O
+ * último vencimento também é só do pacote, mas mora na grade, ao lado do primeiro.
  *
  * O grupo é o que transforma pacotes em faixas — "Festa" com "10 pessoas", "15 pessoas", "20 pessoas" —, e a
  * cesta aceita uma faixa por grupo. Os convites são o benefício: a faixa de 15 pessoas emite 15 convites da festa.
@@ -338,30 +358,21 @@ function CamposDoPacote({
         name="grupo"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Escolha única entre</FormLabel>
+            <RotuloComInfo
+              opcional
+              info={
+                <>
+                  Para vender o mesmo pacote em tamanhos diferentes. Dê o mesmo nome aqui a todos — “Festa” em
+                  “Festa 10 pessoas”, “Festa 15 pessoas” e “Festa 20 pessoas” — e o formando escolhe só uma
+                  das faixas. Em branco, o pacote é avulso e pode ser escolhido junto com os outros.
+                </>
+              }
+            >
+              Grupo de faixas
+            </RotuloComInfo>
             <FormControl>
-              <Input {...field} disabled={travado} placeholder="Ex.: Álbum" />
+              <Input {...field} disabled={travado} placeholder="Ex.: Festa" />
             </FormControl>
-            <FormDescription>
-              Opcional. Pacotes com o mesmo nome aqui são versões uma da outra e o formando fica com uma só —
-              "Álbum 20 páginas" e "Álbum 40 páginas", os dois com "Álbum". Em branco, o pacote se soma aos
-              outros.
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
-        name="ultimo_vencimento"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Último vencimento</FormLabel>
-            <FormControl>
-              <Input {...field} type="date" disabled={!editavel} />
-            </FormControl>
-            <FormDescription>Opcional. A última parcela não pode vencer depois desta data.</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -372,13 +383,15 @@ function CamposDoPacote({
         name="cancelavel_ate"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Cancelável até</FormLabel>
+            <RotuloComInfo
+              opcional
+              info="Depois desta data o formando não pede mais o cancelamento. Antes dela, a comissão decide."
+            >
+              Cancelável até
+            </RotuloComInfo>
             <FormControl>
               <Input {...field} type="date" disabled={!editavel} />
             </FormControl>
-            <FormDescription>
-              Opcional. Depois desta data o formando não pede mais o cancelamento — antes, a comissão decide.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

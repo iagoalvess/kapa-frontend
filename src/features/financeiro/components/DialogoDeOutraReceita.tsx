@@ -11,6 +11,7 @@ import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Select } from '@/components/Select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RotuloComInfo } from '@/components/InfoDoCampo'
 import { useDocumentosDaTurma } from '@/hooks/useAcervoDaTurma'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { diaDeHoje } from '@/lib/formato'
@@ -207,7 +208,9 @@ function FormularioDeOutraReceita({
           name="documento_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Comprovante</FormLabel>
+              <RotuloComInfo info="Contrato, recibo ou extrato já enviado ao acervo e visível para a turma.">
+                Comprovante
+              </RotuloComInfo>
               <FormControl>
                 <Select {...field} disabled={!editavel}>
                   <option value="">Nenhum — sem comprovante no acervo</option>
@@ -218,9 +221,6 @@ function FormularioDeOutraReceita({
                   ))}
                 </Select>
               </FormControl>
-              <p className="text-texto-muted text-xs">
-                Contrato, recibo ou extrato já enviado ao acervo e visível para a turma.
-              </p>
               <FormMessage />
             </FormItem>
           )}

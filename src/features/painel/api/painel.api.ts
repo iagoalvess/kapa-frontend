@@ -5,10 +5,12 @@ import type {
   AcaoNaConta,
   AnalyticsDaPlataforma,
   ContaNoPainel,
+  Cupom,
   FiltroDeContas,
   FiltroDeTurmas,
   MembroNoSuporte,
   MesDaPlataforma,
+  NovoCupom,
   ModoDeEstorno,
   TurmaNoPainel,
   TurmaNoSuporte,
@@ -82,4 +84,19 @@ export function obterContaNoSuporte(id: string, signal?: AbortSignal) {
 /** Reenvia confirmação, dispara redefinição de senha ou levanta o bloqueio. */
 export function executarNaConta(id: string, acao: AcaoNaConta) {
   return api.post<void>(`${SUPORTE}/usuarios/${id}/${acao}`)
+}
+
+/** Os cupons da primeira cobrança, os mais novos primeiro (Sprint 51). */
+export function listarCupons(signal?: AbortSignal) {
+  return api.get<Cupom[]>(`${ADMIN}/cupons`, { signal })
+}
+
+/** Cria um cupom. 409 `cupom.codigo_em_uso` se o código já existe, mesmo desativado. */
+export function criarCupom(dados: NovoCupom) {
+  return api.post<Cupom>(`${ADMIN}/cupons`, { body: dados })
+}
+
+/** Desativa o cupom: deixa de valer na hora. Quem já contratou com ele não muda. */
+export function desativarCupom(id: string) {
+  return api.post<Cupom>(`${ADMIN}/cupons/${id}/desativar`, { body: {} })
 }

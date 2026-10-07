@@ -243,6 +243,8 @@ export interface MeuConvite {
   email_do_convidado: string | null
   emitido_em: string
   validado_em: string | null
+  /** Restrição alimentar, acessibilidade — o recado para a comissão. */
+  observacoes: string | null
 }
 
 /** O titular, como o formulário o envia. Espelha `ConvidadoRequestDTO`. */
@@ -251,4 +253,6 @@ export interface DadosDoConvidado {
   tipo_do_documento: TipoDeDocumento | null
   numero_do_documento: string | null
   email: string | null
+  /** Ausente na compra da loja: lá o comprador só diz quem vai. */
+  observacoes?: string | null
 }

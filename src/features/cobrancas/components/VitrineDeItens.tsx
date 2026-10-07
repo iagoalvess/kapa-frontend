@@ -62,12 +62,10 @@ function useRecorte() {
 
 /**
  * Busca e tipo da vitrine. Ficam acima das colunas da tela, como em Mural e Festa, e não dentro do
- * cartão; sem nada à venda, não aparecem.
+ * cartão — sempre à vista, como nas listas da gestão: sem nada à venda, o vazio da vitrine diz por quê.
  */
 export function FiltrosDaVitrine() {
   const { opcionais, categorias, categoria, itens, busca, atualizar, ordenacao } = useRecorte()
-
-  if (!opcionais.data?.length) return null
 
   return (
     <FiltrosDaPlanilha
@@ -94,7 +92,7 @@ export function FiltrosDaVitrine() {
           />
         </BotaoDeFiltros>
       }
-      contagem={{ mostrando: itens.length, total: opcionais.data.length, unidade: 'itens' }}
+      contagem={{ mostrando: itens.length, total: opcionais.data?.length ?? 0, unidade: 'itens' }}
     />
   )
 }

@@ -14,11 +14,12 @@ import { convitePendente } from '@/lib/convitePendente'
  * descarta o pendente ao abrir com sessão, então o desvio acontece uma vez só.
  */
 export function ExigeAutenticacao() {
-  const { autenticado } = useSessao()
+  const { autenticado, saiu } = useSessao()
   const local = useLocation()
 
   if (!autenticado) {
-    return <Navigate to={ROTAS.login} state={{ de: local.pathname + local.search }} replace />
+    // Quem saiu pelo menu não volta para cá: a próxima conta a entrar nesta aba pode ser outra.
+    return <Navigate to={ROTAS.login} state={saiu ? null : { de: local.pathname + local.search }} replace />
   }
 
   const convite = convitePendente.ler()

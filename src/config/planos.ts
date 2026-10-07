@@ -193,10 +193,10 @@ export const AREAS_DO_PLANO: Partial<Record<Modulo, AreaDoPlano>> = {
       ['Formandos avisados', '41'],
     ],
     exemplo: [
-      { titulo: 'Parcela vence amanhã', detalhe: 'Enviado a 38 formandos', valor: 'Hoje' },
+      { titulo: 'Parcela vence em 2 dias', detalhe: 'Enviado a 38 formandos', valor: 'Hoje' },
       { titulo: 'Parcela em atraso há 3 dias', detalhe: 'Enviado a 4 formandos', valor: 'Ontem' },
-      { titulo: 'Parcela vence em 5 dias', detalhe: 'Enviado a 41 formandos', valor: 'Segunda' },
-      { titulo: 'Parcela em atraso há 10 dias', detalhe: 'Enviado a 2 formandos', valor: 'Sexta' },
+      { titulo: 'Parcela em atraso há 15 dias', detalhe: 'Enviado a 3 formandos', valor: 'Segunda' },
+      { titulo: 'Pagamentos esperando conferência', detalhe: 'Enviado à tesouraria', valor: 'Sexta' },
     ],
   },
   relatorios: {

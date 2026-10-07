@@ -217,51 +217,50 @@ export default function MeusConvitesPage() {
 
       {!telaGrande ? <ResumoDosConvitesAguardando aguardando={aguardando} /> : null}
 
-      {linhas.length > 0 ? (
-        <FiltrosDaPlanilha
-          principal={
-            <fieldset className="flex flex-wrap gap-2">
-              <legend className="sr-only">Evento</legend>
-              <Chip
-                tom="claro"
-                ativo={!tipo}
-                contagem={linhas.length}
-                onClick={() => atualizar({ evento: null })}
-              >
-                Todos
-              </Chip>
-              {Object.entries(EVENTOS).map(([valor, rotulo]) => (
-                <Chip
-                  key={valor}
-                  tom="claro"
-                  ativo={tipo === valor}
-                  contagem={contarEvento(valor as TipoDoEventoDoConvite)}
-                  onClick={() => atualizar({ evento: tipo === valor ? null : valor })}
-                >
-                  {rotulo}
-                </Chip>
-              ))}
-            </fieldset>
-          }
-          legenda="Situação"
-          filtros={Object.entries(SITUACOES).map(([valor, { rotulo }]) => (
+      {/* Sempre à vista, como nas listas da gestão: sem convite, a barra continua no lugar e o vazio diz por quê. */}
+      <FiltrosDaPlanilha
+        principal={
+          <fieldset className="flex flex-wrap gap-2">
+            <legend className="sr-only">Evento</legend>
             <Chip
-              key={valor}
-              ativo={situacao === valor}
-              contagem={contarSituacao(valor as Situacao)}
-              onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+              tom="claro"
+              ativo={!tipo}
+              contagem={linhas.length}
+              onClick={() => atualizar({ evento: null })}
             >
-              {rotulo}
+              Todos
             </Chip>
-          ))}
-          busca={{
-            valor: busca,
-            rotulo: 'Buscar convidado',
-            aoBuscar: (termo) => atualizar({ busca: termo }),
-          }}
-          contagem={{ mostrando: pagina.visiveis.length, total: visiveis.length, unidade: 'convites' }}
-        />
-      ) : null}
+            {Object.entries(EVENTOS).map(([valor, rotulo]) => (
+              <Chip
+                key={valor}
+                tom="claro"
+                ativo={tipo === valor}
+                contagem={contarEvento(valor as TipoDoEventoDoConvite)}
+                onClick={() => atualizar({ evento: tipo === valor ? null : valor })}
+              >
+                {rotulo}
+              </Chip>
+            ))}
+          </fieldset>
+        }
+        legenda="Situação"
+        filtros={Object.entries(SITUACOES).map(([valor, { rotulo }]) => (
+          <Chip
+            key={valor}
+            ativo={situacao === valor}
+            contagem={contarSituacao(valor as Situacao)}
+            onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
+          >
+            {rotulo}
+          </Chip>
+        ))}
+        busca={{
+          valor: busca,
+          rotulo: 'Buscar convidado',
+          aoBuscar: (termo) => atualizar({ busca: termo }),
+        }}
+        contagem={{ mostrando: pagina.visiveis.length, total: visiveis.length, unidade: 'convites' }}
+      />
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         {/* Sem título nem descrição, como as listas da gestão: o `h1` da tela já diz "Meus convites". */}

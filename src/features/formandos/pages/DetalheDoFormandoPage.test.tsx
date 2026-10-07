@@ -19,7 +19,6 @@ const perfil = {
   email: 'bruno@exemplo.com',
   papel: 'Formando',
   pessoais: { nome_completo: 'Bruno Lima' },
-  endereco: {},
   contato_de_emergencia: {},
   completude: 10,
   faltando: ['cpf', 'telefone'],
@@ -120,10 +119,12 @@ describe('DetalheDoFormandoPage', () => {
     const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
     expect(within(pessoais).getByLabelText('CPF')).toHaveValue('***.982.247-**')
     expect(within(pessoais).getByLabelText('CPF')).toBeDisabled()
-    await userEvent.type(within(pessoais).getByLabelText('RG'), '12.345.678-9')
+    await userEvent.type(within(pessoais).getByLabelText('Telefone'), '(41) 99876-5432')
     await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
-    await waitFor(() => expect(enviado).toMatchObject({ pessoais: { rg: '12.345.678-9', cpf: null } }))
+    await waitFor(() =>
+      expect(enviado).toMatchObject({ pessoais: { telefone: '(41) 99876-5432', cpf: null } }),
+    )
   })
 
   it('Presidente corrige pela rota do formando, não pela própria', async () => {
@@ -143,10 +144,10 @@ describe('DetalheDoFormandoPage', () => {
       }),
     )
     const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
-    await userEvent.type(within(pessoais).getByLabelText('RG'), '12.345.678-9')
+    await userEvent.type(within(pessoais).getByLabelText('Telefone'), '(41) 99876-5432')
     await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
-    await waitFor(() => expect(enviado).toMatchObject({ pessoais: { rg: '12.345.678-9' } }))
+    await waitFor(() => expect(enviado).toMatchObject({ pessoais: { telefone: '(41) 99876-5432' } }))
     expect(screen.getByText('Correções feitas aqui ficam registradas com o seu nome.')).toBeInTheDocument()
   })
 })

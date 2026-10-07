@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { DadosDoConvidado, MeuConvite } from '@/types/festa'
 
 /*
-  O titular de um convite — nome, documento e e-mail —, como o formando, a Gestão e o comprador da
+  O titular de um convite — nome, documento, e-mail e observações —, como o formando, a Gestão e o comprador da
   loja (Sprint 26) o informam. Validação de **forma**: o dígito verificador do CPF, a lista fechada e o
   "documento obrigatório depois do fechamento" voltam da API com código e mensagem, no campo certo.
 
@@ -15,6 +15,7 @@ export const esquemaDoConvidado = z
     tipo_do_documento: z.enum(['', 'Cpf', 'Rg']),
     numero_do_documento: z.string().trim().max(20, 'No máximo 20 caracteres.'),
     email: z.union([z.literal(''), z.string().trim().email('E-mail inválido.')]),
+    observacoes: z.string().trim().max(500, 'No máximo 500 caracteres.'),
   })
   .refine((valores) => valores.tipo_do_documento === '' || valores.numero_do_documento !== '', {
     path: ['numero_do_documento'],
@@ -36,6 +37,7 @@ export const paraFormularioDoConvidado = (convite?: MeuConvite): FormularioDoCon
   tipo_do_documento: '',
   numero_do_documento: '',
   email: convite?.email_do_convidado ?? '',
+  observacoes: convite?.observacoes ?? '',
 })
 
 /** O formulário no formato do corpo da API: vazio vira nulo. */
@@ -44,4 +46,5 @@ export const paraDadosDoConvidado = (valores: FormularioDoConvidado): DadosDoCon
   tipo_do_documento: valores.tipo_do_documento === '' ? null : valores.tipo_do_documento,
   numero_do_documento: valores.numero_do_documento.trim() || null,
   email: valores.email.trim() || null,
+  observacoes: valores.observacoes.trim() || null,
 })

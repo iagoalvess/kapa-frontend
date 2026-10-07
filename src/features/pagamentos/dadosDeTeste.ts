@@ -82,6 +82,7 @@ export const pixDeTeste = (): MeioDaCobranca => ({
     nome_do_titular: 'Comissão Medicina 2027',
     documento_do_titular: 'CPF ***.982.247-**',
     conferida_em: '2026-09-14T15:00:00Z',
+    banco_do_titular: 'Nubank',
   },
   transferencia: null,
   instrucao: null,

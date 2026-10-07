@@ -20,6 +20,14 @@ export interface MesDoGrafico {
   saldo_acumulado_em_centavos: number
 }
 
+/** Se o mês tem algum valor, realizado ou previsto — sem nenhum, o gráfico é a `GraficoVazio`. */
+export const temMovimento = (mes: MesDoGrafico) =>
+  mes.entradas_em_centavos +
+    mes.entradas_previstas_em_centavos +
+    mes.saidas_em_centavos +
+    mes.saidas_previstas_em_centavos >
+  0
+
 /** Geometria do desenho, em unidades do `viewBox`. */
 const ALTURA = 190
 const LARGURA = 760

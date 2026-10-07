@@ -94,6 +94,9 @@ export function AcoesDaLinha({
 const estilosDoBotao = (tom: TomDaAcao) =>
   cn(
     'flex h-9 min-w-10 cursor-pointer items-center justify-center px-2.5 transition-colors outline-none focus-visible:bg-accent focus-visible:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-40',
+    // O clique responde na hora: o ícone encolhe sob o dedo, como o `Button` (06/10/2026). Encolher o segmento
+    // inteiro descolaria a pílula.
+    '[&_svg]:transition-transform motion-safe:active:[&_svg]:scale-90',
     'in-data-[menu]:h-12 in-data-[menu]:w-full in-data-[menu]:justify-start in-data-[menu]:gap-3 in-data-[menu]:px-4 in-data-[menu]:text-[15px] in-data-[menu]:after:content-[attr(data-rotulo)]',
     tom === 'perigo'
       ? 'text-danger-text hover:bg-danger-bg'

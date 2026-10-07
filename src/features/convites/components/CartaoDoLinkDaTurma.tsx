@@ -1,6 +1,7 @@
 import { Copy, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Cartao, TextoDoCartao } from '@/components/Cartao'
+import { Dica } from '@/components/Dica'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
@@ -65,7 +66,28 @@ export function CartaoDoLinkDaTurma() {
         )
 
   return (
-    <Cartao titulo="Link da turma">
+    <Cartao
+      titulo="Link da turma"
+      acao={
+        // Gerar de novo é a exceção, e desfaz o atual: com link vigente, fica só o ícone no canto, e o botão da
+        // largura inteira é o que se faz todo dia — copiar (pedido do produto em 06/10/2026).
+        vigente ? (
+          <DialogoDeConfirmacao
+            gatilho={
+              <Dica dica="Gerar novo link">
+                <Button variant="ghost" size="icon" aria-label="Gerar novo link" disabled={criar.isPending}>
+                  <RefreshCw aria-hidden />
+                </Button>
+              </Dica>
+            }
+            titulo="Gerar um novo link?"
+            descricao="O link atual para de funcionar na hora. Quem ainda não entrou vai precisar do novo."
+            rotulo="Gerar novo"
+            aoConfirmar={() => gerar(true)}
+          />
+        ) : null
+      }
+    >
       <TextoDoCartao>
         Para colar no grupo da turma: quem entra por ele entra como Formando. Vale por 30 dias. Gerar um novo
         desativa o atual.
@@ -84,34 +106,16 @@ export function CartaoDoLinkDaTurma() {
             </p>
           ) : null}
 
-          {/* Duas colunas: um botão vai até o meio do cartão; dois preenchem a última linha. */}
-          <div className="grid grid-cols-2 gap-2">
-            {link ? (
-              <Button variant="outline" onClick={() => void copiarVigente(link)}>
-                <Copy aria-hidden />
-                Copiar link
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={() => gerar(false)} disabled={criar.isPending}>
-                {criar.isPending ? 'Gerando…' : 'Gerar link'}
-              </Button>
-            )}
-
-            {vigente ? (
-              <DialogoDeConfirmacao
-                gatilho={
-                  <Button variant="outline" disabled={criar.isPending}>
-                    <RefreshCw aria-hidden />
-                    Gerar novo link
-                  </Button>
-                }
-                titulo="Gerar um novo link?"
-                descricao="O link atual para de funcionar na hora. Quem ainda não entrou vai precisar do novo."
-                rotulo="Gerar novo"
-                aoConfirmar={() => gerar(true)}
-              />
-            ) : null}
-          </div>
+          {link ? (
+            <Button className="w-full" onClick={() => void copiarVigente(link)}>
+              <Copy aria-hidden />
+              Copiar link
+            </Button>
+          ) : (
+            <Button className="w-full" onClick={() => gerar(false)} disabled={criar.isPending}>
+              {criar.isPending ? 'Gerando…' : 'Gerar link'}
+            </Button>
+          )}
         </>
       )}
     </Cartao>

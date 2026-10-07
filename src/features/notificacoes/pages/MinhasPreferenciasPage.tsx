@@ -1,9 +1,14 @@
 import { BellRing, Lock } from 'lucide-react'
 import { toast } from 'sonner'
+import { AcaoDeUpgrade } from '@/components/AcaoDeUpgrade'
 import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
+import { PAPEIS } from '@/config/perfis'
+import { MODULOS } from '@/config/planos'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma, usePlanoQueLibera } from '@/hooks/usePlanoDaTurma'
+import { usePapel } from '@/hooks/useSessao'
 import { avisarErro } from '@/lib/http/erros'
 import { usePreferencias, useSalvarPreferencias } from '../hooks/usePreferencias'
 import { DICAS_DE_TIPO, type Preferencia, ROTULOS_DE_TIPO } from '../types/notificacoes.types'
@@ -17,11 +22,21 @@ import { DICAS_DE_TIPO, type Preferencia, ROTULOS_DE_TIPO } from '../types/notif
  *
  * Grava a cada clique, sem botão "Salvar": é uma chave por assunto, e um rodapé de formulário aqui
  * só faria a pessoa marcar e esquecer de confirmar.
+ *
+ * Os avisos são módulo do plano (`avisos`). Fora dele o cartão não consulta nada: a Gestão vê em que plano
+ * isso existe e o caminho para contratar, como nas outras áreas trancadas; o formando não vê o cartão — ele
+ * não contrata, e um cadeado ali só diria que falta algo que não depende dele (06/10/2026).
  */
 export default function MinhasPreferenciasPage() {
-  const preferencias = usePreferencias()
+  const { inclui, bloqueia } = usePlanoDaTurma()
+  const planoQueLibera = usePlanoQueLibera(MODULOS.avisos)
+  const daGestao = usePapel().tem(PAPEIS.tesoureiro, PAPEIS.comissao)
+  const preferencias = usePreferencias(inclui(MODULOS.avisos))
   const salvar = useSalvarPreferencias()
   const editavel = useEscritaLiberada()
+  const trancado = bloqueia(MODULOS.avisos)
+
+  if (trancado && !daGestao) return null
 
   const alternar = (preferencia: Preferencia) =>
     salvar.mutate([{ tipo: preferencia.tipo, ativa: !preferencia.ativa }], {
@@ -35,7 +50,17 @@ export default function MinhasPreferenciasPage() {
       icone={BellRing}
       descricao="O que a Kapa manda para o seu e-mail. A cobrança de parcela faz parte do termo de adesão e chega sempre."
     >
-      {preferencias.isPending ? <EsqueletoDeTexto linhas={4} /> : null}
+      {trancado ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="bg-brand-tint text-brand-text inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold">
+            <Lock className="size-3" aria-hidden />
+            {planoQueLibera ? `Disponível no plano ${planoQueLibera.nome}` : 'Fora do plano da turma'}
+          </span>
+          <AcaoDeUpgrade />
+        </div>
+      ) : null}
+
+      {!trancado && preferencias.isPending ? <EsqueletoDeTexto linhas={4} /> : null}
       {preferencias.isError ? (
         <ErroDaConsulta erro={preferencias.error} aoTentarDeNovo={() => void preferencias.refetch()} />
       ) : null}
@@ -50,7 +75,7 @@ export default function MinhasPreferenciasPage() {
                 checked={preferencia.ativa}
                 disabled={preferencia.obrigatoria || !editavel || salvar.isPending}
                 onChange={() => alternar(preferencia)}
-                className="accent-primary mt-0.5 size-4 disabled:opacity-60"
+                className="mt-0.5 size-4"
               />
               <div className="grid min-w-0 gap-0.5">
                 <label

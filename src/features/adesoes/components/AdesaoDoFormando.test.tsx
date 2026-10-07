@@ -176,7 +176,7 @@ describe('AdesaoDoFormando', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('mostra o que se paga antes do termo', async () => {
-    responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    responder({ adesao: null, pendencias: [] })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
     await escolherAMensalidade()
@@ -189,7 +189,7 @@ describe('AdesaoDoFormando', () => {
   })
 
   it('sem resumo do termo, não há cartão nem espaço reservado', async () => {
-    responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    responder({ adesao: null, pendencias: [] })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
@@ -200,7 +200,7 @@ describe('AdesaoDoFormando', () => {
 
   it('com resumo, mostra os parágrafos acima do termo, com o aviso uma vez', async () => {
     responder(
-      { adesao: null, pendencias: [], menor_de_idade: false },
+      { adesao: null, pendencias: [] },
       { ...conteudo, resumo: 'Você paga 12 parcelas\nde R$ 200,00.\n\nAtraso gera multa.' },
     )
 
@@ -218,12 +218,12 @@ describe('AdesaoDoFormando', () => {
   it('só libera o aceite depois de rolar o termo e confirmar o código, e envia os dois', async () => {
     let enviado: unknown
     let quantidade = 0
-    responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    responder({ adesao: null, pendencias: [] })
     servidor.use(
       http.post(ADERIR, async ({ request }) => {
         enviado = await request.json()
         quantidade = 12
-        responder({ adesao, pendencias: [], menor_de_idade: false })
+        responder({ adesao, pendencias: [] })
         return HttpResponse.json(adesao, { status: 201 })
       }),
       http.get(`${env.VITE_API_URL}/api/v1/extrato/eu`, () =>
@@ -259,7 +259,7 @@ describe('AdesaoDoFormando', () => {
 
   /** Sem a caixa marcada, aceitar só avisa: não gasta código nem abre o diálogo. */
   it('não pede código sem a caixa de aceite marcada', async () => {
-    const pedidos = responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    const pedidos = responder({ adesao: null, pendencias: [] })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
@@ -273,18 +273,18 @@ describe('AdesaoDoFormando', () => {
     expect(screen.queryByLabelText(/Código enviado para/)).not.toBeInTheDocument()
   })
 
-  it('pede nome, CPF e nascimento antes do aceite quando o cadastro não tem', async () => {
-    responder({ adesao: null, pendencias: ['cpf', 'dataDeNascimento'], menor_de_idade: false })
+  it('pede nome e CPF antes do aceite quando o cadastro não tem', async () => {
+    responder({ adesao: null, pendencias: ['nomeCompleto', 'cpf'] })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
     expect(await screen.findByText('formulário do titular')).toBeInTheDocument()
-    expect(screen.getByText(/complete os dados que faltam: CPF, data de nascimento/)).toBeInTheDocument()
+    expect(screen.getByText(/complete os dados que faltam: nome completo, CPF/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument()
   })
 
   it('termo ou plano mudado durante a leitura relê o conteúdo', async () => {
-    const pedidos = responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    const pedidos = responder({ adesao: null, pendencias: [] })
     servidor.use(
       http.post(ADERIR, () =>
         HttpResponse.json(
@@ -306,7 +306,7 @@ describe('AdesaoDoFormando', () => {
 
   it('sem termo nem plano, explica o que falta em vez de quebrar', async () => {
     responder(
-      { adesao: null, pendencias: [], menor_de_idade: false },
+      { adesao: null, pendencias: [] },
       { termo: null, plano: null, hash_do_conteudo: null, resumo: null, catalogo: [], cesta_contratada: [] },
     )
 
@@ -319,7 +319,7 @@ describe('AdesaoDoFormando', () => {
   /** D32 e D33: a festa é uma faixa por vez, com "Não quero"; sem pacote nenhum, não há aceite. */
   it('monta a cesta com uma faixa por grupo e só libera o aceite com ao menos um pacote', async () => {
     const pedidos: string[][] = []
-    responder({ adesao: null, pendencias: [], menor_de_idade: false })
+    responder({ adesao: null, pendencias: [] })
     servidor.use(
       http.get(CONTEUDO, ({ request }) => {
         pedidos.push(new URL(request.url).searchParams.getAll('pacotes'))
@@ -344,7 +344,7 @@ describe('AdesaoDoFormando', () => {
 
   it('a re-adesão mostra a cesta contratada, travada', async () => {
     responder(
-      { adesao: { ...adesao, versao: 1 }, pendencias: [], menor_de_idade: false },
+      { adesao: { ...adesao, versao: 1 }, pendencias: [] },
       { ...conteudo, termo: { ...conteudo.termo!, versao: 2 }, cesta_contratada: ['pk-15'] },
     )
 
@@ -376,7 +376,6 @@ describe('AdesaoDoFormando', () => {
         },
       },
       pendencias: [],
-      menor_de_idade: false,
     })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
@@ -399,7 +398,7 @@ describe('AdesaoDoFormando', () => {
       expira_em: new Date(Date.now() + 900_000).toISOString(),
     })
     let cesta = 0
-    const pedidos = responder({ adesao, pendencias: [], menor_de_idade: false })
+    const pedidos = responder({ adesao, pendencias: [] })
     servidor.use(
       http.get(`${env.VITE_API_URL}/api/v1/adesoes/minha-cesta`, () => {
         cesta += 1
@@ -415,16 +414,8 @@ describe('AdesaoDoFormando', () => {
     sessao.encerrar()
   })
 
-  it('menor de 18 anos é encaminhado à comissão', async () => {
-    responder({ adesao: null, pendencias: [], menor_de_idade: true })
-
-    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
-
-    expect(await screen.findByText('A sua adesão é feita com a comissão.')).toBeInTheDocument()
-  })
-
   it('quem já aderiu vê o termo assinado com versão, data e o registro do aceite', async () => {
-    responder({ adesao, pendencias: [], menor_de_idade: false })
+    responder({ adesao, pendencias: [] })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 
@@ -436,7 +427,7 @@ describe('AdesaoDoFormando', () => {
 
   it('mostra o título de cada tópico do resumo, sem os dois-pontos', async () => {
     responder(
-      { adesao, pendencias: [], menor_de_idade: false },
+      { adesao, pendencias: [] },
       { ...conteudo, resumo: 'Pagamentos: Você paga R$ 12.510,00. Em 12x.\n\nAtraso: Multa de 2%.' },
     )
 
@@ -450,7 +441,7 @@ describe('AdesaoDoFormando', () => {
 
   it('separa o resumo em pontos sem fragmentar os valores', async () => {
     responder(
-      { adesao, pendencias: [], menor_de_idade: false },
+      { adesao, pendencias: [] },
       { ...conteudo, resumo: 'Você paga R$ 12.510,00. Atraso gera multa.' },
     )
 
@@ -467,7 +458,7 @@ describe('AdesaoDoFormando', () => {
   it('avisa quando o resumo é de outra versão e abre essa versão para leitura', async () => {
     const usuario = userEvent.setup()
     responder(
-      { adesao, pendencias: [], menor_de_idade: false },
+      { adesao, pendencias: [] },
       { ...conteudo, termo: { ...conteudo.termo!, versao: 2 }, resumo: 'Novas condições da turma.' },
     )
 
@@ -486,7 +477,6 @@ describe('AdesaoDoFormando', () => {
         plano: { ...plano, percentual_de_desconto_por_antecipacao: 300, dias_minimos_para_desconto: dias },
       },
       pendencias: [],
-      menor_de_idade: false,
     })
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
     const financeiro = await screen.findByRole('region', { name: 'O que você aceitou pagar' })
@@ -498,10 +488,7 @@ describe('AdesaoDoFormando', () => {
   })
 
   it('quem já aderiu também vê o resumo, acima do termo assinado', async () => {
-    responder(
-      { adesao, pendencias: [], menor_de_idade: false },
-      { ...conteudo, resumo: 'Você paga 12 parcelas.' },
-    )
+    responder({ adesao, pendencias: [] }, { ...conteudo, resumo: 'Você paga 12 parcelas.' })
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
 

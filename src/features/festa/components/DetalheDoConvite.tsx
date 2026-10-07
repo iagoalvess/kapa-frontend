@@ -1,4 +1,4 @@
-import { DoorOpen, FileText, Tag, Ticket, TriangleAlert, UserRound } from 'lucide-react'
+import { DoorOpen, FileText, NotebookPen, Tag, Ticket, TriangleAlert, UserRound } from 'lucide-react'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Button } from '@/components/ui/button'
@@ -58,6 +58,11 @@ export function DetalheDoConvite({ convite, marcadoSemRede, aoFechar }: Props) {
                 ? `Entrou às ${formatarHorario(convite.entrada.validado_em)}, por ${convite.entrada.validado_por}`
                 : 'Ainda não entrou'}
             </Dado>
+            {convite.observacoes ? (
+              <Dado icone={NotebookPen} rotulo="Observações">
+                <span className="whitespace-pre-line">{convite.observacoes}</span>
+              </Dado>
+            ) : null}
           </ListaDeDados>
 
           {convite.entrou_sem_rede_duas_vezes ? (

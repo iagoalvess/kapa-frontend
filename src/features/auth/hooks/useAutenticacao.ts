@@ -99,6 +99,9 @@ export function useRegistrar() {
  *
  * Revoga no servidor e limpa o cache — sem `queryClient.clear()` o próximo usuário a entrar
  * nesta aba veria, por um instante, os dados do anterior.
+ *
+ * Encerra como `saiu`: o `ExigeAutenticacao` da tela atual redireciona por conta própria antes desta
+ * navegação, e sem a marca guardava a tela em `state.de` — a próxima conta a entrar nesta aba caía nela.
  */
 export function useSair() {
   const navegar = useNavigate()
@@ -109,7 +112,7 @@ export function useSair() {
     // revogar. Deixar o usuário preso numa tela por causa disso seria pior que sair local.
     mutationFn: () => sair().catch(() => {}),
     onSettled: () => {
-      sessao.encerrar()
+      sessao.encerrar(true)
       queryClient.clear()
       navegar(ROTAS.login, { replace: true })
     },

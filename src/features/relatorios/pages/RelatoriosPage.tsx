@@ -13,8 +13,9 @@ import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeCartao, EsqueletoDeGrafico } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
-import { GraficoDeCaixa, type MesDoGrafico } from '@/components/GraficoDeCaixa'
+import { GraficoDeCaixa, type MesDoGrafico, temMovimento } from '@/components/GraficoDeCaixa'
 import { GraficoDeRosca } from '@/components/GraficoDeRosca'
+import { GraficoVazio } from '@/components/GraficoVazio'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { ehDia, formatarCentavos } from '@/lib/formato'
 import { FiltrosDoRelatorio } from '../components/FiltrosDoRelatorio'
@@ -197,8 +198,8 @@ export default function RelatoriosPage() {
               descricao="Mês a mês, dentro do intervalo escolhido — a soma dos meses é o total dos indicadores."
               className="min-w-0 lg:col-span-2"
             >
-              {meses.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Nenhum movimento no período escolhido.</p>
+              {!paraOGrafico(meses).some(temMovimento) ? (
+                <GraficoVazio>Nenhum movimento no período escolhido.</GraficoVazio>
               ) : (
                 <GraficoDeCaixa meses={paraOGrafico(meses)} />
               )}
@@ -211,7 +212,7 @@ export default function RelatoriosPage() {
               className="min-w-0 lg:grid-rows-[auto_1fr]"
             >
               {dados.saidas_por_categoria.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Nenhuma saída no período escolhido.</p>
+                <GraficoVazio forma="rosca">Nenhuma saída no período escolhido.</GraficoVazio>
               ) : (
                 <GraficoDeRosca
                   fatias={dados.saidas_por_categoria.map((linha) => ({

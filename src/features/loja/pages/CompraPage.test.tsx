@@ -24,6 +24,7 @@ const convite = (dados: Partial<MeuConvite> = {}): MeuConvite => ({
   email_do_convidado: null,
   emitido_em: '2026-09-24T12:00:00Z',
   validado_em: null,
+  observacoes: null,
   ...dados,
 })
 
@@ -152,6 +153,7 @@ describe('CompraPage', () => {
         tipo_do_documento: 'Cpf',
         numero_do_documento: '111.444.777-35',
         email: null,
+        observacoes: null,
       }),
     )
   })

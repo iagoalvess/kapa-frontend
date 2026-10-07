@@ -223,11 +223,13 @@ describe('Página inicial', () => {
     renderizar(<PaginaInicial />)
 
     const guia = await screen.findByRole('region', { name: 'Primeiros passos' })
-    expect(within(guia).getByText('Convide os formandos')).toBeInTheDocument()
-    expect(within(guia).getByRole('link', { name: 'Convide os formandos' })).toHaveAttribute(
+    expect(within(guia).getByRole('link', { name: 'Monte o plano de cobrança' })).toHaveAttribute(
       'href',
-      '/formatura#convites',
+      '/cobrancas',
     )
+    // Formando só entra com plano, termo e contratação: até lá o passo aparece, mas trancado.
+    expect(within(guia).getByText(/Convide os formandos/)).toBeInTheDocument()
+    expect(within(guia).queryByRole('link', { name: 'Convide os formandos' })).not.toBeInTheDocument()
   })
 
   it('explica que o aceite gera as parcelas e abre o termo disponível', async () => {

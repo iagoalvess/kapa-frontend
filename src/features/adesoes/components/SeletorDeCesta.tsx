@@ -80,7 +80,7 @@ export function SeletorDeCesta({
                   name={grupo}
                   checked={marcada === null}
                   onChange={() => escolherFaixa(grupo, null)}
-                  className="accent-brand size-4 shrink-0"
+                  className="size-4"
                 />
                 Não quero
               </label>
@@ -148,13 +148,7 @@ function Opcao({
         marcada && 'border-brand bg-brand-tint',
       )}
     >
-      <input
-        type={tipo}
-        name={nome}
-        checked={marcada}
-        onChange={aoMarcar}
-        className="accent-brand size-4 shrink-0"
-      />
+      <input type={tipo} name={nome} checked={marcada} onChange={aoMarcar} className="size-4" />
       <span className="grid min-w-0 flex-1">
         <span className="text-foreground flex items-center gap-1.5 font-medium">
           {rotuloDoItem(pacote)}

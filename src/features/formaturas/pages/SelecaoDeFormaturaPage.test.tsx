@@ -49,6 +49,7 @@ describe('SelecaoDeFormaturaPage', () => {
             instituicao: 'UFSC',
             ano: 2027,
             papel: 'Formando',
+            desligado_em: '2026-05-10T12:00:00Z',
           },
         ]),
       ),
@@ -56,11 +57,14 @@ describe('SelecaoDeFormaturaPage', () => {
 
     renderizar(<SelecaoDeFormaturaPage />)
 
-    // Curso, instituição e ano junto do nome: turmas homônimas precisam ser distinguíveis.
+    // Ano, curso e instituição junto do nome: turmas homônimas precisam ser distinguíveis.
     expect(
-      await screen.findByRole('button', { name: /Engenharia 2026.*Engenharia · UFPR · 2026/ }),
+      await screen.findByRole('button', { name: /2026.*Engenharia 2026.*Engenharia · UFPR.*Presidente/ }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Medicina 2027/ })).toBeInTheDocument()
+    // A turma de onde saiu continua na lista, dizendo desde quando — e não o papel que tinha.
+    expect(
+      screen.getByRole('button', { name: /Medicina 2027.*Desligado em 10\/05\/2026/ }),
+    ).toBeInTheDocument()
     expect(screen.queryByText(/não está em uma formatura/i)).not.toBeInTheDocument()
   })
 })
