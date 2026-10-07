@@ -10,10 +10,10 @@ import {
   Link2,
   MoreVertical,
 } from 'lucide-react'
-import mascoteCelular from '@/assets/mascote/celular.webp'
 import mascoteChecklist from '@/assets/mascote/checklist.webp'
 import qrcode from '@/assets/outros/qrcode.webp'
 import whatsapp from '@/assets/outros/whatsapp.webp'
+import { Folha } from '@/components/Folha'
 import { cn } from '@/lib/utils'
 import { ChamadaPrincipal } from './ChamadaPrincipal'
 import { SecaoDaLanding } from './SecaoDaLanding'
@@ -135,43 +135,40 @@ function MaqueteDoConvite() {
 
 function MaqueteDaCobranca() {
   return (
-    <div className="relative h-60" aria-hidden>
-      <div className="bg-card shadow-cartao relative z-10 grid w-[80%] gap-3 rounded-[22px] p-3.5">
-        <span className="text-brand-text text-xs font-semibold">Plano da turma</span>
-        <div className="flex items-start gap-2.5">
-          <img src={qrcode} alt="" loading="lazy" width={68} height={68} className="size-[68px] shrink-0" />
-          <div className="grid min-w-0 gap-1">
-            <span className="text-foreground text-sm font-semibold whitespace-nowrap tabular-nums">
+    <div className="relative flex h-60 items-center" aria-hidden>
+      {/* O plano anotado numa folha presa por clipe, com o termo carimbado: a papelaria do Hero. */}
+      <Folha prende="grampo" dobra compacto className="z-10 grid w-[82%] -rotate-2 gap-2.5 p-3.5 pt-6">
+        <span className="font-hand text-brand-text text-xl leading-none">Plano da turma</span>
+        <span className="border-success/60 text-success-text absolute top-4 right-3 flex rotate-6 items-center gap-1 rounded-md border-2 px-1.5 py-0.5 text-[9px] font-semibold">
+          <Check className="size-3" strokeWidth={3} />
+          Termo publicado
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="bg-card shadow-foto shrink-0 -rotate-3 p-1">
+            <img src={qrcode} alt="" loading="lazy" width={60} height={60} className="size-[60px]" />
+          </span>
+          <div className="grid min-w-0">
+            <span className="text-foreground text-base font-extrabold tracking-tight whitespace-nowrap tabular-nums">
               12 × R$ 256,23
             </span>
             <span className="text-muted-foreground text-[10px]">vence todo dia 10</span>
-            <span className="text-success-text mt-1 flex items-center gap-1 text-[8px] font-medium">
-              <span className="bg-success text-card grid size-3.5 shrink-0 place-items-center rounded-full">
-                <Check className="size-2.5" strokeWidth={3} />
-              </span>
-              Termo publicado
-            </span>
           </div>
         </div>
-        <span className="bg-brand-wash text-brand-text flex items-center justify-center gap-1.5 rounded-xl py-2 text-[10px] font-medium">
-          PIX · Cartão · Dinheiro
-        </span>
-      </div>
-      <div className="font-hand text-primary-foreground absolute -top-9 -right-1 z-20 -rotate-12 text-center text-lg leading-4">
+        <ul className="border-border text-foreground flex gap-3 border-t border-dashed pt-2 pr-6 text-[10px] font-medium">
+          {['PIX', 'Cartão', 'Dinheiro'].map((meio) => (
+            <li key={meio} className="flex items-center gap-1">
+              <Check className="text-brand-text size-3" strokeWidth={3} />
+              {meio}
+            </li>
+          ))}
+        </ul>
+      </Folha>
+      <div className="font-hand text-primary-foreground absolute top-[calc(50%-7.5rem)] -right-1 z-20 -rotate-12 text-center text-lg leading-4">
         Tudo
         <br />
         pronto!
         <Heart className="mx-auto mt-1 size-4 rotate-12" />
       </div>
-      <img
-        src={mascoteCelular}
-        alt=""
-        loading="lazy"
-        width={400}
-        height={400}
-        className="pointer-events-none absolute -right-7 bottom-0 z-20 w-[51%] max-w-44 drop-shadow-md"
-      />
-      <Tracos className="text-primary-foreground absolute right-0 bottom-16 z-20 size-7 rotate-12" />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import { Check } from 'lucide-react'
 import type { ReactNode } from 'react'
 import pin from '@/assets/fotos/pin.webp'
-import mascoteAcenando from '@/assets/mascote/acenando.webp'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { formatarCentavos } from '@/lib/formato'
@@ -50,25 +49,6 @@ export function DaParcelaAoBaile() {
           <ReciboDaParcela />
         </Etapa>
       </ol>
-
-      <div className="flex items-end justify-center sm:justify-end">
-        <div className="flex items-end gap-4">
-          <p className="font-hand mb-6 text-2xl leading-tight sm:text-3xl">
-            com as contas
-            <br />
-            já fechadas
-            <Coracao className="text-on-brand ml-2 inline size-6 align-[-0.2em]" />
-          </p>
-          <img
-            src={mascoteAcenando}
-            alt="Mascote do Kapa acenando"
-            loading="lazy"
-            width={400}
-            height={400}
-            className="w-28 drop-shadow-lg sm:w-36"
-          />
-        </div>
-      </div>
     </SecaoDaLanding>
   )
 }

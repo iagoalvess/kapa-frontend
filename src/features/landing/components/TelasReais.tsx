@@ -39,9 +39,6 @@ export function TelasReais() {
             <h3 className="text-foreground text-xl font-semibold tracking-tight">
               O grande dia, na palma da mão
             </h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Cada convidado recebe o seu, com a data, o local e o código para apresentar na entrada.
-            </p>
           </figcaption>
           <div className="relative mx-auto w-full max-w-[330px] lg:my-auto lg:-rotate-[3deg]">
             <span

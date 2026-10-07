@@ -6,6 +6,7 @@ import avatarCarla from '@/assets/avatares/carla-souza.webp'
 import fotoDoBaile from '@/assets/fotos/baile.webp'
 import qrcode from '@/assets/outros/qrcode.webp'
 import carteira from '@/assets/outros/carteira.webp'
+import { Folha } from '@/components/Folha'
 import { cn } from '@/lib/utils'
 import { SecaoDaLanding } from './SecaoDaLanding'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
@@ -25,6 +26,7 @@ function Cartao({
   tom = 'creme',
   tituloPrimeiro = false,
   className,
+  maqueteClassName,
   children,
 }: {
   titulo: string
@@ -33,12 +35,13 @@ function Cartao({
   tom?: 'creme' | 'destaque'
   tituloPrimeiro?: boolean
   className?: string
+  maqueteClassName?: string
   children: ReactNode
 }) {
   return (
     <li
       className={cn(
-        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative grid min-w-0 content-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow max-sm:p-3 sm:min-h-52',
+        'cartao-ao-rolar group shadow-vitrine hover:shadow-vitrine-hover relative flex min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border p-4 transition-shadow max-sm:p-3 sm:min-h-52',
         // A seção é o creme; o cartão é o claro do hero. Chapado, porque um degradê que terminasse
         // no creme faria o canto do cartão sumir no fundo.
         tom === 'creme' && 'border-brand-tint/70 bg-background',
@@ -47,7 +50,14 @@ function Cartao({
         className,
       )}
     >
-      <div className={cn('relative flex h-36 min-w-0 items-center', !largo && 'max-sm:[zoom:0.7]')}>
+      <div
+        className={cn(
+          // A maquete cresce com a linha da grade: um vizinho mais alto não abre buraco entre ela e o texto.
+          'relative flex min-h-36 min-w-0 flex-1 items-center',
+          !largo && 'max-sm:[zoom:0.7]',
+          maqueteClassName,
+        )}
+      >
         {children}
       </div>
       <div
@@ -219,47 +229,33 @@ const DESPESAS = [
   { rotulo: 'Decoração', valor: 'R$ 3.200', icone: Flower2 },
 ]
 
+/** A lista e o saldo anotados numa folha, como nos recados dos criativos. */
 function MaqueteDeDespesas() {
   return (
-    <div className="grid w-full gap-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_56px] items-center gap-1.5">
-        <dl className="bg-card divide-border/60 grid divide-y rounded-xl px-2 py-1 shadow-sm">
+    <div className="relative grid w-full gap-3 pr-6">
+      <div className="bg-card shadow-foto border-brand-soft grid -rotate-2 gap-2 rounded-[2px] border-l-2 px-3 py-2">
+        <dl className="divide-border text-foreground grid divide-y">
           {DESPESAS.map((despesa) => (
-            <div key={despesa.rotulo} className="flex items-center gap-1 py-0.5">
-              <span
-                className="bg-brand-wash text-brand-text grid size-5 shrink-0 place-items-center rounded-md"
-                aria-hidden
-              >
-                <despesa.icone className="size-3" />
-              </span>
-              <dt className="text-foreground flex-1 text-[9px]">{despesa.rotulo}</dt>
-              <dd className="text-foreground text-[9px] font-medium whitespace-nowrap tabular-nums">
-                {despesa.valor}
-              </dd>
+            <div key={despesa.rotulo} className="flex items-center gap-2 py-1.5">
+              <despesa.icone className="text-brand-text size-3.5 shrink-0" aria-hidden />
+              <dt className="flex-1 text-[10px]">{despesa.rotulo}</dt>
+              <dd className="text-[10px] font-medium whitespace-nowrap tabular-nums">{despesa.valor}</dd>
             </div>
           ))}
         </dl>
-        <img
-          src={carteira}
-          alt=""
-          loading="lazy"
-          className="motion-safe:animate-flutuar-devagar w-14 drop-shadow-sm"
-        />
-      </div>
-      <div className="bg-card flex items-center gap-3 rounded-xl px-3 py-2 shadow-sm">
-        <div className="grid shrink-0 gap-0.5">
-          <span className="text-muted-foreground text-[10px]">Deve sobrar</span>
-          <strong className="text-success-text text-base leading-tight font-bold tabular-nums">
+        <div className="border-border border-t pt-2">
+          <span className="font-hand text-brand-text text-lg leading-none">Deve sobrar para a festa</span>
+          <strong className="text-success-text mt-1 block text-2xl leading-none font-bold tracking-tight tabular-nums">
             R$ 18.360
           </strong>
         </div>
-        <span
-          className="bg-success-bg mt-3 block h-2 min-w-0 flex-1 overflow-hidden rounded-full"
-          aria-hidden
-        >
-          <span className="bg-success/35 crescer-ao-rolar block h-full w-[64%] origin-left rounded-full" />
-        </span>
       </div>
+      <img
+        src={carteira}
+        alt=""
+        loading="lazy"
+        className="motion-safe:animate-flutuar-devagar absolute -right-2 -bottom-2 w-12 drop-shadow-sm"
+      />
     </div>
   )
 }
@@ -317,35 +313,34 @@ function MaqueteDaRegua() {
   )
 }
 
+/** A foto do baile presa com fita ao lado da página do caderno, onde a festa e a meta estão anotadas. */
 function MaqueteDaFesta() {
   return (
-    <div className="grid h-full w-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] items-center gap-3">
-      <div className="relative mx-1">
-        <figure className="bg-card -rotate-3 rounded-lg p-1.5 pb-1 shadow-md motion-safe:transition-transform motion-safe:group-hover:rotate-0">
-          <img src={fotoDoBaile} alt="" loading="lazy" className="h-24 w-full rounded object-cover" />
-          <figcaption className="font-hand text-brand-text flex items-center justify-center gap-1 py-1 text-xs leading-none lg:text-sm">
-            O grande dia <Heart className="size-3" aria-hidden />
-          </figcaption>
-        </figure>
-      </div>
-      <div className="grid min-w-0 gap-2">
+    <div className="relative grid h-full w-full grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] items-center gap-3 px-1 pt-2">
+      <figure className="bg-card shadow-foto relative z-10 -rotate-6 p-2 pb-1">
+        <span
+          aria-hidden
+          className="bg-brand-soft/70 absolute -top-2 left-1/2 h-4 w-16 -translate-x-1/2 rotate-6"
+        />
+        <img src={fotoDoBaile} alt="" loading="lazy" className="h-24 w-full object-cover sm:h-28" />
+        <figcaption className="font-hand text-brand-text flex justify-center gap-1 py-1 text-sm leading-none">
+          a gente chega lá <Heart className="size-3" aria-hidden />
+        </figcaption>
+      </figure>
+      <Folha prende="espiral" pautada compacto className="grid min-w-0 rotate-2 pt-6 pr-3 pb-5">
+        <p className="font-hand text-brand-text text-xl leading-5 max-sm:hidden">Anota aí: a nossa festa!</p>
         <div className="flex items-center gap-2">
-          <span className="bg-card text-brand-text grid size-8 shrink-0 content-center justify-items-center rounded-lg shadow-sm">
-            <span className="text-[8px] leading-none font-semibold">DEZ</span>
-            <strong className="text-sm leading-tight">12</strong>
-          </span>
-          <div className="grid min-w-0 gap-1">
-            <span className="text-foreground text-[10px] leading-tight font-semibold sm:text-xs">
-              12 de dezembro de 2026
-            </span>
-            <span className="text-muted-foreground flex items-start gap-1 text-[9px] leading-tight sm:text-[10px]">
-              <MapPin className="text-brand-text size-3 shrink-0" aria-hidden />
+          <span className="font-hand text-brand-text text-3xl leading-10">12</span>
+          <div className="grid min-w-0 text-[9px] leading-5">
+            <span className="text-foreground font-semibold">dezembro de 2026</span>
+            <span className="text-muted-foreground flex items-start gap-1">
+              <MapPin className="text-brand-text size-2.5 shrink-0" aria-hidden />
               Espaço Vista Verde
             </span>
           </div>
         </div>
         <MetaDaTurmaAnimada />
-      </div>
+      </Folha>
     </div>
   )
 }
@@ -388,12 +383,14 @@ export function Recursos() {
           tom="destaque"
           className="max-sm:order-1"
           titulo="Gastos e saldo da turma"
+          maqueteClassName="sm:min-h-44"
           texto="Acompanhem os gastos e vejam quanto sobra para a festa."
         >
           <MaqueteDeDespesas />
         </Cartao>
         <Cartao
           titulo="Lembrete de pagamento"
+          maqueteClassName="items-end"
           texto="Quem tem uma parcela em aberto recebe um lembrete por e-mail."
         >
           <MaqueteDaRegua />
@@ -402,6 +399,7 @@ export function Recursos() {
           largo
           className="max-sm:order-2"
           titulo="Festa e meta"
+          maqueteClassName="min-h-56"
           texto="Data, local e quanto ainda falta juntar para a festa."
         >
           <MaqueteDaFesta />

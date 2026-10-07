@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import alvo from '@/assets/outros/alvo.webp'
 import { ConfetesDaMeta } from '@/components/ConfetesDaMeta'
 import { formatarNumero } from '@/lib/formato'
 import { cn } from '@/lib/utils'
@@ -88,41 +87,34 @@ export function MetaDaTurmaAnimada({ grande = false, className }: { grande?: boo
   return (
     <div
       ref={cartao}
-      className={cn(
-        'bg-card relative rounded-2xl shadow-md',
-        grande ? 'p-3.5 max-[374px]:p-2.5' : 'w-full max-w-60 p-2.5 lg:p-3',
-        className,
-      )}
+      className={cn('relative', grande ? 'py-3.5 max-[374px]:py-2.5' : 'w-full max-w-60', className)}
     >
       <span className="sr-only">Meta da turma: R$ 48.000. 100% alcançados, R$ 48.000 arrecadados.</span>
-      <div className={cn('grid', grande ? 'gap-2.5' : 'gap-2')} aria-hidden>
-        <div className={cn('flex items-center', grande ? 'gap-2.5 max-[374px]:gap-1.5' : 'gap-1.5 lg:gap-2')}>
-          <img
-            src={alvo}
-            alt=""
-            loading="lazy"
-            width={36}
-            height={36}
-            className={cn('shrink-0', grande ? 'size-9 max-[374px]:size-6' : 'size-6 lg:size-8')}
-          />
-          <div className="grid min-w-0">
-            <span className={cn('text-muted-foreground', grande ? 'text-xs' : 'text-[9px] lg:text-[10px]')}>
-              Meta da turma
-            </span>
-            <strong
-              className={cn(
-                'text-foreground leading-tight font-extrabold tracking-tight whitespace-nowrap',
-                grande ? 'text-xl max-[374px]:text-sm' : 'text-sm lg:text-lg',
-              )}
-            >
-              R$ 48.000
-            </strong>
-          </div>
+      {/* A pequena mora numa folha pautada: cada linha tem a altura da pauta (20px), sem vão entre elas,
+          para o texto assentar nas linhas. */}
+      <div className={cn('grid', grande && 'gap-2.5')} aria-hidden>
+        <div className="grid min-w-0">
+          <span
+            className={cn(
+              'font-hand text-brand-text',
+              grande ? 'text-lg leading-none' : 'text-base leading-5',
+            )}
+          >
+            Meta da turma
+          </span>
+          <strong
+            className={cn(
+              'text-foreground font-extrabold tracking-tight whitespace-nowrap',
+              grande ? 'mt-1 text-3xl leading-tight max-[374px]:text-xl' : 'text-2xl leading-10',
+            )}
+          >
+            R$ 48.000
+          </strong>
         </div>
-        <div className={cn('flex items-center', grande ? 'gap-2.5' : 'gap-2')}>
+        <div className={cn('flex items-center', grande ? 'gap-2.5' : 'h-5 gap-2')}>
           <div className="relative min-w-0 flex-1">
-            <div className="bg-muted h-3 overflow-hidden rounded-full">
-              <div className="bg-brand h-full rounded-full" style={{ width: `${progresso}%` }} />
+            <div className="bg-brand-tint h-1.5 overflow-hidden rounded-full">
+              <div className="bg-brand-hover h-full rounded-full" style={{ width: `${progresso}%` }} />
             </div>
             {celebrando && <ConfetesDaMeta />}
           </div>
@@ -138,11 +130,16 @@ export function MetaDaTurmaAnimada({ grande = false, className }: { grande?: boo
         <span
           className={cn(
             'text-muted-foreground tabular-nums',
-            grande ? 'text-xs' : 'text-[9px] sm:text-[10px]',
+            grande ? 'text-xs' : 'text-[9px] leading-5 sm:text-[10px]',
           )}
         >
           R$ {formatarNumero(Math.round((META * progresso) / 100))} arrecadados
         </span>
+        {grande ? (
+          <span className="font-hand text-success-text -rotate-2 text-base leading-none">
+            uma turma inteira construindo esse sonho
+          </span>
+        ) : null}
       </div>
     </div>
   )

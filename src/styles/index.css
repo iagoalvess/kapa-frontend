@@ -87,6 +87,13 @@
   /* A moldura do celular das telas reais da landing (eram os zinc-900/700 do Tailwind). */
   --ilustracao-celular: #18181b;
   --ilustracao-celular-borda: #3f3f46;
+  /* O arame da espiral, o grampo e o prendedor da prancheta da landing: aço do claro ao escuro. */
+  --ilustracao-metal-brilho: #f4f2ef;
+  --ilustracao-metal-claro: #c9c5c0;
+  --ilustracao-metal: #9a958f;
+  --ilustracao-metal-escuro: #6d6863;
+  /* As linhas da folha de caderno: só um sussurro, quase da cor do papel. */
+  --ilustracao-pauta: #f3eee8;
 
   /* Neutros */
   --page: #f7f6f3;
@@ -211,6 +218,11 @@
   --color-ilustracao-envelope-dobra: var(--ilustracao-envelope-dobra);
   --color-ilustracao-celular: var(--ilustracao-celular);
   --color-ilustracao-celular-borda: var(--ilustracao-celular-borda);
+  --color-ilustracao-metal-brilho: var(--ilustracao-metal-brilho);
+  --color-ilustracao-metal-claro: var(--ilustracao-metal-claro);
+  --color-ilustracao-metal: var(--ilustracao-metal);
+  --color-ilustracao-metal-escuro: var(--ilustracao-metal-escuro);
+  --color-ilustracao-pauta: var(--ilustracao-pauta);
   --color-sinal-positivo-bg: var(--sinal-positivo-bg);
   --color-sinal-positivo-text: var(--sinal-positivo-text);
   --color-sinal-negativo-bg: var(--sinal-negativo-bg);

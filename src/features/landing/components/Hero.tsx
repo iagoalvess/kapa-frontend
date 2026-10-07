@@ -8,6 +8,7 @@ import fotoViagem from '@/assets/fotos/viagem.webp'
 import pin from '@/assets/fotos/pin.webp'
 import mascoteEncostado from '@/assets/mascote/encostado.webp'
 import { Button } from '@/components/ui/button'
+import { Folha } from '@/components/Folha'
 import { cn } from '@/lib/utils'
 import { ChamadaPrincipal } from './ChamadaPrincipal'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
@@ -124,7 +125,7 @@ export function Hero() {
 
           <CardDaTurma />
 
-          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-[359px]:[&>div]:-translate-x-11 max-sm:[&>div]:-mr-4 min-[360px]:max-sm:[&>div]:-translate-x-5 sm:max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
+          <div className="grid justify-items-end lg:h-[clamp(19rem,calc(100svh-26rem),28rem)] lg:grid-rows-3 lg:items-start lg:justify-items-start max-[359px]:[&>div]:-translate-x-11 max-sm:[&>div]:-mr-4 sm:max-lg:[&>div]:-mr-12 max-lg:[&>div+div]:-mt-6 min-[360px]:max-sm:[&>div:first-child]:-translate-x-5 lg:[&>div:last-child]:self-end max-sm:[&>div:nth-child(2)]:-mr-1 sm:max-lg:[&>div:nth-child(2)]:-mr-5 lg:[&>div:nth-child(2)]:self-center">
             <Polaroid
               foto={fotoViagem}
               legenda="Viagem"
@@ -163,12 +164,6 @@ const ETAPAS = [
   { rotulo: 'Formatura', periodo: 'Dez', x: 81, y: 14, estado: 'final' },
 ] as const
 
-/**
- * No celular o cartão fica estreito entre as polaroids, e os quatro rótulos lado a lado se encavalavam:
- * os de posição ímpar descem uma linha, com a linha pontilhada esticando junto.
- */
-const DESCE_NO_CELULAR = 'max-sm:[--desce:1.75rem]'
-
 /** Altura da área da curva, em px. O `y` das etapas é uma porcentagem dela. */
 const ALTURA_DA_CURVA = 72
 
@@ -185,39 +180,36 @@ function alturasDa(etapa: (typeof ETAPAS)[number]) {
 }
 
 /**
- * O card central do mural: a meta da turma, a linha do tempo da formatura e o mascote apoiado no
- * painel do gráfico.
+ * O card central do mural: a folha da meta, presa por um clipe sobre outra folha, com a linha do
+ * tempo da formatura e o mascote apoiado no painel do gráfico. No celular fica só a meta.
  *
- * O card da meta ocupa pouco mais da metade da largura porque o resto é do mascote: ele fica à
+ * A meta ocupa pouco mais da metade da largura porque o resto é do mascote: ele fica à
  * direita dela, com as patas na quina do painel de baixo. No desktop, a imagem fica ancorada ao
  * próprio painel. O deslocamento compensa os 11% transparentes da base da arte e deixa a pata
  * avançar 7px sobre a borda, mesmo quando a altura do card da meta mudar.
  */
 function CardDaTurma() {
   return (
-    <div className="relative z-10">
+    <div className="relative z-10 max-sm:-translate-y-8">
       <img
         src={mascoteEncostado}
         alt=""
         className="relative z-20 mx-auto -mb-8 w-32 drop-shadow-xl sm:-mb-10 sm:w-48 lg:hidden"
       />
 
-      <div className="from-brand-wash to-brand-tint border-brand-tint shadow-painel relative z-10 rounded-[28px] border bg-gradient-to-b p-3.5 sm:p-5">
-        {/* O card da meta é uma carta solta sobre o painel: recuado da quina e com a base
-            entrando nele (`-mb`), não uma faixa encaixada em cima. */}
-        <MetaDaTurmaAnimada grande className="z-10 -mb-6 lg:ml-5 lg:max-w-[47%]" />
+      <Folha prende="grampo" dobra tom="creme" className="z-10 -rotate-1 p-3.5 pt-6 sm:p-5 sm:pt-7">
+        <MetaDaTurmaAnimada grande className="z-10 lg:ml-1 lg:max-w-[47%]" />
 
-        <div className="bg-card relative mt-4 grid rounded-2xl px-2 pt-8 pb-2.5 sm:px-4 sm:pb-4">
+        {/* No celular a folha fica estreita entre as polaroids: sai o gráfico, fica a meta. */}
+        <div className="border-brand-soft relative mt-4 grid border-t border-dashed px-2 pt-8 pb-2.5 max-sm:hidden sm:px-4 sm:pb-4">
           <img
             src={mascoteEncostado}
             alt=""
             className="pointer-events-none absolute right-1 bottom-full z-20 hidden w-48 translate-y-[calc(11%+7px)] drop-shadow-lg lg:block"
           />
 
-          <div className="relative h-28 max-sm:h-32">
-            {/* No celular, a curva ocupa a região central para os rótulos das pontas caberem
-                no painel. O mesmo recuo se aplica ao SVG, aos marcadores e às legendas. */}
-            <div className="relative h-full max-sm:ml-[14%] max-sm:w-[82%]">
+          <div className="relative h-28">
+            <div className="relative h-full">
               <svg
                 viewBox="0 0 100 100"
                 preserveAspectRatio="none"
@@ -250,7 +242,7 @@ function CardDaTurma() {
 
               {/* A linha pontilhada que amarra o marcador ao seu rótulo. O comprimento é diferente em
                 cada etapa: é ela que absorve a subida da curva. */}
-              {ETAPAS.map((etapa, indice) => {
+              {ETAPAS.map((etapa) => {
                 const { marcador, rotulo } = alturasDa(etapa)
                 return (
                   <span
@@ -259,12 +251,9 @@ function CardDaTurma() {
                     style={{
                       left: `${etapa.x}%`,
                       top: marcador + 10,
-                      height: `calc(${rotulo - marcador - 14}px + var(--desce, 0px))`,
+                      height: rotulo - marcador - 14,
                     }}
-                    className={cn(
-                      'border-brand/45 absolute -translate-x-1/2 border-l border-dashed',
-                      indice % 2 === 1 && DESCE_NO_CELULAR,
-                    )}
+                    className="border-brand/45 absolute -translate-x-1/2 border-l border-dashed"
                   />
                 )
               })}
@@ -289,21 +278,16 @@ function CardDaTurma() {
               {/* Cada rótulo sai no `x` do seu marcador e acompanha em parte a altura dele — numa
                 linha reta o texto descolaria da curva, que não anda em passos regulares. */}
               <ol className="absolute inset-0">
-                {ETAPAS.map((etapa, indice) => (
+                {ETAPAS.map((etapa) => (
                   <li
                     key={etapa.rotulo}
                     style={{
                       left: `${etapa.x}%`,
-                      top: `calc(${alturasDa(etapa).rotulo}px + var(--desce, 0px))`,
+                      top: alturasDa(etapa).rotulo,
                     }}
-                    className={cn(
-                      'absolute grid -translate-x-1/2 text-center',
-                      indice % 2 === 1 && DESCE_NO_CELULAR,
-                    )}
+                    className="absolute grid -translate-x-1/2 text-center"
                   >
-                    <span className="text-foreground text-[clamp(8px,2.3vw,10px)] font-semibold sm:text-xs">
-                      {etapa.rotulo}
-                    </span>
+                    <span className="text-foreground text-xs font-semibold">{etapa.rotulo}</span>
                     <span className="text-muted-foreground text-[9px] sm:text-[10px]">{etapa.periodo}</span>
                   </li>
                 ))}
@@ -335,7 +319,14 @@ function CardDaTurma() {
             </div>
           </div>
         </div>
-      </div>
+        <p className="font-hand text-brand-text relative mt-1 flex items-center justify-center gap-2 pb-1 text-center text-lg leading-tight max-sm:pr-8 sm:text-xl">
+          <span>
+            nosso sonho vai <br className="sm:hidden" />
+            saindo do papel
+          </span>
+          <Coracao className="size-4 shrink-0" />
+        </p>
+      </Folha>
     </div>
   )
 }
