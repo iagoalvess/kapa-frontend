@@ -13,8 +13,8 @@ import { SecaoDaLanding } from './SecaoDaLanding'
  * "Da primeira reunião ao baile": o caminho até a festa numa trilha, no idioma do post 22 dos criativos
  * — fundo laranja, papel com percevejo, recado à mão e pontilhado ligando uma etapa à outra.
  *
- * Reúne agenda, mural, recibos, arrecadações, relatórios e mesas em objetos dos criativos.
- * As folhas e a lista aberta dão forma a cada assunto, sem repetir a vitrine de Recursos.
+ * Reúne agenda, mural e recibos em objetos dos criativos, sem repetir a vitrine de Recursos.
+ * Arrecadações, relatório e mapa do salão ficam exportados para reutilização fora desta seção.
  */
 export function DaParcelaAoBaile() {
   return (
@@ -23,7 +23,7 @@ export function DaParcelaAoBaile() {
       titulo="Da primeira reunião"
       destaque="ao baile."
       nota="pra lembrar de cada detalhe até a festa"
-      descricao="Das reuniões ao lugar de cada família na festa: a turma acompanha as datas, os avisos e as contas num lugar só."
+      descricao="Das reuniões aos pagamentos: a turma acompanha as datas, os avisos e os recibos num lugar só."
       className="gap-14 lg:gap-16"
     >
       <ol className="grid gap-x-10 gap-y-12 sm:grid-cols-2 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-28 lg:gap-y-20">
@@ -48,29 +48,6 @@ export function DaParcelaAoBaile() {
           descricao="A comissão confere o pagamento, e o recibo chega no e-mail do formando."
         >
           <ReciboDaParcela />
-        </Etapa>
-
-        <Etapa
-          nota="não vem só das parcelas"
-          descricao="Rifas, eventos e patrocínios entram no mesmo caixa da turma."
-          trilha="subindo"
-        >
-          <ArrecadacoesDaTurma />
-        </Etapa>
-
-        <Etapa
-          nota="contas abertas pra turma"
-          descricao="O que entrou e o que foi gasto no mês, pronto para mostrar na reunião da turma."
-          trilha="descendo"
-        >
-          <RelatorioDoMes />
-        </Etapa>
-
-        <Etapa
-          nota="a família já tem seu lugar"
-          descricao="Cada formando escolhe sua mesa e vê onde a família vai sentar."
-        >
-          <MapaDoSalao />
         </Etapa>
       </ol>
 
@@ -194,7 +171,7 @@ const ARRECADACOES = [
 ] as const
 
 /** A lista aberta do criativo 08: os valores ficam sobre o fundo, ao lado do cofrinho. */
-function ArrecadacoesDaTurma() {
+export function ArrecadacoesDaTurma() {
   return (
     <div className="relative w-full max-w-xs pt-2 pb-24">
       <p className="text-xs font-medium tracking-wide">Além das mensalidades</p>
@@ -234,7 +211,7 @@ const MOVIMENTOS = [
 ] as const
 
 /** Uma folha de prestação de contas, com colunas legíveis e o saldo anotado à mão. */
-function RelatorioDoMes() {
+export function RelatorioDoMes() {
   const saldo = MOVIMENTOS.reduce(
     (total, movimento) => total + (movimento.entrada ?? 0) - (movimento.saida ?? 0),
     0,
@@ -286,7 +263,8 @@ function RelatorioDoMes() {
 const MESAS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const LIVRES = new Set([3, 7])
 
-function MapaDoSalao() {
+/** Ilustração do salão preservada para reutilização fora da trilha da landing. */
+export function MapaDoSalao() {
   return (
     <div className="bg-card text-foreground shadow-foto relative w-60 -rotate-2 rounded-[4px] p-4">
       <img
