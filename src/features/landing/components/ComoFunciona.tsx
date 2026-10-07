@@ -135,7 +135,7 @@ function MaqueteDoConvite() {
 
 function MaqueteDaCobranca() {
   return (
-    <div className="relative flex h-60 items-center" aria-hidden>
+    <div className="relative -mt-4 flex h-60 items-start pt-3" aria-hidden>
       {/* O plano anotado numa folha presa por clipe, com o termo carimbado: a papelaria do Hero. */}
       <Folha prende="grampo" dobra compacto className="z-10 grid w-[82%] -rotate-2 gap-2.5 p-3.5 pt-6">
         <span className="font-hand text-brand-text text-xl leading-none">Plano da turma</span>
@@ -163,7 +163,7 @@ function MaqueteDaCobranca() {
           ))}
         </ul>
       </Folha>
-      <div className="font-hand text-primary-foreground absolute top-[calc(50%-7.5rem)] -right-1 z-20 -rotate-12 text-center text-lg leading-4">
+      <div className="font-hand text-primary-foreground absolute -top-6 -right-1 z-20 -rotate-12 text-center text-lg leading-4">
         Tudo
         <br />
         pronto!
