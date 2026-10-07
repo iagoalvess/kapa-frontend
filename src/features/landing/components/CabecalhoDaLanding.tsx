@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { env } from '@/config/env'
 import { ROTAS, urlDoApp } from '@/config/rotas'
 import { ChamadaPrincipal } from './ChamadaPrincipal'
+import { ANCORA_DA_LISTA_DE_ESPERA } from './ListaDeEspera'
 
-/** O botão ao lado do CTA: "Entrar" no app ou, com a lista de espera, o e-mail do contato@. */
+/** O botão ao lado do CTA: "Entrar" no app ou "Fale com a gente" na lista de espera. */
 const entrar = env.VITE_LISTA_DE_ESPERA
-  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Contato', rotuloCurto: 'Contato' }
-  : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar', rotuloCurto: 'Entrar' }
+  ? { href: `#${ANCORA_DA_LISTA_DE_ESPERA}`, rotulo: 'Fale com a gente' }
+  : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar' }
 
 /**
  * As âncoras do menu, na ordem em que as seções aparecem na página. Com a lista de espera ligada, a
@@ -27,7 +28,7 @@ const SECOES = [
  *
  * Fica grudado no topo e com fundo translúcido — a página é longa, e o CTA precisa continuar a um
  * clique de distância na décima rolagem. Os dois botões ficam à vista em qualquer largura, com
- * rótulos curtos só no celular; as âncoras vão para a gaveta nessa largura.
+ * o CTA mais curto só no celular; as âncoras vão para a gaveta nessa largura.
  *
  * As âncoras são `<a href="#...">` de verdade, e não `onClick` com `scrollTo`: link é copiável,
  * abre em nova aba e funciona com o teclado. O deslocamento do cabeçalho grudado sai do
@@ -35,7 +36,7 @@ const SECOES = [
  *
  * "Entrar" e "Criar minha turma" levam ao app, em outro endereço (P2 da Sprint 33). Com a lista de espera
  * ligada (Sprint 36), o app ainda não está no ar: "Criar minha turma" leva ao formulário, e "Entrar" vira
- * "Fale com a gente", um e-mail para o contato@ — o Kapa só fala com as turmas por e-mail. O site não sabe se
+ * "Fale com a gente", que também leva ao formulário da lista de espera. O site não sabe se
  * há sessão, de propósito: o cookie dela é da API e não vem para cá — quem já entrou e clica em
  * "Entrar" cai no app, que o manda direto para o Início.
  */
@@ -68,15 +69,12 @@ export function CabecalhoDaLanding() {
         </nav>
 
         <div className="col-start-3 flex items-center gap-1.5 justify-self-end sm:gap-2">
-          <Button asChild variant="ghost" className="max-sm:px-2">
-            <a href={entrar.href}>
-              <span className="md:hidden">{entrar.rotuloCurto}</span>
-              <span className="hidden md:inline">{entrar.rotulo}</span>
-            </a>
+          <Button asChild variant="ghost" className="max-sm:px-2 max-sm:text-xs">
+            <a href={entrar.href}>{entrar.rotulo}</a>
           </Button>
           <ChamadaPrincipal
             curta
-            className="max-sm:gap-1.5 max-sm:px-3 max-sm:text-xs max-sm:has-[>svg]:px-3"
+            className="max-sm:gap-1.5 max-sm:px-3 max-sm:text-xs max-sm:has-[>svg]:px-3 max-sm:[&_svg]:hidden"
           />
           <Button
             variant="ghost"
