@@ -4,44 +4,44 @@ import { env } from '@/config/env'
 import { SecaoDaLanding } from './SecaoDaLanding'
 
 /**
- * As perguntas que toda comissão faz antes de contratar. Revistas em 28/09/2026, a pedido dele: tom
- * leve, de conversa, sem termo técnico (nada de "balancete", "trilha de auditoria", "criptografado").
- * O "quanto custa" responde sem valor (P10 da Sprint 36).
+ * Dúvidas da comissão sobre recebimentos, acompanhamento da turma e assinatura.
+ * Explica as escolhas disponíveis em linguagem de conversa, sem fixar preços do catálogo.
  */
 const PERGUNTAS = [
   {
-    pergunta: 'Quem cuida do dinheiro da turma?',
+    pergunta: 'Quem recebe e cuida do dinheiro da turma?',
     resposta:
-      'A própria comissão. Os pagamentos vão direto para a conta da turma. O Kapa ajuda a acompanhar quem pagou, os gastos e quanto sobrou.',
+      'A própria comissão, pelos meios de pagamento que escolher. Se usar a integração, os valores entram na conta da turma no Mercado Pago. A comissão administra o dinheiro e paga os fornecedores; o Kapa ajuda a registrar os recebimentos, os gastos e o saldo.',
   },
   {
-    pergunta: 'O formando pode pagar no cartão?',
+    pergunta: 'Como os formandos podem pagar?',
     resposta:
-      'Pode, inclusive em parcelas. A comissão conecta a conta da turma ao Mercado Pago. Quando o pagamento é aprovado, ele aparece no Kapa. Vocês escolhem quem paga a taxa do cartão: a turma ou o formando.',
+      'A comissão escolhe as opções que a turma vai oferecer. Com conferência manual, pode receber por PIX, transferência ou dinheiro. Se ativar a cobrança pelo Mercado Pago, os formandos pagam por PIX ou, se a comissão habilitar, cartão de crédito, com opção de parcelamento. No cartão, a comissão também escolhe se a turma assume a taxa ou repassa ao formando, que vê o valor antes de pagar.',
   },
   {
-    pergunta: 'Quanto custa?',
+    pergunta: 'Precisamos conferir cada pagamento manualmente?',
     resposta:
-      'Comece de graça com a sua comissão. Para chamar os formandos, é uma assinatura mensal ou anual, com o preço de acordo com o tamanho da turma. Não cobramos nada sobre o que vocês arrecadam.',
+      'Vocês escolhem. Na conferência manual, a comissão verifica se recebeu o valor e confirma o pagamento no Kapa. Se preferirem, podem conectar a conta da turma ao Mercado Pago e ativar a cobrança por ele. Nesse caso, os pagamentos aprovados são confirmados automaticamente, sem o formando precisar avisar que pagou.',
   },
   {
-    pergunta: 'E se alguém desistir no meio do caminho?',
+    pergunta: 'Como a turma acompanha as contas?',
     resposta:
-      'A comissão retira a pessoa da turma e decide o que fazer com as próximas parcelas. O que ela já pagou continua registrado para vocês conferirem.',
+      'Cada formando acompanha as próprias parcelas e os recibos dos pagamentos confirmados. A turma também pode consultar o caixa para ver quanto entrou, quanto foi gasto e qual é o saldo. Nos planos com relatórios, a comissão pode baixá-los para apresentar nas reuniões.',
   },
   {
-    pergunta: 'Dá para cancelar a assinatura?',
+    pergunta: 'Como funciona a assinatura do Kapa?',
     resposta:
-      'Sim. Vocês usam até o fim do período que já pagaram. Depois, as informações continuam disponíveis para consulta.',
+      'A comissão pode começar de graça para preparar a turma. Para convidar os formandos, escolhe uma assinatura mensal ou anual, conforme o tamanho da turma e os recursos do plano. A assinatura pode ser paga por PIX ou cartão. O Kapa não cobra uma porcentagem da arrecadação; as tarifas do Mercado Pago, quando usado, são separadas.',
   },
   {
-    pergunta: 'Precisa de cartão de crédito?',
-    resposta: 'Não. Dá para pagar o Kapa por PIX ou no cartão, como preferirem.',
+    pergunta: 'E se um formando desistir?',
+    resposta:
+      'A comissão registra a saída, e as parcelas futuras em aberto são canceladas. Os pagamentos feitos continuam no histórico, que o formando pode consultar. Se houver valores a devolver, a comissão faz o acerto com ele conforme o termo de adesão da turma.',
   },
   {
-    pergunta: 'Como fica a prestação de contas?',
+    pergunta: 'O que acontece se cancelarmos a assinatura?',
     resposta:
-      'Qualquer pessoa da turma pode ver quanto entrou, o que foi gasto e quanto sobrou. A comissão também pode baixar os relatórios para mostrar na reunião.',
+      'O cancelamento interrompe a renovação, e a turma continua usando o Kapa até o fim do período já pago. Depois, as informações ficam disponíveis para consulta, mas não é possível registrar novos pagamentos, gastos ou outras alterações até reativar a assinatura.',
   },
 ]
 
@@ -64,7 +64,7 @@ export function PerguntasFrequentes() {
           ? 'ficou dúvida? é só falar com a gente'
           : 'ficou dúvida? crie a turma e veja por dentro'
       }
-      descricao="Veja quem cuida do dinheiro, como os formandos podem pagar e como acompanhar as contas da turma."
+      descricao="Entenda como receber dos formandos, acompanhar as contas e escolher a assinatura da turma."
       className="lg:grid-cols-[0.8fr_1.2fr] lg:items-start"
     >
       <img
