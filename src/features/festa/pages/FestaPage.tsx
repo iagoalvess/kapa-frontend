@@ -80,7 +80,7 @@ const CHAVES: Record<string, (item: ItemDaFesta) => string | number> = {
  *
  * **Lista à esquerda, item aberto à direita**, como o mural: a rota é a seleção (`/festa/:id`), e
  * sem id abre o primeiro da lista. Era uma grade de cartões, e o cartão não tinha onde caber o que
- * a tela precisa mostrar — a descrição inteira e as propostas com preço e voto. No celular não há
+ * a tela precisa mostrar — a descrição inteira e as propostas com preço. No celular não há
  * as duas colunas: sem id é a lista, com id é o item, com um "Festa" para voltar.
  *
  * Nenhum número desta tela é digitado duas vezes: o selo de cada item e o custo da festa saem das

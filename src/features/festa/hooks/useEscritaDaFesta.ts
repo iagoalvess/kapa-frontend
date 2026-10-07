@@ -6,11 +6,9 @@ import {
   cancelarItemDaFesta,
   criarItemDaFesta,
   criarProposta,
-  desvotarNoItem,
   excluirItemDaFesta,
   excluirProposta,
   reativarItemDaFesta,
-  votarNaProposta,
 } from '../api/festa.api'
 
 /**
@@ -66,17 +64,7 @@ export function useAtualizarProposta() {
   return useEscritaDaFesta(atualizarProposta)
 }
 
-/** Tira uma proposta da disputa. */
+/** Exclui uma proposta. */
 export function useExcluirProposta() {
   return useEscritaDaFesta(excluirProposta)
-}
-
-/** O formando escolhe uma proposta, ou troca a que já tinha escolhido. */
-export function useVotar() {
-  return useEscritaDaFesta(votarNaProposta)
-}
-
-/** Tira o voto do formando naquele item. */
-export function useDesvotar() {
-  return useEscritaDaFesta(desvotarNoItem)
 }

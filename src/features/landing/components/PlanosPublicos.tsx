@@ -42,9 +42,11 @@ export function PlanosPublicos() {
   return (
     <SecaoDaLanding
       id="planos"
-      etiqueta="Planos"
-      titulo="O preço é o tamanho da turma"
-      descricao="Uma assinatura por formatura, sem taxa por pagamento e sem comissão sobre o que a turma arrecada."
+      tom="creme"
+      titulo="O preço é o tamanho"
+      destaque="da turma."
+      nota="zero por cento sobre o que a turma arrecada"
+      descricao="Uma assinatura por formatura, sem taxa por pagamento."
       // Mais apertada que as outras seções: esta precisa caber numa tela de 768px depois do salto
       // da âncora, e os 40px de respiro entre título, alternador e cards eram o que empurrava o
       // botão dos cards para baixo da dobra num notebook comum.

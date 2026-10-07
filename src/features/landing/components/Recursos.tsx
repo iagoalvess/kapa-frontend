@@ -1,4 +1,4 @@
-import { Camera, Check, Copy, Flower2, Heart, MapPin, ShieldCheck, Utensils } from 'lucide-react'
+import { Camera, Check, Flower2, Heart, MapPin, ShieldCheck, Utensils } from 'lucide-react'
 import type { ReactNode } from 'react'
 import avatarAna from '@/assets/avatares/ana-clara.webp'
 import avatarBruno from '@/assets/avatares/bruno-lima.webp'
@@ -151,20 +151,17 @@ function MaqueteDeParcelas() {
   )
 }
 
-function MaquetePix() {
+function MaqueteDePagamento() {
   return (
     <div className="w-full space-y-2">
       <div className="bg-card border-border/60 flex items-center gap-3 rounded-2xl border p-3 shadow-sm">
         <img src={qrcode} alt="" loading="lazy" className="size-16 shrink-0 rounded-md" />
         <div className="grid min-w-0 gap-1">
-          <span className="text-brand-text text-[10px] font-semibold">PIX da turma</span>
+          <span className="text-brand-text text-[10px] font-semibold">PIX · Cartão · Dinheiro</span>
           <span className="text-foreground text-xs font-bold">
             Direto na conta
             <br />
             da comissão
-          </span>
-          <span className="text-muted-foreground flex items-center gap-1 text-[9px]">
-            Copiar chave <Copy className="size-3" aria-hidden />
           </span>
         </div>
       </div>
@@ -251,7 +248,7 @@ function MaqueteDeDespesas() {
       </div>
       <div className="bg-card flex items-center gap-3 rounded-xl px-3 py-2 shadow-sm">
         <div className="grid shrink-0 gap-0.5">
-          <span className="text-muted-foreground text-[10px]">Saldo projetado</span>
+          <span className="text-muted-foreground text-[10px]">Deve sobrar</span>
           <strong className="text-success-text text-base leading-tight font-bold tabular-nums">
             R$ 18.360
           </strong>
@@ -358,56 +355,54 @@ export function Recursos() {
   return (
     <SecaoDaLanding
       id="recursos"
-      creme
-      compacta
-      className="gap-6"
-      etiqueta="Recursos"
-      // Frase em uma linha só: o corpo encolhe com a viewport para não quebrar no celular.
-      titulo={
-        <span className="block sm:text-[clamp(0.95rem,4.3vw,2.25rem)] sm:whitespace-nowrap">
-          Tudo o que a planilha nunca fez pela turma
-        </span>
-      }
-      descricao="Quem já pagou, quem esqueceu e quanto ainda falta para a festa acontecer."
+      tom="creme"
+      className="gap-10"
+      titulo="Sua turma inteira"
+      destaque="em dia."
+      nota="quem já pagou e quanto falta para a festa"
+      descricao="A comissão organiza as parcelas e os gastos. Cada formando acompanha seus pagamentos e assina o termo pelo celular."
     >
       <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Cartao
           largo
           tituloPrimeiro
           titulo="Cobranças e parcelas"
-          texto="Plano da turma, parcela por formando e pagamento de várias de uma vez."
+          texto="Cada formando acompanha as próprias parcelas e pode pagar várias de uma vez."
         >
           <MaqueteDeParcelas />
         </Cartao>
         <Cartao
           tom="destaque"
-          titulo="PIX + conferência"
-          texto="Receba por QR Code e confirme vários pagamentos de uma só vez."
+          titulo="PIX, cartão ou dinheiro"
+          texto="Cada um escolhe como pagar. Dá até para parcelar no cartão, e a comissão confere tudo num lugar só."
         >
-          <MaquetePix />
+          <MaqueteDePagamento />
         </Cartao>
         <Cartao
-          texto="Acompanhe quem aceitou e veja o histórico de alterações do termo."
-          titulo="Termo de adesão digital"
+          texto="Cada formando assina pelo celular, e a comissão vê quem já assinou."
+          titulo="Termo assinado pelo celular"
         >
           <MaqueteDoTermo />
         </Cartao>
         <Cartao
           tom="destaque"
           className="max-sm:order-1"
-          titulo="Despesas, fornecedores e caixa"
-          texto="Saídas da turma e projeção de saldo."
+          titulo="Gastos e saldo da turma"
+          texto="Acompanhem os gastos e vejam quanto sobra para a festa."
         >
           <MaqueteDeDespesas />
         </Cartao>
-        <Cartao titulo="Régua de cobrança" texto="Lembretes e notificações automáticas por e-mail.">
+        <Cartao
+          titulo="Lembrete de pagamento"
+          texto="Quem tem uma parcela em aberto recebe um lembrete por e-mail."
+        >
           <MaqueteDaRegua />
         </Cartao>
         <Cartao
           largo
           className="max-sm:order-2"
           titulo="Festa e meta"
-          texto="Data, local, orçamento e o progresso da arrecadação."
+          texto="Data, local e quanto ainda falta juntar para a festa."
         >
           <MaqueteDaFesta />
         </Cartao>

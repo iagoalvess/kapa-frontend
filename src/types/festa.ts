@@ -125,7 +125,7 @@ export function percentualDaMeta(arrecadado: number, custo: number) {
  * Uma candidata a ser contratada para um item: "Banda X, R$ 8.000".
  *
  * Existe só enquanto o item está "a contratar" — depois da despesa a escolha já aconteceu. Não some
- * quando o item é contratado: fica como o registro de por que a turma escolheu aquela.
+ * quando o item é contratado: fica como o registro de por que a comissão escolheu aquela.
  */
 export interface Proposta {
   id: string
@@ -133,10 +133,6 @@ export interface Proposta {
   valor_em_centavos: number
   /** O que ela entrega, em Markdown. Nulo: só o nome e o preço. */
   o_que_inclui: string | null
-  /** Quantos formandos escolheram esta. Contagem, nunca contador gravado. */
-  votos: number
-  /** Se o voto de quem está lendo é nesta. */
-  meu_voto: boolean
 }
 
 /** Um item com as candidatas levantadas para ele — o painel da direita. Espelha `ItemDaFestaDetalheDTO`. */

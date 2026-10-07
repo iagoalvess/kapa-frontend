@@ -4,7 +4,6 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
-  Copy,
   GraduationCap,
   Heart,
   Landmark,
@@ -134,35 +133,34 @@ function MaqueteDoConvite() {
   )
 }
 
-function MaqueteDaBaixa() {
+function MaqueteDaCobranca() {
   return (
     <div className="relative h-60" aria-hidden>
       <div className="bg-card shadow-cartao relative z-10 grid w-[80%] gap-3 rounded-[22px] p-3.5">
-        <span className="text-brand-text text-xs font-semibold">PIX da turma</span>
+        <span className="text-brand-text text-xs font-semibold">Plano da turma</span>
         <div className="flex items-start gap-2.5">
           <img src={qrcode} alt="" loading="lazy" width={68} height={68} className="size-[68px] shrink-0" />
           <div className="grid min-w-0 gap-1">
             <span className="text-foreground text-sm font-semibold whitespace-nowrap tabular-nums">
-              R$ 256,23
+              12 × R$ 256,23
             </span>
-            <span className="text-muted-foreground text-[10px]">parcela 2/12</span>
+            <span className="text-muted-foreground text-[10px]">vence todo dia 10</span>
             <span className="text-success-text mt-1 flex items-center gap-1 text-[8px] font-medium">
               <span className="bg-success text-card grid size-3.5 shrink-0 place-items-center rounded-full">
                 <Check className="size-2.5" strokeWidth={3} />
               </span>
-              Pagamento conferido
+              Termo publicado
             </span>
           </div>
         </div>
         <span className="bg-brand-wash text-brand-text flex items-center justify-center gap-1.5 rounded-xl py-2 text-[10px] font-medium">
-          <Copy className="size-3.5" />
-          Copiar QR Code
+          PIX · Cartão · Dinheiro
         </span>
       </div>
       <div className="font-hand text-primary-foreground absolute -top-9 -right-1 z-20 -rotate-12 text-center text-lg leading-4">
-        Parcela
+        Tudo
         <br />
-        recebida!
+        pronto!
         <Heart className="mx-auto mt-1 size-4 rotate-12" />
       </div>
       <img
@@ -182,20 +180,23 @@ const PASSOS = [
   {
     tom: 'creme',
     titulo: 'Crie a turma',
-    texto: 'Informe o nome, a instituição, o curso e a data da colação. A comissão inteira entra junto.',
+    texto:
+      'Conte o nome da turma, a instituição, o curso e a data da formatura. Depois, chame a comissão para dividir as tarefas.',
     maquete: <MaqueteDaTurma />,
+  },
+  {
+    tom: 'destaque',
+    titulo: 'Organize as parcelas',
+    texto:
+      'Escolha o valor, as datas de pagamento e como a turma vai receber: PIX, cartão ou dinheiro. Deixe o combinado no termo de adesão.',
+    maquete: <MaqueteDaCobranca />,
   },
   {
     tom: 'creme',
     titulo: 'Convide os formandos',
-    texto: 'Compartilhe o link no grupo do WhatsApp. Cada um se cadastra e assina o termo pelo celular.',
+    texto:
+      'Escolha o plano e mande o link no grupo. Cada formando entra, assina o termo pelo celular e vê suas parcelas.',
     maquete: <MaqueteDoConvite />,
-  },
-  {
-    tom: 'destaque',
-    titulo: 'Receba no PIX da turma',
-    texto: 'Gere QR Code para cada parcela, confira o extrato e confirme os pagamentos na plataforma.',
-    maquete: <MaqueteDaBaixa />,
   },
 ] as const
 
@@ -204,11 +205,11 @@ export function ComoFunciona() {
   return (
     <SecaoDaLanding
       id="como-funciona"
-      compacta
-      className="gap-8 [&>header]:max-w-4xl [&>header>p:last-child]:max-w-2xl"
-      etiqueta="Como funciona"
-      titulo="Três passos, e a turma está rodando"
-      descricao="Do zero à primeira parcela cobrada numa tarde. Sem instalar nada e sem burocracia."
+      className="gap-10"
+      titulo="Três passos para organizar"
+      destaque="sua turma."
+      nota="crie a turma, organize as parcelas e chame o pessoal"
+      descricao="Tudo pelo navegador. A comissão prepara a turma, e os formandos entram pelo link enviado no grupo."
     >
       <div className="relative">
         <div
@@ -229,9 +230,7 @@ export function ComoFunciona() {
               key={passo.titulo}
               className={cn(
                 'shadow-vitrine relative mx-auto grid w-full max-w-md min-w-0 content-start gap-10 overflow-hidden rounded-3xl border p-5 pb-0 lg:max-w-none',
-                passo.tom === 'destaque'
-                  ? 'border-primary bg-primary'
-                  : 'border-brand-tint/70 from-brand-wash to-brand-tint/35 bg-gradient-to-br',
+                passo.tom === 'destaque' ? 'border-primary bg-primary' : 'border-brand-tint/70 bg-brand-wash',
               )}
             >
               <div>

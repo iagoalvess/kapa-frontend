@@ -64,9 +64,8 @@ export function useMetaDaFesta() {
 /**
  * Um item com as propostas levantadas para ele — o painel da direita da tela da festa.
  *
- * Consulta separada da lista de propósito: as propostas só interessam ao item aberto, e é este
- * endpoint que sabe de quem é cada voto, porque é o único que o servidor resolve contra quem está
- * lendo. Trazer tudo na lista carregaria toda abertura da tela com o que um item por vez mostra.
+ * Consulta separada da lista de propósito: as propostas só interessam ao item aberto. Trazer
+ * tudo na lista carregaria toda abertura da tela com o que um item por vez mostra.
  *
  * @param id Item aberto. Vazio não consulta — é o estado da tela antes de a lista chegar.
  */

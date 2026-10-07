@@ -36,7 +36,7 @@ interface Props {
  * É o painel da direita, e é ele que responde a pergunta da tela inteira — "pelo que eu estou
  * pagando?". Por isso a descrição vem antes do dinheiro, e o dinheiro antes das ações: quem abre
  * quer ler, não administrar. Coube aqui o que não cabia num cartão de grade — as propostas com
- * preço e voto, e o Markdown inteiro em vez de três linhas cortadas.
+ * preço, e o Markdown inteiro em vez de três linhas cortadas.
  */
 export function DetalheDoItem({
   item,

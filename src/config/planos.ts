@@ -119,7 +119,7 @@ export const AREAS_DO_PLANO: Partial<Record<Modulo, AreaDoPlano>> = {
     beneficios: [
       'Avisos fixados que a turma inteira vê ao entrar',
       'Contratos e atas guardados, com quem pode ver',
-      'O orçamento da festa e as propostas em votação',
+      'O orçamento da festa e as propostas levantadas',
     ],
     indicadores: [
       ['Avisos publicados', '18'],

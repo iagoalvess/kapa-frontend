@@ -6,8 +6,8 @@ import { z } from 'zod'
   backend por trás. Por isso só importa o `zod` — nada de `@/`, que o bundler do Worker não resolve.
 */
 
-/** A versão do aviso de privacidade publicada. Mudou o texto do aviso, sobe aqui: a inscrição grava esta. */
-export const AVISO_DA_LISTA_DE_ESPERA = { versao: 2, publicadoEm: '28/09/2026' } as const
+/** A versão da Política resumida publicada. Mudou o texto, sobe aqui: a inscrição grava esta. */
+export const POLITICA_RESUMIDA = { versao: 2, publicadoEm: '28/09/2026' } as const
 
 /** O papel de quem se inscreve. Formando entra também (P4): a conversa prioriza a comissão. */
 export const PAPEIS_NA_TURMA = {
@@ -48,8 +48,8 @@ export const esquemaDaInscricao = z.object({
   papel: umaDas(PAPEIS_NA_TURMA, 'Escolha o seu papel na turma.'),
   tamanho_da_turma: umaDas(TAMANHOS_DA_TURMA, 'Escolha o tamanho da turma.'),
   aceite: z
-    .boolean('Confirme que leu o aviso de privacidade.')
-    .refine(Boolean, 'Confirme que leu o aviso de privacidade.'),
+    .boolean('Confirme que leu a Política de Privacidade.')
+    .refine(Boolean, 'Confirme que leu a Política de Privacidade.'),
 })
 
 export type FormularioDaInscricao = z.infer<typeof esquemaDaInscricao>

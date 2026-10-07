@@ -23,11 +23,12 @@ describe('site com a lista de espera ligada', () => {
     expect(html).not.toContain('#planos')
   })
 
-  it('tira Termos, Política e Operadores e põe o aviso da lista no lugar', async () => {
-    expect(PAGINAS.map((pagina) => pagina.caminho)).toEqual(['/', '/lista-de-espera/privacidade'])
+  it('tira Termos e Operadores e serve a Política resumida em /privacidade', async () => {
+    expect(PAGINAS.map((pagina) => pagina.caminho)).toEqual(['/', '/privacidade'])
     expect(await renderizar('/termos-de-uso')).toContain('Página não encontrada')
-    expect(await renderizar('/lista-de-espera/privacidade')).toContain('Versão 2')
-    expect(await renderizar('/')).not.toContain('href="/privacidade"')
+    expect(await renderizar('/privacidade')).toContain('Versão 2')
+    expect(await renderizar('/')).toContain('href="/privacidade"')
+    expect(await renderizar('/')).not.toContain('href="/termos-de-uso"')
   })
 
   it('não redireciona para o app, que não está no ar', () => {

@@ -28,11 +28,10 @@ const DOCUMENTOS_LEGAIS: PaginaDoSite[] = [
   },
 ]
 
-const AVISO_DA_LISTA_DE_ESPERA: PaginaDoSite = {
-  caminho: ROTAS.avisoDaListaDeEspera,
-  titulo: 'Privacidade da lista de espera — Kapa',
-  descricao:
-    'Quem trata os dados da lista de espera do Kapa, para quê, por quanto tempo e como pedir para sair.',
+const POLITICA_RESUMIDA: PaginaDoSite = {
+  caminho: ROTAS.privacidade,
+  titulo: 'Política de Privacidade — Kapa',
+  descricao: 'Quem trata os dados enviados ao Kapa, para quê, por quanto tempo e como pedir para sair.',
 }
 
 /**
@@ -42,7 +41,7 @@ const AVISO_DA_LISTA_DE_ESPERA: PaginaDoSite = {
  * é o que aparece no resultado de busca e no cartão do link colado no grupo da turma. É desta lista
  * que saem as rotas do `Site` e o `sitemap.xml`.
  *
- * Com a lista de espera ligada (Sprint 36, P11), os documentos legais saem e entra o aviso da lista.
+ * Com a lista de espera ligada (Sprint 36, P11), Termos e Operadores saem e a Política vira a resumida.
  */
 export const PAGINAS: readonly PaginaDoSite[] = [
   {
@@ -51,7 +50,7 @@ export const PAGINAS: readonly PaginaDoSite[] = [
     descricao:
       'Cobrança parcelada, QR do PIX por parcela, conferência em lote e prestação de contas para comissões de formatura. O dinheiro cai na conta da turma, não na nossa.',
   },
-  ...(env.VITE_LISTA_DE_ESPERA ? [AVISO_DA_LISTA_DE_ESPERA] : DOCUMENTOS_LEGAIS),
+  ...(env.VITE_LISTA_DE_ESPERA ? [POLITICA_RESUMIDA] : DOCUMENTOS_LEGAIS),
 ]
 
 /** A página de um caminho — a versão de um documento (`/termos-de-uso/2`) é a página do documento. */

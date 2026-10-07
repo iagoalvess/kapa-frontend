@@ -31,8 +31,8 @@ const COLUNAS = [
  * `operadores` entra ao lado dos dois porque responde à mesma pergunta — para onde o dado vai —,
  * e a LGPD (art. 18, VII) não deixa essa resposta depender de ter conta.
  *
- * Com a lista de espera (Sprint 36, P11), os três saem: descrevem o sistema, que ninguém usa ainda, e
- * leem o texto da API, que não está no ar. No lugar fica o aviso da lista, o que a LGPD pede na coleta.
+ * Com a lista de espera (Sprint 36, P11), Termos e Operadores saem: descrevem o sistema, que ninguém usa
+ * ainda, e leem o texto da API, que não está no ar. A Política fica, na versão resumida.
  */
 export function RodapeDaLanding() {
   return (
@@ -41,7 +41,7 @@ export function RodapeDaLanding() {
         <div className="col-span-2 grid content-start gap-3 sm:col-span-1">
           <LogoKapa className="text-foreground h-9 justify-self-start" />
           <p className="text-muted-foreground text-sm text-pretty">
-            Gestão de formatura para a comissão que faz tudo à mão.
+            As contas e os detalhes da formatura num lugar só, para a turma toda.
           </p>
         </div>
 
@@ -62,25 +62,18 @@ export function RodapeDaLanding() {
 
         <nav aria-label="Legal" className="grid content-start gap-2">
           <p className="text-foreground font-medium">Legal</p>
-          {env.VITE_LISTA_DE_ESPERA ? (
-            <Link
-              to={ROTAS.avisoDaListaDeEspera}
-              className="text-muted-foreground hover:text-foreground text-sm"
-            >
-              Aviso de privacidade da lista de espera
+          {!env.VITE_LISTA_DE_ESPERA && (
+            <Link to={ROTAS.termosDeUso} className="text-muted-foreground hover:text-foreground text-sm">
+              Termos de Uso
             </Link>
-          ) : (
-            <>
-              <Link to={ROTAS.termosDeUso} className="text-muted-foreground hover:text-foreground text-sm">
-                Termos de Uso
-              </Link>
-              <Link to={ROTAS.privacidade} className="text-muted-foreground hover:text-foreground text-sm">
-                Política de Privacidade
-              </Link>
-              <Link to={ROTAS.operadores} className="text-muted-foreground hover:text-foreground text-sm">
-                Com quem compartilhamos dados
-              </Link>
-            </>
+          )}
+          <Link to={ROTAS.privacidade} className="text-muted-foreground hover:text-foreground text-sm">
+            Política de Privacidade
+          </Link>
+          {!env.VITE_LISTA_DE_ESPERA && (
+            <Link to={ROTAS.operadores} className="text-muted-foreground hover:text-foreground text-sm">
+              Com quem compartilhamos dados
+            </Link>
           )}
         </nav>
       </div>

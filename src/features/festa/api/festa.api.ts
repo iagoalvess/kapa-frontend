@@ -73,17 +73,7 @@ export function atualizarProposta({ id, dados }: { id: string; dados: DadosDaPro
   return api.put<Proposta>(`${PROPOSTAS}/${id}`, { body: dados })
 }
 
-/** Tira uma proposta da disputa — os votos nela vão junto. */
+/** Exclui uma proposta. */
 export function excluirProposta(id: string) {
   return api.delete<void>(`${PROPOSTAS}/${id}`)
-}
-
-/** O formando escolhe esta proposta, ou troca a que já tinha escolhido. */
-export function votarNaProposta(id: string) {
-  return api.put<void>(`${PROPOSTAS}/${id}/voto`)
-}
-
-/** Tira o voto do formando naquele item. */
-export function desvotarNoItem(itemId: string) {
-  return api.delete<void>(`${ITENS}/${itemId}/voto`)
 }

@@ -187,8 +187,8 @@ export type FormularioDePagamento = z.infer<typeof esquemaDePagamento>
  * O valor vem do custo do item, e não do valor por formando: o que a turma deve ao fotógrafo é o
  * preço vezes quantos compraram, não o preço de um.
  *
- * Vindo de "Contratar esta" numa proposta, o título e o preço são os dela: a turma votou naquele
- * orçamento, não no previsto do item. Proposta sem preço deixa o previsto.
+ * Vindo de "Contratar esta" numa proposta, o título e o preço são os dela: a comissão escolheu
+ * aquele orçamento, não o previsto do item. Proposta sem preço deixa o previsto.
  */
 export const despesaParaContratar = (item: ItemDaFesta, proposta?: Proposta): FormularioDeDespesa => ({
   ...despesaEmBranco(),

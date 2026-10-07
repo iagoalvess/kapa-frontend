@@ -6,17 +6,15 @@ import { SecaoDaLanding } from './SecaoDaLanding'
 
 const TELAS = [
   {
-    numero: '02',
-    titulo: 'Minhas parcelas',
-    descricao: 'O que falta pagar, quando vence e o PIX a um toque.',
+    nota: 'as parcelas do formando',
+    descricao: 'O que falta pagar, a data de cada parcela e o PIX sempre à mão.',
     url: 'app.kapaformaturas.com.br/minhas-parcelas',
     imagem: minhasParcelas,
     alt: 'Tela real de Minhas parcelas no Kapa, com o total em aberto, a próxima parcela e a grade de parcelas por situação.',
   },
   {
-    numero: '03',
-    titulo: 'Caixa da turma',
-    descricao: 'Entradas, saídas e projeções à vista da comissão.',
+    nota: 'o caixa da comissão',
+    descricao: 'O que entrou, o que saiu e quanto ainda vai sobrar.',
     url: 'app.kapaformaturas.com.br/financeiro/caixa',
     imagem: caixa,
     alt: 'Tela real do caixa da turma no Kapa, com resumo financeiro e gráfico de entradas e saídas.',
@@ -28,23 +26,21 @@ export function TelasReais() {
   return (
     <SecaoDaLanding
       id="na-pratica"
-      etiqueta="Na prática"
-      titulo="Do convite ao caixa da turma"
-      descricao="O convidado recebe o convite para a festa, cada formando vê e paga as suas parcelas por PIX e a comissão acompanha tudo o que entra e sai."
+      lado="direita"
+      titulo="Do convite"
+      destaque="ao caixa."
+      nota="do jeito que a turma vê no dia a dia"
+      descricao="Cada convidado tem seu convite, cada formando acompanha suas parcelas e a comissão vê como estão as contas."
     >
       <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-6">
-        <figure className="border-brand-tint/70 bg-brand-wash shadow-vitrine relative grid min-w-0 content-start gap-7 overflow-hidden rounded-[2rem] border p-4 sm:p-6">
-          <div
-            className="bg-brand-tint/70 pointer-events-none absolute top-40 left-1/2 size-72 -translate-x-1/2 rounded-full blur-3xl"
-            aria-hidden
-          />
+        <figure className="relative grid min-w-0 content-start gap-7">
           <figcaption className="grid gap-1">
-            <span className="text-brand-text text-xs font-bold tracking-widest uppercase">01 · Convite</span>
+            <span className="font-hand text-brand-text -rotate-1 text-2xl leading-none">o convite</span>
             <h3 className="text-foreground text-xl font-semibold tracking-tight">
               O grande dia, na palma da mão
             </h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Cada convidado recebe seu ingresso com QR Code e os detalhes do evento.
+              Cada convidado recebe o seu, com a data, o local e o código para apresentar na entrada.
             </p>
           </figcaption>
           <div className="relative mx-auto w-full max-w-[330px] lg:my-auto lg:-rotate-[3deg]">
@@ -90,14 +86,9 @@ export function TelasReais() {
         </figure>
 
         {TELAS.map((tela) => (
-          <figure
-            key={tela.numero}
-            className="border-brand-tint/70 bg-brand-wash shadow-vitrine grid min-w-0 content-start gap-4 rounded-[2rem] border p-4 sm:p-6 last:lg:col-span-2"
-          >
+          <figure key={tela.url} className="grid min-w-0 content-start gap-4 last:lg:col-span-2">
             <figcaption className="grid gap-1">
-              <span className="text-brand-text text-xs font-bold tracking-widest uppercase">
-                {tela.numero} · {tela.titulo}
-              </span>
+              <span className="font-hand text-brand-text -rotate-1 text-2xl leading-none">{tela.nota}</span>
               <h3 className="text-foreground text-xl font-semibold tracking-tight">{tela.descricao}</h3>
             </figcaption>
             <div className="border-border/70 bg-card overflow-hidden rounded-2xl border shadow-lg">
@@ -126,9 +117,6 @@ export function TelasReais() {
           </figure>
         ))}
       </div>
-      <p className="text-muted-foreground -mt-5 text-center text-xs">
-        Os nomes e valores mostrados são de uma turma de exemplo.
-      </p>
     </SecaoDaLanding>
   )
 }

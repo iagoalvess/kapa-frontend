@@ -1,20 +1,21 @@
 import { LayoutDePaginaPublica } from '@/components/layout/LayoutDePaginaPublica'
-import { AVISO_DA_LISTA_DE_ESPERA } from '../schemas/listaDeEspera.schema'
+import { POLITICA_RESUMIDA } from '../schemas/listaDeEspera.schema'
 
 /**
- * O aviso de privacidade da lista de espera (Sprint 36): curto e próprio, no lugar da Política, que
- * descreve o sistema inteiro. Cobre o que o art. 9º da LGPD pede na coleta — quem, para quê, onde, por
- * quanto tempo e como exercer os direitos — em quatro frases. Texto fixo, sem API. Mudou o texto, sobe
- * a versão em `AVISO_DA_LISTA_DE_ESPERA`: é ela que a inscrição grava.
+ * A Política de Privacidade enquanto o site só tem a lista de espera (Sprint 36): curta, em
+ * `/privacidade`, no lugar da completa — que descreve o sistema inteiro e lê o texto da API. Cobre o
+ * que o art. 9º da LGPD pede na coleta — quem, para quê, onde, por quanto tempo e como exercer os
+ * direitos — em quatro frases. Texto fixo, sem API. Mudou o texto, sobe a versão em
+ * `POLITICA_RESUMIDA`: é ela que a inscrição grava.
  */
-export default function AvisoDaListaDeEsperaPage() {
+export default function PoliticaResumidaPage() {
   return (
     <LayoutDePaginaPublica>
       <article className="grid gap-4">
         <header className="grid gap-1">
-          <h1 className="text-foreground text-2xl font-semibold">Privacidade da lista de espera</h1>
+          <h1 className="text-foreground text-2xl font-semibold">Política de Privacidade</h1>
           <p className="text-muted-foreground text-sm">
-            {`Versão ${AVISO_DA_LISTA_DE_ESPERA.versao}, de ${AVISO_DA_LISTA_DE_ESPERA.publicadoEm}`}
+            {`Versão ${POLITICA_RESUMIDA.versao}, de ${POLITICA_RESUMIDA.publicadoEm}`}
           </p>
         </header>
 

@@ -55,7 +55,7 @@ function montar(pagina: PaginaDoSite, conteudo: string, indexavel: boolean) {
 
 for (const pagina of servidor.PAGINAS) {
   const arquivo = new URL(pagina.caminho === '/' ? 'index.html' : `${pagina.caminho.slice(1)}.html`, saida)
-  // `/lista-de-espera/privacidade` vira `lista-de-espera/privacidade.html`: a pasta precisa existir.
+  // Um caminho com pasta (`/a/b` → `a/b.html`) precisa da pasta criada.
   await mkdir(new URL('.', arquivo), { recursive: true })
   await writeFile(arquivo, montar(pagina, await servidor.renderizar(pagina.caminho), true))
 }

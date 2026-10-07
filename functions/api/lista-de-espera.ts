@@ -9,7 +9,7 @@
  * segredo, e ela responde 404: é a trava que impede o app de gravar numa lista que não é dele.
  */
 import {
-  AVISO_DA_LISTA_DE_ESPERA,
+  POLITICA_RESUMIDA,
   esquemaDaInscricao,
 } from '../../src/features/landing/schemas/listaDeEspera.schema.ts'
 
@@ -90,7 +90,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: A
       inscricao.papel,
       inscricao.tamanho_da_turma,
       new Date().toISOString(),
-      AVISO_DA_LISTA_DE_ESPERA.versao,
+      POLITICA_RESUMIDA.versao,
       typeof origem === 'string' && origem !== '' ? origem.slice(0, 300) : null,
     )
     .run()

@@ -12,7 +12,12 @@ const PERGUNTAS = [
   {
     pergunta: 'Quem cuida do dinheiro da turma?',
     resposta:
-      'Vocês mesmos. Os formandos pagam por PIX direto na conta da turma, e o Kapa nunca toca no dinheiro. A gente só ajuda a organizar quem pagou e quanto tem em caixa.',
+      'A própria comissão. Os pagamentos vão direto para a conta da turma. O Kapa ajuda a acompanhar quem pagou, os gastos e quanto sobrou.',
+  },
+  {
+    pergunta: 'O formando pode pagar no cartão?',
+    resposta:
+      'Pode, inclusive em parcelas. A comissão conecta a conta da turma ao Mercado Pago. Quando o pagamento é aprovado, ele aparece no Kapa. Vocês escolhem quem paga a taxa do cartão: a turma ou o formando.',
   },
   {
     pergunta: 'Quanto custa?',
@@ -22,12 +27,12 @@ const PERGUNTAS = [
   {
     pergunta: 'E se alguém desistir no meio do caminho?',
     resposta:
-      'A comissão tira a pessoa da turma e decide o que fazer com as parcelas que ainda não venceram. O que ela já pagou continua registrado, sem bagunçar as contas.',
+      'A comissão retira a pessoa da turma e decide o que fazer com as próximas parcelas. O que ela já pagou continua registrado para vocês conferirem.',
   },
   {
-    pergunta: 'Dá para cancelar quando quiser?',
+    pergunta: 'Dá para cancelar a assinatura?',
     resposta:
-      'Dá. Vocês usam até o fim do período que já pagaram, e depois disso tudo continua lá para consulta. Nada é apagado.',
+      'Sim. Vocês usam até o fim do período que já pagaram. Depois, as informações continuam disponíveis para consulta.',
   },
   {
     pergunta: 'Precisa de cartão de crédito?',
@@ -36,7 +41,7 @@ const PERGUNTAS = [
   {
     pergunta: 'Como fica a prestação de contas?',
     resposta:
-      'Fica pronta. Qualquer pessoa da turma pode ver quanto entrou, quanto saiu e quanto sobrou, sem precisar pedir para a comissão. Nada de planilha no fim do mês.',
+      'Qualquer pessoa da turma pode ver quanto entrou, o que foi gasto e quanto sobrou. A comissão também pode baixar os relatórios para mostrar na reunião.',
   },
 ]
 
@@ -51,16 +56,16 @@ export function PerguntasFrequentes() {
   return (
     <SecaoDaLanding
       id="perguntas"
-      creme
-      etiqueta="Perguntas"
-      titulo="O que toda comissão pergunta"
-      descricao={
+      lado="direita"
+      titulo="O que toda comissão"
+      destaque="pergunta."
+      nota={
         env.VITE_LISTA_DE_ESPERA
-          ? 'Ficou alguma dúvida? É só falar com a gente.'
-          : 'Se ficar dúvida, dá para criar a turma e ver por dentro, sem cartão.'
+          ? 'ficou dúvida? é só falar com a gente'
+          : 'ficou dúvida? crie a turma e veja por dentro'
       }
+      descricao="Veja quem cuida do dinheiro, como os formandos podem pagar e como acompanhar as contas da turma."
       className="lg:grid-cols-[0.8fr_1.2fr] lg:items-start"
-      aEsquerda
     >
       <img
         src={mascoteSuporte}
@@ -77,16 +82,13 @@ export function PerguntasFrequentes() {
                 de cima é a que mais se faz — quem administra o dinheiro da turma. */}
             <details className="group" open={indice === 0}>
               <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-start gap-4 rounded-lg py-5 focus-visible:ring-2 focus-visible:outline-none">
-                <span className="text-brand-text pt-0.5 text-sm font-semibold tabular-nums" aria-hidden>
-                  {String(indice + 1).padStart(2, '0')}.
-                </span>
                 <h3 className="text-foreground flex-1 font-medium text-pretty">{item.pergunta}</h3>
                 {/* Dois ícones, um visível de cada vez: o `+` vira `−` sem girar nada, que é o
                     sinal que a lista de referência usa. */}
                 <Plus className="text-brand-text size-5 shrink-0 group-open:hidden" aria-hidden />
                 <Minus className="text-brand-text hidden size-5 shrink-0 group-open:block" aria-hidden />
               </summary>
-              <p className="text-muted-foreground pb-5 pl-10 text-pretty">{item.resposta}</p>
+              <p className="text-muted-foreground pb-5 text-pretty">{item.resposta}</p>
             </details>
           </li>
         ))}

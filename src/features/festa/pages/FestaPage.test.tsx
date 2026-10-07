@@ -11,7 +11,6 @@ import FestaPage from './FestaPage'
 
 const ITENS = `${env.VITE_API_URL}/api/v1/festa/itens`
 const META = `${env.VITE_API_URL}/api/v1/festa/meta`
-const PROPOSTAS = `${env.VITE_API_URL}/api/v1/festa/propostas`
 const FORMATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual`
 
 /** Um item "a contratar": sem despesa, o custo é o que a comissão orçou. */
@@ -115,8 +114,6 @@ const buffetSabor: Proposta = {
   titulo: 'Buffet Sabor',
   valor_em_centavos: 55_000_00,
   o_que_inclui: null,
-  votos: 0,
-  meu_voto: false,
 }
 
 /** O painel da direita, que é onde o item aberto é desenhado. */
@@ -297,7 +294,7 @@ describe('FestaPage', () => {
   })
 })
 
-describe('FestaPage — propostas e votos', () => {
+describe('FestaPage — propostas', () => {
   afterEach(() => sessao.encerrar())
 
   const bandaX: Proposta = {
@@ -305,65 +302,21 @@ describe('FestaPage — propostas e votos', () => {
     titulo: 'Banda X',
     valor_em_centavos: 8_000_00,
     o_que_inclui: 'Quatro horas de show.',
-    votos: 18,
-    meu_voto: false,
   }
 
-  const bandaY: Proposta = {
-    id: 'p-2',
-    titulo: 'Banda Y',
-    valor_em_centavos: 6_500_00,
-    o_que_inclui: null,
-    votos: 7,
-    meu_voto: true,
-  }
-
-  it('o formando vê as propostas com o placar e vota numa delas', async () => {
+  it('o formando lê as propostas com o preço, sem ação nenhuma nelas', async () => {
     entrarComo('Formando')
-    comApi([aContratar], { 'i-1': [bandaX, bandaY] })
-    let votou = ''
-    servidor.use(
-      http.put(`${PROPOSTAS}/:id/voto`, ({ params }) => {
-        votou = String(params.id)
-        return new HttpResponse(null, { status: 204 })
-      }),
-    )
+    comApi([aContratar], { 'i-1': [bandaX] })
 
     renderizar(<FestaPage />)
 
     const propostas = await screen.findByRole('region', { name: 'Propostas' })
     expect(within(propostas).getByText('Banda X')).toBeInTheDocument()
     expect(within(propostas).getByText(reais(8_000_00))).toBeInTheDocument()
-
-    await userEvent.click(within(propostas).getByRole('button', { name: /18 votos/ }))
-
-    await waitFor(() => expect(votou).toBe('p-1'))
+    expect(within(propostas).queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('clicar na proposta que já é minha tira o voto, e não soma um segundo', async () => {
-    entrarComo('Formando')
-    comApi([aContratar], { 'i-1': [bandaX, bandaY] })
-    let desvotou = ''
-    servidor.use(
-      http.delete(`${ITENS}/:id/voto`, ({ params }) => {
-        desvotou = String(params.id)
-        return new HttpResponse(null, { status: 204 })
-      }),
-    )
-
-    renderizar(<FestaPage />)
-
-    const propostas = await screen.findByRole('region', { name: 'Propostas' })
-    const minha = within(propostas).getByRole('button', { name: /7 votos/ })
-    expect(minha).toHaveAttribute('aria-pressed', 'true')
-
-    await userEvent.click(minha)
-
-    // O voto é por item, não por proposta: tirá-lo é um DELETE no item.
-    await waitFor(() => expect(desvotou).toBe('i-1'))
-  })
-
-  it('contratado o item, a disputa fecha: o placar fica, o voto e o cadastro somem', async () => {
+  it('contratado o item, a lista vira registro: o cadastro e as ações somem', async () => {
     entrarComo('Comissao')
     comApi([contratado], { 'i-2': [bandaX] })
 
@@ -371,8 +324,8 @@ describe('FestaPage — propostas e votos', () => {
 
     const propostas = await screen.findByRole('region', { name: 'Propostas' })
     expect(within(propostas).getByText('Propostas levantadas')).toBeInTheDocument()
-    expect(within(propostas).getByRole('button', { name: /18 votos/ })).toBeDisabled()
     expect(within(propostas).queryByRole('button', { name: 'Nova proposta' })).not.toBeInTheDocument()
+    expect(within(propostas).queryByRole('button', { name: 'Excluir Banda X' })).not.toBeInTheDocument()
   })
 
   it('o formando não cadastra proposta; a Gestão cadastra', async () => {

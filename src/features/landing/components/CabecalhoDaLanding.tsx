@@ -8,7 +8,7 @@ import { ChamadaPrincipal } from './ChamadaPrincipal'
 
 /** O botão ao lado do CTA: "Entrar" no app ou, com a lista de espera, o e-mail do contato@. */
 const entrar = env.VITE_LISTA_DE_ESPERA
-  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Fale com a gente', rotuloCurto: 'Contato' }
+  ? { href: 'mailto:contato@kapaformaturas.com.br', rotulo: 'Contato', rotuloCurto: 'Contato' }
   : { href: urlDoApp(ROTAS.login), rotulo: 'Entrar', rotuloCurto: 'Entrar' }
 
 /**
@@ -17,6 +17,7 @@ const entrar = env.VITE_LISTA_DE_ESPERA
  */
 const SECOES = [
   { id: 'recursos', rotulo: 'Recursos' },
+  { id: 'como-funciona', rotulo: 'Como funciona' },
   ...(env.VITE_LISTA_DE_ESPERA ? [] : [{ id: 'planos', rotulo: 'Planos' }]),
   { id: 'perguntas', rotulo: 'Perguntas' },
 ]
@@ -54,7 +55,7 @@ export function CabecalhoDaLanding() {
           <LogoKapa className="text-foreground h-7 sm:h-9" />
         </a>
 
-        <nav aria-label="Seções da página" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Seções da página" className="hidden items-center gap-1 lg:flex">
           {SECOES.map((secao) => (
             <a
               key={secao.id}
@@ -80,7 +81,7 @@ export function CabecalhoDaLanding() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             aria-expanded={gavetaAberta}
             aria-controls="menu-da-landing"
             aria-label={gavetaAberta ? 'Fechar menu' : 'Abrir menu'}
@@ -94,7 +95,7 @@ export function CabecalhoDaLanding() {
       {gavetaAberta ? (
         <div
           id="menu-da-landing"
-          className="motion-safe:animate-entrar bg-background grid gap-1 border-t px-4 py-3 md:hidden"
+          className="motion-safe:animate-entrar bg-background grid gap-1 border-t px-4 py-3 lg:hidden"
         >
           {SECOES.map((secao) => (
             <a

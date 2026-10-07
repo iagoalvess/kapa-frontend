@@ -45,21 +45,23 @@ export function ListaDeEspera() {
   return (
     <SecaoDaLanding
       id={ANCORA_DA_LISTA_DE_ESPERA}
-      etiqueta="Lista de espera"
-      titulo="Quer o Kapa na sua turma?"
-      descricao="Deixe seu contato. A gente conversa com você sobre o Kapa e sobre o acesso da sua turma."
-      className="gap-8"
+      tom="creme"
+      titulo="Sua turma pode ser"
+      destaque="a próxima."
+      nota="deixe seu contato para saber quando o Kapa chegar"
+      descricao="Estamos preparando o Kapa. Deixe seu contato na lista de espera. Quando ele estiver no ar, a gente avisa por e-mail."
+      className="justify-items-center gap-10 [&>header]:justify-items-center [&>header]:text-center"
     >
       {/* `px-3` no celular: o widget do Turnstile tem 300 px fixos, e com `p-5` ele empurrava o cartão para
           fora da tela em 360 px — sobrava margem à esquerda e quase nada à direita. */}
-      <div className="bg-card shadow-painel mx-auto w-full max-w-2xl min-w-0 rounded-2xl border px-3 py-5 min-[400px]:px-5 sm:p-8">
+      <div className="bg-card shadow-painel w-full max-w-2xl min-w-0 rounded-2xl border px-3 py-5 min-[400px]:px-5 sm:p-8">
         {enviada ? (
           <output className="grid justify-items-center gap-3 py-6 text-center">
             <CircleCheck className="text-brand-text size-10" aria-hidden />
             <span className="text-foreground text-lg font-semibold">Recebemos sua inscrição.</span>
             <span className="text-muted-foreground max-w-md text-sm text-pretty">
-              Vamos falar com você pelo e-mail que você deixou. Para sair da lista, é só escrever para
-              contato@kapaformaturas.com.br.
+              A gente avisa pelo seu e-mail quando o Kapa estiver no ar. Para sair da lista, é só escrever
+              para contato@kapaformaturas.com.br.
             </span>
           </output>
         ) : (
@@ -127,16 +129,15 @@ function FormularioDaListaDeEspera({ aoEnviar }: { aoEnviar: () => void }) {
             name="aceite"
             rotulo={
               <span>
-                Li o{' '}
+                Li a{' '}
                 <a
-                  href={ROTAS.avisoDaListaDeEspera}
+                  href={ROTAS.privacidade}
                   target="_blank"
                   rel="noreferrer"
                   className="text-brand-text underline underline-offset-2"
                 >
-                  aviso de privacidade
-                </a>{' '}
-                da lista de espera
+                  Política de Privacidade
+                </a>
               </span>
             }
           />

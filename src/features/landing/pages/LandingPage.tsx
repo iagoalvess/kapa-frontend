@@ -1,5 +1,6 @@
 import { CabecalhoDaLanding } from '../components/CabecalhoDaLanding'
 import { ComoFunciona } from '../components/ComoFunciona'
+import { DaParcelaAoBaile } from '../components/DaParcelaAoBaile'
 import { env } from '@/config/env'
 import { Hero } from '../components/Hero'
 import { ListaDeEspera } from '../components/ListaDeEspera'
@@ -37,6 +38,7 @@ export default function LandingPage() {
         <Hero />
         <Recursos />
         <TelasReais />
+        <DaParcelaAoBaile />
         <ComoFunciona />
         <SegurancaEDinheiro />
         {/* Com a lista de espera (Sprint 36), o formulário ocupa o lugar dos preços (P10): a tabela lê

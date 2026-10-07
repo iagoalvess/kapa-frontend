@@ -34,8 +34,8 @@ const AVISOS: Aviso[] = [
     true,
   ],
   [
-    'Escolha do buffet: resultado da votação',
-    'A proposta do Buffet Jardim foi a mais votada. O cardápio completo já está no acervo.',
+    'Buffet contratado',
+    'A comissão fechou com o Buffet Jardim. O cardápio completo já está no acervo.',
     true,
     false,
   ],
@@ -299,7 +299,7 @@ export function PreviaDeDocumentos() {
 const ITENS_DA_FESTA = [
   { titulo: 'Buffet e jantar', fornecedor: 'Buffet Jardim', valor: 6200000, situacao: 'Contratado' },
   { titulo: 'Espaço da festa', fornecedor: 'Espaço Aurora', valor: 4800000, situacao: 'Contratado' },
-  { titulo: 'Decoração', fornecedor: 'Ateliê das Flores', valor: 2800000, situacao: 'Em votação' },
+  { titulo: 'Decoração', fornecedor: 'Ateliê das Flores', valor: 2800000, situacao: 'Em cotação' },
   { titulo: 'Som e iluminação', fornecedor: 'Luz & Som Eventos', valor: 2200000, situacao: 'Em cotação' },
   { titulo: 'Banda e DJ', fornecedor: 'Banda Horizonte', valor: 2000000, situacao: 'Em cotação' },
   {
@@ -325,7 +325,7 @@ export function PreviaDoOrcamento() {
       />
       <BarraDaPrevia
         busca="Buscar item da festa"
-        filtros={['Em cotação', 'Em votação', 'Contratados']}
+        filtros={['Em cotação', 'Contratados']}
         acao="Novo item"
         total={7}
       />
@@ -384,8 +384,8 @@ export function PreviaDoOrcamento() {
             <h3 className="font-medium">Propostas recebidas</h3>
             {[
               ['Buffet Jardim', 6200000, 'Escolhida'],
-              ['Sabores da Serra', 6750000, '24 votos'],
-              ['Mesa & Celebração', 6980000, '12 votos'],
+              ['Sabores da Serra', 6750000, 'Levantada'],
+              ['Mesa & Celebração', 6980000, 'Levantada'],
             ].map(([nome, valor, situacao]) => (
               <div key={nome} className="flex items-center justify-between gap-3 border-b pb-4">
                 <div className="grid gap-1">

@@ -13,7 +13,7 @@ const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'))
 const TermosPage = lazy(() => import('@/features/legal/pages/TermosPage'))
 const PrivacidadePage = lazy(() => import('@/features/legal/pages/PrivacidadePage'))
 const OperadoresPage = lazy(() => import('@/features/privacidade/pages/OperadoresPage'))
-const AvisoDaListaDeEsperaPage = lazy(() => import('@/features/landing/pages/AvisoDaListaDeEsperaPage'))
+const PoliticaResumidaPage = lazy(() => import('@/features/landing/pages/PoliticaResumidaPage'))
 
 /**
  * O site (`kapaformaturas.com.br`): a página institucional e os documentos legais (Sprint 33).
@@ -24,7 +24,7 @@ const AvisoDaListaDeEsperaPage = lazy(() => import('@/features/landing/pages/Avi
  *
  * Os documentos continuam lendo o texto da API (P3): o cadastro no app mostra a mesma versão.
  *
- * Com a lista de espera ligada (Sprint 36, P11), os documentos saem e entra o aviso da lista — e o
+ * Com a lista de espera ligada (Sprint 36, P11), Termos e Operadores saem e a Política vira a resumida — e o
  * site não chama a API em nada. As rotas acompanham `PAGINAS`.
  */
 export function Site() {
@@ -35,7 +35,7 @@ export function Site() {
         <Routes>
           <Route index element={<LandingPage />} />
           {env.VITE_LISTA_DE_ESPERA ? (
-            <Route path={ROTAS.avisoDaListaDeEspera} element={<AvisoDaListaDeEsperaPage />} />
+            <Route path={ROTAS.privacidade} element={<PoliticaResumidaPage />} />
           ) : (
             <>
               <Route path={ROTAS.termosDeUso + SUFIXO_DE_VERSAO} element={<TermosPage />} />

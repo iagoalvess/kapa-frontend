@@ -66,12 +66,12 @@ describe('lista de espera', () => {
     })
   })
 
-  it('o aviso de privacidade fica a um clique, numa aba nova', () => {
+  it('a Política de Privacidade fica a um clique, numa aba nova', () => {
     renderizar(<ListaDeEspera />)
 
-    expect(screen.getByRole('link', { name: 'aviso de privacidade' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Política de Privacidade' })).toHaveAttribute(
       'href',
-      '/lista-de-espera/privacidade',
+      '/privacidade',
     )
   })
 
@@ -109,7 +109,7 @@ describe('lista de espera', () => {
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Criar minha turma' }))
 
-    expect(await screen.findByText('Confirme que leu o aviso de privacidade.')).toBeInTheDocument()
+    expect(await screen.findByText('Confirme que leu a Política de Privacidade.')).toBeInTheDocument()
     expect(screen.getByText('Escolha o seu papel na turma.')).toBeInTheDocument()
   })
 })
