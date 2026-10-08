@@ -1,8 +1,7 @@
-import { Check } from 'lucide-react'
+import { Check, FileText, Lock } from 'lucide-react'
 import type { ReactNode } from 'react'
 import pin from '@/assets/fotos/pin.webp'
 import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
-import { LogoKapa } from '@/components/layout/LogoKapa'
 import { formatarCentavos } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { Coracao } from './Rabiscos'
@@ -12,7 +11,7 @@ import { SecaoDaLanding } from './SecaoDaLanding'
  * "Da primeira reunião ao baile": o caminho até a festa numa trilha, no idioma do post 22 dos criativos
  * — fundo laranja, papel com percevejo, recado à mão e pontilhado ligando uma etapa à outra.
  *
- * Reúne agenda, mural e recibos em objetos dos criativos, sem repetir a vitrine de Recursos.
+ * Reúne agenda, mural e documentos em objetos dos criativos, sem repetir a vitrine de Recursos.
  * Arrecadações, relatório e mapa do salão ficam exportados para reutilização fora desta seção.
  */
 export function DaParcelaAoBaile() {
@@ -22,7 +21,7 @@ export function DaParcelaAoBaile() {
       titulo="Da primeira reunião"
       destaque="ao baile."
       nota="pra lembrar de cada detalhe até a festa"
-      descricao="Das reuniões aos pagamentos: a turma acompanha as datas, os avisos e os recibos num lugar só."
+      descricao="Das reuniões aos pagamentos: a turma acompanha as datas, os avisos e os documentos num lugar só."
       className="gap-14 lg:gap-16"
     >
       <ol className="grid gap-x-10 gap-y-12 sm:grid-cols-2 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-28 lg:gap-y-20">
@@ -43,10 +42,10 @@ export function DaParcelaAoBaile() {
         </Etapa>
 
         <Etapa
-          nota="pagou? ficou registrado."
-          descricao="A comissão confere o pagamento, e o recibo chega no e-mail do formando."
+          nota="o contrato não some no grupo"
+          descricao="Contratos, atas e orçamentos guardados num lugar só, para a turma consultar quando precisar."
         >
-          <ReciboDaParcela />
+          <PastaDeDocumentos />
         </Etapa>
       </ol>
     </SecaoDaLanding>
@@ -108,41 +107,6 @@ const TRILHAS = {
   subindo: { posicao: 'top-4', caminho: 'M3 114C70 118 24 8 93 12' },
   descendo: { posicao: 'top-52', caminho: 'M3 12C72 10 24 116 93 114' },
 } as const
-
-/** O recibo serrilhado do criativo 11, com o carimbo da conferência da tesouraria. */
-function ReciboDaParcela() {
-  return (
-    <div className="bg-card text-foreground shadow-foto relative w-full max-w-64 -rotate-3 px-6 pt-6 pb-5">
-      <div className="border-border flex items-baseline justify-between border-b border-dashed pb-4">
-        <LogoKapa className="text-foreground h-7 w-auto" />
-        <span className="text-muted-foreground text-[10px] tracking-widest uppercase">Recibo</span>
-      </div>
-      <p className="mt-4 text-xs font-medium">Mensalidade · 7/24</p>
-      <p className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{formatarCentavos(40000)}</p>
-      <dl className="mt-4 grid gap-3 text-sm">
-        <div>
-          <dt className="text-muted-foreground text-xs">Formanda</dt>
-          <dd className="mt-0.5 font-medium">Ana Clara</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground text-xs">Forma de pagamento</dt>
-          <dd className="mt-0.5 font-medium">PIX da turma</dd>
-        </div>
-      </dl>
-      <p className="border-success-text text-success-text mt-5 -rotate-2 border px-2 py-2 text-center text-[11px]">
-        Conferido pela comissão
-      </p>
-      <svg
-        viewBox="0 0 256 12"
-        preserveAspectRatio="none"
-        aria-hidden
-        className="fill-card absolute -bottom-3 left-0 h-3 w-full"
-      >
-        <path d="M0 0H256L248 12 240 0 232 12 224 0 216 12 208 0 200 12 192 0 184 12 176 0 168 12 160 0 152 12 144 0 136 12 128 0 120 12 112 0 104 12 96 0 88 12 80 0 72 12 64 0 56 12 48 0 40 12 32 0 24 12 16 0 8 12 0 0Z" />
-      </svg>
-    </div>
-  )
-}
 
 const ARRECADACOES = [
   { origem: 'Rifa da turma', valor: 384000 },
@@ -356,6 +320,57 @@ function AvisoDoMural() {
         <span className="border-border text-muted-foreground border-t pt-3 text-xs">
           Ana Clara, presidente da comissão
         </span>
+      </div>
+    </div>
+  )
+}
+
+/** O acervo da turma, separado por gaveta como no app; o orçamento mostra o que fica só com a comissão. */
+const DOCUMENTOS = [
+  { nome: 'Contrato do buffet', gaveta: 'Contrato', soDaComissao: false },
+  { nome: 'Ata da reunião de 21/11', gaveta: 'Ata', soDaComissao: false },
+  { nome: 'Orçamento da fotografia', gaveta: 'Orçamento', soDaComissao: true },
+] as const
+
+/**
+ * Uma pasta de papel aberta: a aba com o nome atrás, o contrato saindo por cima com o carimbo, e a
+ * capa da frente com a lista do acervo.
+ */
+function PastaDeDocumentos() {
+  return (
+    <div className="relative w-full max-w-sm pt-4">
+      <div className="bg-brand-tint shadow-foto relative -rotate-2 rounded-md rounded-tl-none px-4 pt-6 pb-40">
+        <span className="bg-brand-tint absolute -top-6 left-0 rounded-t-md px-4 pt-1.5 pb-1">
+          <span className="font-hand text-brand-text text-xl leading-none">Pasta da turma</span>
+        </span>
+        <div className="bg-card text-foreground relative rotate-3 rounded-[3px] px-4 pt-4 pb-10 shadow-sm">
+          <span className="text-brand-text text-[10px] font-semibold tracking-widest uppercase">
+            Contrato
+          </span>
+          <p className="mt-1 text-base font-bold">Buffet Vista Verde</p>
+          <div className="mt-3 grid gap-1.5" aria-hidden>
+            <span className="bg-secondary h-1 w-full rounded-full" />
+            <span className="bg-secondary h-1 w-11/12 rounded-full" />
+            <span className="bg-secondary h-1 w-3/4 rounded-full" />
+          </div>
+          <p className="border-success-text text-success-text absolute right-4 bottom-3 rotate-6 border px-2 py-1 text-[10px]">
+            Assinado
+          </p>
+        </div>
+      </div>
+      <div className="bg-brand-wash shadow-foto absolute inset-x-0 bottom-0 rotate-1 rounded-md px-4 pt-3 pb-4">
+        <ul className="divide-border text-foreground grid divide-y">
+          {DOCUMENTOS.map((documento) => (
+            <li key={documento.nome} className="flex items-center gap-2.5 py-2">
+              <FileText className="text-brand-text size-4 shrink-0" aria-hidden />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{documento.nome}</span>
+              <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-[11px]">
+                {documento.soDaComissao ? <Lock className="size-3" aria-hidden /> : null}
+                {documento.soDaComissao ? 'Só a comissão' : documento.gaveta}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )

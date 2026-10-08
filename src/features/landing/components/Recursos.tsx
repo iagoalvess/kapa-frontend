@@ -4,9 +4,10 @@ import avatarAna from '@/assets/avatares/ana-clara.webp'
 import avatarBruno from '@/assets/avatares/bruno-lima.webp'
 import avatarCarla from '@/assets/avatares/carla-souza.webp'
 import fotoDoBaile from '@/assets/fotos/baile.webp'
-import qrcode from '@/assets/outros/qrcode.webp'
 import carteira from '@/assets/outros/carteira.webp'
 import { Folha } from '@/components/Folha'
+import { LogoKapa } from '@/components/layout/LogoKapa'
+import { formatarCentavos } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { SecaoDaLanding } from './SecaoDaLanding'
 import { MetaDaTurmaAnimada } from './MetaDaTurmaAnimada'
@@ -161,29 +162,37 @@ function MaqueteDeParcelas() {
   )
 }
 
-function MaqueteDePagamento() {
+/** O recibo serrilhado do criativo 11, com o carimbo da conferência da tesouraria. */
+function MaqueteDoRecibo() {
   return (
-    <div className="w-full space-y-2">
-      <div className="bg-card border-border/60 flex items-center gap-3 rounded-2xl border p-3 shadow-sm">
-        <img src={qrcode} alt="" loading="lazy" className="size-16 shrink-0 rounded-md" />
-        <div className="grid min-w-0 gap-1">
-          <span className="text-brand-text text-[10px] font-semibold">PIX · Cartão · Dinheiro</span>
-          <span className="text-foreground text-xs font-bold">
-            Direto na conta
-            <br />
-            da comissão
-          </span>
+    <div className="bg-card text-foreground shadow-foto relative mx-auto mb-3 w-full max-w-52 -rotate-3 px-4 pt-4 pb-3.5">
+      <div className="border-border flex items-baseline justify-between border-b border-dashed pb-2.5">
+        <LogoKapa className="text-foreground h-5 w-auto" />
+        <span className="text-muted-foreground text-[9px] tracking-widest uppercase">Recibo</span>
+      </div>
+      <p className="mt-2.5 text-[10px] font-medium">Mensalidade · 7/24</p>
+      <p className="mt-0.5 text-2xl font-bold tracking-tight tabular-nums">{formatarCentavos(40000)}</p>
+      <dl className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
+        <div>
+          <dt className="text-muted-foreground text-[9px]">Formanda</dt>
+          <dd className="font-medium">Ana Clara</dd>
         </div>
-      </div>
-      <div className="bg-success-bg text-success-text flex items-center gap-2 rounded-xl px-3 py-2">
-        <span className="bg-success text-card grid size-5 shrink-0 place-items-center rounded-full">
-          <Check className="motion-safe:animate-surgir-em-loop size-3" strokeWidth={3} aria-hidden />
-        </span>
-        <span className="grid gap-0.5 text-[10px]">
-          <strong className="font-semibold">Pagamento conferido</strong>
-          <span>R$ 256,23 · Ana Clara</span>
-        </span>
-      </div>
+        <div>
+          <dt className="text-muted-foreground text-[9px]">Pagamento</dt>
+          <dd className="font-medium">PIX da turma</dd>
+        </div>
+      </dl>
+      <p className="border-success-text text-success-text mt-3 -rotate-2 border px-2 py-1.5 text-center text-[10px]">
+        Conferido pela comissão
+      </p>
+      <svg
+        viewBox="0 0 256 12"
+        preserveAspectRatio="none"
+        aria-hidden
+        className="fill-card absolute -bottom-3 left-0 h-3 w-full"
+      >
+        <path d="M0 0H256L248 12 240 0 232 12 224 0 216 12 208 0 200 12 192 0 184 12 176 0 168 12 160 0 152 12 144 0 136 12 128 0 120 12 112 0 104 12 96 0 88 12 80 0 72 12 64 0 56 12 48 0 40 12 32 0 24 12 16 0 8 12 0 0Z" />
+      </svg>
     </div>
   )
 }
@@ -364,14 +373,34 @@ export function Recursos() {
           titulo="Cobranças e parcelas"
           texto="Cada formando acompanha as próprias parcelas e pode pagar várias de uma vez."
         >
-          <MaqueteDeParcelas />
+          <div className="relative w-full pt-14">
+            <div
+              aria-hidden
+              className="font-hand text-brand-text pointer-events-none absolute top-0 right-2 -rotate-3 text-xl leading-none"
+            >
+              várias de uma vez!
+              <svg viewBox="0 0 48 48" className="absolute top-5 right-7 size-9" fill="none">
+                <path
+                  d="M5 3C35 1 43 15 29 39m-5-11 5 11 11-6"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <MaqueteDeParcelas />
+            <p className="font-hand text-brand-text mt-3 -rotate-1 text-lg leading-tight sm:text-xl">
+              Veja quem já pagou e o que ainda falta pagar.
+            </p>
+          </div>
         </Cartao>
         <Cartao
           tom="destaque"
-          titulo="PIX, cartão ou dinheiro"
-          texto="Cada um escolhe como pagar. Dá até para parcelar no cartão, e a comissão confere tudo num lugar só."
+          titulo="Recibo de cada pagamento"
+          texto="PIX, cartão ou dinheiro: a comissão confere, e o recibo chega no e-mail do formando."
         >
-          <MaqueteDePagamento />
+          <MaqueteDoRecibo />
         </Cartao>
         <Cartao
           texto="Cada formando assina pelo celular, e a comissão vê quem já assinou."
@@ -397,7 +426,7 @@ export function Recursos() {
         </Cartao>
         <Cartao
           largo
-          className="max-sm:order-2"
+          className="max-sm:hidden"
           titulo="Festa e meta"
           maqueteClassName="min-h-56"
           texto="Data, local e quanto ainda falta juntar para a festa."
