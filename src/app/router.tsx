@@ -372,7 +372,7 @@ export const router = createBrowserRouter([
                                     lazy: pagina(() => import('@/features/festa/pages/MesasPage')),
                                   },
                                   // O editor do salão precisa de largura para arrastar: página própria,
-                                  // aberta pelo card lateral da lista (ver docs/menu-e-planos.md).
+                                  // aberta pelo card lateral da lista (ver docs/produto/menu-e-planos.md).
                                   {
                                     path: rotaDoMapaDeMesas,
                                     handle: { titulo: 'Mapa do salão' },

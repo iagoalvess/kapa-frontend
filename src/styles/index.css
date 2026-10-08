@@ -48,7 +48,7 @@
   --neutral-text: #4a5560;
 
   /*
-    Fatias de gráfico de categoria (modelo docs/design/modelo/relatorios.png). São tons claros e de
+    Fatias de gráfico de categoria (modelo marca/design/modelo/relatorios.png). São tons claros e de
     mesma força, para nenhuma fatia gritar mais que a outra: a grandeza está no tamanho do arco, não
     na saturação. A primeira é o laranja suave da marca — a maior fatia continua sendo da casa.
     Só aqui o produto sai do laranja: categoria é dado, e dado precisa de matizes distinguíveis.
@@ -61,7 +61,7 @@
   --grafico-outras: #e0dfda;
 
   /*
-    Tipos de evento da agenda (modelo docs/design/modelo/agenda.png). Um matiz por tipo, usado
+    Tipos de evento da agenda (modelo marca/design/modelo/agenda.png). Um matiz por tipo, usado
     cheio na barra da esquerda do cartão e a 10% no fundo — daí um token por tipo, e não dois: o
     fundo é o mesmo matiz diluído, e não tem como os dois se desencontrarem.
 

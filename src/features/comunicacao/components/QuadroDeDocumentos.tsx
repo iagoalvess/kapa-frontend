@@ -48,7 +48,7 @@ const extensao = (nome: string) => nome.split('.').at(-1)?.toUpperCase() ?? ''
 
 /**
  * O acervo como quadro: uma coluna por categoria, sempre as cinco — o desenho do quadro de
- * `docs/design/modelo/pagina-inicial.jpg`.
+ * `marca/design/modelo/pagina-inicial.jpg`.
  *
  * Coluna cinza com o nome, a contagem e a data do último adicionado (na ordem que o filtro pedir); cartões brancos, todos iguais e
  * compactos, com quem adicionou, o título, o tipo, há quanto tempo e as ações em ícone. No pé,

@@ -107,7 +107,7 @@ describe('BarraLateral', () => {
   })
 
   /**
-   * O padrão `useAtalhoNoMenu` (docs/menu-e-planos.md): o atalho só sai do menu quando a tela que o
+   * O padrão `useAtalhoNoMenu` (docs/produto/menu-e-planos.md): o atalho só sai do menu quando a tela que o
    * abriga está no plano. A Portaria é Essencial e abriga-se em A festa, que é Premium.
    */
   it('no Essencial, a Portaria fica no menu — A festa, que a abriga, está fora do plano', () => {

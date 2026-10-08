@@ -54,7 +54,7 @@ export function TextoDoCartao({
 /**
  * O cartão branco das telas do app: fundo, sombra e respiro de sempre.
  *
- * O cabeçalho segue os cartões do modelo (`docs/design/modelo`): ícone num bloco cinza, título,
+ * O cabeçalho segue os cartões do modelo (`marca/design/modelo`): ícone num bloco cinza, título,
  * descrição curta embaixo e as ações encostadas à direita. Tudo opcional — sem título, é só a
  * superfície.
  */

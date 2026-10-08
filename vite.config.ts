@@ -42,7 +42,7 @@ function arquivosDaBorda(lado: 'app' | 'site', ambiente: Record<string, string>)
 
 export default defineConfig(({ mode }) => {
   // Duas builds do mesmo código (Sprint 33): o app (`index.html` → `dist/`) e o site pré-renderizado
-  // (`site.html` → `dist-site/`), cada uma no seu projeto do Pages. Ver docs/deploy.md.
+  // (`site.html` → `dist-site/`), cada uma no seu projeto do Pages. Ver docs/operacao/deploy.md.
   const site = mode === 'site'
 
   return {

@@ -14,7 +14,7 @@ execução — ver [arquitetura.md](arquitetura.md), item 13.
 | `VITE_LISTA_DE_ESPERA`    | não                        | `true` liga a lista de espera no site (Sprint 36)           |
 | `VITE_TURNSTILE_SITE_KEY` | com `VITE_LISTA_DE_ESPERA` | chave pública do Turnstile                                  |
 
-Os valores de produção estão em `docs/deploy.md`, seção 0.
+Os valores de produção estão em `docs/operacao/deploy.md`, seção 0.
 
 Localmente: `cp .env.example .env.local`. O `.env.local` é ignorado pelo git.
 `.env.test` é versionado de propósito — a suíte precisa rodar num clone limpo, e lá não há
@@ -37,7 +37,7 @@ VITE_API_URL=https://api.kapaformaturas.com.br npm run build   # e as outras obr
 # saída em dist/ — arquivos estáticos, nada além disso
 ```
 
-O `dist/` vai para o Cloudflare Pages (`docs/deploy.md` na raiz do projeto). Sem Node e sem
+O `dist/` vai para o Cloudflare Pages (`docs/operacao/deploy.md` na raiz do projeto). Sem Node e sem
 nginx em produção.
 
 ### O que a borda já faz

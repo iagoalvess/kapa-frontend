@@ -34,7 +34,7 @@ function ancora(indice: number, total: number) {
 }
 
 /**
- * Colunas mês a mês de uma série só — o "Appointments by Department" do modelo (`docs/design/modelo/dashboard.png`),
+ * Colunas mês a mês de uma série só — o "Appointments by Department" do modelo (`marca/design/modelo/dashboard.png`),
  * com o tempo no eixo.
  *
  * Uma série, então sem legenda: o título do cartão a nomeia. O mês corrente vai no laranja da marca e os anteriores

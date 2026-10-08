@@ -2,7 +2,7 @@
 
 O app (`index.html`, em `app.kapaformaturas.com.br`) e o site público — landing e documentos legais
 (`site.html`, pré-renderizado, em `kapaformaturas.com.br`). Consome a API do repositório irmão
-[backend](../backend). Deploy e domínios em `docs/deploy.md` na raiz do projeto.
+[backend](../backend). Deploy e domínios em `docs/operacao/deploy.md` na raiz do projeto.
 
 ---
 

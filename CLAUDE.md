@@ -21,7 +21,7 @@ npm run typecheck        # tsc -b --noEmit
 npm run test             # Vitest
 npm run build            # tsc -b && vite build — o app (dist/)
 npm run dev:site         # o site (landing + documentos legais) em 5180
-npm run build:site       # o site pré-renderizado (dist-site/) — ver src/site e docs/deploy.md
+npm run build:site       # o site pré-renderizado (dist-site/) — ver src/site e docs/operacao/deploy.md
 
 npx shadcn@latest add <componente>    # entra em src/components/ui/
 ```

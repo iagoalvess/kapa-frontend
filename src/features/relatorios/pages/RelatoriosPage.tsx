@@ -70,7 +70,7 @@ function paraUrl(filtro: FiltroDoRelatorio) {
 
 /**
  * O balancete do período, as exportações e a fila de PDFs — a tela de relatórios do modelo
- * (`docs/design/modelo/relatorios.png`).
+ * (`marca/design/modelo/relatorios.png`).
  *
  * De cima para baixo: a barra de filtros no padrão das listas do sistema, os números do período com
  * a variação contra o período anterior, a evolução mês a mês ao lado da rosca das saídas, os
