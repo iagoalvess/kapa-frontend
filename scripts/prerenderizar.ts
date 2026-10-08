@@ -94,7 +94,8 @@ async function liberarTurnstileNaCsp() {
   const original = await readFile(arquivo, 'utf8')
   const liberada = original
     .replace("script-src 'self'", `script-src 'self' ${TURNSTILE}`)
-    .replace('frame-ancestors', `frame-src ${TURNSTILE}; frame-ancestors`)
+    // Acrescenta na frame-src que já existe (a do Mercado Pago): uma segunda diretiva é ignorada pelo navegador.
+    .replace('frame-src ', `frame-src ${TURNSTILE} `)
   if (!liberada.includes(`script-src 'self' ${TURNSTILE}`) || !liberada.includes(`frame-src ${TURNSTILE}`))
     throw new Error('A CSP do _headers mudou: ajuste liberarTurnstileNaCsp.')
   await writeFile(arquivo, liberada)
