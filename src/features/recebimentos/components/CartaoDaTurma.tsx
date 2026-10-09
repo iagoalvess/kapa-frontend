@@ -53,7 +53,7 @@ export function CartaoDaTurma({ cartao, escreve }: { cartao: Cartao; escreve: bo
   }
 
   return (
-    <section aria-label="Cartão de crédito" className="bg-muted grid gap-3 rounded-2xl p-4">
+    <section aria-label="Cartão de crédito" className="grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-foreground flex items-center gap-2 font-medium">
           <CreditCard className="size-4" aria-hidden />
@@ -84,7 +84,7 @@ export function CartaoDaTurma({ cartao, escreve }: { cartao: Cartao; escreve: bo
                 ? 'A turma absorve a taxa do cartão.'
                 : `Quem paga no cartão paga ${formatarPercentual(cartao.taxa_repassada)} a mais — a taxa do cartão.`
             } Ligado${cartao.ligado_por ? ` por ${cartao.ligado_por}` : ''} em ${formatarData(cartao.ligado_em)}.`
-          : 'Ao ligar esta opção, os formandos poderão pagar uma ou várias parcelas em até 12 vezes. Quem compra na loja também poderá pagar os convites no cartão. A confirmação será automática.'}
+          : 'Cartão na loja e, com confirmação automática, nas parcelas. Até 12 vezes.'}
       </p>
 
       {!cartao.disponivel && escreve ? (

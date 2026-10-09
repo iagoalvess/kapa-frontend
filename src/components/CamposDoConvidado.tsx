@@ -7,7 +7,7 @@ import { ROTULOS_DE_DOCUMENTO } from '@/types/festa'
 
 /**
  * Os campos do titular de um convite: nome, documento, o e-mail para o convite chegar direto e as
- * observações para a comissão (restrição alimentar, acessibilidade).
+ * observações para a comissão. O exemplo não sugere dado de saúde (LGPD, art. 11): quem precisar, informa.
  *
  * Lê o formulário do contexto (`<Form>`), então serve a qualquer formulário que contenha estes campos —
  * o do formando, a cortesia da Gestão e o do comprador da loja (Sprint 26).
@@ -103,11 +103,13 @@ export function CamposDoConvidado({ documentoAtual }: { documentoAtual?: string 
               <textarea
                 {...field}
                 rows={2}
-                placeholder="Restrição alimentar, acessibilidade"
+                placeholder="Ex.: chega depois do jantar"
                 className="border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 min-h-20 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
               />
             </FormControl>
-            <p className="text-texto-muted text-xs">Só a comissão vê.</p>
+            <p className="text-texto-muted text-xs">
+              Só a comissão vê. Informe só o necessário para o evento.
+            </p>
             <FormMessage />
           </FormItem>
         )}

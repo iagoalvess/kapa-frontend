@@ -10,7 +10,7 @@ import {
   useFormState,
   useWatch,
 } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { CampoDeMarcar } from '@/components/CampoDeMarcar'
 import { ComoVoceQuerPagar } from '@/components/ComoVoceQuerPagar'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
@@ -18,6 +18,7 @@ import { Select } from '@/components/Select'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { DOCUMENTOS } from '@/config/legal'
 import { rotaDaCompra } from '@/config/rotas'
 import { formatarCentavos, formatarNumero } from '@/lib/formato'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
@@ -42,6 +43,9 @@ type Etapa = 'convite' | 'comprador' | 'convidados'
 
 const COM_ESCOLHA: Etapa[] = ['convite', 'comprador', 'convidados']
 const SEM_ESCOLHA: Etapa[] = ['comprador', 'convidados']
+
+/** A Política vigente, no site — o mesmo link do cadastro. A compra grava a versão vigente como lida. */
+const politica = DOCUMENTOS.PoliticaDePrivacidade
 
 /**
  * A compra sem conta, em etapas: com mais de um convite, primeiro a **escolha** (o cartão do convite e a
@@ -265,7 +269,21 @@ export function FormularioDeCompra({
               control={formulario.control}
               name="ciente"
               rotulo="Li como meus dados são usados"
-              dica="Seu nome, e-mail e CPF enviam os convites; o nome e o documento de cada convidado são conferidos na entrada. Ficam com a turma e são apagados 30 dias depois da festa."
+              dica={
+                <>
+                  Seu nome, e-mail e CPF enviam os convites; o nome e o documento de cada convidado são
+                  conferidos na entrada. Ficam com a turma e são apagados 30 dias depois da festa. Detalhes na{' '}
+                  <Link
+                    to={politica.rota}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-brand-hover hover:text-brand-border font-semibold underline underline-offset-2"
+                  >
+                    {politica.rotulo}
+                  </Link>
+                  .
+                </>
+              }
             />
 
             <ErroDoFormulario />

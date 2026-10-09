@@ -235,8 +235,8 @@ export default function MinhaPrivacidadePage() {
           <SecaoDeDados
             titulo="Comunicações"
             icone={BellRing}
-            porQue="Guardamos o que você escolheu receber e o registro do que já enviamos — é o que responde 'nunca fui avisado'. As novidades do Kapa só chegam com a sua autorização, e só para quem cuida de uma turma."
-            porQuanto="O histórico de envio fica 180 dias. As preferências ficam enquanto o vínculo existir; cada vez que você liga ou desliga as novidades fica registrada."
+            porQue="Guardamos o registro do que já enviamos — é o que responde 'nunca fui avisado'. As novidades do Kapa só chegam com a sua autorização, e só para quem cuida de uma turma."
+            porQuanto="O histórico de envio fica 180 dias. Cada vez que você liga ou desliga as novidades fica registrada."
           >
             <ListaDeDados>
               <Dado icone={Megaphone} rotulo="Novidades do Kapa">
@@ -258,15 +258,6 @@ export default function MinhaPrivacidadePage() {
                   ? ` · o último em ${formatarData(comunicacoes.ultima_enviada_em)}`
                   : ''}
               </Dado>
-              {comunicacoes.preferencias.map((preferencia) => (
-                <Dado
-                  key={`${preferencia.formatura_id}-${preferencia.tipo}`}
-                  icone={BellRing}
-                  rotulo={preferencia.tipo}
-                >
-                  {preferencia.ativa ? 'Ligado' : 'Desligado'}
-                </Dado>
-              ))}
             </ListaDeDados>
           </SecaoDeDados>
         </div>

@@ -24,7 +24,13 @@ import { usePapel } from '@/hooks/useSessao'
 import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { MEIOS_DE_PAGAMENTO } from '@/types/pagamento'
-import { useAssinatura, useCancelarAssinatura, useTrocarMeio, useTrocarPlano } from '../hooks/useAssinatura'
+import {
+  useAssinatura,
+  useCancelarAssinatura,
+  useDesistirDaAssinatura,
+  useTrocarMeio,
+  useTrocarPlano,
+} from '../hooks/useAssinatura'
 import { usePagarCiclo } from '../hooks/useCheckout'
 import type { Assinatura } from '../types/assinaturas.types'
 import { SeloDeStatus } from './SeloDeStatus'
@@ -123,6 +129,8 @@ function AssinaturaContratada() {
       <Situacao assinatura={dados} presidente={ehPresidente} />
 
       {dados.status === 'Ativa' ? <Andamento assinatura={dados} presidente={ehPresidente} /> : null}
+
+      {ehPresidente && dados.desistencia_ate ? <Desistir ate={dados.desistencia_ate} /> : null}
 
       {ehPresidente && dados.status === 'Ativa' ? <CancelarRenovacao vigenteAte={dados.vigente_ate} /> : null}
     </Cartao>
@@ -268,6 +276,47 @@ function Andamento({ assinatura, presidente }: { assinatura: Assinatura; preside
         </div>
       ) : null}
     </>
+  )
+}
+
+/**
+ * A desistência nos 7 dias do último pagamento (art. 49 do CDC), pelo mesmo meio da contratação: o app. A API só
+ * manda `desistencia_ate` dentro do prazo, e é isso que faz a seção sumir depois — fica o cancelamento.
+ *
+ * Diferente do cancelamento, encerra na hora: o dinheiro volta e a turma fica só para consulta já. Por isso a
+ * confirmação diz as duas coisas antes do botão.
+ *
+ * @param ate O `desistencia_ate` da assinatura.
+ */
+function Desistir({ ate }: { ate: string }) {
+  const desistir = useDesistirDaAssinatura()
+
+  return (
+    <div className="border-border grid gap-2 border-t pt-5">
+      <h3 className="text-foreground text-sm font-medium">Desistir da assinatura</h3>
+      <TextoDoCartao>
+        Até {formatarData(ate)}, você pode desistir e receber de volta todo o valor do último pagamento. Se
+        usou cupom, o reembolso considera o valor com desconto.
+      </TextoDoCartao>
+      <DialogoDeConfirmacao
+        titulo="Desistir da assinatura?"
+        descricao="A renovação é cancelada e o valor efetivamente pago na última cobrança volta inteiro pelo Mercado Pago, no meio em que foi pago. Se usou cupom, é devolvido o valor com desconto. A turma fica só para consulta a partir de agora: todos continuam vendo tudo, mas ninguém registra nada novo. Nada é apagado."
+        rotulo="Pedir reembolso"
+        rotuloDeCancelar="Manter assinatura"
+        destrutivo
+        aoConfirmar={() =>
+          desistir.mutate(undefined, {
+            onSuccess: () => toast.info('Desistência confirmada. O reembolso foi pedido ao Mercado Pago.'),
+            onError: avisarErro,
+          })
+        }
+        gatilho={
+          <Button variant="outline" className="w-1/2" disabled={desistir.isPending}>
+            Pedir reembolso
+          </Button>
+        }
+      />
+    </div>
   )
 }
 

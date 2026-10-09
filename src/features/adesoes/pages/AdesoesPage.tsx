@@ -70,7 +70,7 @@ export default function AdesoesPage() {
         else proximos.delete('editar')
         return proximos
       },
-      { state },
+      { state, preventScrollReset: true },
     )
 
   // Os dois bloqueios da tela, numa lista numerada: sem plano ou sem termo, ninguém consegue aderir.

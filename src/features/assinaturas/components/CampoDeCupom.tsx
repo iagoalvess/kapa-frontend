@@ -7,10 +7,12 @@ import { useConsultarCupom } from '../hooks/useCheckout'
 import type { CupomAplicavel } from '../types/assinaturas.types'
 
 /**
- * O "Tenho um cupom" da contratação (Sprint 51): fechado num link, abre o campo e confere na API.
+ * O campo de cupom da contratação (Sprint 51), sempre visível: confere o código na API e mostra o
+ * desconto da primeira cobrança. A tela o esconde quando a turma já tem assinatura, porque aí a API
+ * responderia "inválido" — o desconto vale só na primeira contratação.
  *
- * O desconto mostrado é só leitura — quem cobra é o servidor, que recalcula a partir do código no checkout. O
- * erro é sempre o mesmo ("Cupom inválido ou expirado"): a API não diz se o código existe.
+ * O desconto mostrado é só leitura — quem cobra é o servidor, que recalcula a partir do código no
+ * checkout. O erro é sempre o mesmo ("Cupom inválido ou expirado"): a API não diz se o código existe.
  *
  * @param aplicado O cupom já conferido, ou nulo.
  * @param aoAplicar Recebe o cupom conferido, ou nulo ao remover.
@@ -18,31 +20,28 @@ import type { CupomAplicavel } from '../types/assinaturas.types'
 export function CampoDeCupom({
   aplicado,
   aoAplicar,
+  aoMudarConsulta,
 }: {
   aplicado: CupomAplicavel | null
   aoAplicar: (cupom: CupomAplicavel | null) => void
+  /** Impede continuar para o pagamento enquanto o desconto ainda está sendo conferido. */
+  aoMudarConsulta?: (consultando: boolean) => void
 }) {
   const id = useId()
-  const [aberto, definirAberto] = useState(false)
   const [codigo, definirCodigo] = useState('')
   const consultar = useConsultarCupom()
 
   if (aplicado)
     return (
-      <p className="text-foreground text-sm text-pretty">
-        Cupom <b className="font-semibold">{aplicado.codigo}</b>: {aplicado.percentual}% de desconto na
-        primeira cobrança. Da segunda em diante, o preço cheio.{' '}
-        <Button variant="link" className="h-auto p-0" onClick={() => aoAplicar(null)}>
+      <div className="border-brand-wash bg-brand-wash/50 flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-left">
+        <p className="text-foreground flex-1 text-sm text-pretty">
+          <b className="font-semibold">{aplicado.codigo}</b>: {aplicado.percentual}% de desconto na primeira
+          cobrança. Da segunda em diante, o preço cheio.
+        </p>
+        <Button variant="link" className="h-auto shrink-0 p-0 text-sm" onClick={() => aoAplicar(null)}>
           Remover
         </Button>
-      </p>
-    )
-
-  if (!aberto)
-    return (
-      <Button variant="link" className="h-auto p-0" onClick={() => definirAberto(true)}>
-        Tenho um cupom
-      </Button>
+      </div>
     )
 
   return (
@@ -50,29 +49,41 @@ export function CampoDeCupom({
       className="grid w-full max-w-sm gap-2 text-left"
       onSubmit={(evento) => {
         evento.preventDefault()
-        if (codigo.trim()) consultar.mutate(codigo, { onSuccess: aoAplicar })
+        if (!codigo.trim() || consultar.isPending) return
+        aoMudarConsulta?.(true)
+        consultar.mutate(codigo, {
+          onSuccess: aoAplicar,
+          onSettled: () => aoMudarConsulta?.(false),
+        })
       }}
     >
-      <Label htmlFor={id}>Cupom</Label>
+      <Label htmlFor={id}>Cupom de desconto</Label>
       <div className="flex gap-2">
         <Input
           id={id}
+          className="flex-1 font-mono tracking-wide"
           autoComplete="off"
+          placeholder="PRIMEIRACOMPRA20"
           maxLength={20}
+          disabled={consultar.isPending}
           value={codigo}
           onChange={(evento) => definirCodigo(evento.target.value.toUpperCase())}
           aria-invalid={consultar.isError}
-          aria-describedby={consultar.isError ? `${id}-erro` : undefined}
+          aria-describedby={`${id}-dica`}
         />
         <Button type="submit" variant="outline" disabled={consultar.isPending || !codigo.trim()}>
           {consultar.isPending ? 'Aplicando…' : 'Aplicar'}
         </Button>
       </div>
       {consultar.isError ? (
-        <p id={`${id}-erro`} role="alert" className="text-destructive text-sm">
+        <p id={`${id}-dica`} role="alert" className="text-destructive text-sm">
           {mensagemDoErro(consultar.error)}
         </p>
-      ) : null}
+      ) : (
+        <p id={`${id}-dica`} className="text-texto-muted text-xs">
+          O desconto vale só na primeira cobrança.
+        </p>
+      )}
     </form>
   )
 }

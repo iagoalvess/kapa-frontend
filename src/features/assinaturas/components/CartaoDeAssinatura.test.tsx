@@ -29,6 +29,7 @@ const ativa = {
   proximo_plano: null,
   cartao_aguardando_autorizacao: false,
   cupom: null,
+  desistencia_ate: null,
 }
 
 function entrarComo(papel: string) {
@@ -182,5 +183,58 @@ describe('CartaoDeAssinatura', () => {
     await usuario.click(await screen.findByRole('button', { name: 'Manter o Premium' }))
 
     await expect.poll(() => pedido).toEqual({ plano_codigo: 'premium' })
+  })
+
+  /**
+   * Art. 49 do CDC: nos 7 dias, o Presidente desiste no app. Nada sai antes de confirmar no diálogo, que diz que o
+   * dinheiro volta e a turma fica só para consulta.
+   */
+  it('o Presidente desiste no prazo depois de confirmar', async () => {
+    entrarComo(PAPEIS.presidente)
+    let desistencias = 0
+    servidor.use(
+      http.get(ASSINATURA, () => HttpResponse.json({ ...ativa, desistencia_ate: '2026-10-14T15:00:00Z' })),
+      http.post(`${ASSINATURA}/desistir`, () => {
+        desistencias++
+        return HttpResponse.json({ ...ativa, status: 'Vencida', desistencia_ate: null })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(<CartaoDeAssinatura jaContratou />)
+    expect(await screen.findByText(/Até 14\/10\/2026, você pode desistir/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Pedir reembolso' }))
+
+    const dialogo = screen.getByRole('alertdialog')
+    expect(within(dialogo).getByText(/volta inteiro/)).toBeInTheDocument()
+    expect(within(dialogo).getByText(/é devolvido o valor com desconto/)).toBeInTheDocument()
+    expect(within(dialogo).getByText(/só para consulta/)).toBeInTheDocument()
+    expect(desistencias).toBe(0)
+
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Pedir reembolso' }))
+
+    await expect.poll(() => desistencias).toBe(1)
+  })
+
+  it('fora do prazo, sobra só o cancelamento', async () => {
+    entrarComo(PAPEIS.presidente)
+    servidor.use(http.get(ASSINATURA, () => HttpResponse.json(ativa)))
+
+    renderizar(<CartaoDeAssinatura jaContratou />)
+
+    expect(await screen.findByRole('button', { name: 'Cancelar renovação' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pedir reembolso' })).not.toBeInTheDocument()
+  })
+
+  it('quem não é o Presidente não vê a desistência', async () => {
+    entrarComo(PAPEIS.tesoureiro)
+    servidor.use(
+      http.get(ASSINATURA, () => HttpResponse.json({ ...ativa, desistencia_ate: '2026-10-14T15:00:00Z' })),
+    )
+
+    renderizar(<CartaoDeAssinatura jaContratou />)
+
+    expect(await screen.findByText('Plano Premium')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pedir reembolso' })).not.toBeInTheDocument()
   })
 })

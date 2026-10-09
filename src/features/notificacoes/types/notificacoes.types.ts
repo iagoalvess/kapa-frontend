@@ -6,31 +6,12 @@ type GatilhoDaRegua = 'Vencimento' | 'InformePendente'
 /** O desfecho de um envio. Espelha `StatusDaNotificacao`. */
 export type StatusDaNotificacao = 'Enfileirada' | 'Entregue' | 'Falhou'
 
-/** O assunto de uma mensagem automática. Espelha `TipoDeNotificacao`. */
-type TipoDeNotificacao = 'Cobranca' | 'Aviso' | 'Adesao' | 'Sistema'
-
 /** Como cada resultado aparece no histórico. */
 export const ROTULOS_DE_STATUS = {
   Enfileirada: 'Na fila',
   Entregue: 'Entregue',
   Falhou: 'Falhou',
 } as const satisfies Record<StatusDaNotificacao, string>
-
-/** Como cada assunto aparece nas preferências. */
-export const ROTULOS_DE_TIPO = {
-  Cobranca: 'Cobrança de parcela',
-  Aviso: 'Aviso do mural e assembleia',
-  Adesao: 'Termo de adesão',
-  Sistema: 'Recados da plataforma',
-} as const satisfies Record<TipoDeNotificacao, string>
-
-/** Uma linha embaixo de cada assunto, explicando o que ele manda. */
-export const DICAS_DE_TIPO = {
-  Cobranca: 'Parcela a vencer e parcela em atraso. Faz parte do termo de adesão e não pode ser desligada.',
-  Aviso: 'Comunicado novo no mural e lembrete de assembleia.',
-  Adesao: 'Termo publicado ou atualizado, à espera do seu aceite.',
-  Sistema: 'Mudanças na conta e recados da Kapa.',
-} as const satisfies Record<TipoDeNotificacao, string>
 
 /** Um degrau da régua. Texto e destinatários são do Kapa; a turma só liga ou desliga. */
 export interface Regra {
@@ -71,14 +52,6 @@ export interface FiltroDeNotificacoes extends PaginacaoRequest {
   de?: string
   ate?: string
   busca?: string
-}
-
-/** O que o titular escolheu receber. */
-export interface Preferencia {
-  tipo: TipoDeNotificacao
-  ativa: boolean
-  /** Verdadeiro na cobrança: é comunicação do termo de adesão e não se desliga. */
-  obrigatoria: boolean
 }
 
 /**

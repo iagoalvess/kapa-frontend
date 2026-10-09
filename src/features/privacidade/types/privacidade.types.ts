@@ -80,16 +80,8 @@ export interface MeusDadosDaTurma {
   adesao: MinhaAdesao | null
 }
 
-/** Uma preferência de notificação do titular. */
-interface MinhaPreferencia {
-  formatura_id: string
-  tipo: string
-  ativa: boolean
-}
-
-/** Preferências de comunicação e o que já foi mandado. */
+/** O que já foi mandado e as novidades do Kapa. */
 interface MinhasComunicacoes {
-  preferencias: MinhaPreferencia[]
   notificacoes_enviadas: number
   ultima_enviada_em: string | null
   /** "Receber novidades do Kapa" (Sprint 40). */

@@ -4,6 +4,7 @@ import { CHAVE_DA_FORMATURA_ATUAL } from '@/hooks/useFormaturaAtual'
 import { useFormaturaAtiva } from '@/hooks/useSessao'
 import {
   cancelarAssinatura,
+  desistirDaAssinatura,
   listarCobrancasDoPlano,
   obterAssinatura,
   trocarMeio,
@@ -74,6 +75,18 @@ export function useCancelarAssinatura() {
 
   return useMutation({
     mutationFn: cancelarAssinatura,
+    onSuccess: () => {
+      void invalidar()
+    },
+  })
+}
+
+/** Desistência com reembolso, nos 7 dias do último pagamento. A turma fica só para consulta na hora. */
+export function useDesistirDaAssinatura() {
+  const invalidar = useInvalidarAssinatura()
+
+  return useMutation({
+    mutationFn: desistirDaAssinatura,
     onSuccess: () => {
       void invalidar()
     },

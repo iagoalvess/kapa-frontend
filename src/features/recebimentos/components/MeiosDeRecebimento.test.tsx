@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { afterEach, describe, expect, it } from 'vitest'
+import { ScrollRestoration } from 'react-router'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
@@ -72,7 +73,50 @@ function comApi(conta?: ContaDeRecebimento, aoGravar?: () => Response) {
 }
 
 describe('MeiosDeRecebimento', () => {
-  afterEach(() => sessao.encerrar())
+  afterEach(() => {
+    sessao.encerrar()
+    vi.restoreAllMocks()
+  })
+
+  it('editar, cancelar e salvar preservam a rolagem; outra página continua voltando ao topo', async () => {
+    entrarComo('Presidente')
+    comApi(conferida)
+    const rolar = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    const estado = { origemDaPagina: { caminho: '/inicio', titulo: 'Início' } }
+    const { router } = renderizar(
+      <>
+        <ScrollRestoration />
+        <MeiosDeRecebimento />
+      </>,
+      { pathname: '/formatura', state: estado },
+    )
+
+    await screen.findByRole('button', { name: 'Editar' })
+    rolar.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }))
+    expect(screen.getByLabelText('Chave PIX')).toBeVisible()
+    expect(router.state.location.search).toBe('?trocar=meios')
+    expect(router.state.location.state).toEqual(estado)
+    expect(rolar).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(await screen.findByRole('button', { name: 'Editar' })).toBeVisible()
+    expect(router.state.location.search).toBe('')
+    expect(rolar).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Salvar' }),
+    )
+    expect(await screen.findByRole('button', { name: 'Editar' })).toBeVisible()
+    expect(router.state.location.search).toBe('')
+    expect(router.state.location.state).toEqual(estado)
+    expect(rolar).not.toHaveBeenCalled()
+
+    await router.navigate('/inicio')
+    await waitFor(() => expect(rolar).toHaveBeenCalledWith(0, 0))
+  })
 
   /** Revisão de segurança de 05/10/2026: o PIX só vale pelo link do e-mail — antes dele, nada de QR de teste. */
   it('o Presidente cadastra o PIX, e ele espera a confirmação por e-mail antes do teste de R$ 1,00', async () => {

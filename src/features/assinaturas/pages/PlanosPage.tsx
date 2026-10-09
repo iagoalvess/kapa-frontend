@@ -1,44 +1,22 @@
-import { CreditCard } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { CartaoDePlano } from '@/components/CartaoDePlano'
 import { Chip } from '@/components/Chip'
-import { ComoVoceQuerPagar } from '@/components/ComoVoceQuerPagar'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
 import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { IconePix } from '@/components/IconePix'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { usePapel } from '@/hooks/useSessao'
-import { formatarCentavos, formatarData } from '@/lib/formato'
+import { formatarData } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
-import type { MeioDePagamento } from '@/types/pagamento'
 import { CICLOS, maiorDesconto, type Plano } from '@/types/plano'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useAssinatura, useTrocarPlano } from '../hooks/useAssinatura'
-import { CampoDeCupom, comDesconto } from '../components/CampoDeCupom'
-import { useCheckout } from '../hooks/useCheckout'
-import type { CicloDeCobranca, CupomAplicavel } from '../types/assinaturas.types'
-
-/** Os dois meios do plano (Sprint 37), com a frase que diz como cada um cobra. */
-const MEIOS_DO_PLANO = [
-  {
-    chave: 'Cartao',
-    rotulo: 'Cartão de crédito',
-    icone: <CreditCard aria-hidden />,
-    explicacao: 'Cadastre o cartão uma vez: a cobrança é automática a cada ciclo.',
-  },
-  {
-    chave: 'Pix',
-    rotulo: 'PIX',
-    icone: <IconePix aria-hidden />,
-    explicacao:
-      'Um PIX por ciclo. Avisamos por e-mail antes do vencimento, e você paga pela tela da assinatura.',
-  },
-] as const satisfies { chave: MeioDePagamento; rotulo: string; icone: ReactNode; explicacao: string }[]
+import { DialogoDeContratacao } from '../components/DialogoDeContratacao'
+import type { CicloDeCobranca } from '../types/assinaturas.types'
 
 /**
  * Escolha do plano e ida ao checkout hospedado — a seção de planos da landing, com o botão de contratar.
@@ -65,11 +43,9 @@ export default function PlanosPage() {
   const assinatura = useAssinatura()
   const formatura = useFormaturaAtual()
   const { ehPresidente } = usePapel()
-  const checkout = useCheckout()
   const trocar = useTrocarPlano()
-  const [meio, definirMeio] = useState<MeioDePagamento>('Cartao')
+  const [contratando, definirContratando] = useState<Plano | null>(null)
   const [escolhido, definirEscolhido] = useState<Plano | null>(null)
-  const [cupom, definirCupom] = useState<CupomAplicavel | null>(null)
 
   const ciclo: CicloDeCobranca = parametros.get('ciclo') === 'Mensal' ? 'Mensal' : 'Anual'
   const doCiclo = planos.data?.filter((plano) => plano.ciclo === ciclo) ?? []
@@ -84,20 +60,16 @@ export default function PlanosPage() {
     : status === 'Encerrada'
       ? 'A turma está encerrada e não contrata mais.'
       : undefined
-  // Sucesso também trava: entre a resposta e a página do provedor abrir, um segundo clique criaria outra sessão.
-  const aCaminho = checkout.isPending || checkout.isSuccess || trocar.isPending
+  const aCaminho = trocar.isPending
 
   /**
-   * A contratação vai direto ao provedor — é o caminho feliz, e a página de pagamento já é a
-   * confirmação. A **troca** abre o diálogo: mexe no que a turma já tem, e o sentido da mudança
+   * Pagamento e cupom vêm depois de escolher o plano, para a vitrine começar pela comparação.
+   * A **troca** abre outro diálogo: mexe no que a turma já tem, e o sentido da mudança
    * (pagar a diferença agora ou valer na renovação) precisa estar dito antes do clique.
    */
   function escolher(plano: Plano) {
     if (!atual) {
-      checkout.mutate(
-        { planoCodigo: plano.codigo, meio, cupomCodigo: cupom?.codigo },
-        { onError: avisarErro },
-      )
+      definirContratando(plano)
       return
     }
     definirEscolhido(plano)
@@ -145,8 +117,7 @@ export default function PlanosPage() {
           O preço é o tamanho da turma
         </h1>
         <p className="text-muted-foreground text-lg text-pretty">
-          Uma assinatura por formatura, paga na página do Mercado Pago — o Kapa não recebe os dados do seu
-          cartão.
+          Uma assinatura por formatura. Escolha o plano que acompanha o tamanho e o momento da sua turma.
         </p>
       </header>
 
@@ -173,23 +144,13 @@ export default function PlanosPage() {
         </div>
       )}
 
-      {atual || planos.isError ? null : (
-        <div className="mx-auto grid max-w-3xl justify-items-center gap-2 text-center">
-          <p className="text-foreground text-sm font-medium">Como você quer pagar?</p>
-          <ComoVoceQuerPagar
-            opcoes={[...MEIOS_DO_PLANO]}
-            escolhida={meio}
-            aoEscolher={(chave) => definirMeio(chave === 'Pix' ? 'Pix' : 'Cartao')}
-          />
-          <p className="text-muted-foreground text-sm text-pretty">
-            {MEIOS_DO_PLANO.find((opcao) => opcao.chave === meio)?.explicacao}
-          </p>
-          {/* Cupom só na primeira contratação (Sprint 51): a turma que já pagou recebe "inválido" da API. */}
-          {motivo ? null : <CampoDeCupom aplicado={cupom} aoAplicar={definirCupom} />}
-        </div>
-      )}
-
-      {planos.isPending ? <EsqueletoDeCartoes quantidade={2} altura="h-[30rem]" /> : null}
+      {planos.isPending ? (
+        <EsqueletoDeCartoes
+          quantidade={2}
+          altura="h-[30rem]"
+          className="mx-auto w-full max-w-3xl gap-6 md:grid-cols-2"
+        />
+      ) : null}
 
       {planos.isError ? (
         <ErroDaConsulta erro={planos.error} aoTentarDeNovo={() => void planos.refetch()} />
@@ -207,8 +168,6 @@ export default function PlanosPage() {
             const ehAtual = plano.codigo === atual?.codigo
             const agendado = plano.codigo === proximo?.codigo
             const outroCiclo = atual !== undefined && plano.ciclo !== atual.ciclo
-            const indo =
-              (checkout.isPending || checkout.isSuccess) && checkout.variables.planoCodigo === plano.codigo
             const trocando = trocar.isPending && trocar.variables === plano.codigo
             const aviso =
               motivo ??
@@ -235,21 +194,13 @@ export default function PlanosPage() {
                       : 'Plano atual'
                     : agendado
                       ? 'Agendado'
-                      : indo || trocando
+                      : trocando
                         ? 'Indo para o pagamento…'
                         : atual
                           ? `Mudar para ${plano.nome}`
-                          : `Contratar ${plano.nome}`}
+                          : `Escolher ${plano.nome}`}
                 </Button>
                 {aviso && !ehAtual ? <p className="text-texto-muted text-center text-xs">{aviso}</p> : null}
-                {cupom && !atual ? (
-                  <p className="text-muted-foreground text-center text-sm">
-                    Primeira cobrança com o cupom: <s>{formatarCentavos(plano.preco_em_centavos)}</s>{' '}
-                    <b className="text-foreground font-semibold">
-                      {formatarCentavos(comDesconto(plano.preco_em_centavos, cupom.percentual))}
-                    </b>
-                  </p>
-                ) : null}
               </CartaoDePlano>
             )
           })}
@@ -261,6 +212,10 @@ export default function PlanosPage() {
           Subir de plano cobra só a diferença proporcional ao que falta do ciclo, e o plano novo vale assim
           que ela for paga. Descer vale na próxima renovação, se a turma couber no limite.
         </p>
+      ) : null}
+
+      {contratando ? (
+        <DialogoDeContratacao plano={contratando} aoFechar={() => definirContratando(null)} />
       ) : null}
 
       <DialogoDeConfirmacao

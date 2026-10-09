@@ -291,7 +291,7 @@ function Meio({
   children: ReactNode
 }) {
   return (
-    <section className="border-border grid gap-4 rounded-2xl border p-4">
+    <section className="border-border grid gap-4 border-b pb-5 last:border-0">
       {/* O nome do meio em peso de título: é o cabeçalho da seção que a caixa liga. */}
       <CampoDeMarcar
         control={controle}

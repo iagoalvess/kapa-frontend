@@ -87,5 +87,6 @@ export function paraDadosDaCompra(valores: FormularioDaCompra, itemId: string, c
       numero_do_documento: convidado.numero_do_documento.trim(),
       email: null,
     })),
+    leu_a_politica: valores.ciente,
   }
 }

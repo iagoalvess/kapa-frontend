@@ -3,10 +3,8 @@ import { useState } from 'react'
 import { Cartao } from '@/components/Cartao'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
-import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { formatarNumero, formatarPercentual } from '@/lib/formato'
-import { LIMITES_DE_MERCADO } from '../schemas/cobranca.schema'
 import type { PlanoDeCobranca } from '../types/cobrancas.types'
 import { FormularioDoPlano } from './FormularioDoPlano'
 
@@ -48,20 +46,10 @@ export function RegrasDoPlano({
     <>
       <ListaDeDados>
         <Dado icone={TriangleAlert} rotulo="Multa por atraso">
-          <span className="flex flex-wrap items-center gap-2">
-            {formatarPercentual(plano.percentual_de_multa)}
-            {plano.percentual_de_multa > LIMITES_DE_MERCADO.multa ? (
-              <Selo tom="alerta">acima de 2%</Selo>
-            ) : null}
-          </span>
+          {formatarPercentual(plano.percentual_de_multa)}
         </Dado>
         <Dado icone={Percent} rotulo="Juros ao mês">
-          <span className="flex flex-wrap items-center gap-2">
-            {formatarPercentual(plano.percentual_de_juros_ao_mes)}
-            {plano.percentual_de_juros_ao_mes > LIMITES_DE_MERCADO.jurosAoMes ? (
-              <Selo tom="alerta">acima de 1%</Selo>
-            ) : null}
-          </span>
+          {formatarPercentual(plano.percentual_de_juros_ao_mes)}
         </Dado>
         <Dado icone={CalendarClock} rotulo="Carência">
           {carencia(plano.carencia_em_dias)}

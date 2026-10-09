@@ -56,6 +56,8 @@ export interface DadosDaCompra {
   chave_de_idempotencia: string
   /** Quem vai usar cada convite, na ordem — um por unidade. */
   convidados: DadosDoConvidado[]
+  /** Marcou "Li como meus dados são usados": a API recusa sem isso e grava a versão vigente da Política na compra. */
+  leu_a_politica: boolean
 }
 
 /** O documento para pagar. Espelha `CobrancaDaCompraDTO`. */

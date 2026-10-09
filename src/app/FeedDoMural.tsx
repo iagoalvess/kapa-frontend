@@ -9,27 +9,26 @@ import { formatarDataRelativa } from '@/lib/formato'
 /** Quantos fixados cabem sem o Início virar uma segunda tela de mural. */
 const QUANTOS = 3
 
+/** Os fixados do Início — a página também lê, para não desenhar o bloco quando não há nenhum. */
+export function useAvisosFixados() {
+  return useAvisos({ fixado: true, pagina: 1, tamanho: QUANTOS })
+}
+
 /**
  * Os avisos fixados do mural, no Início.
  *
  * **Fixados, e não os mais recentes**: fixar é o gesto com que a comissão diz "isto todo mundo tem de
  * ver" — é a única lista do mural que faz sentido repetir fora dele. O sino ao lado cuida do que é novo
- * para cada pessoa; aqui é o que vale para a turma inteira, tenha sido lido ou não.
+ * para cada pessoa; aqui é o que vale para a turma inteira, tenha sido lido ou não. Sem nenhum fixado,
+ * o Início não desenha o bloco.
  */
 export function FeedDoMural() {
-  const avisos = useAvisos({ fixado: true, pagina: 1, tamanho: QUANTOS })
+  const avisos = useAvisosFixados()
   const itens = avisos.data?.itens ?? []
 
   if (avisos.isError)
     return <ErroDaConsulta compacto erro={avisos.error} aoTentarDeNovo={() => void avisos.refetch()} />
   if (avisos.isPending) return <EsqueletoDeTexto linhas={3} />
-
-  if (itens.length === 0)
-    return (
-      <p className="text-muted-foreground text-sm">
-        A comissão ainda não fixou nenhum aviso. Os avisos do dia a dia continuam no mural.
-      </p>
-    )
 
   return (
     <ul className="grid">

@@ -1,12 +1,6 @@
 import { api } from '@/lib/http/cliente'
 import { type Pagina, paginacaoNaQuery } from '@/types/paginacao'
-import type {
-  FiltroDeNotificacoes,
-  Notificacao,
-  Preferencia,
-  Regra,
-  Regua,
-} from '../types/notificacoes.types'
+import type { FiltroDeNotificacoes, Notificacao, Regra, Regua } from '../types/notificacoes.types'
 
 const NOTIFICACOES = '/api/v1/notificacoes'
 
@@ -28,16 +22,6 @@ export function listarHistorico(filtro: FiltroDeNotificacoes, signal?: AbortSign
     query: { ...paginacaoNaQuery(paginacao), status, de, ate, busca },
     signal,
   })
-}
-
-/** O que o próprio membro escolheu receber. */
-export function obterPreferencias(signal?: AbortSignal) {
-  return api.get<Preferencia[]>(`${NOTIFICACOES}/preferencias/eu`, { signal })
-}
-
-/** Grava as escolhas do próprio membro. Desligar a cobrança a API recusa com 409. */
-export function salvarPreferencias(preferencias: Pick<Preferencia, 'tipo' | 'ativa'>[]) {
-  return api.put<Preferencia[]>(`${NOTIFICACOES}/preferencias/eu`, { body: { preferencias } })
 }
 
 /** Cobra uma parcela agora, à mão, com o degrau de atraso mais próximo. */

@@ -239,6 +239,9 @@ Atalhos no conteúdo usam `LinkDaPagina`, de `components/`: ele guarda a URL e o
 imperativa, leia `useEstadoComOrigem()` no topo do componente e passe o resultado como `state` ao `navigate`.
 `LinkDeVolta` continua como saída fixa para acesso direto; a moldura evita duplicá-lo quando há origem.
 Filtros preservam o `state` da localização, inclusive no `Navigate` que corrige uma página fora da faixa.
+Abrir, cancelar ou concluir um editor na mesma tela também preserva a rolagem: ao mudar a query string,
+passe `{ state, preventScrollReset: true }` para `setSearchParams`. Trocar de página continua começando
+do topo, e voltar/avançar restaura a posição anterior pelo `ScrollRestoration`.
 Os links do menu continuam usando `Link`/`NavLink`, pois escolhem uma seção sem criar um caminho de volta.
 
 Restrita a um perfil? Envolva num ramo com guarda:

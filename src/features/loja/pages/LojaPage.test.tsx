@@ -140,6 +140,9 @@ describe('LojaPage', () => {
     await usuario.type(screen.getByLabelText('Seu nome'), 'Maria Souza')
     await usuario.type(screen.getByLabelText('E-mail'), 'maria@teste.dev')
     await usuario.type(screen.getByLabelText('CPF'), '529.982.247-25')
+    const politica = screen.getByRole('link', { name: 'Política de Privacidade' })
+    expect(politica).toHaveAttribute('href', 'http://site.teste/privacidade')
+    expect(politica).toHaveAttribute('target', '_blank')
     await usuario.click(screen.getByRole('checkbox', { name: 'Li como meus dados são usados' }))
     await usuario.click(screen.getByRole('button', { name: /^Continuar/ }))
 
@@ -154,6 +157,7 @@ describe('LojaPage', () => {
     await waitFor(() => expect(corpos).toHaveLength(1))
     expect(corpos[0]?.item_de_cobranca_id).toBe('i-2')
     expect(corpos[0]?.quantidade).toBe(2)
+    expect(corpos[0]?.leu_a_politica).toBe(true)
   })
 
   it('o convite esgotado aparece no cartão e não se escolhe', async () => {

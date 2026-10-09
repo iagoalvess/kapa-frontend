@@ -1,4 +1,5 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
@@ -85,7 +86,7 @@ describe('Página inicial', () => {
   })
   afterEach(() => sessao.encerrar())
 
-  it('apresenta as datas reais, o orçamento em preparação e o extrato em dia', async () => {
+  it('apresenta as datas reais e esconde os blocos que ainda não têm dado', async () => {
     renderizar(<PaginaInicial />)
     const jornada = await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
     expect(within(jornada).getByText('dias para a festa')).toBeInTheDocument()
@@ -94,11 +95,119 @@ describe('Página inicial', () => {
     const proximas = await screen.findByRole('list', { name: 'Próximas datas da turma' })
     expect(within(proximas).getByText('19')).toBeInTheDocument()
     expect(within(proximas).getByText('Festa de formatura')).toBeInTheDocument()
-    expect(await screen.findByText(/Toda festa começa com uma ideia/)).toBeInTheDocument()
-    expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver agenda' })).toHaveAttribute('href', '/agenda')
-    expect(await screen.findByRole('region', { name: 'Recados' })).toBeInTheDocument()
+    // Mesmo sem orçamento, o total arrecadado fica visível. Parcela e recados vazios não aparecem.
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Sua parcela' })).not.toBeInTheDocument())
+    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
+    expect(await within(dinheiro).findByText('Total arrecadado até agora.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument())
+  })
+
+  it('mostra os recados quando há aviso fixado', async () => {
+    servidor.use(
+      http.get(`${base}/api/v1/comunicacao/avisos`, () =>
+        HttpResponse.json(
+          pagina([{ id: 'a-1', titulo: 'Reunião geral', autor: null, publicado_em: '2099-01-01T10:00:00' }]),
+        ),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+    const recados = await screen.findByRole('region', { name: 'Recados' })
+    expect(within(recados).getByText('Reunião geral')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver o mural' })).toHaveAttribute('href', '/mural')
+  })
+
+  it.each([
+    { caso: 'série vazia', meses: [] },
+    {
+      caso: 'valores zerados',
+      meses: ARRECADACAO.map((mes) => ({ ...mes, arrecadado_em_centavos: 0 })),
+    },
+    {
+      caso: 'apenas previsão de recebimentos',
+      meses: ARRECADACAO.map((mes) => ({
+        ...mes,
+        arrecadado_em_centavos: mes.projetado ? 9_500_000 : 0,
+      })),
+    },
+  ])('não desenha o gráfico sem arrecadação realizada: $caso', async ({ meses }) => {
+    servidor.use(http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(meses)))
+    renderizar(<PaginaInicial />)
+    await screen.findByRole('list', { name: 'Próximas datas da turma' })
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Evolução das arrecadações' })).not.toBeInTheDocument(),
+    )
+  })
+
+  it('mantém o dinheiro zerado e esconde os demais blocos vazios', async () => {
+    responderAgenda([])
+    servidor.use(http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json([])))
+    renderizar(<PaginaInicial />)
+    await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
+
+    await waitFor(() => {
+      for (const nome of ['Sua parcela', 'Evolução das arrecadações', 'Próximas datas', 'Recados']) {
+        expect(screen.queryByRole('region', { name: nome })).not.toBeInTheDocument()
+      }
+    })
+    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
+    expect(await within(dinheiro).findByText('R$ 0,00')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Pagar parcela' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ver agenda' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ver o mural' })).not.toBeInTheDocument()
+  })
+
+  it('mostra o orçamento quando a turma já tem uma meta', async () => {
+    servidor.use(
+      http.get(`${base}/api/v1/festa/meta`, () =>
+        HttpResponse.json({
+          custo_em_centavos: 100_000,
+          arrecadado_em_centavos: 25_000,
+          falta_arrecadar_em_centavos: 75_000,
+        }),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+    const dinheiro = await screen.findByRole('region', { name: 'O dinheiro da turma' })
+    expect(await within(dinheiro).findByText('25%')).toBeInTheDocument()
+    expect(within(dinheiro).getByText(/para a meta de/)).toBeInTheDocument()
+  })
+
+  it('mostra o dinheiro ao lado da parcela mesmo sem uma meta para a festa', async () => {
+    servidor.use(
+      http.get(`${base}/api/v1/festa/meta`, () =>
+        HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 25_000 }),
+      ),
+      http.get(`${base}/api/v1/extrato/eu/proximas`, () =>
+        HttpResponse.json({ proxima: parcelaDeTeste(), seguinte: null }),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+    const parcela = await screen.findByRole('region', { name: 'Sua parcela' })
+    expect(await within(parcela).findByRole('link', { name: 'Pagar parcela' })).toBeInTheDocument()
+    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
+    expect(await within(dinheiro).findByText('R$ 250,00')).toBeInTheDocument()
+    expect(within(dinheiro).getByText('Total arrecadado até agora.')).toBeInTheDocument()
+    expect(within(dinheiro).queryByText(/da meta/)).not.toBeInTheDocument()
+    expect(parcela.parentElement).toBe(dinheiro.parentElement)
+  })
+
+  it('permite tentar de novo quando a agenda falha e volta a mostrar as datas', async () => {
+    let falhar = true
+    servidor.use(
+      http.get(`${base}/api/v1/agenda/resumo`, () => {
+        return falhar
+          ? HttpResponse.json({ mensagem: 'Falha ao consultar agenda' }, { status: 500 })
+          : HttpResponse.json({ proximos: [festaNaAgenda] })
+      }),
+    )
+    const user = userEvent.setup()
+    renderizar(<PaginaInicial />)
+    const datas = await screen.findByRole('region', { name: 'Próximas datas' })
+    expect(await within(datas).findByRole('alert')).toBeInTheDocument()
+    falhar = false
+    await user.click(within(datas).getByRole('button', { name: 'Tentar de novo' }))
+    expect(await screen.findByText('Festa de formatura')).toBeInTheDocument()
   })
 
   it.each([PAPEIS.presidente, PAPEIS.formando])(
@@ -107,7 +216,6 @@ describe('Página inicial', () => {
       entrarComo(papel)
       renderizar(<PaginaInicial />, '/', '*', PLANO_ESSENCIAL)
 
-      expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
       expect(await screen.findByRole('list', { name: 'Próximas datas da turma' })).toBeInTheDocument()
       expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument()
       expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
@@ -121,7 +229,7 @@ describe('Página inicial', () => {
     entrarComo(PAPEIS.presidente)
     renderizar(<PaginaInicial />, '/', '*', PLANO_GRATUITO)
 
-    expect(await screen.findByText(/Você está em dia/)).toBeInTheDocument()
+    expect(await screen.findByRole('list', { name: 'Próximas datas da turma' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
@@ -178,7 +286,9 @@ describe('Página inicial', () => {
     renderizar(<PaginaInicial />)
     expect(await screen.findByRole('link', { name: 'Marcar agora' })).toHaveAttribute('href', '/agenda')
     expect(screen.queryByText('Contagem regressiva')).not.toBeInTheDocument()
-    expect(await screen.findByText(/Nenhuma data marcada/)).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Próximas datas' })).not.toBeInTheDocument(),
+    )
   })
 
   it('não oferece edição de datas para formando e não conta dias negativos', async () => {

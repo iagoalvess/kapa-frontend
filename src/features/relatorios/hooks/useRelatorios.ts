@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { baixarArquivo } from '@/lib/download'
-import { avisarErro } from '@/lib/http/erros'
+import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import {
   baixarSolicitacao,
   exportar,
@@ -22,6 +22,15 @@ import { chaves } from './chaves'
 
 /** De quanto em quanto tempo a fila é reconsultada enquanto houver um PDF gerando. */
 const INTERVALO_DA_FILA = 5_000
+
+/** Resultado vazio é informação: nenhum arquivo foi gerado e a pessoa pode mudar o recorte. */
+function avisarErroDoRelatorio(erro: unknown) {
+  if (ehErroDaApi(erro) && erro.codigo === 'relatorio.sem_dados') {
+    toast.info(erro.message)
+    return
+  }
+  avisarErro(erro)
+}
 
 /** O balancete do período — o que a tela desenha antes de exportar. */
 export function useBalancete(periodo: PeriodoDoRelatorio) {
@@ -150,7 +159,7 @@ export function useSolicitarRelatorio(filtro: FiltroDoRelatorio) {
         description: EM_ANDAMENTO,
       })
     },
-    onError: avisarErro,
+    onError: avisarErroDoRelatorio,
   })
 }
 
@@ -180,6 +189,6 @@ export function useExportar(filtro: FiltroDoRelatorio) {
 
       baixarArquivo(arquivo, `${tipo.toLowerCase()}-${filtro.de ?? 'inicio'}-a-${filtro.ate ?? 'hoje'}.xlsx`)
     },
-    onError: avisarErro,
+    onError: avisarErroDoRelatorio,
   })
 }

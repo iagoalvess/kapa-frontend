@@ -1,5 +1,6 @@
-import { CalendarDays, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
+import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ROTAS } from '@/config/rotas'
 import { useResumoDaAgenda } from '@/hooks/useAgenda'
@@ -13,25 +14,15 @@ import { diasAte, formatarData, formatarMesDoDia, formatarNumero } from '@/lib/f
  * perguntou. A colação e a festa continuam no contador ao lado, que é onde elas pesam.
  *
  * O resumo é um endpoint próprio: o Início desenha três linhas e não carrega a agenda inteira a cada
- * abertura do app.
- *
- * @param ehGestao Se quem está olhando pode marcar data — muda só o convite do vazio.
+ * abertura do app. Sem data marcada, o Início não desenha o bloco.
  */
-export function ProximasDatas({ ehGestao }: { ehGestao: boolean }) {
+export function ProximasDatas() {
   const resumo = useResumoDaAgenda()
   const proximos = resumo.data?.proximos ?? []
 
   if (resumo.isPending) return <EsqueletoDeTexto linhas={3} />
-
-  if (resumo.data && proximos.length === 0)
-    return (
-      <p className="text-muted-foreground flex items-center gap-2 text-sm">
-        <CalendarDays className="size-4 shrink-0" aria-hidden />
-        {ehGestao
-          ? 'Nenhuma data marcada. Comece pela colação e pela festa, na Agenda.'
-          : 'A comissão ainda não marcou nenhuma data.'}
-      </p>
-    )
+  if (resumo.isError)
+    return <ErroDaConsulta compacto erro={resumo.error} aoTentarDeNovo={() => void resumo.refetch()} />
 
   return (
     <ol aria-label="Próximas datas da turma" className="grid">

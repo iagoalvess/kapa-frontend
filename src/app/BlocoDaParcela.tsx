@@ -1,11 +1,7 @@
 import { WalletMinimal } from 'lucide-react'
-import mascoteFeliz from '@/assets/mascote/feliz.webp'
 import { Dica } from '@/components/Dica'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { LinkDaPagina } from '@/components/LinkDaPagina'
-import { Button } from '@/components/ui/button'
-import { rotaDoPagamento } from '@/config/rotas'
 import { useProximasParcelas } from '@/features/pagamentos'
 import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
 import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
@@ -32,9 +28,6 @@ function prazo(vencimento: string) {
  * A próxima parcela do próprio formando, com atalho para pagar e um resumo compacto da seguinte.
  *
  * As duas vêm prontas de `/extrato/eu/proximas`: o extrato inteiro fica para Minhas parcelas.
- *
- * Quem está em dia vê o mascote e uma linha dizendo isso: "nada a pagar" é uma boa notícia que vale a
- * pena dar.
  */
 export function BlocoDaParcela() {
   const proximas = useProximasParcelas()
@@ -45,15 +38,8 @@ export function BlocoDaParcela() {
   if (proximas.isError)
     return <ErroDaConsulta compacto erro={proximas.error} aoTentarDeNovo={() => void proximas.refetch()} />
 
-  if (!proxima)
-    return (
-      <div className="flex items-center gap-4">
-        <img src={mascoteFeliz} alt="" className="size-14 shrink-0 drop-shadow-lg" loading="lazy" />
-        <p className="text-muted-foreground text-[15px]">
-          Você está em dia. Nenhuma parcela em aberto por enquanto.
-        </p>
-      </div>
-    )
+  // Sem parcela em aberto o Início nem desenha o bloco.
+  if (!proxima) return null
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.62fr)_1rem_minmax(0,1fr)] lg:items-center lg:gap-3">
@@ -76,15 +62,6 @@ export function BlocoDaParcela() {
           </span>
           <span className="tabular-nums">{formatarData(proxima.vencimento)}</span>
         </p>
-
-        <div>
-          <Button asChild size="lg" className="w-full sm:w-auto">
-            <LinkDaPagina to={rotaDoPagamento(proxima.id)}>
-              <WalletMinimal />
-              Pagar parcela
-            </LinkDaPagina>
-          </Button>
-        </div>
       </div>
 
       {segundaProxima ? (

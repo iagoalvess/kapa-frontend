@@ -75,7 +75,7 @@ export interface ConviteNaPortaria {
   motivo_da_revogacao: string | null
   entrada: EntradaNaPortaria | null
   entrou_sem_rede_duas_vezes: boolean
-  /** Restrição alimentar, acessibilidade — o recado para a comissão. */
+  /** O recado para a comissão. */
   observacoes: string | null
 }
 

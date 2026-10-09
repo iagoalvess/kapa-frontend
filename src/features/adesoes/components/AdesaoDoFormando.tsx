@@ -73,7 +73,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
         resumo={resumo}
         versaoDoResumo={termo?.versao}
         novaVersao={novaVersao}
-        aoLerNova={() => definirParametros({ ler: 'nova' }, { state })}
+        aoLerNova={() => definirParametros({ ler: 'nova' }, { state, preventScrollReset: true })}
       />
     )
 
@@ -113,7 +113,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
       pendencias={pendencias}
       formularioDoTitular={<FormularioDoTitular aoSalvar={() => void minha.refetch()} />}
       aoRecarregar={() => void conteudo.refetch()}
-      aoAderir={() => definirParametros({}, { state })}
+      aoAderir={() => definirParametros({}, { state, preventScrollReset: true })}
     />
   )
 }

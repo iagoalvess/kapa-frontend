@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { afterEach, describe, expect, it } from 'vitest'
+import { ScrollRestoration } from 'react-router'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
 import { PERFIS } from '@/config/perfis'
 import { sessao } from '@/lib/http/sessao'
@@ -93,7 +94,43 @@ function entrarComo(papel: string) {
 }
 
 describe('AdesoesPage', () => {
-  afterEach(() => sessao.encerrar())
+  afterEach(() => {
+    sessao.encerrar()
+    vi.restoreAllMocks()
+  })
+
+  it('abrir e cancelar o editor preserva a rolagem, os filtros e a origem', async () => {
+    entrarComo('Presidente')
+    responder()
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual`, () =>
+        HttpResponse.json({ id: 'f-1', status: 'Ativa' }),
+      ),
+      http.get(`${BASE}/termos`, () => HttpResponse.json([])),
+    )
+    const rolar = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    const estado = { origemDaPagina: { caminho: '/membros', titulo: 'Membros' } }
+    const { router } = renderizar(
+      <>
+        <ScrollRestoration />
+        <AdesoesPage />
+      </>,
+      { pathname: '/adesoes', search: '?busca=Ana', state: estado },
+    )
+
+    await screen.findByRole('button', { name: 'Publicar nova versão' })
+    rolar.mockClear()
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar nova versão' }))
+    expect(await screen.findByLabelText('Texto do termo')).toBeVisible()
+    expect(router.state.location.search).toBe('?busca=Ana&editar=termo')
+    expect(rolar).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(await screen.findByRole('button', { name: 'Publicar nova versão' })).toBeVisible()
+    expect(router.state.location.search).toBe('?busca=Ana')
+    expect(router.state.location.state).toEqual(estado)
+    expect(rolar).not.toHaveBeenCalled()
+  })
 
   it('mostra quantos aderiram e a situação de cada um diante da versão vigente', async () => {
     responder()

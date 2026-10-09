@@ -1,5 +1,4 @@
 import { useId, useState } from 'react'
-import { GraficoVazio } from '@/components/GraficoVazio'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { useArrecadacao } from '@/hooks/useArrecadacao'
@@ -12,6 +11,7 @@ import {
   primeiraMaiuscula,
 } from '@/lib/formato'
 import { cn } from '@/lib/utils'
+import { curvaDaArrecadacao } from './curvaDaArrecadacao'
 
 /** Três degraus acima do zero, como o modelo: R$ 0, 50 mil, 100 mil, 150 mil. */
 const DEGRAUS = 3
@@ -44,7 +44,8 @@ function degrauRedondo(valor: number) {
  * nele — e a dica diz isso.
  *
  * O desenho é um SVG só: a linha, a área, os pontos e os eixos saem das mesmas coordenadas. A tabela
- * escondida é a mesma informação para o leitor de tela.
+ * escondida é a mesma informação para o leitor de tela. Sem nenhum pagamento, o Início não desenha o
+ * gráfico.
  */
 export function GraficoDaArrecadacao() {
   const telaGrande = useTelaGrande()
@@ -73,11 +74,10 @@ export function GraficoDaArrecadacao() {
   const intervaloDosMeses = Math.max(1, Math.ceil(n / MESES_ROTULADOS_NO_CELULAR))
 
   const pontos = meses.map((mes, indice) => ({ x: px(indice), y: py(mes.arrecadado_em_centavos) }))
-  const coordenadas = pontos.map((ponto) => `${ponto.x.toFixed(1)},${ponto.y.toFixed(1)}`)
-  const linha = coordenadas.map((par, indice) => `${indice === 0 ? 'M' : 'L'}${par}`).join(' ')
+  const linha = curvaDaArrecadacao(pontos)
   const area =
     pontos.length > 0
-      ? `M${pontos[0]!.x.toFixed(1)},${yFim} ${coordenadas.map((par) => `L${par}`).join(' ')} L${pontos[pontos.length - 1]!.x.toFixed(1)},${yFim} Z`
+      ? `${linha} L${pontos[pontos.length - 1]!.x.toFixed(3)},${yFim} L${pontos[0]!.x.toFixed(3)},${yFim} Z`
       : ''
 
   return (
@@ -101,19 +101,13 @@ export function GraficoDaArrecadacao() {
         </div>
       ) : null}
 
-      {arrecadacao.data && maior === 0 ? (
-        <GraficoVazio className="mt-4">
-          Nenhum pagamento entrou ainda. Quando a turma começar a pagar, a evolução aparece aqui.
-        </GraficoVazio>
-      ) : null}
-
       {arrecadacao.data && maior > 0 ? (
         <>
           <div className="relative mt-4" aria-hidden>
             <svg viewBox={`0 0 ${larguraSvg} ${alturaSvg}`} className="h-auto w-full">
               <defs>
                 <linearGradient id={gradiente} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="var(--brand)" stopOpacity={0.33} />
+                  <stop offset="0" stopColor="var(--brand)" stopOpacity={0.16} />
                   <stop offset="1" stopColor="var(--brand)" stopOpacity={0} />
                 </linearGradient>
               </defs>
@@ -148,7 +142,8 @@ export function GraficoDaArrecadacao() {
                 d={linha}
                 fill="none"
                 className="stroke-brand"
-                strokeWidth={3.5}
+                strokeWidth={1.8}
+                vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
@@ -160,9 +155,10 @@ export function GraficoDaArrecadacao() {
                   x2={pontos[ativo].x}
                   y2={yFim}
                   className="stroke-brand"
-                  strokeWidth={1.8}
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
                   strokeDasharray="4 5"
-                  opacity={0.65}
+                  opacity={0.45}
                 />
               ) : null}
 
@@ -171,9 +167,9 @@ export function GraficoDaArrecadacao() {
                   key={meses[indice]!.mes}
                   cx={ponto.x}
                   cy={ponto.y}
-                  r={indice === ativo ? 7.5 : 4.5}
+                  r={indice === ativo ? 5.5 : 3}
                   className={cn('fill-brand', indice === ativo && 'stroke-card')}
-                  strokeWidth={indice === ativo ? 3 : 0}
+                  strokeWidth={indice === ativo ? 2 : 0}
                 />
               ))}
 

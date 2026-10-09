@@ -7,5 +7,4 @@ export const chaves = {
   /** Prefixo de todo histórico: um disparo avulso muda a lista. */
   todoHistorico: ['notificacoes', 'historico'] as const,
   historico: (filtro: FiltroDeNotificacoes) => ['notificacoes', 'historico', filtro] as const,
-  preferencias: ['notificacoes', 'preferencias'] as const,
 }

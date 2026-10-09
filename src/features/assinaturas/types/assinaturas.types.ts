@@ -25,6 +25,11 @@ export interface Assinatura {
   cartao_aguardando_autorizacao: boolean
   /** O cupom da primeira cobrança (Sprint 51); nulo sem cupom. */
   cupom: CupomAplicavel | null
+  /**
+   * Até quando o Presidente pode desistir e receber de volta o último pagamento inteiro (art. 49 do CDC). Nula fora
+   * do prazo de 7 dias: aí sobra cancelar a renovação.
+   */
+  desistencia_ate: string | null
 }
 
 /** Cupom que vale para a turma. Espelha `CupomAplicavelDTO` — o desconto é só na primeira cobrança. */

@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS } from '@/config/perfis'
@@ -70,6 +70,7 @@ function comFormatura(
             proximo_plano: null,
             cartao_aguardando_autorizacao: false,
             cupom: null,
+            desistencia_ate: null,
             ...assinatura,
           })
         : HttpResponse.json(
@@ -101,7 +102,12 @@ describe('PlanosPage', () => {
 
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
     expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
+    expect(screen.queryByLabelText('Cupom de desconto')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /PIX/ })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Escolher Premium' }))
+    expect(pedido).toBeUndefined()
+    expect(await screen.findByRole('alertdialog', { name: 'Finalizar assinatura' })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
     expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao', cupom_codigo: null })
@@ -121,9 +127,10 @@ describe('PlanosPage', () => {
     const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
-    await usuario.click(await screen.findByRole('button', { name: /PIX/ }))
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Essencial' }))
+    await usuario.click(screen.getByRole('button', { name: /PIX/ }))
     expect(screen.getByText(/Um PIX por ciclo/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Contratar Essencial' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#pix')
     expect(pedido).toEqual({ plano_codigo: 'essencial', meio: 'Pix', cupom_codigo: null })
@@ -151,19 +158,20 @@ describe('PlanosPage', () => {
     const usuario = userEvent.setup()
 
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
-    await usuario.click(await screen.findByRole('button', { name: 'Tenho um cupom' }))
-    await usuario.type(screen.getByLabelText('Cupom'), 'errado1')
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
+    await usuario.type(await screen.findByLabelText('Cupom de desconto'), 'errado1')
     await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
     expect(await screen.findByText('Cupom inválido ou expirado.')).toBeInTheDocument()
 
-    await usuario.clear(screen.getByLabelText('Cupom'))
-    await usuario.type(screen.getByLabelText('Cupom'), 'piloto50')
+    await usuario.clear(screen.getByLabelText('Cupom de desconto'))
+    await usuario.type(screen.getByLabelText('Cupom de desconto'), 'piloto50')
     await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
 
     expect(await screen.findByText(/50% de desconto na primeira cobrança/)).toBeInTheDocument()
     // Premium a R$ 49,90: metade arredondada a favor da turma.
     expect(screen.getByText(/R\$\s?24,95/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Contratar Premium' }))
+    expect(screen.getByText(/Da segunda cobrança em diante: R\$\s?49,90 por mês/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
 
     await expect
       .poll(() => pedido)
@@ -176,8 +184,103 @@ describe('PlanosPage', () => {
 
     renderizar(<PlanosPage />)
 
-    expect(await screen.findByRole('button', { name: /Contratar Premium/ })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /Escolher Premium/ })).toBeDisabled()
     expect(screen.getAllByText('Só o Presidente da comissão contrata o plano.')).not.toHaveLength(0)
+  })
+
+  it('volta à comparação e escolhe outro plano sem iniciar checkout', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    const usuario = userEvent.setup()
+    renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
+
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
+    await usuario.click(screen.getByRole('button', { name: /PIX/ }))
+    await usuario.click(screen.getByRole('button', { name: 'Voltar aos planos' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Escolher Essencial' }))
+    const dialogo = screen.getByRole('alertdialog', { name: 'Finalizar assinatura' })
+    expect(within(dialogo).getByText('Essencial')).toBeInTheDocument()
+    expect(within(dialogo).queryByText('Premium')).not.toBeInTheDocument()
+    expect(within(dialogo).getByRole('button', { name: 'Cartão de crédito' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
+  it('calcula o cupom sobre a cobrança anual inteira e restaura o total ao remover', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/cupom/:codigo`, () =>
+        HttpResponse.json({ codigo: 'PILOTO50', percentual: 50 }),
+      ),
+    )
+    const usuario = userEvent.setup()
+    renderizar(<PlanosPage />)
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
+    const dialogo = screen.getByRole('alertdialog')
+    expect(within(dialogo).getByText('O valor anual é cobrado de uma só vez.')).toBeInTheDocument()
+    await usuario.type(screen.getByLabelText('Cupom de desconto'), 'piloto50')
+    await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
+
+    expect(await within(dialogo).findByText(/R\$\s?239,50/)).toBeInTheDocument()
+    expect(
+      within(dialogo).getByText(/Da segunda cobrança em diante: R\$\s?479,00 por ano/),
+    ).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Remover' }))
+    expect(within(dialogo).queryByText(/R\$\s?239,50/)).not.toBeInTheDocument()
+    expect(within(dialogo).getByText(/Renovação: R\$\s?479,00 por ano/)).toBeInTheDocument()
+  })
+
+  it('aguarda a validação do cupom antes de permitir continuar', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/cupom/:codigo`, async () => {
+        await delay(300)
+        return HttpResponse.json({ codigo: 'PILOTO50', percentual: 50 })
+      }),
+    )
+    const usuario = userEvent.setup()
+    renderizar(<PlanosPage />)
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
+    await usuario.type(screen.getByLabelText('Cupom de desconto'), 'piloto50')
+    await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
+
+    expect(screen.getByRole('button', { name: 'Continuar para pagamento' })).toBeDisabled()
+    expect(await screen.findByText(/50% de desconto na primeira cobrança/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continuar para pagamento' })).toBeEnabled()
+  })
+
+  it('mantém o modal aberto e permite tentar novamente se o checkout falhar', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    let tentativas = 0
+    servidor.use(
+      http.post(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/checkout`, () => {
+        tentativas += 1
+        return tentativas === 1
+          ? HttpResponse.json(
+              { codigo: 'checkout.indisponivel', message: 'Tente novamente.' },
+              { status: 503 },
+            )
+          : HttpResponse.json({ url: '#provedor' })
+      }),
+    )
+    const usuario = userEvent.setup()
+    renderizar(<PlanosPage />)
+    await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
+
+    await expect.poll(() => tentativas).toBe(1)
+    expect(screen.getByRole('alertdialog', { name: 'Finalizar assinatura' })).toBeInTheDocument()
+    const continuar = await screen.findByRole('button', { name: 'Continuar para pagamento' })
+    expect(continuar).toBeEnabled()
+    await usuario.click(continuar)
+    await expect.poll(() => globalThis.location.hash).toBe('#provedor')
+    expect(tentativas).toBe(2)
   })
 
   /** P4: com a assinatura ativa, o outro plano do ciclo é troca, não contratação nova. */
@@ -199,7 +302,7 @@ describe('PlanosPage', () => {
     renderizar(<PlanosPage />, { pathname: '/', search: '?ciclo=Mensal' })
 
     expect(await screen.findByRole('button', { name: 'Plano atual' })).toBeDisabled()
-    expect(screen.queryByRole('button', { name: /Contratar/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Escolher/ })).not.toBeInTheDocument()
     const contratado = screen.getByRole('listitem', { name: 'Premium' })
     expect(within(contratado).getByText('Plano atual', { selector: 'p' })).toBeInTheDocument()
     await usuario.click(screen.getByRole('button', { name: 'Mudar para Essencial' }))

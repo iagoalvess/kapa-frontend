@@ -18,8 +18,8 @@ import {
   que sobra) é do servidor, que devolve a grade pela simulação.
 */
 
-/** Acima destes, a tela avisa — sem travar (decisão de 14/09/2026). Base 10.000. */
-export const LIMITES_DE_MERCADO = { multa: 200, jurosAoMes: 100 } as const
+/** Teto do atraso, o mesmo da API e dos Termos: 2% de multa, 1% de juros ao mês (09/10/2026). Base 10.000. */
+export const LIMITES_DO_ATRASO = { multa: 200, jurosAoMes: 100 } as const
 
 /** O pacote e o rateio no mesmo formulário: o tipo que a lista oferece depende da caixa do rateio. */
 const TIPOS = TIPOS_DOS_RATEIOS
@@ -185,14 +185,17 @@ export const dadosDe = ({
   primeiro_mes,
 })
 
-const percentual = (rotulo: string) =>
+const percentual = (rotulo: string, maximo = 10_000) =>
   z
     .string()
     .trim()
-    .refine((valor) => {
-      const base = lerPercentual(valor)
-      return base !== null && base <= 10_000
-    }, `${rotulo} vai de 0 a 100%, com até duas casas.`)
+    .refine(
+      (valor) => {
+        const base = lerPercentual(valor)
+        return base !== null && base <= maximo
+      },
+      `${rotulo} vai de 0 a ${maximo / 100}%, com até duas casas.`,
+    )
 
 export const esquemaDoPlano = z
   .object({
@@ -201,8 +204,8 @@ export const esquemaDoPlano = z
       .trim()
       .min(1, 'Dê um nome ao plano.')
       .max(120, 'O nome deve ter no máximo 120 caracteres.'),
-    multa: percentual('A multa'),
-    jurosAoMes: percentual('Os juros'),
+    multa: percentual('A multa', LIMITES_DO_ATRASO.multa),
+    jurosAoMes: percentual('Os juros', LIMITES_DO_ATRASO.jurosAoMes),
     carencia_em_dias: inteiroEmTexto(0, 60, 'De 0 a 60 dias.'),
     descontoPorAntecipacao: percentual('O desconto'),
     dias_minimos_para_desconto: inteiroEmTexto(0, 365, 'De 0 a 365 dias.'),

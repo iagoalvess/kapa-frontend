@@ -209,27 +209,6 @@ describe('PlanoDeCobrancaPage', () => {
     expect(within(itens).queryByRole('button', { name: 'Excluir' })).not.toBeInTheDocument()
   })
 
-  it('avisa, sem travar, quando a multa passa de 2%', async () => {
-    entrarComo(PAPEIS.tesoureiro)
-    servir({ ...plano(), percentual_de_multa: 500 })
-
-    renderizar(<PlanoDeCobrancaPage />)
-
-    // Lendo: o selo ao lado da regra gravada.
-    expect(await screen.findByText('acima de 2%')).toBeInTheDocument()
-
-    // Editando: o aviso embaixo dos campos, e o botão continua valendo.
-    const regras = screen.getByRole('region', { name: 'Regras de atraso' })
-    await userEvent.click(within(regras).getByRole('button', { name: 'Editar' }))
-    const multa = screen.getByLabelText('Multa por atraso (%)')
-    await userEvent.clear(multa)
-    await userEvent.type(multa, '10')
-
-    expect(await screen.findByText(/o formando tende a contestar a cobrança/)).toBeInTheDocument()
-    // As regras abrem num diálogo, com o rodapé padrão.
-    expect(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Salvar' })).toBeEnabled()
-  })
-
   it('editar um item abre diálogo com os valores dele e salva pela API', async () => {
     entrarComo(PAPEIS.tesoureiro)
     servir(plano())

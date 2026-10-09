@@ -151,6 +151,21 @@ describe('regras do plano', () => {
     ).toBe('1,50')
   })
 
+  it('multa acima de 2% e juros acima de 1% ao mês são recusados, como na API e nos Termos', () => {
+    const base = {
+      nome: 'Plano 2027',
+      multa: '2',
+      jurosAoMes: '1',
+      carencia_em_dias: '0',
+      descontoPorAntecipacao: '0',
+      dias_minimos_para_desconto: '0',
+    }
+
+    expect(esquemaDoPlano.safeParse(base).success).toBe(true)
+    expect(esquemaDoPlano.safeParse({ ...base, multa: '2,01' }).success).toBe(false)
+    expect(esquemaDoPlano.safeParse({ ...base, jurosAoMes: '1,01' }).success).toBe(false)
+  })
+
   it('desconto sem antecedência é recusado — senão ele sai para quem paga um dia antes', () => {
     const base = {
       nome: 'Plano 2027',

@@ -71,6 +71,29 @@ function comApi(solicitacoes: Solicitacao[] = []) {
 describe('RelatoriosPage', () => {
   afterEach(() => sessao.encerrar())
 
+  it.each(['excel', 'pdf'] as const)('avisa no toast e não baixa arquivo vazio em %s', async (formato) => {
+    entrarComo('Tesoureiro')
+    comApi()
+    const informar = vi.spyOn(toast, 'info')
+    const gerando = vi.spyOn(toast, 'loading')
+    const criar = vi.spyOn(URL, 'createObjectURL')
+    const mensagem = 'Não há dados para este relatório no período e filtros selecionados.'
+    const vazio = () =>
+      HttpResponse.json({ codigo: 'relatorio.sem_dados', detail: mensagem }, { status: 400 })
+    servidor.use(
+      http.get(`${RELATORIOS}/despesas.xlsx`, vazio),
+      http.post(`${RELATORIOS}/solicitacoes`, vazio),
+    )
+    renderizar(<RelatoriosPage />, `/relatorios?formato=${formato}&fornecedor_id=f-1`)
+    await screen.findByRole('option', { name: 'Buffet Sabor', hidden: true })
+    await userEvent.click(screen.getByRole('button', { name: /Exportar/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Despesas lançadas/, hidden: true }))
+    await waitFor(() => expect(informar).toHaveBeenCalledWith(mensagem))
+    expect(criar).not.toHaveBeenCalled()
+    expect(gerando).not.toHaveBeenCalled()
+    vi.restoreAllMocks()
+  })
+
   it('mostra o resultado do período separado do saldo de hoje', async () => {
     entrarComo('Tesoureiro')
     comApi()

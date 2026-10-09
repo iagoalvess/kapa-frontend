@@ -239,7 +239,7 @@ export interface MeuConvite {
   email_do_convidado: string | null
   emitido_em: string
   validado_em: string | null
-  /** Restrição alimentar, acessibilidade — o recado para a comissão. */
+  /** O recado para a comissão. */
   observacoes: string | null
 }
 

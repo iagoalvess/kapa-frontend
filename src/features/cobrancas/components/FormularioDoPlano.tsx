@@ -1,18 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { lerPercentual } from '@/lib/formato'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { useAtualizarPlano, useCriarPlano } from '../hooks/usePlano'
 import {
   esquemaDoPlano,
   type FormularioDoPlano as ValoresDoPlano,
-  LIMITES_DE_MERCADO,
   paraDadosDoPlano,
   paraFormularioDoPlano,
   planoEmBranco,
@@ -50,10 +48,6 @@ export function FormularioDoPlano({ plano, editavel, aoConcluir }: Props) {
     resolver: zodResolver(esquemaDoPlano),
     defaultValues: plano ? paraFormularioDoPlano(plano) : planoEmBranco(),
   })
-  const [multa, juros] = useWatch({ control: formulario.control, name: ['multa', 'jurosAoMes'] })
-  const acimaDoMercado =
-    (lerPercentual(multa) ?? 0) > LIMITES_DE_MERCADO.multa ||
-    (lerPercentual(juros) ?? 0) > LIMITES_DE_MERCADO.jurosAoMes
 
   const enviar = formulario.handleSubmit((valores) => {
     const dados = paraDadosDoPlano(valores)
@@ -142,13 +136,6 @@ export function FormularioDoPlano({ plano, editavel, aoConcluir }: Props) {
             )}
           />
         </div>
-
-        {acimaDoMercado ? (
-          <p className="bg-warning-bg text-warning-text rounded-lg px-3 py-2 text-sm">
-            Acima de 2% de multa ou 1% de juros ao mês, o formando tende a contestar a cobrança. A comissão
-            pode manter, mas é bom ter o motivo no termo de adesão.
-          </p>
-        ) : null}
 
         <ErroDoFormulario />
 

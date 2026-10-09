@@ -1,4 +1,4 @@
-import { CalendarClock, CircleHelp, Mail, UserRound, Zap } from 'lucide-react'
+import { CalendarClock, Mail, Minus, Plus, UserRound, Zap } from 'lucide-react'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -12,6 +12,7 @@ import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { usePapel } from '@/hooks/useSessao'
+import { useContaDeRecebimento } from '../hooks/useContaDeRecebimento'
 import { formatarDataHora } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { PAPEIS } from '@/config/perfis'
@@ -31,16 +32,23 @@ const ERROS_DO_RETORNO: Record<string, string> = {
 
 /**
  * O Mercado Pago da turma (Sprint 25), abaixo dos meios de recebimento: conectar por OAuth e
- * desconectar. Com ele, o formando ganha o PIX com confirmação automática — a parcela baixa sozinha, sem
- * a conferência da tesouraria.
+ * desconectar. A conta recebe as vendas da loja pública. A cobrança dos formandos é uma escolha separada,
+ * na escolha de conferência manual ou confirmação automática.
  *
  * Só o Presidente escreve (P3); a tesouraria vê a conta conectada. O passo a passo é do Kapinha, num
  * `<details>` que abre no próprio cartão: é o que o presidente precisa ler antes de sair do Kapa para o
  * site do Mercado Pago. O retorno da autorização volta para esta tela com `?mercado_pago=…`, e o cartão
  * avisa e limpa a URL.
  */
-export function CartaoDoMercadoPago() {
+export function CartaoDoMercadoPago({
+  embutido = false,
+  apenasLoja = false,
+}: {
+  embutido?: boolean
+  apenasLoja?: boolean
+}) {
   const consulta = useMercadoPago()
+  const conta = useContaDeRecebimento()
   const { ehPresidente, tem } = usePapel()
   const liberado = useEscritaLiberada()
   const conectar = useConectarMercadoPago()
@@ -54,19 +62,19 @@ export function CartaoDoMercadoPago() {
 
     if (retorno === 'conectado')
       toast.success(
-        'Mercado Pago conectado. Ligue a cobrança pelo Mercado Pago para os formandos pagarem por ele.',
+        'Mercado Pago conectado. A loja pode receber por esta conta; a cobrança dos formandos mantém a configuração atual.',
       )
     else
       toast.error(
         (codigo && ERROS_DO_RETORNO[codigo]) ?? 'Não deu para conectar o Mercado Pago. Tente de novo.',
       )
 
-    definirParametros({}, { replace: true })
+    definirParametros({}, { replace: true, preventScrollReset: true })
   }, [retorno, codigo, definirParametros])
 
   if (consulta.isPending)
     return (
-      <EsqueletoDeCartao>
+      <EsqueletoDeCartao className={embutido ? 'p-0 shadow-none' : undefined}>
         <EsqueletoDeDados linhas={2} />
       </EsqueletoDeCartao>
     )
@@ -87,41 +95,91 @@ export function CartaoDoMercadoPago() {
 
   return (
     <Cartao
-      titulo="Mercado Pago"
-      icone={Zap}
+      titulo={embutido && apenasLoja ? 'Loja pública' : 'Mercado Pago'}
+      icone={embutido ? undefined : Zap}
+      className={embutido ? 'rounded-none p-0 shadow-none [&_h2]:text-base' : undefined}
       selo={provedor ? <Selo tom="sucesso">Conectado</Selo> : <Selo tom="neutro">Não conectado</Selo>}
-      descricao="PIX e cartão com confirmação automática, direto na conta da turma."
+      descricao={
+        apenasLoja
+          ? 'As vendas são recebidas pelo Mercado Pago.'
+          : 'O dinheiro cai na conta Mercado Pago da turma.'
+      }
       acao={
         !escreve ? null : provedor ? (
           <AcoesDaConta aoTrocar={conectarAgora} trocando={conectar.isPending} />
         ) : (
-          <Button size="sm" onClick={conectarAgora} disabled={conectar.isPending}>
+          <Button
+            size="sm"
+            onClick={conectarAgora}
+            disabled={conectar.isPending || conta.isPending || conta.isError || !conta.data?.conta?.meios.pix}
+          >
             {conectar.isPending ? 'Enviando o link…' : 'Conectar Mercado Pago'}
           </Button>
         )
       }
     >
+      {!embutido ? (
+        <ModoDaCobranca
+          desde={provedor?.cobranca_automatica_em ?? null}
+          conectado={Boolean(provedor)}
+          escreve={tem(PAPEIS.tesoureiro) && liberado}
+        />
+      ) : null}
+      {!apenasLoja ? (
+        <p className="text-muted-foreground text-sm">A loja pública também usa esta conta.</p>
+      ) : null}
       {provedor ? (
         <>
-          <Conectado provedor={provedor} />
-          <ModoDaCobranca
-            desde={provedor.cobranca_automatica_em}
-            escreve={tem(PAPEIS.tesoureiro) && liberado}
-          />
-          <CartaoDaTurma cartao={provedor.cartao} escreve={tem(PAPEIS.tesoureiro) && liberado} />
+          {embutido ? (
+            <details className="group/detalhe">
+              <summary className="text-foreground focus-visible:ring-ring flex min-h-11 cursor-pointer list-none items-start justify-between gap-3 rounded-lg py-3 text-sm focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                <span>
+                  Conta conectada: <span className="break-all">{provedor.conta_no_provedor}</span>
+                </span>
+                <Plus className="text-brand-text size-4 shrink-0 group-open/detalhe:hidden" aria-hidden />
+                <Minus
+                  className="text-brand-text hidden size-4 shrink-0 group-open/detalhe:block"
+                  aria-hidden
+                />
+              </summary>
+              <div className="pt-3">
+                <Conectado provedor={provedor} />
+              </div>
+            </details>
+          ) : (
+            <Conectado provedor={provedor} />
+          )}
+          {embutido && apenasLoja ? (
+            <details className="group/detalhe">
+              <summary className="text-foreground focus-visible:ring-ring flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-3 text-sm focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+                <span>Cartão de crédito e taxas</span>
+                <Plus className="text-brand-text size-4 shrink-0 group-open/detalhe:hidden" aria-hidden />
+                <Minus
+                  className="text-brand-text hidden size-4 shrink-0 group-open/detalhe:block"
+                  aria-hidden
+                />
+              </summary>
+              <div className="pt-2">
+                <CartaoDaTurma cartao={provedor.cartao} escreve={tem(PAPEIS.tesoureiro) && liberado} />
+              </div>
+            </details>
+          ) : (
+            <CartaoDaTurma cartao={provedor.cartao} escreve={tem(PAPEIS.tesoureiro) && liberado} />
+          )}
         </>
       ) : (
         <>
-          <TextoDoCartao>
-            Conectando a conta Mercado Pago da turma e ligando a cobrança por ele, o formando paga por um PIX
-            gerado na hora e a parcela muda para paga sozinha — sem aviso e sem conferência da tesouraria. O
-            dinheiro cai direto na conta da turma; o Kapa não toca nele.
-          </TextoDoCartao>
+          {apenasLoja ? <TextoDoCartao>Conectar não muda o pagamento manual.</TextoDoCartao> : null}
+          {conta.isError ? (
+            <ErroDaConsulta compacto erro={conta.error} aoTentarDeNovo={() => void conta.refetch()} />
+          ) : !conta.isPending && !conta.data?.conta?.meios.pix ? (
+            <TextoDoCartao>Cadastre uma chave PIX antes de conectar.</TextoDoCartao>
+          ) : null}
           {escreve ? null : <TextoDoCartao>Quem conecta é o Presidente da turma.</TextoDoCartao>}
         </>
       )}
 
-      <PassoAPasso />
+      <PassoAPasso conectado={Boolean(provedor)} />
     </Cartao>
   )
 }
@@ -181,26 +239,33 @@ function Conectado({ provedor }: { provedor: ProvedorConectado }) {
  * O passo a passo do Kapinha: o que o presidente precisa ter e o que vai acontecer quando clicar — e o
  * risco que a Sprint 25 pede para deixar na tela de conectar (retenção cautelar).
  */
-function PassoAPasso() {
+function PassoAPasso({ conectado }: { conectado: boolean }) {
   return (
-    <details className="group bg-brand-wash rounded-2xl">
-      <summary className="text-brand-text flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium">
-        <CircleHelp className="size-4 shrink-0" aria-hidden />
-        Como conectar? O Kapinha explica
+    <details className="group/detalhe">
+      <summary className="text-foreground focus-visible:ring-ring flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-3 text-sm focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+        <span>{conectado ? 'Sobre a conexão com o Mercado Pago' : 'Como conectar? O Kapinha explica'}</span>
+        <Plus className="text-brand-text size-4 shrink-0 group-open/detalhe:hidden" aria-hidden />
+        <Minus className="text-brand-text hidden size-4 shrink-0 group-open/detalhe:block" aria-hidden />
       </summary>
-      <div className="flex flex-wrap items-start gap-4 px-4 pb-4">
+      <div className="flex flex-wrap items-start gap-4 pb-4">
         <img src={mascoteChecklist} alt="" className="w-20 shrink-0 drop-shadow-lg" />
         <TextoDoCartao as="div" className="grid min-w-0 flex-1 basis-64 gap-3">
           <ol className="text-foreground grid list-inside list-decimal gap-1.5">
             <li>Tenha uma conta no Mercado Pago para a turma — a de quem cuida do dinheiro serve.</li>
             <li>
-              Aqui no Kapa, clique em <strong>Conectar Mercado Pago</strong>. Você vai para o site do Mercado
-              Pago.
+              Aqui no Kapa, clique em <strong>Conectar Mercado Pago</strong>. O Presidente recebe por e-mail o
+              link para autorizar a conexão.
             </li>
             <li>
-              Entre com a conta da turma e clique em <strong>Autorizar</strong>.
+              Abra o link recebido, entre com a conta da turma no Mercado Pago e clique em
+              <strong> Autorizar</strong>.
             </li>
             <li>Você volta para esta tela já conectado, e a comissão recebe um e-mail.</li>
+            <li>
+              Para cobrar os formandos com confirmação automática, escolha{' '}
+              <strong>Confirmação automática</strong>. Para usar a conta só na loja pública, mantenha{' '}
+              <strong>Conferência manual</strong>.
+            </li>
           </ol>
           <p className="text-muted-foreground">
             Não precisa copiar chave nem senha: o Kapa só ganha permissão para gerar cobranças e ver se foram

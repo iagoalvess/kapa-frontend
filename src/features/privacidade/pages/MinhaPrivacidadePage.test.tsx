@@ -63,7 +63,6 @@ const dados = {
     },
   ],
   comunicacoes: {
-    preferencias: [],
     notificacoes_enviadas: 3,
     ultima_enviada_em: '2026-09-01T09:00:00Z',
     do_kapa: { receber: false, historico: [], envios: [] },

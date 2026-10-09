@@ -26,6 +26,26 @@ function comApi(provedor: ProvedorConectado | null = null) {
       HttpResponse.json({ id: 'f-1', nome: 'Medicina 2027', status: 'Ativa' }),
     ),
     http.get(MERCADO_PAGO, () => HttpResponse.json({ provedor })),
+    http.get(`${env.VITE_API_URL}/api/v1/recebimentos/conta`, () =>
+      HttpResponse.json({
+        conta: {
+          meios: {
+            pix: {
+              tipo_de_chave: 'Email',
+              chave: 'turma@mp.dev',
+              nome_do_titular: 'Helena',
+              cidade: 'Curitiba',
+              banco: null,
+            },
+            transferencia: null,
+            dinheiro: null,
+          },
+          atualizada_em: '2026-09-24T12:00:00Z',
+          conferida_em: '2026-09-24T12:00:00Z',
+          conferida_por: 'Helena',
+        },
+      }),
+    ),
     http.post(`${MERCADO_PAGO}/autorizacao`, () => HttpResponse.json({ enviada_para: 'pr***@kapa.dev' })),
   )
 }
@@ -147,12 +167,12 @@ describe('CartaoDoMercadoPago', () => {
     )
 
     renderizar(<CartaoDoMercadoPago />)
-    await userEvent.click(await screen.findByRole('switch', { name: /Cobrar parcelas e opcionais/ }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
     expect(modos).toEqual([])
-    await userEvent.click(await screen.findByRole('button', { name: 'Ligar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Usar automático' }))
 
     await expect.poll(() => modos).toEqual([{ automatica: true }])
-    expect(await screen.findByRole('switch', { name: /Cobrar parcelas e opcionais/ })).toBeChecked()
+    expect(await screen.findByRole('radio', { name: 'Confirmação automática' })).toBeChecked()
   })
 
   /** A troca bloqueada pela API continua desligada; quem diz o que fazer é o toast, com a mensagem dela. */
@@ -175,11 +195,11 @@ describe('CartaoDoMercadoPago', () => {
     )
 
     renderizar(<CartaoDoMercadoPago />)
-    await userEvent.click(await screen.findByRole('switch', { name: /Cobrar parcelas e opcionais/ }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Ligar' }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Usar automático' }))
 
     await expect.poll(() => tentativas).toBe(1)
-    expect(screen.getByRole('switch', { name: /Cobrar parcelas e opcionais/ })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Confirmação automática' })).not.toBeChecked()
   })
 
   /** P7: a comissão não mexe no cartão — nem chega a ver a chave. */

@@ -39,7 +39,13 @@ import type { ContaDeRecebimento } from '../types/recebimentos.types'
  * (P3 de 21/09/2026) — a tesouraria vê o mesmo sem os botões. A edição abre na URL
  * (`?trocar=meios`), para recarregar não perder o lugar.
  */
-export function MeiosDeRecebimento() {
+export function MeiosDeRecebimento({
+  embutido = false,
+  reserva = false,
+}: {
+  embutido?: boolean
+  reserva?: boolean
+}) {
   const consulta = useContaDeRecebimento()
   const { ehPresidente } = usePapel()
   const liberado = useEscritaLiberada()
@@ -48,7 +54,7 @@ export function MeiosDeRecebimento() {
 
   if (consulta.isPending)
     return (
-      <EsqueletoDeCartao>
+      <EsqueletoDeCartao className={embutido ? 'p-0 shadow-none' : undefined}>
         <EsqueletoDeDados linhas={3} />
       </EsqueletoDeCartao>
     )
@@ -60,14 +66,18 @@ export function MeiosDeRecebimento() {
   const escreve = ehPresidente && liberado
   const editando = escreve && (!conta || parametros.get('trocar') === 'meios')
   const testando = Boolean(conta?.meios.pix) && !conta?.conferida_em && ehPresidente && !editando
-  const trocar = (aberto: boolean) => definirParametros(aberto ? { trocar: 'meios' } : {}, { state })
+  const trocar = (aberto: boolean) =>
+    definirParametros(aberto ? { trocar: 'meios' } : {}, { state, preventScrollReset: true })
+  const titulo = embutido
+    ? 'Meios de pagamento manual'
+    : conta
+      ? 'Como a turma recebe'
+      : 'Meios de recebimento'
+  const descricao = reserva ? 'Usados se voltar ao pagamento manual.' : ''
+  const classe = embutido ? 'rounded-none p-0 shadow-none [&_h2]:text-base' : undefined
 
   const principal = editando ? (
-    <Cartao
-      titulo={conta ? 'Como a turma recebe' : 'Meios de recebimento'}
-      icone={Wallet}
-      descricao="O que a turma aceita, e o que o formando vê na hora de pagar."
-    >
+    <Cartao titulo={titulo} icone={embutido ? undefined : Wallet} descricao={descricao} className={classe}>
       <FormularioDosMeios
         key={conta?.atualizada_em ?? 'primeira'}
         conta={conta}
@@ -75,9 +85,16 @@ export function MeiosDeRecebimento() {
       />
     </Cartao>
   ) : conta ? (
-    <CartaoDosMeios conta={conta} aoTrocar={escreve ? () => trocar(true) : undefined} />
+    <CartaoDosMeios
+      conta={conta}
+      aoTrocar={escreve ? () => trocar(true) : undefined}
+      titulo={titulo}
+      descricao={descricao}
+      className={classe}
+      embutido={embutido}
+    />
   ) : (
-    <SemMeios presidente={ehPresidente} />
+    <SemMeios presidente={ehPresidente} className={classe} embutido={embutido} />
   )
 
   // Sem `<div>` em volta: os dois cartões entram direto na coluna da tela que compõe, e herdam o
@@ -85,7 +102,16 @@ export function MeiosDeRecebimento() {
   return (
     <>
       {principal}
-      {testando && conta?.meios.pix ? <PixDeTeste chave={conta.meios.pix} /> : null}
+      {testando && conta?.meios.pix ? (
+        <PixDeTeste
+          chave={conta.meios.pix}
+          className={
+            embutido
+              ? 'border-border mt-5 rounded-none border-t bg-transparent p-0 pt-5 shadow-none'
+              : undefined
+          }
+        />
+      ) : null}
     </>
   )
 }
@@ -95,15 +121,30 @@ export function MeiosDeRecebimento() {
  *
  * @param aoTrocar Só para o Presidente, com a turma ativa; ausente, a tela é leitura.
  */
-function CartaoDosMeios({ conta, aoTrocar }: { conta: ContaDeRecebimento; aoTrocar?: () => void }) {
+function CartaoDosMeios({
+  conta,
+  aoTrocar,
+  titulo,
+  descricao,
+  className,
+  embutido,
+}: {
+  conta: ContaDeRecebimento
+  aoTrocar?: () => void
+  titulo: string
+  descricao: string
+  className?: string
+  embutido: boolean
+}) {
   const { pix, transferencia, dinheiro } = conta.meios
 
   return (
     <Cartao
-      titulo="Como a turma recebe"
-      icone={Wallet}
+      titulo={titulo}
+      icone={embutido ? undefined : Wallet}
+      className={className}
       selo={<SeloDoPix conta={conta} />}
-      descricao="O que a turma aceita, e o que o formando vê na hora de pagar."
+      descricao={descricao}
       acao={
         aoTrocar ? (
           <Button variant="outline" size="sm" onClick={aoTrocar}>
@@ -184,13 +225,22 @@ function SeloDoPix({ conta }: { conta: ContaDeRecebimento }) {
 }
 
 /** Sem meio nenhum e sem formulário: a tesouraria, ou o Presidente com a turma fora de Ativa. */
-function SemMeios({ presidente }: { presidente: boolean }) {
+function SemMeios({
+  presidente,
+  className,
+  embutido,
+}: {
+  presidente: boolean
+  className?: string
+  embutido: boolean
+}) {
   return (
     <Cartao
-      titulo="Como a turma recebe"
-      icone={Wallet}
+      titulo={embutido ? 'Meios de pagamento manual' : 'Como a turma recebe'}
+      icone={embutido ? undefined : Wallet}
+      className={className}
       selo={<Selo tom="alerta">Sem meios</Selo>}
-      descricao="O que a turma aceita, e o que o formando vê na hora de pagar."
+      descricao="PIX, transferência e dinheiro usados quando a cobrança pelo Mercado Pago está desligada."
     >
       <div className="flex items-center gap-4">
         <img src={mascoteCelular} alt="" className="w-20 shrink-0 drop-shadow-lg" />
@@ -232,7 +282,7 @@ const PASSOS: { icone: LucideIcon; titulo: string; texto: string }[] = [
 export function ComoODinheiroChega() {
   return (
     // Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão.
-    <Cartao titulo="Como o dinheiro chega" descricao="Do app do formando à conta da turma.">
+    <Cartao titulo="Como o dinheiro chega" descricao="Como funciona o pagamento manual.">
       <ul className="grid gap-4">
         {PASSOS.map(({ icone: Icone, titulo, texto }) => (
           <li key={titulo} className="flex gap-3">

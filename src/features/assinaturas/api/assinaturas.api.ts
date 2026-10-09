@@ -44,6 +44,14 @@ export function cancelarAssinatura() {
 }
 
 /**
+ * Desiste nos 7 dias do último pagamento (art. 49 do CDC): cancela a renovação, devolve esse pagamento inteiro e
+ * encerra a assinatura. Fora do prazo, 409 `assinatura.fora_da_desistencia`. Só o Presidente.
+ */
+export function desistirDaAssinatura() {
+  return api.post<Assinatura>(`${BASE}/desistir`, { body: {} })
+}
+
+/**
  * Troca o plano da assinatura ativa, no mesmo ciclo. A subida devolve a página da diferença proporcional; a
  * descida vale na próxima renovação e devolve `url` nula.
  */

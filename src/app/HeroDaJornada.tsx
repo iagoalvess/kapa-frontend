@@ -124,10 +124,7 @@ export function HeroDaJornada({
           {fim ? (
             <p className="text-muted-foreground mt-5 text-sm tabular-nums">{formatarData(fim)}</p>
           ) : ehGestao ? (
-            <LinkDaPagina
-              to={ROTAS.agenda}
-              className="text-brand-text mt-3 text-sm underline underline-offset-4"
-            >
+            <LinkDaPagina to={ROTAS.agenda} className="text-brand-text mt-3 text-sm font-semibold">
               Marcar agora
             </LinkDaPagina>
           ) : null}

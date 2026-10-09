@@ -12,6 +12,7 @@ import { ROTAS } from '@/config/rotas'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarDataHora, formatarDataRelativa } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
+import { linkDeSuporte } from '@/lib/suporte'
 import { useExcluirAviso } from '../hooks/useAvisos'
 import { type Aviso, ROTULOS_DE_VISIBILIDADE } from '../types/comunicacao.types'
 
@@ -85,6 +86,15 @@ export function DetalheDoAviso({
       </dl>
 
       <TextoEmMarkdown conteudo={aviso.conteudo} className="max-w-prose" />
+
+      {/* O canal de notificação e remoção que os Termos prometem (seção 10): um e-mail ao suporte com o
+          aviso identificado, sem fila própria de denúncias enquanto o volume não pedir. */}
+      <a
+        href={linkDeSuporte({ detalhe: `Denúncia do aviso "${aviso.titulo}" (${aviso.id})` })}
+        className="text-muted-foreground mt-auto self-start text-xs underline underline-offset-2"
+      >
+        Denunciar este aviso
+      </a>
     </Cartao>
   )
 }

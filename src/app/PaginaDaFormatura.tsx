@@ -7,7 +7,7 @@ import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicado
 import { PAPEIS } from '@/config/perfis'
 import { CartaoDeAssinatura, CartaoDePagamentosDoPlano } from '@/features/assinaturas'
 import { CartaoDeConvitesPorEmail, CartaoDoLinkDaTurma } from '@/features/convites'
-import { CartaoDoMercadoPago, ComoODinheiroChega, MeiosDeRecebimento } from '@/features/recebimentos'
+import { RecebimentosDaTurma } from '@/features/recebimentos'
 import { CicloDaFormatura, DadosDaFormatura } from '@/features/formaturas'
 import { contar, useResumoDeMembros } from '@/features/membros'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
@@ -56,9 +56,11 @@ export default function PaginaDaFormatura() {
   const gestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const tesouraria = tem(PAPEIS.tesoureiro)
   const { hash } = useLocation()
+  const carregada = Boolean(formatura.data)
+  // O atalho espera os dados, mas salvar ou reler a turma não deve voltar a rolar até a âncora.
   useEffect(() => {
-    if (formatura.data && hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
-  }, [formatura.data, hash])
+    if (carregada && hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }, [carregada, hash])
 
   // O desenho que vem: a faixa de números e, embaixo, a coluna de cartões (duas, para a gestão).
   if (formatura.isPending)
@@ -103,16 +105,14 @@ export default function PaginaDaFormatura() {
               </div>
               {tesouraria ? (
                 <div id="recebimentos" className="scroll-mt-6">
-                  <MeiosDeRecebimento />
+                  <RecebimentosDaTurma />
                 </div>
               ) : null}
-              {tesouraria ? <CartaoDoMercadoPago /> : null}
             </div>
             <div className="grid gap-5">
               <CartaoDeAssinatura jaContratou={dados.ja_contratou} />
               <CartaoDePagamentosDoPlano jaContratou={dados.ja_contratou} />
               <CartaoDoLinkDaTurma />
-              {tesouraria ? <ComoODinheiroChega /> : null}
               <CicloDaFormatura formatura={dados} />
             </div>
           </>

@@ -12,11 +12,11 @@ vi.mock('@/config/env', async (original) => {
 })
 
 describe('site com a lista de espera ligada', () => {
-  it('leva "Criar minha turma" ao formulário e troca "Entrar" pelo e-mail, sem link para o app nem preços', async () => {
+  it('leva "Criar minha turma" ao formulário e troca "Entrar" por "Fale com a gente", sem link para o app nem preços', async () => {
     const html = await renderizar('/')
 
     expect(html).toContain('href="#lista-de-espera"')
-    expect(html).toContain('href="mailto:contato@kapaformaturas.com.br"')
+    expect(html).toContain('>Fale com a gente<')
     expect(html).not.toContain('>Entrar<')
     expect(html).not.toContain('/criar-conta')
     expect(html).not.toContain(env.VITE_APP_URL)
