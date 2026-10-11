@@ -62,6 +62,7 @@ export function FormularioDePerfil({ perfil, usuarioId, editavel }: Props) {
         titulo="Dados pessoais"
         icone={UserRound}
         editavel={editavel}
+        daComissao={Boolean(usuarioId)}
         linhas={[
           [UserRound, 'Nome completo', ou(p.nome_completo)],
           [IdCard, 'CPF', ou(cpf)],
@@ -84,6 +85,7 @@ export function FormularioDePerfil({ perfil, usuarioId, editavel }: Props) {
         titulo="Contato de emergência"
         icone={Siren}
         editavel={editavel}
+        daComissao={Boolean(usuarioId)}
         linhas={[
           [Contact, 'Nome', ou(c.nome)],
           [Phone, 'Telefone', ou(c.telefone)],
@@ -113,12 +115,14 @@ function Secao({
   titulo,
   icone,
   editavel,
+  daComissao,
   linhas,
   formulario,
 }: {
   titulo: string
   icone: LucideIcon
   editavel: boolean
+  daComissao: boolean
   linhas: [LucideIcon, string, string][]
   formulario: ReactNode
 }) {
@@ -148,7 +152,11 @@ function Secao({
         aberto={editando}
         aoFechar={() => definirEditando(false)}
         titulo={titulo}
-        descricao="Preencha o que tiver agora. Para aceitar o termo, você precisa de nome completo e CPF; o telefone permite que a comissão fale com você."
+        descricao={
+          daComissao
+            ? 'Correções feitas aqui ficam registradas com o seu nome.'
+            : 'Preencha o que tiver agora. Para aceitar o termo, você precisa de nome completo e CPF; o telefone permite que a comissão fale com você.'
+        }
       >
         <FecharSecao value={() => definirEditando(false)}>{formulario}</FecharSecao>
       </DialogoDeFormulario>

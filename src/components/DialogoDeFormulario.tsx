@@ -12,10 +12,11 @@ const LARGURAS = {
 /**
  * O rodapé (`AcoesDoFormulario`) fica preso no pé da área que rola, com o fundo do cartão por baixo: "Salvar" à
  * vista no formulário que passa da tela. O espaço de baixo do diálogo passa a ser dele — padding no corpo deixaria
- * o conteúdo rolando por baixo do rodapé.
+ * o conteúdo rolando por baixo do rodapé. Sem margem negativa: alguns formulários deixam as ações fora do
+ * `<form>`, e puxar o rodapé para cima encobriria a última frase ou mensagem de erro.
  */
 const RODAPE_FIXO =
-  'has-data-[slot=acoes-do-formulario]:pb-0 **:data-[slot=acoes-do-formulario]:bg-card **:data-[slot=acoes-do-formulario]:sticky **:data-[slot=acoes-do-formulario]:bottom-0 **:data-[slot=acoes-do-formulario]:z-10 **:data-[slot=acoes-do-formulario]:-mt-3 **:data-[slot=acoes-do-formulario]:pt-3 **:data-[slot=acoes-do-formulario]:pb-5 sm:**:data-[slot=acoes-do-formulario]:pb-8'
+  'has-data-[slot=acoes-do-formulario]:pb-0 **:data-[slot=acoes-do-formulario]:bg-card **:data-[slot=acoes-do-formulario]:sticky **:data-[slot=acoes-do-formulario]:bottom-0 **:data-[slot=acoes-do-formulario]:z-10 **:data-[slot=acoes-do-formulario]:pt-3 **:data-[slot=acoes-do-formulario]:pb-5 sm:**:data-[slot=acoes-do-formulario]:pb-8'
 
 interface Props {
   aberto: boolean
@@ -80,7 +81,7 @@ export function DialogoDeFormulario({
           </div>
           <div
             className={cn(
-              'rolagem-discreta min-h-0 overflow-y-auto overscroll-contain px-5 pt-1 pb-5 sm:px-8 sm:pb-8',
+              'rolagem-discreta grid min-h-0 gap-4 overflow-y-auto overscroll-contain px-5 pt-1 pb-5 sm:px-8 sm:pb-8',
               RODAPE_FIXO,
             )}
           >

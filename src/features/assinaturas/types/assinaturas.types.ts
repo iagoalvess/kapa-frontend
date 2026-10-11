@@ -26,10 +26,16 @@ export interface Assinatura {
   /** O cupom da primeira cobrança (Sprint 51); nulo sem cupom. */
   cupom: CupomAplicavel | null
   /**
-   * Até quando o Presidente pode desistir e receber de volta o último pagamento inteiro (art. 49 do CDC). Nula fora
-   * do prazo de 7 dias: aí sobra cancelar a renovação.
+   * Até quando o Presidente pode solicitar a análise do reembolso do último ciclo pago.
+   * Nula fora do prazo de 7 dias; o pedido enviado no prazo continua disponível para acompanhamento.
    */
   desistencia_ate: string | null
+  /** Pedido do último ciclo pago, para acompanhamento da análise manual. */
+  pedido_de_reembolso: {
+    id: string
+    status: 'Pendente' | 'Concluido' | 'Recusado'
+    solicitado_em: string
+  } | null
 }
 
 /** Cupom que vale para a turma. Espelha `CupomAplicavelDTO` — o desconto é só na primeira cobrança. */

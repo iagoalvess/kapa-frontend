@@ -73,7 +73,9 @@ describe('DetalheDoFormandoPage', () => {
     const pessoais = await screen.findByRole('region', { name: 'Dados pessoais' })
     expect(within(pessoais).getByText('Bruno Lima')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
-    expect(screen.getByText(/Falta o essencial: nome completo, CPF e telefone/)).toBeInTheDocument()
+    expect(screen.getByText('Falta: CPF, Telefone.')).toBeInTheDocument()
+    expect(screen.queryByText(/Falta o essencial/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Sem foto')).not.toBeInTheDocument()
   })
 
   /** O arquivo é do formando: a comissão busca pela rota dele, não pelo módulo de arquivos. */
@@ -117,6 +119,7 @@ describe('DetalheDoFormandoPage', () => {
       }),
     )
     const pessoais = await screen.findByRole('form', { name: 'Dados pessoais' })
+    expect(screen.getByText('Correções feitas aqui ficam registradas com o seu nome.')).toBeInTheDocument()
     expect(within(pessoais).getByLabelText('CPF')).toHaveValue('***.982.247-**')
     expect(within(pessoais).getByLabelText('CPF')).toBeDisabled()
     await userEvent.type(within(pessoais).getByLabelText('Telefone'), '(41) 99876-5432')
@@ -148,6 +151,8 @@ describe('DetalheDoFormandoPage', () => {
     await userEvent.click(within(pessoais).getByRole('button', { name: 'Salvar' }))
 
     await waitFor(() => expect(enviado).toMatchObject({ pessoais: { telefone: '(41) 99876-5432' } }))
-    expect(screen.getByText('Correções feitas aqui ficam registradas com o seu nome.')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Correções feitas aqui ficam registradas com o seu nome.'),
+    ).not.toBeInTheDocument()
   })
 })

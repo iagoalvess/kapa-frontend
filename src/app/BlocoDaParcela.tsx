@@ -5,6 +5,7 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { useProximasParcelas } from '@/features/pagamentos'
 import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
 import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
+import { EstadoVazioDoInicio } from './EstadoVazioDoInicio'
 import { TracoDoInicio } from './TracoDoInicio'
 
 /**
@@ -38,8 +39,15 @@ export function BlocoDaParcela() {
   if (proximas.isError)
     return <ErroDaConsulta compacto erro={proximas.error} aoTentarDeNovo={() => void proximas.refetch()} />
 
-  // Sem parcela em aberto o Início nem desenha o bloco.
-  if (!proxima) return null
+  // O atalho permanece disponível mesmo antes de existir uma cobrança.
+  if (!proxima)
+    return (
+      <EstadoVazioDoInicio
+        icone={WalletMinimal}
+        titulo="Nenhuma parcela em aberto"
+        descricao="Quando houver uma parcela para pagar, ela aparece aqui."
+      />
+    )
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.62fr)_1rem_minmax(0,1fr)] lg:items-center lg:gap-3">

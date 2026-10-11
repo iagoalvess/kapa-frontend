@@ -16,7 +16,7 @@ import { diasAte } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { AvisoDeCadastro } from './AvisoDeCadastro'
 import { AvisoDeAdesao } from './AvisoDeAdesao'
-import { BlocoDaFesta } from './BlocoDaFesta'
+import { BlocoDasEnquetes } from './BlocoDasEnquetes'
 import { BlocoDaParcela } from './BlocoDaParcela'
 import { FeedDoMural, useAvisosFixados } from './FeedDoMural'
 import { GraficoDaArrecadacao } from './GraficoDaArrecadacao'
@@ -28,7 +28,7 @@ import { TracoDoInicio } from './TracoDoInicio'
 
 /**
  * O Início: a página conecta a jornada coletiva às próximas ações da pessoa, numa leitura só — o herói
- * com a contagem, a parcela da pessoa, o dinheiro da turma, a evolução e os recados, separados por fios
+ * com a contagem, a parcela da pessoa, a enquete da turma, a evolução e os recados, separados por fios
  * em vez de uma grade de cartões iguais.
  */
 export function PaginaInicial() {
@@ -37,8 +37,8 @@ export function PaginaInicial() {
   const formatura = useFormaturaAtual()
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const temMural = usePlanoDaTurma().inclui(MODULOS.mural)
-  // As mesmas consultas dos blocos (o cache as divide): bloco cuja resposta chegou vazia não aparece.
-  // Carregando ou com erro ele fica, para o esqueleto e o "tentar de novo".
+  const incluiEnquetes = usePlanoDaTurma().inclui(MODULOS.enquetes)
+  // O cache divide estas consultas com os blocos. Os atalhos pessoais ficam também quando vazios.
   const parcelas = useProximasParcelas()
   const arrecadacao = useArrecadacao()
   const agenda = useResumoDaAgenda()
@@ -56,8 +56,8 @@ export function PaginaInicial() {
 
   // O Início apresenta só o que a turma pode usar. Esperar o plano também evita que os blocos
   // exclusivos apareçam por um instante antes de a consulta terminar.
-  const temParcela = !(parcelas.data && !parcelas.data.proxima)
-  const temDinheiro = temMural
+  const temParcela = true
+  const temEnquetes = incluiEnquetes
   const temGrafico =
     arrecadacao.data === undefined ||
     arrecadacao.data.some((mes) => !mes.projetado && mes.arrecadado_em_centavos > 0)
@@ -80,19 +80,24 @@ export function PaginaInicial() {
               texto="Pagar parcela"
             />
           ) : (
-            <Rotulo id="bloco-parcela">Sua parcela</Rotulo>
+            <Cabecalho id="bloco-parcela" rotulo="Sua parcela" para={ROTAS.extrato} texto="Ver parcelas" />
           )}
           <BlocoDaParcela />
         </section>
       ),
-      temDinheiro && (
+      temEnquetes && (
         <section
-          key="dinheiro"
-          aria-labelledby="bloco-dinheiro"
+          key="enquetes"
+          aria-labelledby="bloco-enquetes"
           className="grid min-w-0 content-start gap-4 pt-4 pb-8 lg:pt-8"
         >
-          <Rotulo id="bloco-dinheiro">O dinheiro da turma</Rotulo>
-          <BlocoDaFesta />
+          <Cabecalho
+            id="bloco-enquetes"
+            rotulo="Enquetes da turma"
+            para={ROTAS.enquetes}
+            texto="Ver enquetes"
+          />
+          <BlocoDasEnquetes />
         </section>
       ),
     ],

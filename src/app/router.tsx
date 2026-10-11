@@ -311,6 +311,21 @@ export const router = createBrowserRouter([
                             handle: { titulo: 'Agenda' },
                             lazy: pagina(() => import('@/features/agenda/pages/AgendaPage')),
                           },
+                          {
+                            element: <ExigeModulo modulo={MODULOS.enquetes} />,
+                            children: [
+                              {
+                                path: ROTAS.enquetes,
+                                handle: { titulo: 'Enquetes' },
+                                lazy: pagina(() => import('@/features/enquetes/pages/EnquetesPage')),
+                              },
+                              {
+                                path: `${ROTAS.enquetes}/:id`,
+                                handle: { titulo: 'Enquetes' },
+                                lazy: pagina(() => import('@/features/enquetes/pages/EnquetesPage')),
+                              },
+                            ],
+                          },
                           // Orçamento da festa, mural e acervo: o módulo `mural`, que o gratuito e o
                           // Essencial não têm — a rota abre a vitrine da área em vez do 403 (Sprint 45).
                           {

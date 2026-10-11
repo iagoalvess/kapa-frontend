@@ -8,6 +8,8 @@ import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
 import { CartaoDeAssinatura } from './CartaoDeAssinatura'
+import { GestaoDaAssinatura } from './GestaoDaAssinatura'
+import { useAssinatura } from '../hooks/useAssinatura'
 
 const ASSINATURA = `${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura`
 
@@ -30,6 +32,7 @@ const ativa = {
   cartao_aguardando_autorizacao: false,
   cupom: null,
   desistencia_ate: null,
+  pedido_de_reembolso: null,
 }
 
 function entrarComo(papel: string) {
@@ -71,7 +74,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura jaContratou />)
+    renderizar(<Gestao />)
     await usuario.click(await screen.findByRole('button', { name: 'Cancelar renovação' }))
 
     const primeira = screen.getByRole('alertdialog')
@@ -125,7 +128,7 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura jaContratou />)
+    renderizar(<Gestao />)
     await usuario.click(await screen.findByRole('button', { name: 'Trocar para o PIX' }))
     const dialogo = screen.getByRole('alertdialog')
     expect(within(dialogo).getByText(/débito automático no cartão é cancelado agora/)).toBeInTheDocument()
@@ -144,9 +147,11 @@ describe('CartaoDeAssinatura', () => {
     )
     const usuario = userEvent.setup()
 
-    renderizar(<CartaoDeAssinatura jaContratou />)
-    expect(await screen.findByText('Próximo PIX')).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Pagar renovação' }))
+    renderizar(<Gestao />)
+    await usuario.click(await screen.findByRole('button', { name: 'Pagar renovação' }))
+    await usuario.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Pagar renovação' }),
+    )
 
     await expect.poll(() => globalThis.location.hash).toBe('#pix-da-renovacao')
     globalThis.location.hash = ''
@@ -165,65 +170,62 @@ describe('CartaoDeAssinatura', () => {
     expect(await screen.findByText(/o plano passa a ser o Essencial/)).toBeInTheDocument()
   })
 
-  it('o Presidente desfaz a descida agendada', async () => {
+  it('o Presidente envia o motivo e acompanha o pedido pendente', async () => {
     entrarComo(PAPEIS.presidente)
     let pedido: unknown
+    let registrada = false
+    const protocolo = { id: 'pedido-1', status: 'Pendente', solicitado_em: '2026-10-10T15:00:00Z' }
     servidor.use(
       http.get(ASSINATURA, () =>
-        HttpResponse.json({ ...ativa, proximo_plano: { ...ativa.plano, nome: 'Essencial' } }),
+        HttpResponse.json({
+          ...ativa,
+          desistencia_ate: '2026-10-14T15:00:00Z',
+          pedido_de_reembolso: registrada ? protocolo : null,
+        }),
       ),
-      http.post(`${ASSINATURA}/trocar-plano`, async ({ request }) => {
+      http.post(`${ASSINATURA}/reembolsos`, async ({ request }) => {
         pedido = await request.json()
-        return HttpResponse.json({ url: null })
+        registrada = true
+        return HttpResponse.json({ ...ativa, pedido_de_reembolso: protocolo })
       }),
     )
     const usuario = userEvent.setup()
-
-    renderizar(<CartaoDeAssinatura jaContratou />)
-    await usuario.click(await screen.findByRole('button', { name: 'Manter o Premium' }))
-
-    await expect.poll(() => pedido).toEqual({ plano_codigo: 'premium' })
+    renderizar(<Gestao />)
+    await usuario.click(await screen.findByRole('button', { name: 'Solicitar reembolso' }))
+    const dialogo = screen.getByRole('alertdialog')
+    expect(within(dialogo).getByText(/a assinatura e a renovação continuam como estão/)).toBeInTheDocument()
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar pedido' }))
+    expect(pedido).toBeUndefined()
+    await usuario.type(within(dialogo).getByLabelText('Motivo do pedido'), 'Não preciso mais do plano.')
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar pedido' }))
+    await expect.poll(() => pedido).toEqual({ motivo: 'Não preciso mais do plano.' })
+    expect(await screen.findByText(/Reembolso em análise/)).toBeInTheDocument()
+    expect(screen.getByText('Protocolo: pedido-1.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar reembolso' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancelar renovação' })).toBeInTheDocument()
   })
 
-  /**
-   * Art. 49 do CDC: nos 7 dias, o Presidente desiste no app. Nada sai antes de confirmar no diálogo, que diz que o
-   * dinheiro volta e a turma fica só para consulta.
-   */
-  it('o Presidente desiste no prazo depois de confirmar', async () => {
+  it('a formatura mostra o resumo e leva a gestão para os planos', async () => {
     entrarComo(PAPEIS.presidente)
-    let desistencias = 0
     servidor.use(
       http.get(ASSINATURA, () => HttpResponse.json({ ...ativa, desistencia_ate: '2026-10-14T15:00:00Z' })),
-      http.post(`${ASSINATURA}/desistir`, () => {
-        desistencias++
-        return HttpResponse.json({ ...ativa, status: 'Vencida', desistencia_ate: null })
-      }),
     )
-    const usuario = userEvent.setup()
-
     renderizar(<CartaoDeAssinatura jaContratou />)
-    expect(await screen.findByText(/Até 14\/10\/2026, você pode desistir/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Pedir reembolso' }))
-
-    const dialogo = screen.getByRole('alertdialog')
-    expect(within(dialogo).getByText(/volta inteiro/)).toBeInTheDocument()
-    expect(within(dialogo).getByText(/é devolvido o valor com desconto/)).toBeInTheDocument()
-    expect(within(dialogo).getByText(/só para consulta/)).toBeInTheDocument()
-    expect(desistencias).toBe(0)
-
-    await usuario.click(within(dialogo).getByRole('button', { name: 'Pedir reembolso' }))
-
-    await expect.poll(() => desistencias).toBe(1)
+    expect(await screen.findByText('Plano Premium')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar reembolso' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancelar renovação' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Trocar para o PIX' })).not.toBeInTheDocument()
   })
 
   it('fora do prazo, sobra só o cancelamento', async () => {
     entrarComo(PAPEIS.presidente)
     servidor.use(http.get(ASSINATURA, () => HttpResponse.json(ativa)))
 
-    renderizar(<CartaoDeAssinatura jaContratou />)
+    renderizar(<Gestao />)
 
     expect(await screen.findByRole('button', { name: 'Cancelar renovação' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Pedir reembolso' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar reembolso' })).not.toBeInTheDocument()
   })
 
   it('quem não é o Presidente não vê a desistência', async () => {
@@ -232,9 +234,15 @@ describe('CartaoDeAssinatura', () => {
       http.get(ASSINATURA, () => HttpResponse.json({ ...ativa, desistencia_ate: '2026-10-14T15:00:00Z' })),
     )
 
-    renderizar(<CartaoDeAssinatura jaContratou />)
+    renderizar(<Gestao />)
 
-    expect(await screen.findByText('Plano Premium')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Pedir reembolso' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Sua assinatura')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar reembolso' })).not.toBeInTheDocument()
   })
 })
+
+/** O mesmo cartão que Planos monta, com a consulta real interceptada pelo MSW. */
+function Gestao() {
+  const assinatura = useAssinatura()
+  return assinatura.data ? <GestaoDaAssinatura assinatura={assinatura.data} /> : null
+}

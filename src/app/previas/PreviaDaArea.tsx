@@ -1,4 +1,6 @@
 import { MODULOS, type Modulo } from '@/config/planos'
+import { Cartao } from '@/components/Cartao'
+import { BarrasHorizontais } from '@/components/BarrasHorizontais'
 import { ROTAS } from '@/config/rotas'
 import { PreviaDeDocumentos, PreviaDoMural, PreviaDoOrcamento } from './PreviasDeComunicacao'
 import { PreviaDeCompras, PreviaDeConvites, PreviaDeMesas, PreviaDePortaria } from './PreviasDaFesta'
@@ -17,6 +19,25 @@ export function PreviaDaArea({ modulo, caminho }: { modulo: Modulo; caminho: str
   if (caminho === ROTAS.festa || caminho.startsWith(`${ROTAS.festa}/`)) return <PreviaDoOrcamento />
 
   switch (modulo) {
+    case MODULOS.enquetes:
+      return (
+        <Cartao titulo="Qual tema você prefere para o baile?">
+          <div className="grid gap-4">
+            <p className="text-sm">Voto secreto · 45 de 60 membros participaram · quórum atingido</p>
+            <BarrasHorizontais
+              itens={[
+                { chave: 'classico', rotulo: 'Clássico', valor: 30 },
+                { chave: 'tropical', rotulo: 'Tropical', valor: 15 },
+              ]}
+              base={45}
+              formatar={(n) => `${n} respostas`}
+            />
+            <p className="text-muted-foreground text-sm">
+              O resultado orienta a comissão; a decisão final é dela.
+            </p>
+          </div>
+        </Cartao>
+      )
     case MODULOS.mural:
       return <PreviaDoMural />
     case MODULOS.festa:

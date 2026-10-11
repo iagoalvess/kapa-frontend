@@ -3,13 +3,12 @@ import mascoteCofrinho from '@/assets/mascote/cofrinho.webp'
 import { cn } from '@/lib/utils'
 
 /**
- * O gráfico sem dado: a moldura dele, vazia, com o mascote e a frase no meio.
+ * O gráfico sem dado: linhas usam uma grade vazia; roscas mostram somente a frase.
  *
- * Existe para o gráfico não sumir. Sumindo, o cartão do lado ganhava a linha inteira e a rosca
- * esticada quebrava a legenda — e a tela mudava de forma conforme a turma tinha ou não movimento.
- * A moldura tem a altura do gráfico de verdade, então nada pula quando o primeiro dado chega.
+ * Os cartões continuam no mesmo lugar quando não há movimento. Na rosca basta explicar o que
+ * falta, como nos outros quadros; o gráfico de linhas mantém sua grade na altura do desenho.
  *
- * @param forma `linha` desenha a grade do gráfico mês a mês; `rosca`, o anel vazio.
+ * @param forma `linha` desenha a grade do gráfico mês a mês; `rosca`, somente a mensagem.
  * @param children O que falta e quando aparece, numa frase.
  */
 export function GraficoVazio({
@@ -21,15 +20,7 @@ export function GraficoVazio({
   className?: string
   children: ReactNode
 }) {
-  if (forma === 'rosca')
-    return (
-      <div className={cn('flex h-full flex-wrap items-center justify-center gap-6', className)}>
-        <div className="border-border grid size-44 shrink-0 place-items-center rounded-full border-[24px]">
-          <img src={mascoteCofrinho} alt="" className="w-20 drop-shadow-lg" />
-        </div>
-        <p className="text-muted-foreground min-w-52 flex-1 text-sm">{children}</p>
-      </div>
-    )
+  if (forma === 'rosca') return <p className={cn('text-muted-foreground text-sm', className)}>{children}</p>
 
   return (
     <div className={cn('relative grid h-56 lg:h-[240px]', className)}>

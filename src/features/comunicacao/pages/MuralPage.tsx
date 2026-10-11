@@ -1,4 +1,6 @@
-import { Files } from 'lucide-react'
+import { MODULOS } from '@/config/planos'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
+import { Files, ListChecks } from 'lucide-react'
 import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { Clock, Megaphone, Pin, Plus, Star } from 'lucide-react'
 import { useEffect, useRef } from 'react'
@@ -89,6 +91,7 @@ export default function MuralPage() {
   const { tem } = usePapel()
   const gestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const editavel = useEscritaLiberada()
+  const incluiEnquetes = usePlanoDaTurma().inclui(MODULOS.enquetes)
 
   const filtroNaUrl = parametros.get('filtro')
   const filtro: Filtro =
@@ -179,7 +182,14 @@ export default function MuralPage() {
     <>
       {faixa}
 
-      <AtalhosDaPagina atalhos={[{ titulo: 'Documentos', para: ROTAS.documentos, icone: Files }]} />
+      <AtalhosDaPagina
+        atalhos={[
+          ...(gestao || incluiEnquetes
+            ? [{ titulo: 'Enquetes', para: ROTAS.enquetes, icone: ListChecks }]
+            : []),
+          { titulo: 'Documentos', para: ROTAS.documentos, icone: Files },
+        ]}
+      />
 
       {/* Os filtros ficam acima das duas colunas, como em Membros e Despesas: é a lista inteira que
           eles recortam, e não o cartão da esquerda. No celular somem junto com a lista. */}

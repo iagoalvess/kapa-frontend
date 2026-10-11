@@ -93,6 +93,7 @@ const ROTULOS_DE_EVENTO: Record<string, string> = {
   'suporte.assinatura_ativada': 'Licença ativada pelo suporte',
   // O Presidente desistiu no app, nos 7 dias do pagamento, e o pagamento voltou inteiro (art. 49 do CDC).
   'assinatura.desistencia': 'Desistência da assinatura, com reembolso',
+  'assinatura.reembolso_solicitado': 'Pedido de reembolso da assinatura',
 }
 
 /** O rótulo do evento, ou o próprio código quando ele ainda não tem um. */

@@ -41,6 +41,7 @@ const dados = {
       },
       financeiro: { total_em_centavos: 840000, pago_em_centavos: 140000, parcelas: [] },
       adesao: { versao: 2, aceito_em: '2026-02-01T10:00:00Z', endereco_ip: '203.0.113.7' },
+      enquetes: [],
     },
     {
       formatura_id: 'f-2',
@@ -51,6 +52,7 @@ const dados = {
       perfil: null,
       financeiro: { total_em_centavos: 0, pago_em_centavos: 0, parcelas: [] },
       adesao: null,
+      enquetes: [],
     },
   ],
   consentimentos: [

@@ -1,4 +1,5 @@
 import { formatarCentavos, formatarMoedaCurta, formatarNumero } from '@/lib/formato'
+import { GraficoVazio } from './GraficoVazio'
 
 /** Geometria da rosca, em unidades do `viewBox`. */
 const RAIO = 50
@@ -60,6 +61,7 @@ export function GraficoDeRosca({
   // Fatia que não vale nada não é fatia: o fornecedor contratado e ainda não pago apareceria como
   // "R$ 0,00 · 0%" na legenda de uma rosca que só mostra o que já saiu.
   const itens = recebidas.filter((item) => item.valor > 0)
+  if (itens.length === 0) return <GraficoVazio forma="rosca">Nenhum dado para exibir.</GraficoVazio>
   const soma = itens.reduce((acumulado, item) => acumulado + item.valor, 0)
 
   const principais = itens.slice(0, FATIAS).map((item, indice) => ({ ...item, cor: CORES[indice] as string }))

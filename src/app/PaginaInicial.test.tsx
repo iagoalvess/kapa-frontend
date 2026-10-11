@@ -9,6 +9,7 @@ import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { entrarComo, pagina, PLANO_ESSENCIAL, PLANO_GRATUITO, renderizar } from '@/test/utils'
 import { PaginaInicial } from './PaginaInicial'
+import { enqueteDeTeste } from '@/features/enquetes/dadosDeTeste'
 
 const base = env.VITE_API_URL
 const turma = {
@@ -16,6 +17,7 @@ const turma = {
   nome: 'Odontologia 2027',
   curso: 'Odontologia',
   instituicao: 'UFPR',
+  status: 'Ativa',
   previsao_de_colacao: '2099-12-17',
   previsao_da_festa: '2099-12-19',
 }
@@ -56,6 +58,7 @@ describe('Página inicial', () => {
     responderTurma(turma)
     responderAgenda([festaNaAgenda])
     servidor.use(
+      http.get(`${base}/api/v1/enquetes`, () => HttpResponse.json([])),
       http.get(`${base}/api/v1/festa/meta`, () =>
         HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 0 }),
       ),
@@ -86,7 +89,7 @@ describe('Página inicial', () => {
   })
   afterEach(() => sessao.encerrar())
 
-  it('apresenta as datas reais e esconde os blocos que ainda não têm dado', async () => {
+  it('apresenta as datas reais e mantém os atalhos pessoais vazios', async () => {
     renderizar(<PaginaInicial />)
     const jornada = await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
     expect(within(jornada).getByText('dias para a festa')).toBeInTheDocument()
@@ -96,10 +99,9 @@ describe('Página inicial', () => {
     expect(within(proximas).getByText('19')).toBeInTheDocument()
     expect(within(proximas).getByText('Festa de formatura')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver agenda' })).toHaveAttribute('href', '/agenda')
-    // Mesmo sem orçamento, o total arrecadado fica visível. Parcela e recados vazios não aparecem.
-    await waitFor(() => expect(screen.queryByRole('region', { name: 'Sua parcela' })).not.toBeInTheDocument())
-    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
-    expect(await within(dinheiro).findByText('Total arrecadado até agora.')).toBeInTheDocument()
+    expect(await screen.findByText('Nenhuma parcela em aberto')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Nenhuma enquete publicada')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument())
   })
 
@@ -139,57 +141,106 @@ describe('Página inicial', () => {
     )
   })
 
-  it('mantém o dinheiro zerado e esconde os demais blocos vazios', async () => {
+  it('mantém parcelas e enquetes vazias com mensagens e links de acesso', async () => {
     responderAgenda([])
     servidor.use(http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json([])))
     renderizar(<PaginaInicial />)
     await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
 
     await waitFor(() => {
-      for (const nome of ['Sua parcela', 'Evolução das arrecadações', 'Próximas datas', 'Recados']) {
+      for (const nome of ['Evolução das arrecadações', 'Próximas datas', 'Recados']) {
         expect(screen.queryByRole('region', { name: nome })).not.toBeInTheDocument()
       }
     })
-    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
-    expect(await within(dinheiro).findByText('R$ 0,00')).toBeInTheDocument()
+    expect(await screen.findByText('Nenhuma enquete publicada')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Pagar parcela' })).not.toBeInTheDocument()
+    expect(screen.getByText('Nenhuma parcela em aberto')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver parcelas' })).toHaveAttribute('href', '/minhas-parcelas')
+    expect(screen.getByRole('link', { name: 'Ver enquetes' })).toHaveAttribute('href', '/enquetes')
     expect(screen.queryByRole('link', { name: 'Ver agenda' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Ver o mural' })).not.toBeInTheDocument()
   })
 
-  it('mostra o orçamento quando a turma já tem uma meta', async () => {
+  it('destaca o voto pendente e abre a enquete pelo atalho', async () => {
+    servidor.use(http.get(`${base}/api/v1/enquetes`, () => HttpResponse.json([enqueteDeTeste()])))
+    const { router } = renderizar(<PaginaInicial />)
+    const bloco = await screen.findByRole('region', { name: 'Enquetes da turma' })
+    const votar = await within(bloco).findByRole('link', { name: 'Votar na enquete' })
+    expect(within(bloco).getByText('Você ainda não votou.')).toBeInTheDocument()
+    expect(within(bloco).queryByRole('link', { name: 'Ver resultado' })).not.toBeInTheDocument()
+    await userEvent.setup().click(votar)
+    expect(router.state.location.pathname).toBe('/enquetes/e-1')
+  })
+
+  it.each([
+    { caso: 'pessoa sem permissão para responder', podeResponder: false, status: 'Ativa' },
+    { caso: 'turma em modo de leitura', podeResponder: true, status: 'Suspensa' },
+  ])('não oferece votação para $caso', async ({ podeResponder, status }) => {
+    responderTurma({ ...turma, status })
     servidor.use(
-      http.get(`${base}/api/v1/festa/meta`, () =>
-        HttpResponse.json({
-          custo_em_centavos: 100_000,
-          arrecadado_em_centavos: 25_000,
-          falta_arrecadar_em_centavos: 75_000,
-        }),
+      http.get(`${base}/api/v1/enquetes`, () =>
+        HttpResponse.json([enqueteDeTeste({ pode_responder: podeResponder })]),
       ),
     )
     renderizar(<PaginaInicial />)
-    const dinheiro = await screen.findByRole('region', { name: 'O dinheiro da turma' })
-    expect(await within(dinheiro).findByText('25%')).toBeInTheDocument()
-    expect(within(dinheiro).getByText(/para a meta de/)).toBeInTheDocument()
+    const bloco = await screen.findByRole('region', { name: 'Enquetes da turma' })
+    expect(await within(bloco).findByRole('link', { name: 'Ver resultado' })).toHaveAttribute(
+      'href',
+      '/enquetes/e-1',
+    )
+    expect(within(bloco).queryByRole('link', { name: 'Votar na enquete' })).not.toBeInTheDocument()
   })
 
-  it('mostra o dinheiro ao lado da parcela mesmo sem uma meta para a festa', async () => {
+  it('mostra apenas a aberta mais recente ao lado da parcela, mesmo respondida', async () => {
     servidor.use(
-      http.get(`${base}/api/v1/festa/meta`, () =>
-        HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 25_000 }),
+      http.get(`${base}/api/v1/enquetes`, () =>
+        HttpResponse.json([
+          enqueteDeTeste({ id: 'antiga', pergunta: 'Consulta antiga', criado_em: '2026-10-10T12:00:00Z' }),
+          enqueteDeTeste({ id: 'nova', pergunta: 'Consulta nova', minha_resposta: ['o-1'] }),
+        ]),
       ),
       http.get(`${base}/api/v1/extrato/eu/proximas`, () =>
         HttpResponse.json({ proxima: parcelaDeTeste(), seguinte: null }),
       ),
     )
     renderizar(<PaginaInicial />)
-    const parcela = await screen.findByRole('region', { name: 'Sua parcela' })
-    expect(await within(parcela).findByRole('link', { name: 'Pagar parcela' })).toBeInTheDocument()
-    const dinheiro = screen.getByRole('region', { name: 'O dinheiro da turma' })
-    expect(await within(dinheiro).findByText('R$ 250,00')).toBeInTheDocument()
-    expect(within(dinheiro).getByText('Total arrecadado até agora.')).toBeInTheDocument()
-    expect(within(dinheiro).queryByText(/da meta/)).not.toBeInTheDocument()
-    expect(parcela.parentElement).toBe(dinheiro.parentElement)
+    const bloco = await screen.findByRole('region', { name: 'Enquetes da turma' })
+    expect(await within(bloco).findByText('Consulta nova')).toBeInTheDocument()
+    expect(within(bloco).queryByText('Consulta antiga')).not.toBeInTheDocument()
+    expect(within(bloco).getByRole('link', { name: 'Ver resultado' })).toHaveAttribute(
+      'href',
+      '/enquetes/nova',
+    )
+    expect(within(bloco).getByRole('link', { name: 'Ver enquetes' })).toHaveAttribute('href', '/enquetes')
+    expect(within(bloco).queryByRole('link', { name: 'Votar na enquete' })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Sua parcela' }).parentElement).toBe(bloco.parentElement)
+    expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
+  })
+
+  it('sem abertas mostra o último resultado e ignora canceladas', async () => {
+    servidor.use(
+      http.get(`${base}/api/v1/enquetes`, () =>
+        HttpResponse.json([
+          enqueteDeTeste({ situacao: 'Cancelada', pergunta: 'Consulta cancelada' }),
+          enqueteDeTeste({
+            id: 'fim',
+            situacao: 'Encerrada',
+            pergunta: 'Resultado da consulta',
+            pode_responder: false,
+            encerrada_em: '2026-10-11T12:00:00Z',
+          }),
+        ]),
+      ),
+    )
+    renderizar(<PaginaInicial />)
+    const bloco = await screen.findByRole('region', { name: 'Enquetes da turma' })
+    expect(await within(bloco).findByText('Resultado da consulta')).toBeInTheDocument()
+    expect(within(bloco).queryByText('Consulta cancelada')).not.toBeInTheDocument()
+    expect(within(bloco).getByRole('link', { name: 'Ver resultado' })).toHaveAttribute(
+      'href',
+      '/enquetes/fim',
+    )
+    expect(within(bloco).queryByRole('link', { name: 'Votar na enquete' })).not.toBeInTheDocument()
   })
 
   it('permite tentar de novo quando a agenda falha e volta a mostrar as datas', async () => {

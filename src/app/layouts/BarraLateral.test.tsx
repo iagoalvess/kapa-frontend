@@ -38,6 +38,7 @@ describe('BarraLateral', () => {
     expect(menu.getAllByRole('link', { name: 'Pedidos' })).toHaveLength(1)
     expect(menu.getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/cobrancas/pedidos')
     expect(menu.getByRole('link', { name: 'Formatura' })).toHaveAttribute('href', ROTAS.formatura)
+    expect(menu.queryByRole('link', { name: /Enquetes/ })).not.toBeInTheDocument()
   })
 
   it('leva o formando às listas pessoais com os mesmos nomes', async () => {
@@ -52,6 +53,7 @@ describe('BarraLateral', () => {
     expect(menu.getAllByRole('link', { name: 'Pedidos' })).toHaveLength(1)
     expect(menu.getByRole('link', { name: 'Pedidos' })).toHaveAttribute('href', '/meus-pedidos')
     expect(menu.getByRole('link', { name: 'Formatura' })).toHaveAttribute('href', ROTAS.formatura)
+    expect(menu.queryByRole('link', { name: /Enquetes/ })).not.toBeInTheDocument()
   })
 
   /** Decisão do dono de 06/10/2026: antes de aderir, o menu do formando é o que a guarda `ExigeAdesao` abre. */

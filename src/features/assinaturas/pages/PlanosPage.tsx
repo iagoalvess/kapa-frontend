@@ -11,18 +11,19 @@ import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
-import { avisarErro } from '@/lib/http/erros'
+import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { CICLOS, maiorDesconto, type Plano } from '@/types/plano'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useAssinatura, useTrocarPlano } from '../hooks/useAssinatura'
+import { GestaoDaAssinatura } from '../components/GestaoDaAssinatura'
 import { DialogoDeContratacao } from '../components/DialogoDeContratacao'
 import type { CicloDeCobranca } from '../types/assinaturas.types'
 
 /**
  * Escolha do plano e ida ao checkout hospedado — a seção de planos da landing, com o botão de contratar.
  *
- * Mesmo título, alternador e grade de `PlanosPublicos`, sem o título da rota no cabeçalho: a tela é
- * só a vitrine. As classes são copiadas, e não importadas, porque uma feature não importa de outra.
+ * Mesmo título, alternador e grade de `PlanosPublicos`, com a gestão da assinatura abaixo dos planos.
+ * As classes são copiadas, e não importadas, porque uma feature não importa de outra.
  *
  * Gestão vê os planos; só o Presidente contrata — a API recusa os demais com 403 de qualquer forma.
  * Quem não pode contratar lê o motivo embaixo do botão, e não num aviso solto no topo: o botão é
@@ -212,6 +213,17 @@ export default function PlanosPage() {
           Subir de plano cobra só a diferença proporcional ao que falta do ciclo, e o plano novo vale assim
           que ela for paga. Descer vale na próxima renovação, se a turma couber no limite.
         </p>
+      ) : null}
+
+      {assinatura.data && assinatura.data.status !== 'Pendente' ? (
+        <div className="mx-auto w-full max-w-3xl">
+          <GestaoDaAssinatura assinatura={assinatura.data} />
+        </div>
+      ) : null}
+
+      {assinatura.isError &&
+      !(ehErroDaApi(assinatura.error) && assinatura.error.codigo === 'assinatura.nao_encontrada') ? (
+        <ErroDaConsulta erro={assinatura.error} aoTentarDeNovo={() => void assinatura.refetch()} />
       ) : null}
 
       {contratando ? (

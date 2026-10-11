@@ -71,6 +71,10 @@ function comFormatura(
             cartao_aguardando_autorizacao: false,
             cupom: null,
             desistencia_ate: null,
+            pedido_de_reembolso: null,
+            vigente_ate: null,
+            proxima_cobranca_em: null,
+            cancelada_em: null,
             ...assinatura,
           })
         : HttpResponse.json(
@@ -85,6 +89,35 @@ describe('PlanosPage', () => {
   afterEach(() => {
     sessao.encerrar()
     globalThis.location.hash = ''
+  })
+
+  it('concentra troca de pagamento, reembolso e cancelamento na gestão da assinatura', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa', { status: 'Ativa', plano: PREMIUM })
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura`, () =>
+        HttpResponse.json({
+          id: 'a-1',
+          status: 'Ativa',
+          plano: PREMIUM,
+          meio: 'Cartao',
+          vigente_ate: '2026-10-12T15:00:00Z',
+          proxima_cobranca_em: '2026-10-12T15:00:00Z',
+          cancelada_em: null,
+          proximo_plano: null,
+          cartao_aguardando_autorizacao: false,
+          cupom: null,
+          desistencia_ate: '2026-10-14T15:00:00Z',
+          pedido_de_reembolso: null,
+        }),
+      ),
+    )
+    renderizar(<PlanosPage />)
+    expect(await screen.findByRole('heading', { name: 'Sua assinatura' })).toBeInTheDocument()
+    expect(screen.getByRole('toolbar', { name: 'Ações da assinatura' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Trocar para o PIX' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Solicitar reembolso' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancelar renovação' })).toBeInTheDocument()
   })
 
   /** A URL devolvida é só um âncora aqui: o jsdom navega por hash, e é assim que dá para ver a ida ao provedor. */

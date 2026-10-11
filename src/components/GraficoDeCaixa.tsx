@@ -53,24 +53,35 @@ interface Ponto {
 }
 
 /**
- * A curva que passa por todos os pontos, arredondada nos cantos (Catmull-Rom em Bézier).
+ * Curva suave que preserva o sentido e os limites dos valores entre dois meses.
  *
- * Reta ligando ponto a ponto vira um serrote com dois anos de meses; a curva é o que o modelo
- * desenha. O sexto da distância é a tensão padrão da conversão — mais que isso, a curva ultrapassa
- * os pontos e inventa um valor que não existe.
+ * Os meses são igualmente espaçados. A média harmônica das inclinações vizinhas limita a
+ * tangente; num trecho plano ou na mudança de sentido, ela zera. A Catmull-Rom anterior
+ * ultrapassava os valores, desenhando entradas negativas antes de subir a partir do zero.
  */
 function curva(pontos: Ponto[]) {
   const primeiro = pontos[0]
   if (!primeiro) return ''
 
+  const inclinacoes = pontos.slice(0, -1).map((ponto, indice) => {
+    const proximo = pontos[indice + 1]!
+    return (proximo.y - ponto.y) / (proximo.x - ponto.x)
+  })
+  const tangentes = pontos.map((_, indice) => {
+    if (indice === 0) return inclinacoes[0] ?? 0
+    if (indice === pontos.length - 1) return inclinacoes[indice - 1] ?? 0
+    const anterior = inclinacoes[indice - 1]!
+    const proxima = inclinacoes[indice]!
+    if (anterior === 0 || proxima === 0 || Math.sign(anterior) !== Math.sign(proxima)) return 0
+    return 2 / (1 / anterior + 1 / proxima)
+  })
+
   return pontos.slice(0, -1).reduce((caminho, ponto, indice) => {
-    const anterior = pontos[indice - 1] ?? ponto
     const proximo = pontos[indice + 1]
     if (!proximo) return caminho
-    const seguinte = pontos[indice + 2] ?? proximo
-
-    const c1 = { x: ponto.x + (proximo.x - anterior.x) / 6, y: ponto.y + (proximo.y - anterior.y) / 6 }
-    const c2 = { x: proximo.x - (seguinte.x - ponto.x) / 6, y: proximo.y - (seguinte.y - ponto.y) / 6 }
+    const terco = (proximo.x - ponto.x) / 3
+    const c1 = { x: ponto.x + terco, y: ponto.y + tangentes[indice]! * terco }
+    const c2 = { x: proximo.x - terco, y: proximo.y - tangentes[indice + 1]! * terco }
 
     return `${caminho} C${c1.x},${c1.y} ${c2.x},${c2.y} ${proximo.x},${proximo.y}`
   }, `M${primeiro.x},${primeiro.y}`)

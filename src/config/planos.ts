@@ -27,6 +27,7 @@ export const MODULOS = {
   festa: 'festa',
   mesas: 'mesas',
   mural: 'mural',
+  enquetes: 'enquetes',
   avisos: 'avisos',
   relatorios: 'relatorios',
   auditoria: 'auditoria',
@@ -72,6 +73,7 @@ const NOMES_DE_MODULO: Record<string, string | undefined> = {
   festa: 'Convites, loja e portaria da festa',
   mesas: 'Mesas do jantar e mapa do salão',
   mural: 'Mural e acervo de documentos',
+  enquetes: 'Enquetes da turma',
   avisos: 'Avisos e régua de cobrança',
   relatorios: 'Relatórios e exportações',
   auditoria: 'Portal LGPD e auditoria',
@@ -111,6 +113,27 @@ export interface AreaDoPlano {
 
 /** As áreas que um plano pode deixar de fora, pelo módulo. As do gratuito não precisam de vitrine. */
 export const AREAS_DO_PLANO: Partial<Record<Modulo, AreaDoPlano>> = {
+  enquetes: {
+    titulo: 'Enquetes da turma',
+    frase: 'Consulte a turma com voto secreto, prazo definido e participação à vista.',
+    icone: Megaphone,
+    beneficios: [
+      'Escolha única ou múltipla com limite',
+      'Resultado ao vivo e quórum definido pela comissão',
+      'Histórico para acompanhar as consultas',
+    ],
+    indicadores: [
+      ['Abertas', '2'],
+      ['Participação', '75%'],
+    ],
+    exemplo: [
+      {
+        titulo: 'Qual tema você prefere para o baile?',
+        detalhe: 'Voto secreto · encerra amanhã',
+        valor: '45 respostas',
+      },
+    ],
+  },
   mural: {
     titulo: 'Mural, documentos e o orçamento da festa',
     frase:

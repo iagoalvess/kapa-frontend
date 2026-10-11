@@ -16,7 +16,7 @@ interface Props {
   rotuloDeCancelar?: string
   /** O `id` do `<form>`, quando o rodapé fica fora dele (o rodapé fixo de um diálogo). */
   form?: string
-  /** Rótulos longos podem quebrar linha, mantendo as duas ações dentro de um diálogo estreito. */
+  /** Ocupa toda a largura para dar mais espaço aos rótulos longos. */
   rotulosEmMultilinha?: boolean
 }
 
@@ -38,13 +38,13 @@ export function AcoesDoFormulario({
   form,
   rotulosEmMultilinha = false,
 }: Props) {
-  const classeDoBotao = rotulosEmMultilinha ? 'h-auto min-h-11 min-w-0 whitespace-normal px-3' : undefined
+  const classeDoBotao = cn('h-auto min-h-11 min-w-0 whitespace-normal', rotulosEmMultilinha && 'px-3')
   return (
     // A faixa tem a largura toda para cobrir o que rola por baixo quando o diálogo a fixa no pé
     // (`DialogoDeFormulario`). Dentro, duas colunas iguais do tamanho do conteúdo: os dois botões ficam
     // com a largura do maior ("Cancelar"), sem esticar pelo diálogo.
     <div data-slot="acoes-do-formulario" className="flex justify-end">
-      <div className={cn('grid w-fit grid-cols-2 gap-2', rotulosEmMultilinha && 'w-full')}>
+      <div className={cn('grid w-fit max-w-full grid-cols-2 gap-2', rotulosEmMultilinha && 'w-full')}>
         <Button
           type="button"
           variant="outline"

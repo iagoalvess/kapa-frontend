@@ -80,6 +80,7 @@ export const ROTAS = {
   mesas: '/festa/mesas',
   // O mural de avisos e o acervo de documentos: a comissão publica, todo membro lê e baixa.
   mural: '/mural',
+  enquetes: '/enquetes',
   documentos: '/documentos',
   // "Meu termo": ler, aceitar e ver o assinado. O e-mail da adesão aponta aqui (`EmailsDeAdesao`).
   adesao: '/meu-termo',
@@ -146,6 +147,8 @@ export const rotaDaCompra = (token: string) => `${ROTAS.compra}/${token}`
 
 /** Um aviso do mural, inteiro: `/mural/:id`. */
 export const rotaDoAviso = (id: string) => `${ROTAS.mural}/${id}`
+/** Detalhe de uma consulta, incluindo seu histórico. */
+export const rotaDaEnquete = (id: string) => `${ROTAS.enquetes}/${id}`
 
 /** O cadastro de um fornecedor, com o que já saiu para ele: `/financeiro/fornecedores/:id`. */
 export const rotaDoFornecedor = (id: string) => `${ROTAS.fornecedores}/${id}`

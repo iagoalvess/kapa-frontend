@@ -101,8 +101,7 @@ export function DialogoDeTexto<Campo extends string>({
         descricao={descricao}
       >
         <Form {...formulario}>
-          {/* O rodapé fica fora do form e tem margem negativa: este espaço protege o último campo. */}
-          <form id={id} onSubmit={enviar} noValidate className="grid gap-3 pb-3">
+          <form id={id} onSubmit={enviar} noValidate className="grid gap-3">
             <FormField
               control={formulario.control}
               name={campo}

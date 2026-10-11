@@ -78,6 +78,7 @@ export interface MeusDadosDaTurma {
   perfil: PerfilExportado | null
   financeiro: MeuFinanceiro
   adesao: MinhaAdesao | null
+  enquetes: { enquete_id: string; pergunta: string; respondida_em: string; escolhas: string[] }[] | null
 }
 
 /** O que já foi mandado e as novidades do Kapa. */

@@ -43,12 +43,9 @@ export function cancelarAssinatura() {
   return api.post<Assinatura>(`${BASE}/cancelar`, { body: {} })
 }
 
-/**
- * Desiste nos 7 dias do último pagamento (art. 49 do CDC): cancela a renovação, devolve esse pagamento inteiro e
- * encerra a assinatura. Fora do prazo, 409 `assinatura.fora_da_desistencia`. Só o Presidente.
- */
-export function desistirDaAssinatura() {
-  return api.post<Assinatura>(`${BASE}/desistir`, { body: {} })
+/** Registra um pedido de reembolso para análise manual, sem alterar a assinatura. Só o Presidente. */
+export function solicitarReembolso(motivo: string) {
+  return api.post<Assinatura>(`${BASE}/reembolsos`, { body: { motivo } })
 }
 
 /**

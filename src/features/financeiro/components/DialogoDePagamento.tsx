@@ -108,17 +108,16 @@ export function DialogoDePagamento({
             <p className="text-muted-foreground text-sm">
               O comprovante é o que sustenta a prestação de contas da turma.
             </p>
+
+            <AcoesDoFormulario
+              aoCancelar={() => definirAberto(false)}
+              ocupado={pagar.isPending}
+              desabilitado={comprovante === undefined}
+              rotulo="Registrar"
+              rotuloOcupado="Registrando…"
+            />
           </form>
         </Form>
-
-        <AcoesDoFormulario
-          aoCancelar={() => definirAberto(false)}
-          ocupado={pagar.isPending}
-          desabilitado={comprovante === undefined}
-          form={`pagar-${despesa.id}`}
-          rotulo="Registrar"
-          rotuloOcupado="Registrando…"
-        />
       </DialogoDeFormulario>
     </>
   )

@@ -83,6 +83,17 @@ const detalhe = (titulo: string) => screen.findByRole('region', { name: new RegE
 describe('MuralPage', () => {
   afterEach(() => sessao.encerrar())
 
+  it.each(['Comissao', 'Formando'])(
+    'oferece acesso às enquetes pela lateral do mural para %s',
+    async (papel) => {
+      entrarComo(papel)
+      comApi()
+      renderizar(<MuralPage />)
+      const card = await screen.findByRole('region', { name: 'Enquetes' })
+      expect(within(card).getByRole('link', { name: 'Abrir enquetes' })).toHaveAttribute('href', '/enquetes')
+    },
+  )
+
   it('sem id na rota, abre o primeiro da lista com autor, selos e texto', async () => {
     entrarComo('Comissao')
     comApi()
@@ -95,6 +106,10 @@ describe('MuralPage', () => {
     expect(within(cartao).getByText('Ana Presidente')).toBeInTheDocument()
     expect(within(cartao).getByText(/está fechado/)).toBeInTheDocument()
 
+    expect(screen.getByRole('region', { name: 'Enquetes' })).toHaveTextContent(
+      'As consultas da comissão e os resultados da turma.',
+    )
+    expect(screen.getByRole('link', { name: 'Abrir enquetes' })).toHaveAttribute('href', '/enquetes')
     const lista = screen.getByRole('region', { name: 'Avisos' })
     expect(within(lista).getByRole('link', { name: /Contrato do buffet assinado/ })).toHaveAttribute(
       'aria-current',

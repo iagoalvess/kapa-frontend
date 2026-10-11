@@ -173,6 +173,8 @@ Alterações locais, a reaplicar se um componente for regenerado:
 - `button.tsx`: variante `link` em `text-brand-text`, não `text-primary` — o primário agora é o
   laranja da marca, que não se lê como texto sobre branco.
 - `alert-dialog.tsx`: fundo do overlay em `bg-foreground/50`, não `bg-black/50` — cor só da paleta.
+- `alert-dialog.tsx`: altura máxima pela tela (`100dvh - 2rem`) e rolagem vertical, para que
+  confirmações longas continuem acessíveis no celular e com zoom.
 - `alert-dialog.tsx`: importa de `@radix-ui/react-alert-dialog` e `@/lib/utils`. O CLI atual gera
   para o pacote unificado `radix-ui` e, no Windows, grava em `./@/components/ui` e instala um
   pacote `cn` que não tem nada a ver — confira o `git status` depois de todo `shadcn add`.

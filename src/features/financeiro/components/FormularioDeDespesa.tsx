@@ -275,6 +275,17 @@ export function FormularioDeDespesa({
               )}
             />
           )}
+
+          {editando ? null : (
+            <CampoDeMarcar
+              control={formulario.control}
+              name="jaPaga"
+              desabilitado={!editavel}
+              rotulo="Esta despesa já foi paga"
+              dica={quantidade > 1 ? 'Registra o pagamento da primeira parcela.' : undefined}
+              className="self-start sm:pt-8"
+            />
+          )}
         </div>
 
         {editando || quantidade === 1 ? null : (
@@ -299,47 +310,31 @@ export function FormularioDeDespesa({
           />
         )}
 
-        {editando ? null : (
-          <div className="border-border grid gap-3 rounded-xl border p-4">
-            <CampoDeMarcar
+        {!editando && jaPaga ? (
+          <div className="border-border motion-safe:animate-entrar grid items-start gap-4 rounded-xl border p-4 sm:grid-cols-2">
+            <FormField
               control={formulario.control}
-              name="jaPaga"
-              desabilitado={!editavel}
-              rotulo={
-                <>
-                  Esta despesa já foi paga
-                  {quantidade > 1 ? <span className="text-muted-foreground">(a 1ª parcela)</span> : null}
-                </>
-              }
-            />
-
-            {jaPaga ? (
-              <div className="motion-safe:animate-entrar grid items-start gap-4 sm:grid-cols-2">
-                <FormField
-                  control={formulario.control}
-                  name="paga_em"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Dia do pagamento</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="date" max={diaDeHoje()} disabled={!editavel} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormItem className="self-end">
-                  <CampoDeComprovante
-                    valor={comprovante}
-                    aoEscolher={definirComprovante}
-                    desabilitado={!editavel || salvando}
-                    obrigatorio
-                  />
+              name="paga_em"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dia do pagamento</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="date" max={diaDeHoje()} disabled={!editavel} />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-              </div>
-            ) : null}
+              )}
+            />
+            <FormItem className="self-end">
+              <CampoDeComprovante
+                valor={comprovante}
+                aoEscolher={definirComprovante}
+                desabilitado={!editavel || salvando}
+                obrigatorio
+              />
+            </FormItem>
           </div>
-        )}
+        ) : null}
 
         <ErroDoFormulario />
 

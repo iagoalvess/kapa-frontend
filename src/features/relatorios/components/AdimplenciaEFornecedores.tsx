@@ -21,6 +21,7 @@ import { MedidorDeAdimplencia } from './MedidorDeAdimplencia'
 export function AdimplenciaEFornecedores() {
   const painel = useDashboardPublico()
   const dados = painel.data
+  const temPagamento = dados?.por_fornecedor.some((fornecedor) => fornecedor.pago_em_centavos > 0)
 
   if (painel.isError) return null
 
@@ -39,13 +40,13 @@ export function AdimplenciaEFornecedores() {
       >
         {painel.isPending ? <EsqueletoDeGrafico forma="rosca" /> : null}
 
-        {dados?.por_fornecedor.length === 0 ? (
+        {dados && !temPagamento ? (
           <GraficoVazio forma="rosca">
             Nada saiu para fornecedor ainda. O que a turma pagar aparece aqui.
           </GraficoVazio>
         ) : null}
 
-        {dados && dados.por_fornecedor.length > 0 ? (
+        {dados && temPagamento ? (
           <GraficoDeRosca fatias={dados.por_fornecedor.map(fatiaDoFornecedor)} rotuloDoTotal="pago" />
         ) : null}
       </Cartao>

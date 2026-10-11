@@ -213,6 +213,18 @@ export default function MinhaPrivacidadePage() {
                     Guardada
                   </Dado>
                 ) : null}
+                {turma.enquetes?.length ? (
+                  <Dado icone={FileSignature} rotulo="Suas respostas às enquetes">
+                    <ul className="grid gap-2">
+                      {turma.enquetes.map((resposta) => (
+                        <li key={resposta.enquete_id}>
+                          {resposta.pergunta}: {resposta.escolhas.join(', ')} ·{' '}
+                          {formatarDataHora(resposta.respondida_em)}
+                        </li>
+                      ))}
+                    </ul>
+                  </Dado>
+                ) : null}
               </ListaDeDados>
             </SecaoDeDados>
           ))}

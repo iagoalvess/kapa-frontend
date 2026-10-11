@@ -68,13 +68,9 @@ export default function DetalheDoFormandoPage() {
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
             <Selo>{ROTULOS_DE_PAPEL[dados.papel]}</Selo>
-            {dados.foto_arquivo_id ? null : <Selo>Sem foto</Selo>}
           </div>
         </div>
-        <IndicadorDeCompletude perfil={dados} proprio={false} />
-        {editavel ? (
-          <p className="text-texto-muted text-xs">Correções feitas aqui ficam registradas com o seu nome.</p>
-        ) : null}
+        <IndicadorDeCompletude perfil={dados} />
       </Cartao>
 
       <FormularioDePerfil
