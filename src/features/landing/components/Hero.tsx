@@ -186,18 +186,18 @@ function alturasDa(etapa: (typeof ETAPAS)[number]) {
  * A meta ocupa pouco mais da metade da largura porque o resto é do mascote: ele fica à
  * direita dela, com as patas na quina do painel de baixo. No desktop, a imagem fica ancorada ao
  * próprio painel. O deslocamento compensa os 11% transparentes da base da arte e deixa a pata
- * avançar 7px sobre a borda, mesmo quando a altura do card da meta mudar.
+ * avançar 7px sobre a borda, mesmo quando a altura do card da meta mudar. No celular, a base
+ * do corpo fica a 84% da altura da arte e acompanha a rotação e o topo da folha.
  */
 function CardDaTurma() {
   return (
-    <div className="relative z-10 max-sm:-translate-y-8">
-      <img
-        src={mascoteEncostado}
-        alt=""
-        className="relative z-20 mx-auto -mb-8 w-32 drop-shadow-xl sm:-mb-10 sm:w-48 lg:hidden"
-      />
-
+    <div className="relative z-10 pt-24 max-sm:-translate-y-8 sm:pt-38 lg:pt-0">
       <Folha prende="grampo" dobra tom="creme" className="z-10 -rotate-1 p-3.5 pt-6 sm:p-5 sm:pt-7">
+        <img
+          src={mascoteEncostado}
+          alt=""
+          className="pointer-events-none absolute top-0 left-1/2 z-20 w-32 -translate-x-1/2 -translate-y-[84%] drop-shadow-xl sm:w-48 lg:hidden"
+        />
         <MetaDaTurmaAnimada grande className="z-10 lg:ml-1 lg:max-w-[47%]" />
 
         {/* No celular a folha fica estreita entre as polaroids: sai o gráfico, fica a meta. */}
@@ -319,12 +319,13 @@ function CardDaTurma() {
             </div>
           </div>
         </div>
-        <p className="font-hand text-brand-text relative mt-1 flex items-center justify-center gap-2 pb-1 text-center text-lg leading-tight max-sm:pr-8 sm:text-xl">
-          <span>
-            nosso sonho vai <br className="sm:hidden" />
-            saindo do papel
+        {/* No celular, duas linhas à esquerda e o coração junto da primeira liberam a dobra. */}
+        <p className="font-hand text-brand-text relative mt-1 flex items-center justify-center gap-2 pb-1 text-center text-lg leading-tight max-sm:justify-start max-sm:text-base sm:text-xl">
+          <span className="max-sm:shrink-0">
+            <span className="max-sm:whitespace-nowrap">nosso sonho vai</span> <br className="sm:hidden" />
+            <span className="max-sm:whitespace-nowrap">saindo do papel</span>
           </span>
-          <Coracao className="size-4 shrink-0" />
+          <Coracao className="size-4 shrink-0 max-sm:mt-0.5 max-sm:self-start" />
         </p>
       </Folha>
     </div>
