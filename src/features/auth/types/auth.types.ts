@@ -3,7 +3,7 @@ import type { AceiteDeDocumento } from '@/types/legal'
 export type { ParDeTokens } from '@/lib/http/sessao'
 
 /**
- * O segundo passo do login (202 de `POST /api/v1/auth/login`): administrador e presidente recebem um código de seis
+ * O segundo passo do login (202 de `POST /api/v1/auth/login`): administrador recebe um código de seis
  * dígitos no e-mail, e a sessão só sai com ele. Espelha `CodigoDeEntradaDTO`.
  */
 export interface CodigoDeEntrada {

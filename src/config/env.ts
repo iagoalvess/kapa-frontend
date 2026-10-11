@@ -33,6 +33,7 @@ const esquema = z
       .transform((valor) => valor === 'true'),
     // A chave pública do widget do Turnstile. O segredo mora só na Pages Function.
     VITE_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
+    VITE_GOOGLE_CLIENT_ID: z.string().optional(),
   })
   .refine((valores) => !valores.VITE_LISTA_DE_ESPERA || valores.VITE_TURNSTILE_SITE_KEY, {
     message: 'VITE_LISTA_DE_ESPERA=true precisa de VITE_TURNSTILE_SITE_KEY.',

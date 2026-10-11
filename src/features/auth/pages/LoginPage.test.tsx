@@ -135,7 +135,7 @@ describe('LoginPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Senha redefinida.')
   })
 
-  /** Revisão de segurança de 05/10/2026: administrador e presidente entram com o código do e-mail. */
+  /** Administrador do Kapa continua exigindo o código do e-mail. */
   describe('segundo passo', () => {
     const CODIGO = `${LOGIN}/codigo`
     const pedido = { desafio: 'desafio-1', enviado_para: 'an**@exemplo.com', minutos_de_validade: 3 }

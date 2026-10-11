@@ -1,3 +1,5 @@
 export { BotaoDeInstalar } from './components/BotaoDeInstalar'
 export { DialogoDeSenha } from './components/DialogoDeSenha'
+export { EntradaComGoogle } from './components/EntradaComGoogle'
+export { SenhaDaConta } from './components/SenhaDaConta'
 export { useSair } from './hooks/useAutenticacao'

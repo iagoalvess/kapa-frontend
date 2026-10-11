@@ -1,4 +1,4 @@
-import { DialogoDeSenha } from '@/features/auth'
+import { SenhaDaConta } from '@/features/auth'
 import MeuPerfilPage from '@/features/formandos/pages/MeuPerfilPage'
 
 /**
@@ -8,5 +8,5 @@ import MeuPerfilPage from '@/features/formandos/pages/MeuPerfilPage'
  * feature não importa de outra.
  */
 export default function PaginaDoMeuCadastro() {
-  return <MeuPerfilPage acoes={<DialogoDeSenha />} />
+  return <MeuPerfilPage acoes={<SenhaDaConta />} />
 }

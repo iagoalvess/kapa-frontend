@@ -56,7 +56,8 @@ export function LayoutDeAutenticacao({
       )}
     >
       <main className="bg-card flex flex-col justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-14">
-        <div className={cn('mx-auto w-full', onboarding ? 'max-w-lg' : 'max-w-md lg:-translate-y-10')}>
+        {/* O GIS aceita até 400 px; a coluna de conta mantém botão, campos e CTA alinhados. */}
+        <div className={cn('mx-auto w-full', onboarding ? 'max-w-lg' : 'max-w-100 lg:-translate-y-10')}>
           <LogoKapa className="mb-4 -ml-1 h-12" />
           <div key={etapa} className="motion-safe:animate-entrar">
             {children}

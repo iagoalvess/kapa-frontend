@@ -1,8 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { sessao } from '@/lib/http/sessao'
-import { alterarSenha, confirmarEmail, redefinirSenha, solicitarRedefinicao } from '../api/conta.api'
+import {
+  alterarSenha,
+  confirmarEmail,
+  obterAcessoDaConta,
+  redefinirSenha,
+  solicitarRedefinicao,
+} from '../api/conta.api'
+
+/** Estado de acesso da própria conta, sem inferência pública de métodos. */
+export function useAcessoDaConta() {
+  return useQuery({ queryKey: ['conta', 'acesso'], queryFn: ({ signal }) => obterAcessoDaConta(signal) })
+}
 
 /**
  * Depois de trocar a senha, a API derruba todas as sessões da conta. O front larga a dele também

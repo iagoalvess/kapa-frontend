@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
@@ -16,6 +17,7 @@ import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { useRegistrar } from '../hooks/useAutenticacao'
+import { EntradaComGoogle } from '../components/EntradaComGoogle'
 import { esquemaDeNovaConta, type FormularioDeNovaConta } from '../schemas/auth.schema'
 
 /** Códigos que significam "os documentos mudaram desde que a tela abriu". */
@@ -24,6 +26,7 @@ const DOCUMENTOS_MUDARAM = new Set(['legal.versao_desatualizada', 'legal.documen
 export default function CriarContaPage() {
   const registrar = useRegistrar()
   const vigentes = useDocumentosVigentes()
+  const [googleAtivo, definirGoogleAtivo] = useState(false)
 
   const formulario = useForm<FormularioDeNovaConta>({
     resolver: zodResolver(esquemaDeNovaConta),
@@ -65,99 +68,106 @@ export default function CriarContaPage() {
     <LayoutDeAutenticacao>
       <h1 className={estilos.titulo}>Crie sua conta</h1>
       <p className={estilos.subtitulo}>A formatura da sua turma, organizada num lugar só.</p>
+      <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} />
 
-      <Form {...formulario}>
-        <form onSubmit={enviar} className="grid gap-5" noValidate>
-          <FormField
-            control={formulario.control}
-            name="nome"
-            render={({ field }) => (
-              <FormItem className={estilos.item}>
-                <FormLabel className={estilos.rotulo}>Nome</FormLabel>
-                <FormControl>
-                  <Input autoComplete="name" className={estilos.campo} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={formulario.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className={estilos.item}>
-                <FormLabel className={estilos.rotulo}>E-mail</FormLabel>
-                <FormControl>
-                  <Input type="email" autoComplete="email" className={estilos.campo} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={formulario.control}
-            name="senha"
-            render={({ field }) => (
-              <FormItem className={estilos.item}>
-                <FormLabel className={estilos.rotulo}>Senha</FormLabel>
-                <FormControl>
-                  <CampoDeSenha autoComplete="new-password" className={estilos.campo} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid gap-3">
+      <div hidden={googleAtivo}>
+        <Form {...formulario}>
+          <form onSubmit={enviar} className="grid gap-5" noValidate>
             <FormField
               control={formulario.control}
-              name="aceite"
+              name="nome"
               render={({ field }) => (
-                <FormItem className="gap-1">
+                <FormItem className={estilos.item}>
+                  <FormLabel className={estilos.rotulo}>Nome</FormLabel>
                   <FormControl>
-                    <AceiteObrigatorio
-                      tipos={Object.values(TIPOS_DE_DOCUMENTO)}
-                      checked={field.value === true}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
+                    <Input autoComplete="name" className={estilos.campo} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <CampoDeMarcar
+            <FormField
               control={formulario.control}
-              name="receber_comunicacao_do_kapa"
-              rotulo={TEXTO_DO_CONSENTIMENTO_DE_MARKETING}
-              className="text-muted-foreground"
+              name="email"
+              render={({ field }) => (
+                <FormItem className={estilos.item}>
+                  <FormLabel className={estilos.rotulo}>E-mail</FormLabel>
+                  <FormControl>
+                    <Input type="email" autoComplete="email" className={estilos.campo} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
-            {vigentes.isError ? (
-              <ErroDaConsulta compacto erro={vigentes.error} aoTentarDeNovo={() => void vigentes.refetch()} />
-            ) : null}
-          </div>
+            <FormField
+              control={formulario.control}
+              name="senha"
+              render={({ field }) => (
+                <FormItem className={estilos.item}>
+                  <FormLabel className={estilos.rotulo}>Senha</FormLabel>
+                  <FormControl>
+                    <CampoDeSenha autoComplete="new-password" className={estilos.campo} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <ErroDoFormulario />
+            <div className="grid gap-3">
+              <FormField
+                control={formulario.control}
+                name="aceite"
+                render={({ field }) => (
+                  <FormItem className="gap-1">
+                    <FormControl>
+                      <AceiteObrigatorio
+                        tipos={Object.values(TIPOS_DE_DOCUMENTO)}
+                        checked={field.value === true}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Sem as versões vigentes não há o que aceitar: o envio espera os documentos. */}
-          <Button type="submit" disabled={registrar.isPending || !vigentes.data} className={estilos.cta}>
-            {registrar.isPending ? 'Criando conta…' : 'Criar conta'}
-          </Button>
-        </form>
-      </Form>
+              <CampoDeMarcar
+                control={formulario.control}
+                name="receber_comunicacao_do_kapa"
+                rotulo={TEXTO_DO_CONSENTIMENTO_DE_MARKETING}
+                className="text-muted-foreground"
+              />
 
-      <p className="text-muted-foreground mt-6 text-center text-sm">
-        Já tem conta?{' '}
-        <Link to={ROTAS.login} className={estilos.link}>
-          Entrar
-        </Link>
-      </p>
+              {vigentes.isError ? (
+                <ErroDaConsulta
+                  compacto
+                  erro={vigentes.error}
+                  aoTentarDeNovo={() => void vigentes.refetch()}
+                />
+              ) : null}
+            </div>
+
+            <ErroDoFormulario />
+
+            {/* Sem as versões vigentes não há o que aceitar: o envio espera os documentos. */}
+            <Button type="submit" disabled={registrar.isPending || !vigentes.data} className={estilos.cta}>
+              {registrar.isPending ? 'Criando conta…' : 'Criar conta'}
+            </Button>
+          </form>
+        </Form>
+
+        <p className="text-muted-foreground mt-6 text-center text-sm">
+          Já tem conta?{' '}
+          <Link to={ROTAS.login} className={estilos.link}>
+            Entrar
+          </Link>
+        </p>
+      </div>
     </LayoutDeAutenticacao>
   )
 }

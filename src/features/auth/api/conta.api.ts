@@ -3,6 +3,10 @@ import type { ConfirmacaoDeEmail, RedefinicaoDeSenha, TrocaDeSenha } from '../ty
 
 const BASE = '/api/v1/conta'
 
+/** Informação privada de acesso do titular. */
+export const obterAcessoDaConta = (signal?: AbortSignal) =>
+  api.get<{ email: string; tem_senha: boolean }>(`${BASE}/acesso`, { signal })
+
 /**
  * Pede o link de redefinição de senha.
  *

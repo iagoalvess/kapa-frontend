@@ -15,7 +15,7 @@ const SEGUNDOS_PARA_REENVIAR = 30
 const SEM_VOLTA = new Set(['auth.desafio_invalido', 'auth.codigo_bloqueado'])
 
 /**
- * O segundo passo do login de administrador e presidente: o código de seis dígitos que foi ao e-mail (revisão de
+ * O segundo passo do login do administrador: o código de seis dígitos que foi ao e-mail (revisão de
  * segurança de 05/10/2026).
  *
  * No ritmo das telas de código dos apps de banco: as seis caixas aceitam colar e o preenchimento automático do

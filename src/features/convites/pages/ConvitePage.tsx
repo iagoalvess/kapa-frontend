@@ -31,7 +31,7 @@ const SEM_NOVA_TENTATIVA = new Set(['convite.email_divergente', 'convite.vinculo
  * aceitar ao abrir deixaria qualquer link repassado pôr a pessoa numa turma alheia — e expor nome
  * e e-mail dela à comissão de lá — sem ela ter decidido nada.
  */
-export default function ConvitePage() {
+export default function ConvitePage({ acessoGoogle }: { acessoGoogle?: ReactNode }) {
   const { token = '' } = useParams()
   const navegar = useNavigate()
   const { autenticado, usuario } = useSessao()
@@ -165,6 +165,7 @@ export default function ConvitePage() {
       <CardDaTurma convite={convite.data} />
 
       <div className="grid gap-4">
+        {acessoGoogle}
         <Button asChild className="h-11 w-full text-base">
           <Link to={ROTAS.criarConta} onClick={guardar}>
             Criar conta e entrar

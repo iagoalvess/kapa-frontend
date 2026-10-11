@@ -4,7 +4,7 @@ import type { CodigoDeEntrada, Credenciais, NovaConta } from '../types/auth.type
 
 const BASE = '/api/v1/auth'
 
-/** Autentica e devolve o par de tokens — ou, para administrador e presidente, o pedido do código do e-mail. */
+/** Autentica e devolve o par de tokens — ou, para administrador, o pedido do código do e-mail. */
 export function entrar(credenciais: Credenciais) {
   return api.post<ParDeTokens | CodigoDeEntrada>(`${BASE}/login`, { body: credenciais, autenticar: false })
 }

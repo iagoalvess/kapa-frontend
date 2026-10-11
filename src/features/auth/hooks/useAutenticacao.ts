@@ -42,7 +42,7 @@ async function iniciarSessao(par: ParDeTokens, queryClient: QueryClient) {
 }
 
 /** Guarda a sessão e leva para onde a pessoa tentava ir — o `ExigeAutenticacao` deixa o caminho em `state.de`. */
-function useConcluirEntrada() {
+export function useConcluirEntrada() {
   const navegar = useNavigate()
   const destino = useEstadoDeNavegacao('de') ?? ROTAS.inicio
   const queryClient = useQueryClient()
@@ -54,7 +54,7 @@ function useConcluirEntrada() {
 }
 
 /**
- * Login. Com a sessão na resposta, entra; administrador e presidente param no segundo passo — a resposta é o
+ * Login. Com a sessão na resposta, entra; administrador para no segundo passo — a resposta é o
  * pedido do código, e quem chamou mostra a etapa do código.
  */
 export function useEntrar() {

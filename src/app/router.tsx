@@ -86,7 +86,7 @@ export const router = createBrowserRouter([
       // Público: o convite chega por WhatsApp a quem ainda não tem conta. Com sessão, aceita sozinho.
       {
         path: `${ROTAS.convite}/:token`,
-        lazy: pagina(() => import('@/features/convites/pages/ConvitePage')),
+        lazy: pagina(() => import('./PaginaDoConvite')),
       },
       // Público: o convite da festa, aberto no celular do convidado — que não tem conta e nunca vai
       // ter (Sprint 21, decisão 11). Com a Gestão logada, a mesma página vira a portaria.

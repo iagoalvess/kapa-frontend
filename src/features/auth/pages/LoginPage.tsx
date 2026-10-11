@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { CampoDeSenha } from '@/components/CampoDeSenha'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -15,6 +15,8 @@ import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import { Aviso, AvisoDeTermos, estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
 import { pediuCodigo } from '../api/auth.api'
 import { EtapaDoCodigo } from '../components/EtapaDoCodigo'
+import { EntradaComGoogle } from '../components/EntradaComGoogle'
+import { ConfirmacaoDeVinculoGoogle } from '../components/ConfirmacaoDeVinculoGoogle'
 import { useEntrar } from '../hooks/useAutenticacao'
 import type { CodigoDeEntrada } from '../types/auth.types'
 import { esquemaDeLogin, type FormularioDeLogin } from '../schemas/auth.schema'
@@ -23,10 +25,21 @@ export default function LoginPage() {
   const entrar = useEntrar()
   const reenviar = useReenviarConfirmacao()
   const aviso = useEstadoDeNavegacao('aviso')
+  const [googleAtivo, definirGoogleAtivo] = useState(false)
+  const [parametros, definirParametros] = useSearchParams()
+  const [comprovante] = useState(() => parametros.get('comprovante_google'))
+  const [conviteDoGoogle] = useState(() => parametros.get('convite'))
+  useEffect(() => {
+    if (!parametros.has('comprovante_google')) return
+    const limpos = new URLSearchParams(parametros)
+    limpos.delete('comprovante_google')
+    limpos.delete('convite')
+    definirParametros(limpos, { replace: true })
+  }, [parametros, definirParametros])
 
   // Login em duas etapas: com e-mail confirmado, a tela passa a pedir a senha.
   const [emailConfirmado, setEmailConfirmado] = useState<string | null>(null)
-  // Administrador e presidente: a senha certa leva a um terceiro passo, o código do e-mail.
+  // Administrador: a senha certa leva a um terceiro passo, o código do e-mail.
   const [pedidoDeCodigo, setPedidoDeCodigo] = useState<CodigoDeEntrada | null>(null)
 
   const formulario = useForm<FormularioDeLogin>({
@@ -72,6 +85,13 @@ export default function LoginPage() {
     })
   })
 
+  if (comprovante)
+    return (
+      <LayoutDeAutenticacao>
+        <ConfirmacaoDeVinculoGoogle comprovante={comprovante} convite={conviteDoGoogle} />
+      </LayoutDeAutenticacao>
+    )
+
   if (pedidoDeCodigo && emailConfirmado)
     return (
       <LayoutDeAutenticacao etapa="codigo">
@@ -95,91 +115,94 @@ export default function LoginPage() {
       )}
 
       {aviso ? <Aviso>{aviso}</Aviso> : null}
+      {!emailConfirmado ? <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} /> : null}
 
-      <Form {...formulario}>
-        <form onSubmit={emailConfirmado ? entrarComSenha : continuar} className="grid gap-5" noValidate>
-          {emailConfirmado ? (
-            <>
-              {/* Sem o usuário no formulário, o gerenciador de senhas salva a senha sem dono. */}
-              <input type="email" autoComplete="username" value={emailConfirmado} readOnly hidden />
+      <div hidden={googleAtivo}>
+        <Form {...formulario}>
+          <form onSubmit={emailConfirmado ? entrarComSenha : continuar} className="grid gap-5" noValidate>
+            {emailConfirmado ? (
+              <>
+                {/* Sem o usuário no formulário, o gerenciador de senhas salva a senha sem dono. */}
+                <input type="email" autoComplete="username" value={emailConfirmado} readOnly hidden />
 
+                <FormField
+                  control={formulario.control}
+                  name="senha"
+                  render={({ field }) => (
+                    <FormItem className={estilos.item}>
+                      <div className="flex items-baseline justify-between">
+                        <FormLabel className={estilos.pergunta}>Sua senha</FormLabel>
+                        <Link
+                          to={ROTAS.esqueciSenha}
+                          state={{ email: emailConfirmado }}
+                          className={`${estilos.link} text-sm`}
+                        >
+                          Esqueci minha senha
+                        </Link>
+                      </div>
+                      <FormControl>
+                        <CampoDeSenha autoComplete="current-password" className={estilos.campo} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : (
               <FormField
                 control={formulario.control}
-                name="senha"
+                name="email"
                 render={({ field }) => (
                   <FormItem className={estilos.item}>
-                    <div className="flex items-baseline justify-between">
-                      <FormLabel className={estilos.pergunta}>Sua senha</FormLabel>
-                      <Link
-                        to={ROTAS.esqueciSenha}
-                        state={{ email: emailConfirmado }}
-                        className={`${estilos.link} text-sm`}
-                      >
-                        Esqueci minha senha
-                      </Link>
-                    </div>
+                    <FormLabel className={estilos.pergunta}>Qual seu e-mail?</FormLabel>
                     <FormControl>
-                      <CampoDeSenha autoComplete="current-password" className={estilos.campo} {...field} />
+                      <Input type="email" autoComplete="username" className={estilos.campo} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </>
-          ) : (
-            <FormField
-              control={formulario.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className={estilos.item}>
-                  <FormLabel className={estilos.pergunta}>Qual seu e-mail?</FormLabel>
-                  <FormControl>
-                    <Input type="email" autoComplete="username" className={estilos.campo} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+            )}
 
-          {formulario.formState.errors.root ? (
-            <div role="alert" className="text-danger-text text-sm">
-              {formulario.formState.errors.root.message}
-              {precisaConfirmarEmail && emailConfirmado ? (
-                <div className="mt-2">
-                  {reenviar.isSuccess ? (
-                    <span className="text-muted-foreground">
-                      Enviamos um novo link para {emailConfirmado}.
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={reenviar.isPending}
-                      onClick={() => reenviar.mutate(emailConfirmado)}
-                      className={estilos.link}
-                    >
-                      {reenviar.isPending ? 'Enviando…' : 'Reenviar e-mail de confirmação'}
-                    </button>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+            {formulario.formState.errors.root ? (
+              <div role="alert" className="text-danger-text text-sm">
+                {formulario.formState.errors.root.message}
+                {precisaConfirmarEmail && emailConfirmado ? (
+                  <div className="mt-2">
+                    {reenviar.isSuccess ? (
+                      <span className="text-muted-foreground">
+                        Enviamos um novo link para {emailConfirmado}.
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={reenviar.isPending}
+                        onClick={() => reenviar.mutate(emailConfirmado)}
+                        className={estilos.link}
+                      >
+                        {reenviar.isPending ? 'Enviando…' : 'Reenviar e-mail de confirmação'}
+                      </button>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
-          <Button type="submit" disabled={entrar.isPending} className={estilos.cta}>
-            {emailConfirmado ? (entrar.isPending ? 'Entrando…' : 'Entrar') : 'Continuar'}
-          </Button>
-        </form>
-      </Form>
+            <Button type="submit" disabled={entrar.isPending} className={estilos.cta}>
+              {emailConfirmado ? (entrar.isPending ? 'Entrando…' : 'Entrar') : 'Continuar'}
+            </Button>
+          </form>
+        </Form>
 
-      <p className="text-muted-foreground mt-6 text-center text-sm">
-        Ainda não tem conta?{' '}
-        <Link to={ROTAS.criarConta} className={estilos.link}>
-          Criar conta
-        </Link>
-      </p>
+        <p className="text-muted-foreground mt-6 text-center text-sm">
+          Ainda não tem conta?{' '}
+          <Link to={ROTAS.criarConta} className={estilos.link}>
+            Criar conta
+          </Link>
+        </p>
 
-      <AvisoDeTermos />
+        <AvisoDeTermos />
+      </div>
     </LayoutDeAutenticacao>
   )
 }
