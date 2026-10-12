@@ -1,4 +1,4 @@
-import type { FiltroDeAdesoes } from '../types/adesoes.types'
+import type { FiltroDeAdesoes, PessoaDaCondicao } from '../types/adesoes.types'
 
 // A formatura não entra na chave: trocar de formatura limpa o cache inteiro.
 export const chaves = {
@@ -14,4 +14,6 @@ export const chaves = {
   /** Prefixo de toda página do painel: aderir ou publicar muda quem está em cada filtro. */
   situacoes: ['adesoes', 'situacoes'] as const,
   situacao: (filtro: FiltroDeAdesoes) => ['adesoes', 'situacoes', filtro] as const,
+  /** A condição financeira de uma pessoa (Sprint 54) — sob `adesoes`: concedê-la muda o painel e a prévia. */
+  condicao: (pessoa: PessoaDaCondicao) => ['adesoes', 'condicao', pessoa] as const,
 }

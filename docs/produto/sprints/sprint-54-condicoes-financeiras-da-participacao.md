@@ -1,12 +1,92 @@
 # Sprint 54 — Participação na Formatura com Desconto ou Isenção
 
-> **Situação (11/10/2026): proposta de produto em discussão, não implementada.**
+> **Situação (12/10/2026): implementada a primeira entrega** — concessão antes da adesão (ficha e convite),
+> adesão com desconto ou isenção, acréscimo de pacote com o benefício e "Apenas gestão". Validada na API
+> (38 checagens) e nas telas com a Medicina 2027. As respostas de 12/10 estão em
+> [Decisões de 12/10/2026](#decisões-de-12102026); o ajuste de quem já aderiu e pagou ficou **fora** (D-E1).
 > **Origem:** discussão sobre comissão que paga integralmente, recebe desconto, participa com
 > isenção ou apenas administra, e sobre benefícios individuais para qualquer formando.
 > **Escopo:** condições financeiras da participação na formatura, antes e depois da adesão,
 > inclusive após pagamentos e na contratação posterior de pacotes.
-> **Decisões:** a direção discutida está registrada abaixo; os detalhes ainda precisam ser
-> confirmados nos pontos P1–P16. Documentar a proposta não equivale a aprovar todas as regras.
+
+## Decisões de 12/10/2026
+
+Respostas do dono do produto antes da implementação. O que segue abaixo desta seção é a proposta original;
+onde ela diverge daqui, **vale esta seção**.
+
+**D-E1 — Escopo da entrega.** Entra: concessão individual (ficha/painel de adesões e convite por e-mail), adesão
+com bruto/desconto/líquido, isenção sem parcela e com convites, "Apenas gestão" e acréscimo de pacote (Minha cesta)
+com o benefício. **Fica fora:** ajuste de quem **já aderiu** (cenários 6 e 7), base "total" com devolução (P7/P11),
+conciliação de pagamento em trânsito (P10). Motivo: o Kapa ainda não está em produção e, com a concessão
+disponível antes da adesão — inclusive já no convite —, o caso "pagou antes do desconto" fica raro. Se aparecer, a
+saída é a que existe: cancelar o pacote pela solicitação (o pago vai para "A devolver", e a comissão fecha como
+decidir) e recontratar em Minha cesta já com o benefício. Reabrir quando o caso aparecer de verdade.
+
+**P1 — Apenas gestão:** Presidente, Tesoureiro e Comissão, só enquanto não aderiram; o Formando nunca (403). Continua
+ocupando vaga do plano; sai da conta de "faltam aderir" e do filtro "Falta aderir". Pode voltar atrás a qualquer
+momento antes de aderir; aderir desmarca. Quem já aderiu não marca (409) — a saída é o cancelamento.
+
+**P2 — Formas:** percentual (até 100%, isenção é 100%) ou valor fixo; **um benefício por pacote** (ou por grupo de
+faixas), sem acumular. O desconto por antecipação continua valendo sobre o valor líquido da parcela.
+
+**P3 — Alcance:** por pacote. Num grupo de faixas, o benefício aponta a **faixa-teto** e vale para o grupo até o preço
+dela: isenção da Festa 10 (R$ 6.000) numa Festa 15 (R$ 8.400) deixa R$ 2.400 a pagar; 20% da Festa 10 numa faixa
+menor é 20% da faixa menor. Uma faixa por grupo na condição (400 `cobranca.condicao_grupo_repetido`).
+
+**P4 — Validade:** **sem prazo** (revisão de 12/10/2026, depois da primeira entrega, que tinha a data opcional "para
+contratar até"): a condição vale até a tesouraria revogar. Revogar não tira o desconto já aceito.
+
+**P5 — Benefício que não aparece na adesão:** **sem pedido de revisão no Kapa.** A pessoa fala com a comissão por fora
+e a tesouraria concede na ficha; a prévia da adesão atualiza.
+
+**P6 — Ajuste depois de aderir:** se um dia entrar, a redução vale na hora, sem aceite do formando (é só a dívida
+diminuindo). Fora desta entrega (D-E1).
+
+**P7/P8/P10/P11 — Depois de pagamento:** fora desta entrega (D-E1).
+
+**P9 — Aprovação:** Presidente e Tesoureiro concedem, **inclusive a si mesmos**, com auditoria (sem motivo: removido na revisão de 12/10/2026 — a condição guarda só os benefícios, e o evento
+registra quem concedeu, quando e o quê)
+(`cobranca.condicao_financeira`). Sem segundo aprovador. Cargo nunca concede nem retira benefício sozinho.
+
+**P12 — Contratações futuras:** a condição é uma regra da pessoa: vale para os pacotes listados **quando** ela os
+contratar — na adesão ou em acréscimo depois —, até ser revogada. Pacote fora da lista paga preço normal;
+pacote novo no catálogo não entra sozinho; opcionais (camiseta, convite extra) nunca entram.
+
+**P13 — Legado de bolsas:** não há produção; nada a migrar. O lançamento avulso negativo continua existindo para o
+crédito pontual.
+
+**P14 — Visibilidade:** o titular vê na adesão que tem desconto e o preço com ele. Presidente, Tesoureiro e Comissão
+veem nome e valores (a Comissão só lê). Formandos não veem a dos outros.
+
+**P15 — Onde fica:** painel de Adesões (linha da pessoa → "Desconto ou isenção") e convite por e-mail pendente (mesma
+ação). Uma fonte só da condição. Nenhuma restrição por plano SaaS.
+
+**P16 — Limites finais:** os de hoje: turma suspensa ou encerrada não escreve.
+
+### Como ficou (implementação)
+
+- **Condição** (`condicoes_financeiras`): uma por pessoa — do vínculo, ou do e-mail do convite pessoal de quem ainda
+  não entrou. O aceite do convite (que confere o e-mail da conta) passa a condição para o vínculo; reenviar o convite
+  não a perde, encaminhar o link não a entrega a outro. Benefícios em `jsonb`.
+- **Prévia e aceite:** o desconto é calculado no servidor (`CondicaoFinanceira.DescontoDe`) e entra no snapshot do
+  plano (`Descontos`), portanto no **hash**: mudar a condição com a prévia aberta dá 409 `adesao.termo_desatualizado`.
+  Os itens e as parcelas saem pelo líquido (`PlanoDeCobranca.ItensLiquidosDoFormando`, a mesma conta da prévia e da
+  geração); o pacote isento **não gera parcela** — nada "em aberto" de R$ 0 para a régua ou a inadimplência.
+- **Contrato:** `escolhas_da_cesta.desconto_em_centavos` guarda o desconto aceito. A re-adesão a uma versão nova do
+  termo mantém esse desconto, não o da condição de hoje.
+- **Aditivo:** a diferença é o preço cheio novo menos o preço cheio contratado (parcelas + desconto já dado), menos
+  o desconto **a mais** que a faixa nova ganha. Diferença líquida zero entra sem parcela (pacote isento continua
+  disponível no "Acrescentar").
+- **Convites dos pacotes** saem da escolha, não do pagamento: a isenta recebe os convites da festa.
+- **Revogar ou alterar** muda só o que ainda vai ser contratado. No diálogo, a condição em vigor aparece numa faixa no
+  topo com "Revogar", que pede confirmação (revisão de 12/10).
+- **Apenas gestão** é uma linha acima do resumo do termo, nos dois estados; o termo continua na tela, e aderir
+  desmarca (revisão de 12/10 — antes era um cartão que substituía a tela).
+- **E-mail e PDF:** a confirmação diz "a sua participação é isenta" quando não há parcela; o quadro de escolhas do PDF
+  mostra o preço cheio e o desconto.
+- Ponytail: quem volta à turma **religando** um vínculo removido não leva a condição do convite (a tesouraria concede
+  de novo); a mudança de preço do catálogo aplicada "a quem já aderiu" (D21 da Sprint 48) repassa o delta inteiro a
+  quem tem desconto parcial — o isento não tem parcela e não é alcançado.
 
 **Objetivo:** o membro continua escolhendo seus pacotes na adesão, mas pode contratar com uma
 condição financeira individual, apresentada antes do aceite e cumprida nas parcelas, nos pagamentos,
@@ -270,7 +350,7 @@ O prazo de cancelamento não deve ser reutilizado como prazo de desconto sem dec
 
 ### Perguntar antes de implementar
 
-**Pendente.** P1–P16 precisam de resposta do dono do produto antes de implementar o código que
+**Respondido em 12/10/2026** — ver [Decisões de 12/10/2026](#decisões-de-12102026). Texto original:
 dependa delas. As direções sugeridas estão **a confirmar**; não são regras aprovadas. Registrar
 as respostas nesta sprint, com data e justificativa, e atualizar os fluxos e critérios de aceite.
 

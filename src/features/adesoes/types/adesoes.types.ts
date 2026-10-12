@@ -59,6 +59,18 @@ export interface PlanoAceito {
   total_em_centavos: number
   /** O quadro de escolhas: os pacotes contratados (Sprint 47). Nulo nas adesões anteriores à cesta. */
   cesta: PacoteDaCesta[] | null
+  /**
+   * O desconto da condição financeira em cada pacote alcançado (Sprint 54); nulo sem desconto. Os itens e a grade
+   * já vêm pelo líquido, e o pacote isento não tem item nem parcela.
+   */
+  descontos: DescontoDoPacote[] | null
+}
+
+/** O desconto de um pacote no plano aceito. Espelha `DescontoDoPacoteDTO`. */
+export interface DescontoDoPacote {
+  item_id: string
+  /** Igual ao preço é isenção. */
+  desconto_em_centavos: number
 }
 
 /** Um pacote do quadro de escolhas, como foi congelado no aceite. Espelha `PacoteDaCestaDTO`. */
@@ -85,6 +97,8 @@ export interface PacoteDoCatalogo {
   numero_de_parcelas: number
   convites_da_festa: number
   convites_da_colacao: number
+  /** Quanto a condição financeira da pessoa desconta, se ela escolher este pacote (Sprint 54). */
+  desconto_em_centavos: number
 }
 
 /**
@@ -106,6 +120,10 @@ export interface ConteudoParaAdesao {
   catalogo: PacoteDoCatalogo[]
   /** A cesta de uma adesão anterior: a re-adesão a mantém, e mudá-la é a Sprint 48. Vazia para quem nunca aderiu. */
   cesta_contratada: string[]
+  /** A tesouraria concedeu um desconto ou uma isenção à pessoa (Sprint 54). */
+  tem_condicao: boolean
+  /** Da comissão, disse que vai apenas ajudar na gestão, sem aderir (Sprint 54). */
+  apenas_gestao: boolean
 }
 
 /** Uma adesão, com o termo e o plano aceitos. Espelha `AdesaoDTO`. */
@@ -164,6 +182,12 @@ export interface SituacaoDeAdesao {
   aceito_em: string | null
   /** Os pacotes da cesta, com o detalhe livre de cada um (Sprint 48, D40). */
   cesta: PacoteEscolhido[]
+  /** Da comissão, vai apenas ajudar na gestão, sem aderir (Sprint 54). */
+  apenas_gestao: boolean
+  /** Tem desconto ou isenção autorizada (Sprint 54). */
+  tem_condicao: boolean
+  /** Desconto da condição na cesta contratada. */
+  desconto_em_centavos: number
 }
 
 /** Um pacote na cesta de um formando, no painel de adesões. Espelha `PacoteEscolhidoDTO`. */
@@ -207,6 +231,8 @@ export interface PacoteNaCesta {
   /** Último dia para pedir o cancelamento; nulo, sem trava (D36). */
   cancelavel_ate: string | null
   cancelamento_solicitado: boolean
+  /** Desconto da condição financeira no contratado (Sprint 54); igual ao preço é isenção. */
+  desconto_em_centavos: number
 }
 
 /** Um pacote que o aditivo pode acrescentar (D38). Espelha `PacoteDisponivelDTO`. */
@@ -222,6 +248,8 @@ export interface PacoteDisponivel {
   convites_da_colacao: number
   /** A faixa do mesmo grupo que sai; nula quando é pacote novo. */
   substitui: string | null
+  /** O que a condição financeira tira da diferença (Sprint 54); a diferença já vem líquida. */
+  desconto_em_centavos: number
 }
 
 /** A cesta e o que ainda se pode acrescentar. Espelha `MinhaCestaDTO`. */
@@ -236,6 +264,8 @@ interface MudancaDaCesta {
   sai: PacoteDaCesta | null
   ja_contratado_em_centavos: number
   diferenca_em_centavos: number
+  /** O que a condição financeira tirou desta mudança (Sprint 54). */
+  desconto_em_centavos: number
 }
 
 /** O aditivo antes do aceite. Espelha `PreviaDoAditivoDTO`. */
@@ -244,4 +274,38 @@ export interface PreviaDoAditivo {
   parcelas: ParcelaAceita[]
   total_em_centavos: number
   hash_do_conteudo: string
+}
+
+/** De quem é a condição financeira: o membro da turma, ou o e-mail do convite pessoal de quem ainda não entrou. */
+export type PessoaDaCondicao = { usuario_id: string } | { email: string }
+
+/** Um benefício da condição (Sprint 54). Espelha `BeneficioDaCondicaoDTO`: percentual (base 10.000) ou valor fixo. */
+export interface BeneficioDaCondicao {
+  item_de_cobranca_id: string
+  percentual: number | null
+  valor_em_centavos: number | null
+}
+
+/** O que a tesouraria grava. Espelha `CondicaoFinanceiraRequestDTO`. */
+export interface DadosDaCondicao {
+  beneficios: BeneficioDaCondicao[]
+}
+
+/** Um benefício como a gestão o lê, com o desconto no catálogo de hoje. Espelha `BeneficioLidoDTO`. */
+export interface BeneficioLido extends BeneficioDaCondicao {
+  /** "Festa — Festa 15"; nulo se o pacote saiu do catálogo. */
+  rotulo: string | null
+  preco_em_centavos: number
+  desconto_em_centavos: number
+}
+
+/** Espelha `CondicaoLidaDTO`. */
+export interface CondicaoLida {
+  beneficios: BeneficioLido[]
+  atualizada_em: string
+}
+
+/** Espelha `CondicaoDaPessoaDTO`: `condicao` nula quando não há. */
+export interface CondicaoDaPessoa {
+  condicao: CondicaoLida | null
 }

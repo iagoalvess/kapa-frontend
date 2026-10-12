@@ -1,5 +1,5 @@
 import { Ban, Mail } from 'lucide-react'
-import { useState } from 'react'
+import { type ComponentType, useState } from 'react'
 import { toast } from 'sonner'
 import { AcaoComConfirmacao, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao, TextoDoCartao } from '@/components/Cartao'
@@ -35,6 +35,12 @@ const SITUACOES: Record<StatusDoConvite, { texto: string; tom: TomDoSelo }> = {
  * @param contratada Com plano pago em dia, formando também entra — no gratuito (e na turma que venceu) só a
  *   comissão, dentro das vagas do plano.
  */
+/**
+ * A ação de linha que prepara o desconto de quem foi convidado (Sprint 54). Vem da feature de adesões, composta em
+ * `app/` — uma feature não importa de outra.
+ */
+type AcaoDoConvidado = ComponentType<{ email: string }>
+
 function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
   const comissao = [PAPEIS.tesoureiro, PAPEIS.comissao]
   if (!contratada) return ehPresidente ? comissao : []
@@ -51,7 +57,7 @@ function papeisOferecidos(ehPresidente: boolean, contratada: boolean): Papel[] {
  * pago em dia (Sprint 45, P3). Passar das vagas, de qualquer papel, abre o diálogo de upgrade: a API
  * recusa com `plano.limite_de_formandos`, e o formulário o entrega a `exibirErroNoFormulario`.
  */
-export function CartaoDeConvitesPorEmail() {
+export function CartaoDeConvitesPorEmail({ AcaoDoConvidado }: { AcaoDoConvidado?: AcaoDoConvidado } = {}) {
   const { ehPresidente } = usePapel()
   const { plano } = usePlanoDaTurma()
   // Enquanto carrega, assume contratada — pelo mesmo motivo de `useEscritaLiberada`, e porque
@@ -80,13 +86,22 @@ export function CartaoDeConvitesPorEmail() {
       ) : convites.isError ? (
         <ErroDaConsulta compacto erro={convites.error} aoTentarDeNovo={() => void convites.refetch()} />
       ) : (
-        <ListaDeConvites convites={convites.data.filter((convite) => !!convite.email)} />
+        <ListaDeConvites
+          convites={convites.data.filter((convite) => !!convite.email)}
+          AcaoDoConvidado={AcaoDoConvidado}
+        />
       )}
     </Cartao>
   )
 }
 
-function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
+function ListaDeConvites({
+  convites,
+  AcaoDoConvidado,
+}: {
+  convites: ConviteResumo[]
+  AcaoDoConvidado?: AcaoDoConvidado
+}) {
   const tamanhoDaPagina = useTamanhoDaPagina()
   const [paginaPedida, definirPagina] = useState(1)
   const pagina = paginar(convites, paginaPedida, tamanhoDaPagina)
@@ -108,7 +123,7 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
         }
       >
         {pagina.visiveis.map((convite) => (
-          <LinhaDeConvite key={convite.id} convite={convite} />
+          <LinhaDeConvite key={convite.id} convite={convite} AcaoDoConvidado={AcaoDoConvidado} />
         ))}
       </Tabela>
       <Paginacao
@@ -121,7 +136,13 @@ function ListaDeConvites({ convites }: { convites: ConviteResumo[] }) {
   )
 }
 
-function LinhaDeConvite({ convite }: { convite: ConviteResumo }) {
+function LinhaDeConvite({
+  convite,
+  AcaoDoConvidado,
+}: {
+  convite: ConviteResumo
+  AcaoDoConvidado?: AcaoDoConvidado
+}) {
   const revogar = useRevogarConvite()
   const escritaLiberada = useEscritaLiberada()
   const situacao = SITUACOES[convite.status]
@@ -137,6 +158,7 @@ function LinhaDeConvite({ convite }: { convite: ConviteResumo }) {
       <td className="py-3 text-right">
         {convite.status === 'Pendente' ? (
           <AcoesDaLinha rotulo={`Ações do convite de ${convite.email}`}>
+            {AcaoDoConvidado && convite.email ? <AcaoDoConvidado email={convite.email} /> : null}
             <AcaoComConfirmacao
               rotulo="Revogar"
               descricaoAcessivel={`Revogar convite de ${convite.email}`}

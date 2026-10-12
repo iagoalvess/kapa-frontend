@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { baixarArquivo } from '@/lib/download'
-import { aderir, baixarPdf, obterMinhaAdesao, solicitarCodigo } from '../api/adesoes.api'
+import { aderir, baixarPdf, definirApenasGestao, obterMinhaAdesao, solicitarCodigo } from '../api/adesoes.api'
 import { chaves } from './chaves'
 import { useSituacaoDaAdesao } from './useAdesaoObrigatoria'
 
@@ -78,5 +78,20 @@ export function useBaixarPdf() {
   return useMutation({
     mutationFn: async ({ adesao_id, versao }: { adesao_id: string; versao: number }) =>
       baixarArquivo(await baixarPdf(adesao_id), `termo-de-adesao-v${versao}.pdf`),
+  })
+}
+
+/**
+ * "Vou apenas ajudar na gestão" (Sprint 54): muda o conteúdo da adesão e a conta do painel de quem falta aderir.
+ * Invalidação com `void`, como nas outras mutações da feature.
+ */
+export function useApenasGestao() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: definirApenasGestao,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.tudo })
+    },
   })
 }

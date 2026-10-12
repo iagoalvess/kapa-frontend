@@ -44,7 +44,8 @@ export function IndicadoresDoPlano({ plano, rotulo }: { plano: PlanoAceito; rotu
         { rotulo: 'Parcelas', valor: plano.parcelas.length, icone: Hash },
         {
           rotulo: primeira ? `Primeira parcela · ${formatarData(primeira.vencimento)}` : 'Primeira parcela',
-          valor: primeira ? formatarCentavos(primeira.valor_em_centavos) : null,
+          // Sem parcela é a cesta isenta (Sprint 54) — nulo aqui seria o esqueleto de "carregando" para sempre.
+          valor: primeira ? formatarCentavos(primeira.valor_em_centavos) : 'Nenhuma',
           icone: CalendarClock,
         },
         {
@@ -124,6 +125,8 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
         })}
       </Tabela>
 
+      <DescontosConcedidos plano={plano} />
+
       <TextoDoCartao className="bg-muted/60 text-foreground rounded-xl px-4 py-3">
         {regrasDeAtraso(plano)}
       </TextoDoCartao>
@@ -160,5 +163,31 @@ export function ResumoFinanceiroDaAdesao({ plano }: { plano: PlanoAceito }) {
         </CaixaRolavel>
       </details>
     </div>
+  )
+}
+
+/**
+ * O desconto ou a isenção da condição financeira em cada pacote (Sprint 54). Os itens acima já vêm pelo líquido e o
+ * pacote isento nem aparece neles — esta linha é onde o preço cheio e o benefício ficam à vista.
+ */
+function DescontosConcedidos({ plano }: { plano: PlanoAceito }) {
+  if (!plano.descontos?.length) return null
+
+  return (
+    <TextoDoCartao className="bg-brand-tint text-foreground rounded-xl px-4 py-3">
+      <span className="font-medium">Desconto concedido pela tesouraria: </span>
+      {plano.descontos
+        .map((desconto) => {
+          const pacote = plano.cesta?.find((item) => item.item_id === desconto.item_id)
+          if (!pacote) return null
+          const nome = pacote.grupo ? `${pacote.grupo} — ${rotuloDoItem(pacote)}` : rotuloDoItem(pacote)
+          return desconto.desconto_em_centavos >= pacote.valor_em_centavos
+            ? `${nome} com isenção (preço cheio ${formatarCentavos(pacote.valor_em_centavos)})`
+            : `${nome} com ${formatarCentavos(desconto.desconto_em_centavos)} de desconto sobre ${formatarCentavos(pacote.valor_em_centavos)}`
+        })
+        .filter(Boolean)
+        .join('; ')}
+      .
+    </TextoDoCartao>
   )
 }

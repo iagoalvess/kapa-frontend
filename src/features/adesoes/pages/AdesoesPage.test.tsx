@@ -23,6 +23,9 @@ const ana: SituacaoDeAdesao = {
   versao: 2,
   aceito_em: '2026-09-14T13:32:05Z',
   cesta: [{ item_de_cobranca_id: 'i-1', rotulo: 'Beca', observacao: 'tamanho M' }],
+  apenas_gestao: false,
+  tem_condicao: false,
+  desconto_em_centavos: 0,
 }
 const bruno: SituacaoDeAdesao = {
   usuario_id: 'u-2',
@@ -33,6 +36,9 @@ const bruno: SituacaoDeAdesao = {
   versao: null,
   aceito_em: null,
   cesta: [],
+  apenas_gestao: false,
+  tem_condicao: false,
+  desconto_em_centavos: 0,
 }
 const carla: SituacaoDeAdesao = {
   ...ana,

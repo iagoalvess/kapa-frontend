@@ -130,8 +130,15 @@ export function DialogoDoAditivo({
                       {beneficiosPorExtenso(pacote) ?? null}
                     </span>
                   </span>
-                  <span className="text-foreground font-medium tabular-nums">
-                    + {formatarCentavos(pacote.diferenca_em_centavos)}
+                  <span className="grid text-right tabular-nums">
+                    <span className="text-foreground font-medium">
+                      + {formatarCentavos(pacote.diferenca_em_centavos)}
+                    </span>
+                    {pacote.desconto_em_centavos > 0 ? (
+                      <span className="text-muted-foreground text-xs">
+                        com {formatarCentavos(pacote.desconto_em_centavos)} de desconto
+                      </span>
+                    ) : null}
                   </span>
                 </label>
               )
@@ -177,7 +184,14 @@ export function DialogoDoAditivo({
                     </span>
                   ) : null}
                 </span>
-                <span className="tabular-nums">+ {formatarCentavos(mudanca.diferenca_em_centavos)}</span>
+                <span className="grid text-right tabular-nums">
+                  <span>+ {formatarCentavos(mudanca.diferenca_em_centavos)}</span>
+                  {mudanca.desconto_em_centavos > 0 ? (
+                    <span className="text-muted-foreground text-xs">
+                      com {formatarCentavos(mudanca.desconto_em_centavos)} de desconto
+                    </span>
+                  ) : null}
+                </span>
               </li>
             ))}
           </ul>

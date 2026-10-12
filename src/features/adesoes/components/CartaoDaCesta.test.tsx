@@ -22,6 +22,7 @@ const festa15 = {
   observacao: null,
   cancelavel_ate: null,
   cancelamento_solicitado: false,
+  desconto_em_centavos: 0,
 } as const
 
 /** O exemplo da sprint: Ana tem a Festa 15 e pode subir para a 20 pagando R$ 600. */
@@ -50,6 +51,7 @@ const cesta: MinhaCesta = {
       convites_da_festa: 20,
       convites_da_colacao: 0,
       substitui: 'f15',
+      desconto_em_centavos: 0,
     },
   ],
 }
@@ -77,6 +79,7 @@ const previa: PreviaDoAditivo = {
       },
       ja_contratado_em_centavos: 300_000,
       diferenca_em_centavos: 60_000,
+      desconto_em_centavos: 0,
     },
   ],
   parcelas: [

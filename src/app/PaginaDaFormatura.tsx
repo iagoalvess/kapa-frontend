@@ -5,6 +5,7 @@ import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeDados } from '@/compo
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores, type Indicador } from '@/components/FaixaDeIndicadores'
 import { PAPEIS } from '@/config/perfis'
+import { AcaoDaCondicao } from '@/features/adesoes'
 import { CartaoDeAssinatura, CartaoDePagamentosDoPlano } from '@/features/assinaturas'
 import { CartaoDeConvitesPorEmail, CartaoDoLinkDaTurma } from '@/features/convites'
 import { RecebimentosDaTurma } from '@/features/recebimentos'
@@ -101,7 +102,7 @@ export default function PaginaDaFormatura() {
             <div className="grid gap-5">
               <DadosDaFormatura formatura={dados} />
               <div id="convites" className="scroll-mt-6">
-                <CartaoDeConvitesPorEmail />
+                <CartaoDeConvitesPorEmail AcaoDoConvidado={AcaoDoConvidado} />
               </div>
               {tesouraria ? (
                 <div id="recebimentos" className="scroll-mt-6">
@@ -154,4 +155,9 @@ function FaixaDaFormatura({ formatura, gestao }: { formatura: FormaturaDetalhe; 
       ]}
     />
   )
+}
+
+/** O desconto preparado no convite pessoal (Sprint 54) — a peça é da adesão, e o convite só a mostra na linha. */
+function AcaoDoConvidado({ email }: { email: string }) {
+  return <AcaoDaCondicao pessoa={{ email }} nome={email} />
 }

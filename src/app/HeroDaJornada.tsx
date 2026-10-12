@@ -4,6 +4,7 @@ import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ROTAS } from '@/config/rotas'
 import { formatarData, formatarNumero } from '@/lib/formato'
+import { cn } from '@/lib/utils'
 import type { FormaturaDetalhe } from '@/types/formatura'
 
 /**
@@ -48,7 +49,13 @@ export function HeroDaJornada({
       />
 
       <div className="min-w-0 pt-7 pb-8 lg:col-start-1 lg:row-start-1 lg:self-center lg:pr-4">
-        <h2 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
+        <h2
+          className={cn(
+            'leading-tight font-semibold tracking-tight break-words',
+            // Nome longo desce um tamanho, e só quebra no meio se nem assim couber: na coluna do lado está a contagem.
+            primeiroNome.length > 10 ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
+          )}
+        >
           Olá, {primeiroNome} <span className="text-brand">:)</span>
         </h2>
         <p className="text-muted-foreground mt-3 max-w-lg text-lg leading-relaxed sm:text-xl">
@@ -139,7 +146,8 @@ export function HeroDaJornada({
               loading="lazy"
             />
           </span>
-          <p className="font-hand text-brand-text hidden -rotate-6 text-center text-2xl leading-none sm:block">
+          {/* Entre 1024 e 1279 px a terceira coluna não comporta o mascote e a frase: a frase sai da tela. */}
+          <p className="font-hand text-brand-text hidden -rotate-6 text-center text-2xl leading-none sm:block lg:hidden xl:block">
             Juntos até a
             <br />
             formatura!

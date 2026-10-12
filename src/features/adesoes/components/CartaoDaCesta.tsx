@@ -82,7 +82,9 @@ export function CartaoDaCesta({ cestaAceita }: { cestaAceita: PacoteDaCesta[] | 
             </span>
             <span className="flex items-center gap-2">
               <span className="text-foreground tabular-nums">
-                {formatarCentavos(pacote.contratado_em_centavos)}
+                {pacote.contratado_em_centavos === 0 && pacote.desconto_em_centavos > 0
+                  ? 'Isento'
+                  : formatarCentavos(pacote.contratado_em_centavos)}
               </span>
               {editavel && !pacote.cancelamento_solicitado && cancelavelHoje(pacote.cancelavel_ate) ? (
                 <AcoesDaLinha rotulo={`Ações de ${nomeDoPacote(pacote)}`}>

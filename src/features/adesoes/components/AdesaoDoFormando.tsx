@@ -2,11 +2,13 @@ import { type ComponentType, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
 import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { useFormaturaAtiva } from '@/hooks/useSessao'
+import { PAPEIS } from '@/config/perfis'
+import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { useMinhaAdesao } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
 import { FaltaParaAderir } from './FaltaParaAderir'
 import { LeituraEAceite } from './LeituraEAceite'
+import { ParticipacaoDaGestao } from './ParticipacaoDaGestao'
 import { SeletorDeCesta } from './SeletorDeCesta'
 import { TermoAssinado } from './TermoAssinado'
 
@@ -35,6 +37,8 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
   const [observacoes, definirObservacoes] = useState<Record<string, string>>({})
   // Quem foi desligado lê só o termo que assinou: o vigente e a cesta viva dariam 403 (P5 da Sprint 15).
   const { desligadoEm } = useFormaturaAtiva()
+  const { tem } = usePapel()
+  const daGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const conteudo = useConteudoParaAdesao({ habilitado: !desligadoEm, pacotes: escolha, fresco: true })
   const minha = useMinhaAdesao()
   const [parametros, definirParametros] = useSearchParams()
@@ -63,7 +67,8 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
   if (conteudo.isError)
     return <ErroDaConsulta compacto erro={conteudo.error} aoTentarDeNovo={() => void conteudo.refetch()} />
 
-  const { termo, plano, hash_do_conteudo, resumo, catalogo, cesta_contratada } = conteudo.data
+  const { termo, plano, hash_do_conteudo, resumo, catalogo, cesta_contratada, tem_condicao, apenas_gestao } =
+    conteudo.data
   const novaVersao = adesao && termo && termo.versao > adesao.versao ? termo.versao : undefined
 
   if (adesao && !(novaVersao && parametros.get('ler') === 'nova'))
@@ -81,13 +86,15 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
     return <FaltaParaAderir conteudo={conteudo.data} />
 
   // Chave pelo termo e pelo catálogo: versão nova ou preço novo remonta a leitura do zero — rolagem e caixa marcada
-  // inclusas. A cesta não entra: marcar um pacote muda o hash, mas não o que a pessoa já leu.
+  // inclusas. A cesta não entra: marcar um pacote muda o hash, mas não o que a pessoa já leu. O desconto entra: a
+  // tesouraria mudar a condição muda o preço que a pessoa leu.
   const contratada = cesta_contratada.length > 0
   return (
     <LeituraEAceite
-      key={`${termo.id}:${catalogo.map((pacote) => `${pacote.id}=${pacote.valor_em_centavos}`).join()}`}
+      key={`${termo.id}:${catalogo.map((pacote) => `${pacote.id}=${pacote.valor_em_centavos}-${pacote.desconto_em_centavos}`).join()}`}
       termo={termo}
       plano={plano}
+      aviso={daGestao && !adesao ? <ParticipacaoDaGestao apenasGestao={apenas_gestao} /> : null}
       cesta={
         <SeletorDeCesta
           catalogo={catalogo}
@@ -96,6 +103,7 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
           travada={contratada}
           observacoes={observacoes}
           aoObservar={(pacoteId, texto) => definirObservacoes((atuais) => ({ ...atuais, [pacoteId]: texto }))}
+          comDesconto={tem_condicao}
         />
       }
       pacotes={contratada ? cesta_contratada : escolha}

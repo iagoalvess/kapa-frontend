@@ -129,3 +129,8 @@ export function solicitarCancelamentoDoPacote({ itemId, motivo }: { itemId: stri
     body: { item_de_cobranca_id: itemId, motivo: motivo || undefined },
   })
 }
+
+/** A pessoa da comissão diz que vai apenas ajudar na gestão, sem aderir — ou volta atrás (Sprint 54). */
+export function definirApenasGestao(apenas_gestao: boolean) {
+  return api.put<void>(`${BASE}/apenas-gestao`, { body: { apenas_gestao } })
+}

@@ -18,6 +18,8 @@ import type { PacoteDoCatalogo } from '../types/adesoes.types'
  * @param travada A re-adesão mantém a cesta contratada (D4): mostra, mas não deixa mudar.
  * @param observacoes O detalhe livre de cada pacote marcado (Sprint 48, D40) — tamanho da beca, nome no convite.
  * @param aoObservar Recebe o detalhe novo de um pacote.
+ * @param comDesconto A tesouraria concedeu um desconto ou uma isenção (Sprint 54): o preço de cada pacote alcançado
+ *   já vem líquido da API, com o cheio riscado ao lado.
  */
 export function SeletorDeCesta({
   catalogo,
@@ -26,6 +28,7 @@ export function SeletorDeCesta({
   travada,
   observacoes = {},
   aoObservar,
+  comDesconto = false,
 }: {
   catalogo: PacoteDoCatalogo[]
   escolha: string[]
@@ -33,6 +36,7 @@ export function SeletorDeCesta({
   travada: boolean
   observacoes?: Record<string, string>
   aoObservar?: (pacoteId: string, texto: string) => void
+  comDesconto?: boolean
 }) {
   const grupos = [...new Set(catalogo.map((pacote) => pacote.grupo).filter((grupo) => grupo !== null))]
   const avulsos = catalogo.filter((pacote) => pacote.grupo === null)
@@ -57,6 +61,12 @@ export function SeletorDeCesta({
       }
     >
       <div className="grid gap-5">
+        {comDesconto && !travada ? (
+          <p className="bg-brand-tint text-foreground rounded-xl px-4 py-3 text-sm">
+            <span className="font-medium">A tesouraria concedeu um desconto a você.</span> O preço dos pacotes
+            alcançados já aparece com ele.
+          </p>
+        ) : null}
         {grupos.map((grupo) => {
           const faixas = catalogo.filter((pacote) => pacote.grupo === grupo)
           const marcada = faixas.find((pacote) => escolha.includes(pacote.id))?.id ?? null
@@ -140,6 +150,7 @@ function Opcao({
   aoMarcar: () => void
 }) {
   const beneficios = beneficiosPorExtenso(pacote)
+  const liquido = pacote.valor_em_centavos - pacote.desconto_em_centavos
 
   return (
     <label
@@ -157,12 +168,19 @@ function Opcao({
         {beneficios ? <span className="text-muted-foreground text-xs">{beneficios}</span> : null}
       </span>
       <span className="grid text-right">
+        {pacote.desconto_em_centavos > 0 ? (
+          <span className="text-muted-foreground text-xs tabular-nums line-through">
+            {formatarCentavos(pacote.valor_em_centavos)}
+          </span>
+        ) : null}
         <span className="text-foreground font-medium tabular-nums">
-          {formatarCentavos(pacote.valor_em_centavos)}
+          {liquido === 0 ? 'Isento' : formatarCentavos(liquido)}
         </span>
-        <span className="text-muted-foreground text-xs">
-          {pacote.numero_de_parcelas === 1 ? 'à vista' : `em ${formatarNumero(pacote.numero_de_parcelas)}×`}
-        </span>
+        {liquido > 0 ? (
+          <span className="text-muted-foreground text-xs">
+            {pacote.numero_de_parcelas === 1 ? 'à vista' : `em ${formatarNumero(pacote.numero_de_parcelas)}×`}
+          </span>
+        ) : null}
       </span>
     </label>
   )

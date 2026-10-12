@@ -50,6 +50,7 @@ export function LeituraEAceite({
   termo,
   plano,
   cesta,
+  aviso,
   pacotes,
   observacoes = [],
   calculando,
@@ -65,6 +66,8 @@ export function LeituraEAceite({
   plano: PlanoAceito
   /** O seletor da cesta, entre o que se paga e o termo (Sprint 47). */
   cesta: ReactNode
+  /** Uma linha acima do resumo do termo — o "apenas gestão" da comissão (Sprint 54). */
+  aviso?: ReactNode
   /** A cesta escolhida — vai no aceite junto do hash que ela deu. */
   pacotes: string[]
   /** O detalhe livre de cada pacote (Sprint 48, D40) — vai no aceite, fora do hash. */
@@ -151,6 +154,7 @@ export function LeituraEAceite({
         </div>
 
         <div className={TERMO}>
+          {aviso}
           <ResumoDoTermo texto={resumo} versao={termo.versao} className="motion-safe:animate-entrar" />
 
           <Cartao

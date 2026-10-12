@@ -51,6 +51,7 @@ const plano: PlanoAceito = {
   })),
   total_em_centavos: 240_000,
   cesta: null,
+  descontos: null,
 }
 
 const conteudo: ConteudoParaAdesao = {
@@ -73,6 +74,7 @@ const conteudo: ConteudoParaAdesao = {
       numero_de_parcelas: 12,
       convites_da_festa: 0,
       convites_da_colacao: 0,
+      desconto_em_centavos: 0,
     },
     {
       id: 'pk-10',
@@ -83,6 +85,7 @@ const conteudo: ConteudoParaAdesao = {
       numero_de_parcelas: 10,
       convites_da_festa: 10,
       convites_da_colacao: 0,
+      desconto_em_centavos: 0,
     },
     {
       id: 'pk-15',
@@ -93,9 +96,12 @@ const conteudo: ConteudoParaAdesao = {
       numero_de_parcelas: 10,
       convites_da_festa: 15,
       convites_da_colacao: 0,
+      desconto_em_centavos: 0,
     },
   ],
   cesta_contratada: [],
+  tem_condicao: false,
+  apenas_gestao: false,
 }
 
 const adesao: Adesao = {
@@ -307,7 +313,16 @@ describe('AdesaoDoFormando', () => {
   it('sem termo nem plano, explica o que falta em vez de quebrar', async () => {
     responder(
       { adesao: null, pendencias: [] },
-      { termo: null, plano: null, hash_do_conteudo: null, resumo: null, catalogo: [], cesta_contratada: [] },
+      {
+        termo: null,
+        plano: null,
+        hash_do_conteudo: null,
+        resumo: null,
+        catalogo: [],
+        cesta_contratada: [],
+        tem_condicao: false,
+        apenas_gestao: false,
+      },
     )
 
     renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)

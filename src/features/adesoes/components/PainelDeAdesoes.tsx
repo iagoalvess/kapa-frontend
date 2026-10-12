@@ -11,11 +11,12 @@ import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
 import { ColunaOrdenavel, Planilha } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
+import { AcaoDaCondicao } from './DialogoDaCondicao'
 import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { useOrdenacao } from '@/hooks/useOrdenacao'
-import { formatarData, formatarNumero } from '@/lib/formato'
+import { formatarCentavos, formatarData, formatarNumero } from '@/lib/formato'
 import { avisarErro } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
 import { useBaixarPdf } from '../hooks/useAderir'
@@ -170,7 +171,7 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
 
   const { adesao_id } = membro
   const naVigente = typeof membro.versao === 'number' && membro.versao === versaoVigente
-  const podeLembrar = versaoVigente !== undefined && !naVigente
+  const podeLembrar = versaoVigente !== undefined && !naVigente && !membro.apenas_gestao
 
   return (
     <tr className="border-b last:border-0">
@@ -187,7 +188,9 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
         <Selo tom={membro.papel === 'Presidente' ? 'marca' : 'neutro'}>{ROTULOS_DE_PAPEL[membro.papel]}</Selo>
       </td>
       <td className="py-3 pr-4 whitespace-nowrap">
-        {typeof membro.versao !== 'number' ? (
+        {typeof membro.versao !== 'number' && membro.apenas_gestao ? (
+          <Selo tom="neutro">Apenas gestão</Selo>
+        ) : typeof membro.versao !== 'number' ? (
           <Selo tom="alerta">Falta aderir</Selo>
         ) : naVigente ? (
           <Selo tom="sucesso">Aderiu · v{formatarNumero(membro.versao)}</Selo>
@@ -197,6 +200,7 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
       </td>
       <td className="py-3 pr-4 text-sm">
         {/* Sprint 48, D40: o detalhe livre de cada pacote — tamanho da beca, nome no convite. */}
+        <SeloDaCondicao membro={membro} />
         {membro.cesta.length === 0 ? (
           <span className="text-texto-muted">—</span>
         ) : (
@@ -217,6 +221,9 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
       </td>
       <td className="py-3 text-right">
         <AcoesDaLinha rotulo={`Ações de ${membro.nome}`}>
+          {!membro.apenas_gestao ? (
+            <AcaoDaCondicao pessoa={{ usuario_id: membro.usuario_id }} nome={membro.nome} />
+          ) : null}
           {adesao_id ? (
             <AcaoDaLinha
               rotulo="PDF"
@@ -244,4 +251,24 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
       </td>
     </tr>
   )
+}
+
+/**
+ * O benefício da pessoa na coluna da cesta (Sprint 54): o que o aceite já descontou, ou — antes dele — que há uma
+ * condição concedida esperando a escolha.
+ */
+function SeloDaCondicao({ membro }: { membro: SituacaoDeAdesao }) {
+  if (membro.desconto_em_centavos > 0)
+    return (
+      <Selo tom="marca" className="mb-1">
+        Desconto de {formatarCentavos(membro.desconto_em_centavos)}
+      </Selo>
+    )
+  if (membro.tem_condicao)
+    return (
+      <Selo tom="marca" className="mb-1">
+        Desconto concedido
+      </Selo>
+    )
+  return null
 }
