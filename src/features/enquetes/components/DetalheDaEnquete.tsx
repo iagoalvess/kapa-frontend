@@ -69,7 +69,7 @@ export function DetalheDaEnquete({ id }: { id: string }) {
               <DialogoDeConfirmacao
                 titulo="Encerrar enquete?"
                 descricao="A turma poderá consultar o resultado, mas ninguém poderá mudar ou retirar respostas."
-                rotulo="Encerrar enquete"
+                rotulo="Encerrar"
                 destrutivo
                 aoConfirmar={() =>
                   encerrar.mutate(id, {
@@ -89,7 +89,8 @@ export function DetalheDaEnquete({ id }: { id: string }) {
             <DialogoDeConfirmacao
               titulo="Cancelar enquete?"
               descricao="O registro será preservado. O resultado ficará disponível apenas para a comissão."
-              rotulo="Cancelar enquete"
+              rotuloDeCancelar="Voltar"
+              rotulo="Cancelar"
               destrutivo
               aoConfirmar={() =>
                 cancelar.mutate(id, {

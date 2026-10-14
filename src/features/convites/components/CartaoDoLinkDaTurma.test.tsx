@@ -104,7 +104,7 @@ describe('CartaoDoLinkDaTurma', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Gerar novo link' }))
     expect(gerou).toBe(false)
-    await userEvent.click(screen.getByRole('button', { name: 'Gerar novo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Gerar' }))
 
     await waitFor(() => expect(gerou).toBe(true))
   })

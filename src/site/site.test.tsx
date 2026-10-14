@@ -20,7 +20,7 @@ describe('redirecionamentos do site', () => {
   it('não tira do site a institucional nem os documentos legais', () => {
     const origens = regras.filter((regra) => regra.endsWith('301')).map((regra) => regra.split(' ')[0])
 
-    for (const doSite of ['/', '/termos-de-uso', '/privacidade', '/operadores']) {
+    for (const doSite of ['/', '/termos-de-uso', '/privacidade']) {
       expect(origens).not.toContain(doSite)
     }
     expect(regras).toContain('/termos-de-uso/* /termos-de-uso 200')

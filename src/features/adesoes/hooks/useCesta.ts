@@ -21,7 +21,7 @@ export function useMinhaCesta(habilitado = true) {
   })
 }
 
-/** A prévia do aditivo. Mutação, e não consulta: é o clique de "Ver o aditivo" que a pede, e o hash é dela. */
+/** A prévia do aditivo. Mutação, e não consulta: é o clique de "Continuar" que a pede, e o hash é dela. */
 export function useSimularAditivo() {
   return useMutation({ mutationFn: simularAditivo })
 }

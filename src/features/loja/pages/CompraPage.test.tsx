@@ -230,7 +230,7 @@ describe('CompraPage', () => {
 
     await usuario.click(await screen.findByRole('button', { name: 'Pedir cancelamento' }))
     const dialogo = await screen.findByRole('alertdialog')
-    const enviar = within(dialogo).getByRole('button', { name: 'Pedir cancelamento' })
+    const enviar = within(dialogo).getByRole('button', { name: 'Pedir' })
     expect(enviar).toBeDisabled()
     await usuario.click(within(dialogo).getByRole('checkbox', { name: /MED27-9ZZ1/ }))
     await usuario.type(within(dialogo).getByLabelText('Motivo (opcional)'), 'Não vou poder ir')

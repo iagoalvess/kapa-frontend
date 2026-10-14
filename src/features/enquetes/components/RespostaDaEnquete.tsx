@@ -152,7 +152,7 @@ export function RespostaDaEnquete({
           <DialogoDeConfirmacao
             titulo="Retirar sua resposta?"
             descricao="Suas escolhas sairão do resultado. Você poderá responder novamente enquanto a enquete estiver aberta."
-            rotulo="Retirar resposta"
+            rotulo="Retirar"
             destrutivo
             aoConfirmar={() =>
               retirar.mutate(enquete.id, {

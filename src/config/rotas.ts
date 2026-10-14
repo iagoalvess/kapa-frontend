@@ -100,12 +100,6 @@ export const ROTAS = {
   termosDeUso: '/termos-de-uso',
   privacidade: '/privacidade',
   aceitePendente: '/aceite-pendente',
-  // O portal do titular: ver, exportar, revogar e pedir eliminação. Não se confunde com
-  // `privacidade`, que é a Política pública — este é o que a LGPD chama de direitos do titular.
-  // O e-mail do portal aponta para cá (`EmailsDePrivacidade`).
-  minhaPrivacidade: '/minha-privacidade',
-  // Com quem a Kapa compartilha dado pessoal. Público, lido antes do cadastro — e no site, como os legais.
-  operadores: '/operadores',
   // Quem fez o quê com o dinheiro da turma (Gestão).
   auditoria: '/auditoria',
   // O painel do Kapa (Sprint 44): perfil `Administrador` da plataforma, fora de qualquer formatura.
@@ -176,12 +170,7 @@ export const SUFIXO_DE_VERSAO = '/:versao?'
  * documentos legais (P3 da Sprint 33). Todo o resto de {@link ROTAS} é do app — e é o que o site
  * redireciona para o `app.` (P5).
  */
-export const ROTAS_DO_SITE: readonly string[] = [
-  ROTAS.landing,
-  ROTAS.termosDeUso,
-  ROTAS.privacidade,
-  ROTAS.operadores,
-]
+export const ROTAS_DO_SITE: readonly string[] = [ROTAS.landing, ROTAS.termosDeUso, ROTAS.privacidade]
 
 /** Uma tela do app em endereço absoluto: o "Entrar" e o "Criar minha turma" do site. */
 export const urlDoApp = (caminho: string) => `${env.VITE_APP_URL}${caminho}`

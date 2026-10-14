@@ -170,7 +170,7 @@ function FecharAviso({ valor }: { valor: ValorADevolver }) {
       campo="observacao"
       rotulo="O que foi feito"
       esquema={esquemaDoFechamento}
-      confirmar="Fechar aviso"
+      confirmar="Fechar"
       confirmarOcupado="Fechando…"
       ocupado={fechar.isPending}
       desabilitado={!liberado}

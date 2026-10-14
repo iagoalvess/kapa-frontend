@@ -129,7 +129,7 @@ export default function DetalheDaDespesaPage() {
                   titulo={`Cancelar “${rotuloDaDespesa(dados)}”?`}
                   descricao="A despesa sai do previsto e deixa de pesar no caixa. Cancelada é situação final: para voltar a prever este gasto, é lançar de novo."
                   rotuloDeCancelar="Voltar"
-                  rotulo="Cancelar despesa"
+                  rotulo="Cancelar"
                   destrutivo
                   aoConfirmar={() =>
                     cancelar.mutate(dados.id, {

@@ -84,8 +84,9 @@ function Acao({ parcela }: { parcela: Parcela }) {
         campo="justificativa"
         rotulo="Justificativa"
         esquema={esquemaDoEstorno}
-        confirmar="Estornar pagamento"
+        confirmar="Estornar"
         confirmarOcupado="Estornando…"
+        rotuloDeCancelar="Voltar"
         ocupado={estornar.isPending}
         desabilitado={!liberado}
         aoEnviar={(justificativa, concluir, falhar) =>
@@ -132,8 +133,9 @@ function CancelarParcela({ parcela, desabilitado }: { parcela: Parcela; desabili
       campo="justificativa"
       rotulo="Justificativa"
       esquema={esquemaDoCancelamento}
-      confirmar="Cancelar parcela"
+      confirmar="Cancelar"
       confirmarOcupado="Cancelando…"
+      rotuloDeCancelar="Voltar"
       ocupado={cancelar.isPending}
       desabilitado={desabilitado}
       aoEnviar={(justificativa, concluir, falhar) =>

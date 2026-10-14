@@ -81,7 +81,7 @@ export const router = createBrowserRouter([
       // manda a pessoa para o botão de spam.
       {
         path: ROTAS.descadastro,
-        lazy: pagina(() => import('@/features/privacidade/pages/DescadastroPage')),
+        lazy: pagina(() => import('@/features/marketing/pages/DescadastroPage')),
       },
       // Público: o convite chega por WhatsApp a quem ainda não tem conta. Com sessão, aceita sozinho.
       {
@@ -146,16 +146,6 @@ export const router = createBrowserRouter([
               {
                 Component: LayoutApp,
                 children: [
-                  // **Fora de `ExigeFormatura`**, e é a única tela do app que fica: o portal LGPD é
-                  // do titular, não da turma. Quem está em duas formaturas, quem não está em
-                  // nenhuma e quem foi desligado têm o mesmo direito de acesso — e mandá-los
-                  // escolher uma turma antes seria condicionar um direito a uma escolha que não
-                  // tem nada a ver com ele. A API dele pede só sessão, pelo mesmo motivo.
-                  {
-                    path: ROTAS.minhaPrivacidade,
-                    handle: { titulo: 'Privacidade' },
-                    lazy: pagina(() => import('@/features/privacidade/pages/MinhaPrivacidadePage')),
-                  },
                   // O painel do Kapa (Sprint 44), também fora de `ExigeFormatura`: quem é da Kapa tem
                   // perfil de plataforma e não é membro de turma nenhuma — exigir uma formatura
                   // selecionada trancaria o painel para a única pessoa que precisa dele. O menu é o do
@@ -249,7 +239,7 @@ export const router = createBrowserRouter([
                             lazy: pagina(() => import('@/features/pagamentos/pages/MeuExtratoPage')),
                           },
                           // Todo membro pede — a comissão também compra a foto. Compõe cobranças e
-                          // pagamentos: é daqui que "Pedir e pagar" e "Pagar" caem no PIX.
+                          // pagamentos: é daqui que "Pedir" e "Pagar" caem no PIX.
                           {
                             path: ROTAS.meusPedidos,
                             handle: { titulo: 'Meus pedidos' },

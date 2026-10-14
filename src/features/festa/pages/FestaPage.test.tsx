@@ -248,7 +248,7 @@ describe('FestaPage', () => {
     const dialogo = await screen.findByRole('alertdialog')
     expect(within(dialogo).getByText(/não são canceladas/)).toBeInTheDocument()
 
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar item' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar' }))
     await waitFor(() => expect(cancelou).toBe(true))
   })
 

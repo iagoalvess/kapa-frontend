@@ -8,7 +8,7 @@ export interface PaginaDoSite {
   descricao: string
 }
 
-/** Termos, Política e Operadores: os documentos que leem o texto da API. */
+/** Termos e Política: os documentos que leem o texto da API. */
 const DOCUMENTOS_LEGAIS: PaginaDoSite[] = [
   {
     caminho: ROTAS.termosDeUso,
@@ -20,11 +20,6 @@ const DOCUMENTOS_LEGAIS: PaginaDoSite[] = [
     titulo: 'Política de Privacidade — Kapa',
     descricao:
       'Como o Kapa trata os dados pessoais de comissões e formandos, e como exercer os direitos de titular previstos na LGPD.',
-  },
-  {
-    caminho: ROTAS.operadores,
-    titulo: 'Com quem compartilhamos seus dados — Kapa',
-    descricao: 'Os serviços que tratam dado pessoal por conta do Kapa, para quê e o que chega até cada um.',
   },
 ]
 

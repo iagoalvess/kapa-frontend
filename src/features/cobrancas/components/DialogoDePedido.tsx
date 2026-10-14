@@ -26,8 +26,8 @@ function teto(item: Opcional, jaPedidas: number) {
 }
 
 /**
- * "Pedir e pagar": quantidade, em quantas vezes, total, o calendário dos vencimentos e o botão que
- * leva ao PIX.
+ * "Pedir": quantidade, em quantas vezes, total, o calendário dos vencimentos e o botão que leva ao
+ * PIX.
  *
  * O parcelamento é escolha do formando, até o teto do item, e nasce **à vista** (22/09): foto, kit
  * e convite são compras de cada um, e parcelar é conveniência de quem compra. Só se escolhe no pedido
@@ -221,7 +221,7 @@ export function DialogoDePedido({
         <AcoesDoFormulario
           aoCancelar={aoFechar}
           ocupado={salvando}
-          rotulo={jaPedidas > 0 ? 'Salvar' : 'Pedir e pagar'}
+          rotulo={jaPedidas > 0 ? 'Salvar' : 'Pedir'}
           rotuloOcupado={jaPedidas > 0 ? 'Salvando…' : 'Pedindo…'}
         />
       </form>

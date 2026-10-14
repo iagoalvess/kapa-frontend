@@ -360,7 +360,7 @@ function LinhaDeMembro({ membro, editavel }: { membro: MembroDaFormatura; editav
               ? `Você passará a ${novoPapel} e perderá, na hora, o acesso à gestão de membros e aos dados da turma.`
               : `${nome} passa de ${ROTULOS_DE_PAPEL[membro.papel]} a ${novoPapel}, e o que pode ver e fazer na turma muda na hora.`
           }
-          rotulo={deixandoAPresidencia ? 'Deixar a presidência' : 'Mudar papel'}
+          rotulo={deixandoAPresidencia ? 'Deixar' : 'Mudar'}
           aoConfirmar={() => papelAConfirmar && trocarPapel(papelAConfirmar)}
         />
       </td>

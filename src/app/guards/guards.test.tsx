@@ -197,12 +197,12 @@ describe('Sair', () => {
       [
         {
           element: <ExigeAutenticacao />,
-          children: [{ path: ROTAS.minhaPrivacidade, element: <BotaoDeSair /> }],
+          children: [{ path: ROTAS.meuCadastro, element: <BotaoDeSair /> }],
         },
         { element: <SomenteVisitante />, children: [{ path: ROTAS.login, element: <LoginComDestino /> }] },
         { path: ROTAS.inicio, element: <p>tela inicial</p> },
       ],
-      { initialEntries: [ROTAS.minhaPrivacidade] },
+      { initialEntries: [ROTAS.meuCadastro] },
     )
     render(
       <QueryClientProvider client={new QueryClient()}>

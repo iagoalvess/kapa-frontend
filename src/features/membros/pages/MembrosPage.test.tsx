@@ -276,7 +276,7 @@ describe('MembrosPage', () => {
     renderizar(<MembrosPage />)
     await userEvent.selectOptions(await screen.findByLabelText('Papel de Bruno'), 'Tesoureiro')
     expect(enviado).toBeUndefined()
-    await userEvent.click(await screen.findByRole('button', { name: 'Mudar papel' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mudar' }))
 
     await waitFor(() => expect(enviado).toEqual({ papel: 'Tesoureiro' }))
   })

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
@@ -185,7 +185,7 @@ describe('VitrineDeItens', () => {
     expect(mais).toBeDisabled()
   })
 
-  /** "Pedir e pagar" grava a quantidade absoluta e avisa quem hospeda a vitrine. */
+  /** "Pedir" grava a quantidade absoluta e avisa quem hospeda a vitrine. */
   it('pede e devolve o pedido gravado para quem o hospeda', async () => {
     let corpo: unknown
     servir([convite()])
@@ -200,7 +200,8 @@ describe('VitrineDeItens', () => {
 
     renderizar(<VitrineDeItens aoPedir={aoPedir} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Pedir' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Pedir e pagar' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Pedir' }))
 
     await waitFor(() => expect(aoPedir).toHaveBeenCalledOnce())
     expect(corpo).toEqual({ item_de_cobranca_id: 'i-1', quantidade: 1, parcelas: 1 })
@@ -219,8 +220,9 @@ describe('VitrineDeItens', () => {
 
     renderizar(<VitrineDeItens />)
     await userEvent.click(await screen.findByRole('button', { name: 'Pedir' }))
-    await userEvent.selectOptions(screen.getByLabelText('Pagar em'), '2')
-    await userEvent.click(screen.getByRole('button', { name: 'Pedir e pagar' }))
+    const dialogo = await screen.findByRole('alertdialog')
+    await userEvent.selectOptions(within(dialogo).getByLabelText('Pagar em'), '2')
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Pedir' }))
 
     await waitFor(() => expect(corpo).toEqual({ item_de_cobranca_id: 'i-1', quantidade: 1, parcelas: 2 }))
   })

@@ -2,7 +2,7 @@ import { ListChecks } from 'lucide-react'
 import { EstadoVazioDoInicio } from './EstadoVazioDoInicio'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
-import { EsqueletoDeCartao } from '@/components/Esqueleto'
+import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { rotaDaEnquete } from '@/config/rotas'
 import { ResumoDaEnquete } from '@/features/enquetes'
 import { enqueteDaHome, useEnquetes } from '@/hooks/useEnquetes'
@@ -13,7 +13,7 @@ import { formatarDataHora } from '@/lib/formato'
 export function BlocoDasEnquetes() {
   const consulta = useEnquetes()
   const escrita = useEscritaLiberada()
-  if (consulta.isLoading) return <EsqueletoDeCartao />
+  if (consulta.isLoading) return <EsqueletoDeTexto linhas={3} />
   if (consulta.isError)
     return <ErroDaConsulta compacto erro={consulta.error} aoTentarDeNovo={() => void consulta.refetch()} />
   const enquete = enqueteDaHome(consulta.data)

@@ -29,6 +29,7 @@ describe('linkDeSuporte', () => {
     ['duvida', '[Dúvida] Kapa'],
     ['problema', '[Problema] Kapa'],
     ['sugestao', '[Sugestão] Kapa'],
+    ['privacidade', '[Dados pessoais] Kapa'],
   ] as const)('marca o assunto do pedido do tipo %s', (tipo, assunto) => {
     const link = linkDeSuporte({ tipo })
 

@@ -134,7 +134,7 @@ describe('ComprasDaLojaPage', () => {
 
     await usuario.click(await screen.findByRole('button', { name: 'Cancelar convites de Maria Souza' }))
     const dialogo = await screen.findByRole('alertdialog')
-    const enviar = within(dialogo).getByRole('button', { name: 'Cancelar convites' })
+    const enviar = within(dialogo).getByRole('button', { name: 'Cancelar' })
     await usuario.click(await within(dialogo).findByRole('checkbox', { name: /Tia Carmem/ }))
     expect(within(dialogo).getByRole('checkbox', { name: /MED27-BBBB/ })).toBeDisabled()
     expect(within(dialogo).getByText('Já entrou')).toBeInTheDocument()

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import {
   AlertDialog,
@@ -7,13 +8,15 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ROTAS } from '@/config/rotas'
 import { usePapel } from '@/hooks/useSessao'
 import { type CodigoDeUpgrade, upgrade } from '@/lib/upgrade'
+
+/** Alinha com o par do `AcoesDoFormulario`: o botão cresce e quebra em vez de cortar o rótulo. */
+const CLASSE_DO_BOTAO = 'h-auto min-h-11 min-w-0 whitespace-normal'
 
 /** O título de cada caso. A descrição é a frase da API, que traz o nome do plano e os números. */
 const TITULOS: Record<CodigoDeUpgrade, string> = {
@@ -45,21 +48,22 @@ export function DialogoDeUpgrade() {
               <AlertDialogTitle>{TITULOS[pedido.codigo]}</AlertDialogTitle>
               <AlertDialogDescription>
                 {pedido.mensagem}
+                {ehPresidente ? ' Consulte os planos para ampliar o acesso da turma.' : null}
                 {ehPresidente ? null : ' Peça ao presidente da comissão para contratar.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <RodapeDeDialogo variante={ehPresidente ? 'duplo' : 'unico'}>
               {ehPresidente ? (
                 <>
-                  <AlertDialogCancel>Agora não</AlertDialogCancel>
-                  <AlertDialogAction asChild>
-                    <LinkDaPagina to={ROTAS.planos}>Ver planos</LinkDaPagina>
+                  <AlertDialogCancel className={CLASSE_DO_BOTAO}>Voltar</AlertDialogCancel>
+                  <AlertDialogAction asChild className={CLASSE_DO_BOTAO}>
+                    <LinkDaPagina to={ROTAS.planos}>Consultar</LinkDaPagina>
                   </AlertDialogAction>
                 </>
               ) : (
-                <AlertDialogAction>Entendi</AlertDialogAction>
+                <AlertDialogAction className={CLASSE_DO_BOTAO}>Fechar</AlertDialogAction>
               )}
-            </AlertDialogFooter>
+            </RodapeDeDialogo>
           </>
         ) : null}
       </AlertDialogContent>

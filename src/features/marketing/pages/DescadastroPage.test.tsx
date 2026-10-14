@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { ROTAS } from '@/config/rotas'
+import { EMAIL_DE_SUPORTE } from '@/lib/suporte'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
 import DescadastroPage from './DescadastroPage'
@@ -32,15 +33,16 @@ describe('DescadastroPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Pronto, você não recebe mais' })).toBeInTheDocument()
     expect(token).toBe('abc.123.xyz')
+    expect(screen.queryByText(/Minha privacidade/i)).not.toBeInTheDocument()
   })
 
-  it('sem token, manda para Minha privacidade em vez de chamar a API', async () => {
+  it('sem token, oferece o suporte sem exigir login', async () => {
     renderizar(<DescadastroPage />, ROTAS.descadastro)
 
     expect(await screen.findByRole('heading', { name: 'Link incompleto' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ir para Minha privacidade' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Falar com o suporte' })).toHaveAttribute(
       'href',
-      ROTAS.minhaPrivacidade,
+      `mailto:${EMAIL_DE_SUPORTE}?subject=Descadastro%20de%20marketing`,
     )
   })
 })

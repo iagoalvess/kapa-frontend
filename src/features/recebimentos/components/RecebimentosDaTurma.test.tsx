@@ -56,6 +56,9 @@ describe('RecebimentosDaTurma', () => {
     expect(await screen.findByRole('radio', { name: 'Conferência manual' })).toBeChecked()
     expect(screen.getByRole('radio', { name: 'Confirmação automática' })).toBeEnabled()
     expect(screen.getByRole('heading', { name: /Loja pública/ })).toBeVisible()
+    expect(
+      screen.getByText('As vendas são recebidas pelo Mercado Pago. Conectar não muda o pagamento manual.'),
+    ).toBeVisible()
     expect(await screen.findByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled()
   })
 
@@ -94,7 +97,7 @@ describe('RecebimentosDaTurma', () => {
     renderizar(<RecebimentosDaTurma />)
 
     await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
-    expect(screen.getByText(/Até lá, o pagamento continua manual/)).toBeVisible()
+    expect(screen.getByRole('radio', { name: 'Confirmação automática' })).toBeChecked()
     expect(screen.getByRole('region', { name: 'Meios de pagamento manual', hidden: true })).not.toBeVisible()
     expect(screen.getByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled()
     expect(ativacoes).toBe(0)
@@ -142,7 +145,7 @@ describe('RecebimentosDaTurma', () => {
     await userEvent.click(await screen.findByRole('radio', { name: 'Conferência manual' }))
     expect(pedidos).toEqual([])
     expect(screen.getByRole('radio', { name: 'Confirmação automática', hidden: true })).toBeChecked()
-    await userEvent.click(screen.getByRole('button', { name: 'Usar manual' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Trocar' }))
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Conferência manual' })).toBeChecked())
     expect(pedidos).toEqual([{ automatica: false }])

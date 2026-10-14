@@ -1,10 +1,10 @@
 import { EstadoDeErro } from '@/components/EstadoDeErro'
-import { Link, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { ROTAS } from '@/config/rotas'
+import { EMAIL_DE_SUPORTE } from '@/lib/suporte'
 import { mensagemDoErro } from '@/lib/http/erros'
 import { estilos, LayoutDeAutenticacao } from '@/components/layout/LayoutDeAutenticacao'
-import { useDescadastrar } from '../hooks/usePrivacidade'
+import { useDescadastrar } from '../hooks/useMarketing'
 
 /**
  * O "Não quero mais receber" do e-mail de marketing: `/descadastro?token=…`, sem login (Sprint 40).
@@ -25,12 +25,9 @@ export default function DescadastroPage() {
       <LayoutDeAutenticacao>
         <h1 className={estilos.titulo}>Pronto, você não recebe mais</h1>
         <p className={estilos.subtitulo}>
-          Não vamos mais mandar dicas e novidades do Kapa para você. Mudou de ideia? É só ligar de novo em
-          Minha privacidade.
+          Não vamos mais mandar dicas e novidades do Kapa para você. Os avisos da sua conta e da turma
+          continuam chegando.
         </p>
-        <Button asChild className={estilos.cta}>
-          <Link to={ROTAS.minhaPrivacidade}>Ir para Minha privacidade</Link>
-        </Button>
       </LayoutDeAutenticacao>
     )
   }
@@ -44,13 +41,15 @@ export default function DescadastroPage() {
           titulo="Link incompleto"
           descricao={
             <>
-              Este link de descadastro chegou pela metade. Entre na sua conta e desligue as novidades em Minha
-              privacidade.
+              Este link de descadastro chegou pela metade. Use o link no rodapé do e-mail ou peça o
+              descadastro ao suporte.
             </>
           }
         >
           <Button asChild className="w-full rounded-full">
-            <Link to={ROTAS.minhaPrivacidade}>Ir para Minha privacidade</Link>
+            <a href={`mailto:${EMAIL_DE_SUPORTE}?subject=Descadastro%20de%20marketing`}>
+              Falar com o suporte
+            </a>
           </Button>
         </EstadoDeErro>
       </LayoutDeAutenticacao>

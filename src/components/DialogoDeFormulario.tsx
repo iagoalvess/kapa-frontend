@@ -10,13 +10,14 @@ const LARGURAS = {
 } as const
 
 /**
- * O rodapé (`AcoesDoFormulario`) fica preso no pé da área que rola, com o fundo do cartão por baixo: "Salvar" à
- * vista no formulário que passa da tela. O espaço de baixo do diálogo passa a ser dele — padding no corpo deixaria
- * o conteúdo rolando por baixo do rodapé. Sem margem negativa: alguns formulários deixam as ações fora do
- * `<form>`, e puxar o rodapé para cima encobriria a última frase ou mensagem de erro.
+ * O rodapé (`RodapeDeDialogo`, via `AcoesDoFormulario`) fica preso no pé da área que rola, com o fundo do
+ * cartão por baixo: "Salvar" à vista no formulário que passa da tela. O espaço de baixo do diálogo passa a ser
+ * dele — padding no corpo deixaria o conteúdo rolando por baixo do rodapé. Sem margem negativa: alguns
+ * formulários deixam as ações fora do `<form>`, e puxar o rodapé para cima encobriria a última frase ou
+ * mensagem de erro.
  */
 const RODAPE_FIXO =
-  'has-data-[slot=acoes-do-formulario]:pb-0 **:data-[slot=acoes-do-formulario]:bg-card **:data-[slot=acoes-do-formulario]:sticky **:data-[slot=acoes-do-formulario]:bottom-0 **:data-[slot=acoes-do-formulario]:z-10 **:data-[slot=acoes-do-formulario]:pt-3 **:data-[slot=acoes-do-formulario]:pb-5 sm:**:data-[slot=acoes-do-formulario]:pb-8'
+  'has-data-[slot=rodape-de-dialogo]:pb-0 **:data-[slot=rodape-de-dialogo]:bg-card **:data-[slot=rodape-de-dialogo]:sticky **:data-[slot=rodape-de-dialogo]:bottom-0 **:data-[slot=rodape-de-dialogo]:z-10 **:data-[slot=rodape-de-dialogo]:pt-3 **:data-[slot=rodape-de-dialogo]:pb-5 sm:**:data-[slot=rodape-de-dialogo]:pb-8'
 
 interface Props {
   aberto: boolean

@@ -1,15 +1,18 @@
 import type { ReactNode } from 'react'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+
+/** O botão cresce e quebra em vez de cortar, inclusive com zoom e fontes maiores. */
+const CLASSE_DO_BOTAO = 'h-auto min-h-11 min-w-0 whitespace-normal'
 
 interface Props {
   /** A pergunta: "Excluir X?", "Colocar em vigor?". */
@@ -69,12 +72,16 @@ export function DialogoDeConfirmacao({
           <AlertDialogDescription>{descricao}</AlertDialogDescription>
         </AlertDialogHeader>
         {children}
-        <AlertDialogFooter>
-          <AlertDialogCancel>{rotuloDeCancelar}</AlertDialogCancel>
-          <AlertDialogAction variant={destrutivo ? 'destructive' : undefined} onClick={aoConfirmar}>
+        <RodapeDeDialogo variante="duplo">
+          <AlertDialogCancel className={CLASSE_DO_BOTAO}>{rotuloDeCancelar}</AlertDialogCancel>
+          <AlertDialogAction
+            variant={destrutivo ? 'destructive' : undefined}
+            className={CLASSE_DO_BOTAO}
+            onClick={aoConfirmar}
+          >
             {rotulo}
           </AlertDialogAction>
-        </AlertDialogFooter>
+        </RodapeDeDialogo>
       </AlertDialogContent>
     </AlertDialog>
   )

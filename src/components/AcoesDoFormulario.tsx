@@ -1,5 +1,5 @@
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 interface Props {
   /** Desistir: fecha o diálogo ou o editor, sem gravar. */
@@ -16,17 +16,16 @@ interface Props {
   rotuloDeCancelar?: string
   /** O `id` do `<form>`, quando o rodapé fica fora dele (o rodapé fixo de um diálogo). */
   form?: string
-  /** Ocupa toda a largura para dar mais espaço aos rótulos longos. */
-  rotulosEmMultilinha?: boolean
 }
 
 /**
  * O rodapé dos formulários do app: "Cancelar" à esquerda, o principal à direita, os dois da mesma
  * largura e encostados à direita — nunca esticados em metades do diálogo, nem empilhados no celular.
  *
- * É o do diálogo de documento, que virou o padrão de todo diálogo de formulário (fornecedor, despesa,
- * pagamento, baixa, recusa, estorno, senha) e dos editores de página (aviso). Cancelar é `type="button"`:
- * dentro do `<form>`, sem isso, ele enviaria.
+ * É o par de {@link RodapeDeDialogo}: a geometria mora lá, e aqui vive só o que é do formulário — o
+ * desistir `type="button"` (dentro do `<form>`, sem isso ele enviaria) e o principal `type="submit"`.
+ * Os rótulos usam só um verbo ("Salvar", "Estornar"); o objeto fica no título e na descrição.
+ * Do diálogo de documento virou o padrão de todo formulário e dos editores de página.
  */
 export function AcoesDoFormulario({
   aoCancelar,
@@ -36,28 +35,22 @@ export function AcoesDoFormulario({
   rotuloOcupado = 'Salvando…',
   rotuloDeCancelar = 'Cancelar',
   form,
-  rotulosEmMultilinha = false,
 }: Props) {
-  const classeDoBotao = cn('h-auto min-h-11 min-w-0 whitespace-normal', rotulosEmMultilinha && 'px-3')
+  const classeDoBotao = 'h-auto min-h-11 min-w-0 whitespace-normal'
   return (
-    // A faixa tem a largura toda para cobrir o que rola por baixo quando o diálogo a fixa no pé
-    // (`DialogoDeFormulario`). Dentro, duas colunas iguais do tamanho do conteúdo: os dois botões ficam
-    // com a largura do maior ("Cancelar"), sem esticar pelo diálogo.
-    <div data-slot="acoes-do-formulario" className="flex justify-end">
-      <div className={cn('grid w-fit max-w-full grid-cols-2 gap-2', rotulosEmMultilinha && 'w-full')}>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={aoCancelar}
-          disabled={ocupado}
-          className={classeDoBotao}
-        >
-          {rotuloDeCancelar}
-        </Button>
-        <Button type="submit" form={form} disabled={ocupado || desabilitado} className={classeDoBotao}>
-          {ocupado ? rotuloOcupado : rotulo}
-        </Button>
-      </div>
-    </div>
+    <RodapeDeDialogo variante="duplo">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={aoCancelar}
+        disabled={ocupado}
+        className={classeDoBotao}
+      >
+        {rotuloDeCancelar}
+      </Button>
+      <Button type="submit" form={form} disabled={ocupado || desabilitado} className={classeDoBotao}>
+        {ocupado ? rotuloOcupado : rotulo}
+      </Button>
+    </RodapeDeDialogo>
   )
 }

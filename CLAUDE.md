@@ -191,6 +191,7 @@ outra. O catálogo:
 | Ação com texto (motivo, justificativa)   | `DialogoDeTexto`                                     |
 | Formulário num diálogo                   | `DialogoDeFormulario` + `AcoesDoFormulario` no pé    |
 | Rodapé de formulário (Cancelar/Salvar)   | `AcoesDoFormulario`                                  |
+| Rodapé de qualquer diálogo (geometria)   | `RodapeDeDialogo` (o par ou o botão único)           |
 | Erro do formulário inteiro (`root`)      | `ErroDoFormulario`                                   |
 | Pré-carregamento de uma consulta         | `Esqueleto*` (`Esqueleto.tsx`)                       |
 | Erro de consulta                         | `ErroDaConsulta` (`EstadoDaConsulta.tsx`)            |
@@ -239,15 +240,23 @@ Fixados em 22/09/2026, depois de uma auditoria que achou cada tela num dialeto:
 - **Editar cadastro existente** é leitura (`ListaDeDados`/`Dado`) + "Editar" (`outline`, `sm`, sem
   ícone) no cabeçalho do `Cartao`, abrindo `DialogoDeFormulario`. Nunca campos abertos direto na
   tela, nem campos travados para quem só lê. Exceção: editor de markdown com prévia (aviso, termo).
-- **Rodapé** é sempre `AcoesDoFormulario`: "Salvar"/"Salvando…", sem ícone, tanto para criar quanto
-  para editar — o diálogo é o mesmo nos dois modos, e um "Criar X" repetiria o título sem dizer nada
-  novo. Verbo próprio só quando a ação tem nome e **não** é gravar cadastro: enviar um arquivo
-  ("Enviar"), publicar ("Publicar"), emitir ("Emitir"), ligar ("Ligar cartão"), liberar ("Liberar"),
-  registrar dinheiro ("Registrar" — e só isso: o título já diz o que se registra). Ação destrutiva ou
-  de dinheiro põe o verbo no botão ("Cancelar pedido", "Desligar", "Recusar", "Estornar"), sempre com
-  o `rotuloOcupado` que combina com o rótulo. O desistir é "Cancelar"; vira "Voltar" quando o
-  principal já é cancelar ou estornar, e "Revisar" quando o diálogo é a pré-visualização de algo que
-  só vale depois (`rotuloDeCancelar`).
+- **Rodapé** é sempre o mesmo desenho: `RodapeDeDialogo` — dois botões de largura igual encostados à
+  direita (`AcoesDoFormulario`, no formulário), ou um só, no diálogo de leitura. Nada de botão
+  esticado pelo cartão nem empilhado no celular. Confirmação, formulário e leitura passam todos por
+  ele; a única exceção é o `DialogoDaValidacao` da portaria, com botões grandes empilhados para ler
+  de relance em pé e no escuro. O `RodapeDeDialogo.test.tsx` trava a geometria e recusa o
+  `AlertDialogFooter` do shadcn fora de `components/ui`.
+- **Rótulo do rodapé:** "Salvar"/"Salvando…", sem ícone, tanto para criar quanto para editar — o
+  diálogo é o mesmo nos dois modos, e um "Criar X" repetiria o título sem dizer nada novo. Fora o
+  cadastro, o botão é **verbo só**, e o objeto vive no título/descrição: "Registrar" (dinheiro),
+  "Estornar", "Cancelar", "Cobrar", "Enviar", "Publicar", "Emitir", "Liberar", "Desligar", "Recusar",
+  "Continuar" (avançar um passo). Todo botão de ação dentro do diálogo usa um único verbo no
+  infinitivo, inclusive reenviar código ("Reenviar") e consultar planos ("Consultar"). O contexto
+  fica no título e na descrição; opções de seleção mantêm o nome do que é escolhido.
+  Sempre com o `rotuloOcupado` de uma palavra que combina com o rótulo.
+  O desistir é "Cancelar"; vira "Voltar" quando o principal já é cancelar ou
+  estornar (senão ficariam dois "Cancelar" no mesmo rodapé), e "Revisar" quando o diálogo é a
+  pré-visualização de algo que só vale depois (`rotuloDeCancelar`).
 - **Verbos:** "Editar" (nunca Alterar/Corrigir — "Alterar senha" é a exceção), "Excluir" ("Remover"
   só para membro), "Novo X"/"Nova X" para criar.
 - **Confirmação:** toda ação destrutiva ou irreversível passa por `DialogoDeConfirmacao`, com título

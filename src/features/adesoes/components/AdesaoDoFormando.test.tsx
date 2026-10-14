@@ -256,7 +256,7 @@ describe('AdesaoDoFormando', () => {
     await escolherAMensalidade()
     await lerPedirCodigoEDigitar()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirmar adesão' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
 
     expect(await screen.findByRole('region', { name: 'Termo assinado' })).toBeInTheDocument()
     expect(enviado).toEqual({ hash_do_conteudo: HASH, codigo: '123456', pacotes: ['pk-1'] })
@@ -305,7 +305,7 @@ describe('AdesaoDoFormando', () => {
     await escolherAMensalidade()
     await waitFor(() => expect(pedidos.conteudo).toBe(2))
     await lerPedirCodigoEDigitar()
-    await userEvent.click(screen.getByRole('button', { name: 'Confirmar adesão' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
 
     await waitFor(() => expect(pedidos.conteudo).toBe(3))
   })

@@ -70,11 +70,6 @@ export function RodapeDaLanding() {
           <Link to={ROTAS.privacidade} className="text-muted-foreground hover:text-foreground text-sm">
             Política de Privacidade
           </Link>
-          {!env.VITE_LISTA_DE_ESPERA && (
-            <Link to={ROTAS.operadores} className="text-muted-foreground hover:text-foreground text-sm">
-              Com quem compartilhamos dados
-            </Link>
-          )}
         </nav>
       </div>
 

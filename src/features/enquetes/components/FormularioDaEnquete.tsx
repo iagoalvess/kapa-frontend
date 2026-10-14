@@ -192,7 +192,7 @@ export function FormularioDaEnquete({
               disabled={travado || salvando || opcoes.fields.length >= 10}
               onClick={() => opcoes.append({ texto: '' })}
             >
-              Adicionar opção
+              Adicionar
             </Button>
             {formulario.formState.errors.opcoes?.message ? (
               <p role="alert" className="text-destructive text-sm">

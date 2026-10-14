@@ -118,7 +118,7 @@ export function LayoutApp() {
             {/* O sino é do mural, e por isso só existe com uma turma na sessão — e com o mural no plano.
                 Quem foi desligado não lê mais o mural: a consulta daria 403 a cada minuto. */}
             {selecionada && !desligadoEm && !muralForaDoPlano && !adesaoPendente ? <SinoDeNovidades /> : null}
-            {/* O avatar abre o que é da conta — cadastro, privacidade, papel, plano e "Sair" —, e é
+            {/* O avatar abre o que é da conta — cadastro, suporte, papel, plano e "Sair" —, e é
                 por isso que nada disso ocupa linha no menu da esquerda, que é o menu da turma. */}
             {usuario ? (
               <MenuDaConta

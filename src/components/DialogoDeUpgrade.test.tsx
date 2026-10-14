@@ -28,10 +28,10 @@ describe('DialogoDeUpgrade', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'Esta área não está no plano da turma' })
     expect(dialogo).toHaveTextContent('Esta área não está incluída no plano da turma.')
-    expect(screen.getByRole('link', { name: 'Ver planos' })).toHaveAttribute('href', ROTAS.planos)
+    expect(screen.getByRole('link', { name: 'Consultar' })).toHaveAttribute('href', ROTAS.planos)
   })
 
-  it('a quem não contrata, diz a quem pedir e fecha no "Entendi"', async () => {
+  it('a quem não contrata, diz a quem pedir e fecha no "Fechar"', async () => {
     entrarComo(PAPEIS.comissao)
     renderizar(<DialogoDeUpgrade />)
 
@@ -46,9 +46,9 @@ describe('DialogoDeUpgrade', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'A turma chegou ao limite do plano' })
     expect(dialogo).toHaveTextContent('Peça ao presidente da comissão para contratar.')
-    expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Consultar' })).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
 
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })

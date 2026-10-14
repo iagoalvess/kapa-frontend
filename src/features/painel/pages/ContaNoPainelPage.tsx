@@ -28,7 +28,7 @@ const ACOES: {
   rotulo: string
   sucesso: string
   /** Pergunta de confirmação, para a ação que muda o acesso da conta. */
-  confirmar?: { titulo: string; descricao: string }
+  confirmar?: { titulo: string; descricao: string; rotulo: string }
 }[] = [
   {
     acao: 'reenviar-confirmacao',
@@ -41,6 +41,7 @@ const ACOES: {
     sucesso: 'E-mail de redefinição enviado ao dono da conta.',
     confirmar: {
       titulo: 'Enviar a redefinição de senha?',
+      rotulo: 'Enviar',
       descricao:
         'O dono da conta recebe um link para escolher uma senha nova. A senha atual continua valendo até ele usar o link.',
     },
@@ -51,6 +52,7 @@ const ACOES: {
     sucesso: 'Bloqueio por tentativas levantado.',
     confirmar: {
       titulo: 'Desbloquear a conta?',
+      rotulo: 'Desbloquear',
       descricao:
         'As tentativas erradas voltam a zero e a conta aceita login na hora. Faça isso só depois de confirmar que é o dono quem pede.',
     },
@@ -197,7 +199,7 @@ function AcessoDaConta({ conta }: { conta: UsuarioNoSuporte }) {
               key={item.acao}
               titulo={item.confirmar.titulo}
               descricao={item.confirmar.descricao}
-              rotulo={item.rotulo}
+              rotulo={item.confirmar.rotulo}
               aoConfirmar={() => disparar(item)}
               gatilho={botao}
             />

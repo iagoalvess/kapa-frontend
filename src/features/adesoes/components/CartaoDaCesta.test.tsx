@@ -117,12 +117,12 @@ describe('CartaoDaCesta', () => {
     const dialogo = await screen.findByRole('alertdialog')
     await userEvent.click(within(dialogo).getByRole('checkbox', { name: /Festa 20/ }))
     await userEvent.type(within(dialogo).getByLabelText('Detalhe de Festa — Festa 20'), 'mesa perto da pista')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Ver o aditivo' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Continuar' }))
 
     expect(await within(dialogo).findByText(/no lugar de Festa — Festa 15/)).toBeInTheDocument()
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar código' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar' }))
     await userEvent.type(await within(dialogo).findByLabelText(/Código enviado para/), '123456')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Aceitar aditivo' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Aceitar' }))
 
     await expect
       .poll(() => aceito)
@@ -151,9 +151,7 @@ describe('CartaoDaCesta', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Pedir cancelamento' }))
     await userEvent.type(await screen.findByLabelText('Motivo (opcional)'), 'não vou mais')
-    await userEvent.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Pedir cancelamento' }),
-    )
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Pedir' }))
 
     await expect.poll(() => pedido).toEqual({ item_de_cobranca_id: 'f15', motivo: 'não vou mais' })
   })

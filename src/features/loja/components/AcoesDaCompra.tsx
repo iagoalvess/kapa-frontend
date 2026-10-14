@@ -113,7 +113,7 @@ function CancelarCompra({ compra }: { compra: CompraNaGestao }) {
             aoCancelar={() => definirAberto(false)}
             ocupado={cancelar.isPending}
             desabilitado={!motivo.trim() || (!semConvite && escolhidos.length === 0)}
-            rotulo="Cancelar convites"
+            rotulo="Cancelar"
             rotuloOcupado="Cancelando…"
             rotuloDeCancelar="Voltar"
           />

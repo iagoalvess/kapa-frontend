@@ -102,7 +102,7 @@ export function LinhaDeOutraReceita({ outraReceita, tesouraria, editavel, aoEdit
                 descricao:
                   'Esta receita deixa de entrar nos valores previstos do caixa. Se o dinheiro chegar depois, registre uma nova receita.',
                 rotuloDeCancelar: 'Voltar',
-                rotulo: 'Cancelar receita',
+                rotulo: 'Cancelar',
                 aoConfirmar: () =>
                   cancelar.mutate(outraReceita.id, {
                     onSuccess: () => toast.info('Receita cancelada.'),

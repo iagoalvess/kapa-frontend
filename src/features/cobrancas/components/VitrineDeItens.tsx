@@ -297,7 +297,7 @@ function PedirCancelamento({ pedido }: { pedido: Pedido }) {
       campo="motivo"
       rotulo="Motivo (opcional)"
       esquema={esquemaDoMotivo}
-      confirmar="Pedir cancelamento"
+      confirmar="Pedir"
       confirmarOcupado="Enviando…"
       ocupado={cancelar.isPending}
       aoEnviar={(motivo, concluir, falhar) =>

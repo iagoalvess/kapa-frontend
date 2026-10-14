@@ -165,7 +165,7 @@ export function DialogoDoAditivo({
             aoCancelar={aoFechar}
             ocupado={simular.isPending}
             desabilitado={escolha.length === 0}
-            rotulo="Ver o aditivo"
+            rotulo="Continuar"
             rotuloOcupado="Calculando…"
           />
         </form>
@@ -236,7 +236,7 @@ export function DialogoDoAditivo({
                   onClick={enviarCodigo}
                   disabled={pedirCodigo.isPending}
                 >
-                  Enviar outro
+                  Reenviar
                 </button>
               </p>
             </div>
@@ -254,7 +254,7 @@ export function DialogoDoAditivo({
             }}
             ocupado={envio ? aceitar.isPending : pedirCodigo.isPending}
             desabilitado={Boolean(envio) && codigo.length !== 6}
-            rotulo={envio ? 'Aceitar aditivo' : 'Enviar código'}
+            rotulo={envio ? 'Aceitar' : 'Enviar'}
             rotuloOcupado={envio ? 'Aceitando…' : 'Enviando…'}
           />
         </form>

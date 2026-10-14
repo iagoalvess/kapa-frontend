@@ -314,10 +314,10 @@ describe('ConferenciaPage', () => {
 
     await userEvent.click(within(linha).getByRole('button', { name: 'Fechar aviso' }))
     const dialogo = await screen.findByRole('alertdialog')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar aviso' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar' }))
     expect(await within(dialogo).findByText('Diga o que foi feito com este pagamento.')).toBeInTheDocument()
     await userEvent.type(within(dialogo).getByLabelText('O que foi feito'), 'Devolvido no painel do MP')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar aviso' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Fechar' }))
 
     await waitFor(() =>
       expect(pedidos.fechamentos).toEqual([{ id: 'v-2', observacao: 'Devolvido no painel do MP' }]),

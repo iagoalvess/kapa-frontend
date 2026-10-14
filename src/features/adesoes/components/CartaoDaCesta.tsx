@@ -120,7 +120,7 @@ function PedirCancelamento({ pacote }: { pacote: PacoteNaCesta }) {
       campo="motivo"
       rotulo="Motivo (opcional)"
       esquema={esquemaDoMotivo}
-      confirmar="Pedir cancelamento"
+      confirmar="Pedir"
       confirmarOcupado="Enviando…"
       ocupado={solicitar.isPending}
       aoEnviar={(motivo, concluir, falhar) =>

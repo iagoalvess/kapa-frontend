@@ -4,17 +4,17 @@ import { sessao } from '@/lib/http/sessao'
 export const EMAIL_DE_SUPORTE = 'suporte@kapaformaturas.com.br'
 
 /**
- * O que a pessoa quer do suporte. Três, e só três (06/10/2026): é o tipo que muda o que o suporte faz — problema
- * pede ação no dia, dúvida vira resposta (e talvez texto melhor na tela), sugestão vai para a lista de ideias. A
- * área (cobrança, convite…) já vem da página no corpo; pedir à pessoa que a classifique só atrasaria o pedido.
+ * O tipo organiza o atendimento. Pedidos sobre dados pessoais também chegam por este canal,
+ * sem depender de uma página ou de uma conta ativa.
  */
-export type TipoDePedido = 'duvida' | 'problema' | 'sugestao'
+export type TipoDePedido = 'duvida' | 'problema' | 'sugestao' | 'privacidade'
 
 /** A marca do assunto: é por ela que a caixa do suporte filtra e põe o problema no topo. */
 const MARCAS: Record<TipoDePedido, string> = {
   duvida: '[Dúvida]',
   problema: '[Problema]',
   sugestao: '[Sugestão]',
+  privacidade: '[Dados pessoais]',
 }
 
 /**
@@ -27,7 +27,7 @@ const MARCAS: Record<TipoDePedido, string> = {
  *
  * Lê a sessão e a página no momento da chamada: chame ao montar o link, não guarde o resultado.
  *
- * @param tipo Dúvida, problema ou sugestão. O que vem de uma tela de erro é sempre problema.
+ * @param tipo Assunto do atendimento. O que vem de uma tela de erro é sempre problema.
  * @param codigo O código do erro, quando o problema veio de uma falha da API.
  * @param detalhe O que mais ajuda a achar o problema — a mensagem de um erro de tela, sem código.
  */
@@ -49,7 +49,9 @@ export function linkDeSuporte({
 
   const assunto = `${MARCAS[tipo]} ${codigo ? `Erro ${codigo}` : 'Kapa'}`
   const corpo = [
-    'Conte o que aconteceu:',
+    tipo === 'privacidade'
+      ? 'Conte o que deseja solicitar sobre seus dados pessoais:'
+      : 'Conte o que aconteceu:',
     '',
     '',
     '— Para a equipe do Kapa (pode deixar como está) —',

@@ -222,7 +222,7 @@ describe('PortariaPage', () => {
     renderizar(<PortariaPage />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Validar' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Registrar entrada no celular' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Registrar' }))
 
     expect(
       await screen.findByText('1 entrada registrada neste celular, aguardando internet.'),

@@ -354,7 +354,7 @@ export default function FestaPage() {
               ? `"${confirmando.item.titulo}" sai do custo da festa e continua na lista, marcado como cancelado. As despesas já lançadas nele não são canceladas — o que saiu do caixa continua no balancete.`
               : ''
         }
-        rotulo={confirmando && confirmando.acao === 'excluir' ? 'Excluir' : 'Cancelar item'}
+        rotulo={confirmando && confirmando.acao === 'excluir' ? 'Excluir' : 'Cancelar'}
         rotuloDeCancelar="Voltar"
         destrutivo
         aoConfirmar={confirmar}

@@ -39,7 +39,7 @@ export function DialogoDaValidacao({ resultado, aoFechar, aoMarcarSemRede, aoDes
 
           {resultado.semRede ? (
             <Button size="lg" variant="outline" onClick={() => aoMarcarSemRede(resultado.codigo)}>
-              Registrar entrada no celular
+              Registrar
             </Button>
           ) : null}
 
@@ -58,7 +58,7 @@ export function DialogoDaValidacao({ resultado, aoFechar, aoMarcarSemRede, aoDes
                   })
               }}
             >
-              Desfazer entrada
+              Desfazer
             </Button>
           ) : null}
 

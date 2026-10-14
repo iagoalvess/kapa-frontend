@@ -189,7 +189,7 @@ function FormularioDeLigar({ cartao, aoConcluir }: { cartao: Cartao; aoConcluir:
         <AcoesDoFormulario
           aoCancelar={aoConcluir}
           ocupado={configurar.isPending}
-          rotulo={cartao.ligado_em ? 'Salvar' : 'Ligar cartão'}
+          rotulo={cartao.ligado_em ? 'Salvar' : 'Ligar'}
           rotuloOcupado={cartao.ligado_em ? 'Salvando…' : 'Ligando…'}
         />
       </form>

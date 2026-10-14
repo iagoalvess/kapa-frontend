@@ -119,10 +119,9 @@ export function DialogoDeContratacao({ plano, aoFechar }: { plano: Plano; aoFech
           aoCancelar={fechar}
           ocupado={ocupado}
           desabilitado={consultandoCupom}
-          rotuloDeCancelar="Voltar aos planos"
-          rotulo="Continuar para pagamento"
-          rotuloOcupado="Indo para o pagamento…"
-          rotulosEmMultilinha
+          rotuloDeCancelar="Voltar"
+          rotulo="Continuar"
+          rotuloOcupado="Continuando…"
         />
       </div>
     </DialogoDeFormulario>

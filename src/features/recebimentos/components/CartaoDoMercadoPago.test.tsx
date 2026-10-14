@@ -69,8 +69,13 @@ describe('CartaoDoMercadoPago', () => {
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled())
     expect(globalThis.location.href).toBe(antes)
+    expect(
+      screen.getByText(
+        'O dinheiro cai na conta Mercado Pago da turma. A loja pública também usa esta conta.',
+      ),
+    ).toBeVisible()
     await userEvent.click(screen.getByText('Como conectar? O Kapinha explica'))
-    expect(screen.getByText(/o dinheiro fica na conta Mercado Pago até você/)).toBeVisible()
+    expect(screen.getByText(/Tenha uma conta no Mercado Pago/)).toBeVisible()
   })
 
   /** P3: a tesouraria vê, mas quem conecta é o Presidente. */
@@ -116,7 +121,7 @@ describe('CartaoDoMercadoPago', () => {
     expect(await screen.findByText(/Quem pagou pode contestar a compra no banco/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Quem paga no cartão' }))
     expect(screen.getByLabelText('Taxa do cartão (%)')).toHaveValue('4,98')
-    await userEvent.click(screen.getByRole('button', { name: 'Ligar cartão' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ligar' }))
 
     expect(await screen.findByText(/paga 4,98% a mais/)).toBeInTheDocument()
     expect(configuracoes).toEqual([{ ligado: true, taxa_repassada: 498 }])
@@ -169,7 +174,7 @@ describe('CartaoDoMercadoPago', () => {
     renderizar(<CartaoDoMercadoPago />)
     await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
     expect(modos).toEqual([])
-    await userEvent.click(await screen.findByRole('button', { name: 'Usar automático' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Trocar' }))
 
     await expect.poll(() => modos).toEqual([{ automatica: true }])
     expect(await screen.findByRole('radio', { name: 'Confirmação automática' })).toBeChecked()
@@ -196,7 +201,7 @@ describe('CartaoDoMercadoPago', () => {
 
     renderizar(<CartaoDoMercadoPago />)
     await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Usar automático' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Trocar' }))
 
     await expect.poll(() => tentativas).toBe(1)
     expect(screen.getByRole('radio', { name: 'Confirmação automática' })).not.toBeChecked()

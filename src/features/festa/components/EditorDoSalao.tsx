@@ -202,8 +202,8 @@ export function EditorDoSalao({ mapa, editavel }: Props) {
         aoFechar={() => saida.reset?.()}
         titulo="Sair sem salvar o mapa?"
         descricao="As mudanças no mapa ainda não foram salvas e se perdem se você sair."
-        rotulo="Sair sem salvar"
-        rotuloDeCancelar="Continuar no mapa"
+        rotulo="Sair"
+        rotuloDeCancelar="Continuar"
         destrutivo
         aoConfirmar={() => saida.proceed?.()}
       />

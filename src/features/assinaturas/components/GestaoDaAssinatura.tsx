@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Dica } from '@/components/Dica'
 import { DialogoDeTexto } from '@/components/DialogoDeTexto'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -12,7 +13,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -25,6 +25,9 @@ import { useCancelarAssinatura, useSolicitarReembolso, useTrocarMeio } from '../
 import { usePagarCiclo } from '../hooks/useCheckout'
 import type { Assinatura } from '../types/assinaturas.types'
 import { SeloDeStatus } from './SeloDeStatus'
+
+/** Alinha com o par do `AcoesDoFormulario`: o botão cresce e quebra em vez de cortar o rótulo. */
+const CLASSE_DO_BOTAO = 'h-auto min-h-11 min-w-0 whitespace-normal'
 
 const esquemaDeReembolso = z.object({
   motivo: z.string().trim().min(1, 'Informe o motivo do pedido.').max(2000, 'Use até 2.000 caracteres.'),
@@ -117,7 +120,7 @@ function TrocarPagamento({ assinatura }: { assinatura: Assinatura }) {
         descricao: paraOPix
           ? `O débito automático no cartão é cancelado agora. A partir da renovação de ${vencimento}, você paga um PIX por ciclo pela tela dos planos.`
           : `Você vai à página do Mercado Pago cadastrar o cartão. A primeira cobrança é em ${vencimento}, e até lá nada muda.`,
-        rotulo: paraOPix ? 'Trocar para o PIX' : 'Ir para o cartão',
+        rotulo: paraOPix ? 'Trocar' : 'Continuar',
         aoConfirmar: () =>
           trocar.mutate(paraOPix ? 'Pix' : 'Cartao', {
             onSuccess: ({ url }) => {
@@ -142,7 +145,7 @@ function PagarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
       confirmacao={{
         titulo: 'Pagar a renovação pelo PIX?',
         descricao: `O PIX fica disponível sete dias antes de ${formatarData(vigenteAte)}. Você paga na página do Mercado Pago, e a vigência se estende quando o pagamento confirmar.`,
-        rotulo: 'Pagar renovação',
+        rotulo: 'Pagar',
         aoConfirmar: () => pagar.mutate(undefined, { onError: avisarErro }),
       }}
     />
@@ -161,7 +164,7 @@ function SolicitarReembolso({ ate }: { ate: string }) {
       campo="motivo"
       rotulo="Motivo do pedido"
       esquema={esquemaDeReembolso}
-      confirmar="Enviar pedido"
+      confirmar="Enviar"
       confirmarOcupado="Enviando…"
       ocupado={solicitar.isPending}
       desabilitado={solicitar.isPending}
@@ -216,10 +219,11 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
                 Não haverá nova cobrança. A partir de {ate}, a turma fica só para consulta.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Manter assinatura</AlertDialogCancel>
+            <RodapeDeDialogo variante="duplo">
+              <AlertDialogCancel className={CLASSE_DO_BOTAO}>Voltar</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
+                className={CLASSE_DO_BOTAO}
                 onClick={() =>
                   cancelar.mutate(undefined, {
                     onSuccess: () => toast.info('Renovação cancelada.'),
@@ -227,9 +231,9 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
                   })
                 }
               >
-                Cancelar renovação
+                Cancelar
               </AlertDialogAction>
-            </AlertDialogFooter>
+            </RodapeDeDialogo>
           </>
         ) : (
           <>
@@ -242,12 +246,12 @@ function CancelarRenovacao({ vigenteAte }: { vigenteAte: string | null }) {
                 fica disponível para consulta por mais cinco anos.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Manter assinatura</AlertDialogCancel>
-              <Button variant="outline" onClick={() => definirConfirmando(true)}>
-                Entendi, continuar
+            <RodapeDeDialogo variante="duplo">
+              <AlertDialogCancel className={CLASSE_DO_BOTAO}>Voltar</AlertDialogCancel>
+              <Button variant="outline" className={CLASSE_DO_BOTAO} onClick={() => definirConfirmando(true)}>
+                Continuar
               </Button>
-            </AlertDialogFooter>
+            </RodapeDeDialogo>
           </>
         )}
       </AlertDialogContent>

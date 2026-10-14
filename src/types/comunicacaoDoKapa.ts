@@ -1,5 +1,5 @@
 /** De onde veio a mudança da preferência de marketing. */
-type OrigemDaComunicacaoDoKapa = 'cadastro' | 'descadastro_pelo_email' | 'minha_privacidade'
+type OrigemDaComunicacaoDoKapa = 'cadastro' | 'descadastro_pelo_email' | 'suporte'
 
 /** Uma mudança de "Receber novidades do Kapa". Espelha `RegistroDaComunicacaoDoKapaDTO`. */
 interface RegistroDaComunicacaoDoKapa {
@@ -18,7 +18,7 @@ interface EnvioDoKapa {
 
 /**
  * "Receber novidades do Kapa": a preferência, o histórico e os envios (Sprint 40). Espelha
- * `ComunicacaoDoKapaDTO` — "Minha privacidade" e o painel de suporte leem o mesmo objeto.
+ * `ComunicacaoDoKapaDTO` — o painel de suporte lê o mesmo histórico usado na exportação interna.
  */
 export interface ComunicacaoDoKapa {
   receber: boolean

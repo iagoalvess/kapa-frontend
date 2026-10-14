@@ -4,7 +4,7 @@ import { LogoKapa } from '@/components/layout/LogoKapa'
 import { ROTAS } from '@/config/rotas'
 
 /**
- * A casca das páginas públicas de leitura — termos, política, operadores: o logo no topo, que volta
+ * A casca das páginas públicas de leitura — termos e política: o logo no topo, que volta
  * à página institucional, e uma coluna de texto no meio. Mora no site (Sprint 33), como elas.
  *
  * Sem menu nem sessão: é lida antes do cadastro, muitas vezes numa aba aberta pelo formulário.

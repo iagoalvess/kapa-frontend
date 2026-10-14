@@ -24,10 +24,12 @@ interface Props<Campo extends string> {
   campo: Campo
   rotulo: string
   esquema: Esquema<Campo>
-  /** O botão de confirmar — "Recusar", "Estornar baixa". */
+  /** O botão de confirmar — um verbo só, como "Recusar" ou "Estornar". */
   confirmar: string
   /** O mesmo botão enquanto envia — "Recusando…". */
   confirmarOcupado: string
+  /** O desistir. Ausente, "Cancelar"; "Voltar" quando o principal já é cancelar ou estornar. */
+  rotuloDeCancelar?: string
   ocupado: boolean
   desabilitado?: boolean
   /** Envia o texto; chama `concluir` no sucesso e `falhar` no erro, que volta para o campo. */
@@ -48,6 +50,7 @@ export function DialogoDeTexto<Campo extends string>({
   esquema,
   confirmar,
   confirmarOcupado,
+  rotuloDeCancelar,
   ocupado,
   desabilitado = false,
   aoEnviar,
@@ -129,8 +132,8 @@ export function DialogoDeTexto<Campo extends string>({
           ocupado={ocupado}
           rotulo={confirmar}
           rotuloOcupado={confirmarOcupado}
+          rotuloDeCancelar={rotuloDeCancelar}
           form={id}
-          rotulosEmMultilinha
         />
       </DialogoDeFormulario>
     </>

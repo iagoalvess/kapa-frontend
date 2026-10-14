@@ -99,12 +99,6 @@ export function ModoDaCobranca({
           })}
         </div>
       </fieldset>
-      {preparandoAutomatico && !conectado ? (
-        <p className="text-muted-foreground text-sm">
-          Depois de conectar, confirme a ativação. Até lá, o pagamento continua manual.
-        </p>
-      ) : null}
-
       <DialogoDeConfirmacao
         aberto={pedido !== undefined}
         aoFechar={() => definirPedido(undefined)}
@@ -114,7 +108,7 @@ export function ModoDaCobranca({
             ? 'Os formandos passarão a pagar pelo Mercado Pago e não precisarão avisar quando pagarem. Os meios da comissão deixam de aparecer para eles. Se alguém pagar por fora, a tesouraria poderá registrar o pagamento.'
             : 'Os formandos voltarão a pagar pelas formas escolhidas pela comissão e a avisar quando pagarem. A tesouraria conferirá esses pagamentos. A loja continuará vendendo pelo Mercado Pago.'
         }
-        rotulo={pedido ? 'Usar automático' : 'Usar manual'}
+        rotulo="Trocar"
         aoConfirmar={confirmar}
       />
     </section>

@@ -87,7 +87,7 @@ export function AcoesDoPedido({ pedido }: { pedido: Pedido }) {
             rotuloDeCancelar="Voltar"
             aoCancelar={() => definirAberto(false)}
             ocupado={cancelar.isPending}
-            rotulo="Cancelar pedido"
+            rotulo="Cancelar"
             rotuloOcupado="Cancelando…"
           />
         </form>

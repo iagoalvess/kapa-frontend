@@ -82,7 +82,7 @@ export function CartaoDoLinkDaTurma() {
             }
             titulo="Gerar um novo link?"
             descricao="O link atual para de funcionar na hora. Quem ainda não entrou vai precisar do novo."
-            rotulo="Gerar novo"
+            rotulo="Gerar"
             aoConfirmar={() => gerar(true)}
           />
         ) : null

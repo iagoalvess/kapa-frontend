@@ -99,7 +99,7 @@ function Pedir({ token, compra }: { token: string; compra: Compra }) {
             aoCancelar={() => definirAberto(false)}
             ocupado={pedir.isPending}
             desabilitado={escolhidos.length === 0}
-            rotulo="Pedir cancelamento"
+            rotulo="Pedir"
             rotuloOcupado="Enviando…"
             rotuloDeCancelar="Voltar"
           />

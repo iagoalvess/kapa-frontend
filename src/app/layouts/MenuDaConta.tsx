@@ -34,6 +34,7 @@ const PEDIDOS: { tipo: TipoDePedido; rotulo: string; icone: LucideIcon }[] = [
   { tipo: 'problema', rotulo: 'Algo não funcionou', icone: CircleAlert },
   { tipo: 'duvida', rotulo: 'Tirar uma dúvida', icone: CircleHelp },
   { tipo: 'sugestao', rotulo: 'Dar uma sugestão', icone: Lightbulb },
+  { tipo: 'privacidade', rotulo: 'Dados pessoais', icone: ShieldCheck },
 ]
 
 const estiloDoItem = cn(
@@ -44,8 +45,8 @@ const estiloDoItem = cn(
 /**
  * O balão do avatar: quem você é, o que é da sua conta e a porta de sair.
  *
- * É onde o mercado inteiro põe isto — Linear, Notion, GitHub —, e é o que tira do menu lateral três
- * itens que não são o trabalho da turma: o cadastro, a privacidade e o "Sair". O menu da esquerda
+ * É onde o mercado inteiro põe isto — Linear, Notion, GitHub —, e é o que tira do menu lateral os
+ * itens que não são o trabalho da turma: o cadastro, o suporte e o "Sair". O menu da esquerda
  * passa a listar só telas de turma, que é o que ele promete.
  *
  * `popover` nativo com âncora, como o menu de exportação dos relatórios: clique fora e Esc fecham
@@ -138,11 +139,6 @@ export function MenuDaConta({
               ) : null}
             </Link>
           ) : null}
-
-          <Link to={ROTAS.minhaPrivacidade} onClick={fechar} className={estiloDoItem}>
-            <ShieldCheck strokeWidth={1.75} aria-hidden />
-            Privacidade
-          </Link>
 
           {/* A trilha da turma mora aqui, e não no menu da esquerda: ela se abre uma vez por
               assembleia, e ocupava no menu a mesma altura de "Membros", que se abre toda semana.

@@ -3,24 +3,8 @@ import { ROTAS } from '@/config/rotas'
 import { PERFIS } from '@/config/perfis'
 import { useFormaturaAtiva, usePerfil } from '@/hooks/useSessao'
 
-/**
- * O que quem foi desligado ainda abre: o extrato dele, os recibos dele, o termo dele e o portal de
- * privacidade.
- *
- * Os três primeiros espelham a política `TitularDoProprioHistorico` do backend, e a lista é curta
- * pelo mesmo motivo que ela: quem sai deixa de dever, mas não deixa de ter pago (P5 da Sprint 15).
- * O portal LGPD entra porque é do **titular** e não da turma — a API dele pede só sessão — e é o
- * direito de acesso que não pode depender de continuar na formatura.
- *
- * Mural, acervo, caixa e cadastro ficam de fora: a API os recusa com 403, e mandar a pessoa para lá
- * é entregar uma tela de erro no lugar de uma explicação.
- */
-const LEITURAS_DO_DESLIGADO: readonly string[] = [
-  ROTAS.extrato,
-  ROTAS.recibos,
-  ROTAS.adesao,
-  ROTAS.minhaPrivacidade,
-]
+/** Quem foi desligado ainda pode consultar seu extrato, recibos e termo de adesão. */
+const LEITURAS_DO_DESLIGADO: readonly string[] = [ROTAS.extrato, ROTAS.recibos, ROTAS.adesao]
 
 /**
  * Bloqueia o ramo que depende de uma formatura escolhida, e o recorta para quem já saiu dela.

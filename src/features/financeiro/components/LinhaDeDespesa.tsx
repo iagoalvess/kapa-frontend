@@ -108,7 +108,7 @@ export function LinhaDeDespesa({ despesa, editavel }: Props) {
                 descricao:
                   'Esta despesa deixa de entrar nos valores previstos do caixa. Se precisar registrá-la novamente, crie uma nova despesa.',
                 rotuloDeCancelar: 'Voltar',
-                rotulo: 'Cancelar despesa',
+                rotulo: 'Cancelar',
                 aoConfirmar: () =>
                   cancelar.mutate(despesa.id, {
                     onSuccess: () => toast.info('Despesa cancelada.'),

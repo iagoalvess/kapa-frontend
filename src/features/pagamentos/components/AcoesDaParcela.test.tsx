@@ -61,7 +61,7 @@ describe('AcoesDaParcela', () => {
     const dialogo = await screen.findByRole('alertdialog')
     expect(dialogo).toHaveTextContent('"A devolver"')
     await userEvent.type(within(dialogo).getByLabelText('Justificativa'), 'Acordo com a comissão')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar parcela' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar' }))
 
     await waitFor(() =>
       expect(pedidos.cancelamentos).toEqual([{ id: 'pa-1', justificativa: 'Acordo com a comissão' }]),
@@ -116,13 +116,13 @@ describe('AcoesDaParcela', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Estornar' }))
     const dialogo = await screen.findByRole('alertdialog')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar pagamento' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar' }))
     expect(
       await within(dialogo).findByText('Explique por que este pagamento está sendo estornado.'),
     ).toBeInTheDocument()
 
     await userEvent.type(within(dialogo).getByLabelText('Justificativa'), 'Baixa na parcela errada.')
-    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar pagamento' }))
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Estornar' }))
 
     await waitFor(() => expect(pedidos.estornos).toEqual([{ justificativa: 'Baixa na parcela errada.' }]))
   })

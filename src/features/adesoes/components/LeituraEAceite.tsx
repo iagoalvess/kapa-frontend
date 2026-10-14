@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Cartao } from '@/components/Cartao'
 import { Dica } from '@/components/Dica'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -270,19 +271,28 @@ export function LeituraEAceite({
                                   disabled={codigo.isPending}
                                   className="text-foreground cursor-pointer font-medium underline"
                                 >
-                                  Enviar de novo
+                                  Reenviar
                                 </button>
                               </p>
                             </FormItem>
                           )}
                         />
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <AlertDialogCancel type="button">Cancelar</AlertDialogCancel>
-                          <Button type="submit" disabled={aderir.isPending}>
-                            {aderir.isPending ? 'Registrando…' : 'Confirmar adesão'}
+                        <RodapeDeDialogo variante="duplo">
+                          <AlertDialogCancel
+                            type="button"
+                            className="h-auto min-h-11 min-w-0 whitespace-normal"
+                          >
+                            Cancelar
+                          </AlertDialogCancel>
+                          <Button
+                            type="submit"
+                            disabled={aderir.isPending}
+                            className="h-auto min-h-11 min-w-0 whitespace-normal"
+                          >
+                            {aderir.isPending ? 'Confirmando…' : 'Confirmar'}
                           </Button>
-                        </div>
+                        </RodapeDeDialogo>
                       </form>
                     </AlertDialogContent>
                   </AlertDialog>

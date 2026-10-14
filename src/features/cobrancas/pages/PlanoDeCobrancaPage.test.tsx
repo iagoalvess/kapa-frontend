@@ -177,7 +177,7 @@ describe('PlanoDeCobrancaPage', () => {
     const confirmacao = await screen.findByRole('alertdialog')
     expect(confirmacao).toHaveTextContent('80 na turma')
     expect(confirmacao).toHaveTextContent('passa a dever só o que escolheu')
-    await userEvent.click(within(confirmacao).getByRole('button', { name: 'Colocar em vigor' }))
+    await userEvent.click(within(confirmacao).getByRole('button', { name: 'Ativar' }))
 
     await waitFor(() => expect(vigorou).toBe(true))
   })

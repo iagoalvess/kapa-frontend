@@ -76,7 +76,7 @@ const NOMES_DE_MODULO: Record<string, string | undefined> = {
   enquetes: 'Enquetes da turma',
   avisos: 'Avisos e régua de cobrança',
   relatorios: 'Relatórios e exportações',
-  auditoria: 'Portal LGPD e auditoria',
+  auditoria: 'Histórico da turma',
 }
 
 /**

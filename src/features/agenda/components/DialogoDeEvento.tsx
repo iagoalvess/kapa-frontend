@@ -1,6 +1,7 @@
 import { CalendarDays, Clock, MapPin, NotebookPen, Tag } from 'lucide-react'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { Dado, ListaDeDados } from '@/components/ListaDeDados'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import { Button } from '@/components/ui/button'
 import { MODULOS } from '@/config/planos'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -92,11 +93,11 @@ export function DialogoDeEvento({ aberto, ehGestao, somenteLeitura = false, aoFe
             <PainelDeConvites tipo={evento.tipo} editavel={editavel} />
           ) : null}
 
-          <div className="ml-auto">
+          <RodapeDeDialogo variante="unico">
             <Button type="button" variant="outline" onClick={aoFechar}>
               Fechar
             </Button>
-          </div>
+          </RodapeDeDialogo>
         </div>
       )}
     </DialogoDeFormulario>

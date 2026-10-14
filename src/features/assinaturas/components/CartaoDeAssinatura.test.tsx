@@ -82,12 +82,10 @@ describe('CartaoDeAssinatura', () => {
     expect(within(primeira).getByText(/só para consulta/)).toBeInTheDocument()
     expect(within(primeira).getByText(/Nada é apagado/)).toBeInTheDocument()
 
-    await usuario.click(within(primeira).getByRole('button', { name: 'Entendi, continuar' }))
+    await usuario.click(within(primeira).getByRole('button', { name: 'Continuar' }))
     expect(cancelamentos).toBe(0)
 
-    await usuario.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar renovação' }),
-    )
+    await usuario.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }))
 
     await expect.poll(() => cancelamentos).toBe(1)
   })
@@ -133,7 +131,7 @@ describe('CartaoDeAssinatura', () => {
     const dialogo = screen.getByRole('alertdialog')
     expect(within(dialogo).getByText(/débito automático no cartão é cancelado agora/)).toBeInTheDocument()
     expect(pedido).toBeUndefined()
-    await usuario.click(within(dialogo).getByRole('button', { name: 'Trocar para o PIX' }))
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Trocar' }))
 
     await expect.poll(() => pedido).toEqual({ meio: 'Pix' })
   })
@@ -149,9 +147,7 @@ describe('CartaoDeAssinatura', () => {
 
     renderizar(<Gestao />)
     await usuario.click(await screen.findByRole('button', { name: 'Pagar renovação' }))
-    await usuario.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Pagar renovação' }),
-    )
+    await usuario.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Pagar' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#pix-da-renovacao')
     globalThis.location.hash = ''
@@ -194,10 +190,10 @@ describe('CartaoDeAssinatura', () => {
     await usuario.click(await screen.findByRole('button', { name: 'Solicitar reembolso' }))
     const dialogo = screen.getByRole('alertdialog')
     expect(within(dialogo).getByText(/a assinatura e a renovação continuam como estão/)).toBeInTheDocument()
-    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar pedido' }))
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar' }))
     expect(pedido).toBeUndefined()
     await usuario.type(within(dialogo).getByLabelText('Motivo do pedido'), 'Não preciso mais do plano.')
-    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar pedido' }))
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar' }))
     await expect.poll(() => pedido).toEqual({ motivo: 'Não preciso mais do plano.' })
     expect(await screen.findByText(/Reembolso em análise/)).toBeInTheDocument()
     expect(screen.getByText('Protocolo: pedido-1.')).toBeInTheDocument()

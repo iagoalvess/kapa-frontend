@@ -23,7 +23,7 @@ describe('site com a lista de espera ligada', () => {
     expect(html).not.toContain('#planos')
   })
 
-  it('tira Termos e Operadores e serve a Política resumida em /privacidade', async () => {
+  it('tira Termos e serve a Política resumida em /privacidade', async () => {
     expect(PAGINAS.map((pagina) => pagina.caminho)).toEqual(['/', '/privacidade'])
     expect(await renderizar('/termos-de-uso')).toContain('Página não encontrada')
     expect(await renderizar('/privacidade')).toContain('Versão 2')

@@ -33,7 +33,7 @@ export function BotaoDeCobranca({ parcela }: { parcela: Parcela }) {
             de {formatarData(parcela.vencimento)}. Cada pessoa recebe no máximo uma cobrança por dia.
           </>
         ),
-        rotulo: cobrar.isPending ? 'Enviando…' : 'Enviar cobrança',
+        rotulo: cobrar.isPending ? 'Cobrando…' : 'Cobrar',
         aoConfirmar: () =>
           cobrar.mutate(parcela.id, {
             onSuccess: () => toast.success('Cobrança enviada.'),

@@ -194,8 +194,14 @@ const enviar = formulario.handleSubmit((valores) => {
   dois.
 - **`<ErroDoFormulario />`** desenha o `errors.root`, dentro do `<Form>`. Não repita o `<p
 role="alert">` na tela.
-- **`<AcoesDoFormulario />`** é o rodapé (Cancelar + o principal), e `<DialogoDeFormulario>` é a
-  casca quando o formulário mora num diálogo.
+- **`<RodapeDeDialogo />`** é a geometria do rodapé de todo diálogo (o par ou o botão único);
+  **`<AcoesDoFormulario />`** é o caso do formulário (Cancelar + o principal), e
+  `<DialogoDeFormulario>` é a casca quando o formulário mora num diálogo.
+  Botões de ação dentro do diálogo usam um único verbo no infinitivo ("Salvar", "Cancelar",
+  "Reenviar", "Consultar"); o objeto fica no título ou na descrição. Durante o envio, use só
+  o gerúndio com reticências ("Salvando…", "Cancelando…"). Se a ação principal for cancelar
+  ou estornar, o botão de desistir diz "Voltar"; prévias podem usar "Revisar".
+  Opções de seleção mantêm o nome do que é escolhido.
 - **`formState` não se lê solto** quando o valor decide algo (um botão desabilitado por `isDirty`):
   assine com `useFormState({ control })`. Ver a regra no `CLAUDE.md`.
 

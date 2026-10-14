@@ -101,8 +101,8 @@ export function CartaoDoMercadoPago({
       selo={provedor ? <Selo tom="sucesso">Conectado</Selo> : <Selo tom="neutro">Não conectado</Selo>}
       descricao={
         apenasLoja
-          ? 'As vendas são recebidas pelo Mercado Pago.'
-          : 'O dinheiro cai na conta Mercado Pago da turma.'
+          ? 'As vendas são recebidas pelo Mercado Pago. Conectar não muda o pagamento manual.'
+          : 'O dinheiro cai na conta Mercado Pago da turma. A loja pública também usa esta conta.'
       }
       acao={
         !escreve ? null : provedor ? (
@@ -124,9 +124,6 @@ export function CartaoDoMercadoPago({
           conectado={Boolean(provedor)}
           escreve={tem(PAPEIS.tesoureiro) && liberado}
         />
-      ) : null}
-      {!apenasLoja ? (
-        <p className="text-muted-foreground text-sm">A loja pública também usa esta conta.</p>
       ) : null}
       {provedor ? (
         <>
@@ -169,7 +166,6 @@ export function CartaoDoMercadoPago({
         </>
       ) : (
         <>
-          {apenasLoja ? <TextoDoCartao>Conectar não muda o pagamento manual.</TextoDoCartao> : null}
           {conta.isError ? (
             <ErroDaConsulta compacto erro={conta.error} aoTentarDeNovo={() => void conta.refetch()} />
           ) : !conta.isPending && !conta.data?.conta?.meios.pix ? (
@@ -236,8 +232,7 @@ function Conectado({ provedor }: { provedor: ProvedorConectado }) {
 }
 
 /**
- * O passo a passo do Kapinha: o que o presidente precisa ter e o que vai acontecer quando clicar — e o
- * risco que a Sprint 25 pede para deixar na tela de conectar (retenção cautelar).
+ * O passo a passo do Kapinha: o que o presidente precisa ter e o que vai acontecer quando clicar.
  */
 function PassoAPasso({ conectado }: { conectado: boolean }) {
   return (
@@ -267,15 +262,6 @@ function PassoAPasso({ conectado }: { conectado: boolean }) {
               <strong>Conferência manual</strong>.
             </li>
           </ol>
-          <p className="text-muted-foreground">
-            Não precisa copiar chave nem senha: o Kapa só ganha permissão para gerar cobranças e ver se foram
-            pagas. Para tirar a permissão, desconecte aqui ou no próprio Mercado Pago.
-          </p>
-          <p className="text-muted-foreground">
-            <strong className="text-foreground">Atenção:</strong> o dinheiro fica na conta Mercado Pago até
-            você transferir para o banco, e conta de pessoa física com movimento alto pode ter o saldo retido
-            pelo Mercado Pago para análise. Transfira com frequência.
-          </p>
         </TextoDoCartao>
       </div>
     </details>

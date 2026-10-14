@@ -140,7 +140,7 @@ describe('PlanosPage', () => {
     await usuario.click(screen.getByRole('button', { name: 'Escolher Premium' }))
     expect(pedido).toBeUndefined()
     expect(await screen.findByRole('alertdialog', { name: 'Finalizar assinatura' })).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
     expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao', cupom_codigo: null })
@@ -163,7 +163,7 @@ describe('PlanosPage', () => {
     await usuario.click(await screen.findByRole('button', { name: 'Escolher Essencial' }))
     await usuario.click(screen.getByRole('button', { name: /PIX/ }))
     expect(screen.getByText(/Um PIX por ciclo/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await expect.poll(() => globalThis.location.hash).toBe('#pix')
     expect(pedido).toEqual({ plano_codigo: 'essencial', meio: 'Pix', cupom_codigo: null })
@@ -204,7 +204,7 @@ describe('PlanosPage', () => {
     // Premium a R$ 49,90: metade arredondada a favor da turma.
     expect(screen.getByText(/R\$\s?24,95/)).toBeInTheDocument()
     expect(screen.getByText(/Da segunda cobrança em diante: R\$\s?49,90 por mês/)).toBeInTheDocument()
-    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await expect
       .poll(() => pedido)
@@ -229,7 +229,7 @@ describe('PlanosPage', () => {
 
     await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
     await usuario.click(screen.getByRole('button', { name: /PIX/ }))
-    await usuario.click(screen.getByRole('button', { name: 'Voltar aos planos' }))
+    await usuario.click(screen.getByRole('button', { name: 'Voltar' }))
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 
     await usuario.click(screen.getByRole('button', { name: 'Escolher Essencial' }))
@@ -282,9 +282,9 @@ describe('PlanosPage', () => {
     await usuario.type(screen.getByLabelText('Cupom de desconto'), 'piloto50')
     await usuario.click(screen.getByRole('button', { name: 'Aplicar' }))
 
-    expect(screen.getByRole('button', { name: 'Continuar para pagamento' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeDisabled()
     expect(await screen.findByText(/50% de desconto na primeira cobrança/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continuar para pagamento' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Continuar' })).toBeEnabled()
   })
 
   it('mantém o modal aberto e permite tentar novamente se o checkout falhar', async () => {
@@ -305,11 +305,11 @@ describe('PlanosPage', () => {
     const usuario = userEvent.setup()
     renderizar(<PlanosPage />)
     await usuario.click(await screen.findByRole('button', { name: 'Escolher Premium' }))
-    await usuario.click(screen.getByRole('button', { name: 'Continuar para pagamento' }))
+    await usuario.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await expect.poll(() => tentativas).toBe(1)
     expect(screen.getByRole('alertdialog', { name: 'Finalizar assinatura' })).toBeInTheDocument()
-    const continuar = await screen.findByRole('button', { name: 'Continuar para pagamento' })
+    const continuar = await screen.findByRole('button', { name: 'Continuar' })
     expect(continuar).toBeEnabled()
     await usuario.click(continuar)
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
@@ -341,7 +341,7 @@ describe('PlanosPage', () => {
     await usuario.click(screen.getByRole('button', { name: 'Mudar para Essencial' }))
 
     // A troca não é um clique só: o diálogo diz o que acontece e só então chama a API.
-    await usuario.click(await screen.findByRole('button', { name: 'Agendar a mudança' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Agendar' }))
     await expect.poll(() => pedido).toEqual({ plano_codigo: 'essencial' })
   })
 

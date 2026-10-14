@@ -106,7 +106,7 @@ export default function PlanosPage() {
         descricao: subindo
           ? 'Você vai à página do Mercado Pago pagar a diferença proporcional ao que falta do ciclo. O plano novo vale assim que o pagamento confirmar.'
           : `O plano novo passa a valer na próxima renovação${assinatura.data?.vigente_ate ? `, em ${formatarData(assinatura.data.vigente_ate)}` : ''}. Até lá a turma continua no ${atual?.nome}, e você pode voltar atrás aqui mesmo.`,
-        rotulo: subindo ? 'Ir para o pagamento' : 'Agendar a mudança',
+        rotulo: subindo ? 'Continuar' : 'Agendar',
       }
     : null
 

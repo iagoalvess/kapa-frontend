@@ -102,7 +102,7 @@ function ColocarEmVigor({ plano, simulacao }: { plano: PlanoDeCobranca; simulaca
             : null
         }
         rotuloDeCancelar="Revisar"
-        rotulo="Colocar em vigor"
+        rotulo="Ativar"
         aoConfirmar={() =>
           vigorar.mutate(plano.id, {
             onSuccess: () => toast.success('Plano em vigor.'),

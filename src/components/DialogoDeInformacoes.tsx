@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { RodapeDeDialogo } from '@/components/RodapeDeDialogo'
 import { Button } from '@/components/ui/button'
 
 /** Consulta contextual: mantém a lista no lugar e devolve o foco ao botão ao fechar. */
@@ -38,11 +39,11 @@ export function DialogoDeInformacoes({
             </Dialog.Close>
           </div>
           <div className="grid min-w-0 gap-4">{children}</div>
-          <Dialog.Close asChild>
-            <Button variant="outline" className="w-full">
-              Fechar
-            </Button>
-          </Dialog.Close>
+          <RodapeDeDialogo variante="unico">
+            <Dialog.Close asChild>
+              <Button variant="outline">Fechar</Button>
+            </Dialog.Close>
+          </RodapeDeDialogo>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

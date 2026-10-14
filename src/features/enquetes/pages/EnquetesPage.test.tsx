@@ -53,7 +53,7 @@ describe('EnquetesPage', () => {
     await waitFor(() => expect(envios).toEqual([{ opcoes: ['o-1'] }, { opcoes: ['o-2'] }]))
     await usuario.click(await screen.findByRole('button', { name: 'Retirar minha resposta' }))
     const dialogo = screen.getByRole('alertdialog')
-    await usuario.click(within(dialogo).getByRole('button', { name: 'Retirar resposta' }))
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Retirar' }))
     expect(await screen.findByRole('button', { name: 'Enviar resposta' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Quem participou' })).not.toBeInTheDocument()
   })

@@ -193,7 +193,7 @@ describe('ReceitasPage', () => {
     expect(cancelou).toBe(false)
 
     await userEvent.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancelar receita' }),
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }),
     )
 
     await waitFor(() => expect(cancelou).toBe(true))
