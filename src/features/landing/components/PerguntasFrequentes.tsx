@@ -34,14 +34,14 @@ const PERGUNTAS = [
       'A comissão pode começar de graça para preparar a turma. Para convidar os formandos, escolhe uma assinatura mensal ou anual, conforme o tamanho da turma e os recursos do plano. A assinatura pode ser paga por PIX ou cartão. O Kapa não cobra uma porcentagem da arrecadação; as tarifas do Mercado Pago, quando usado, são separadas.',
   },
   {
-    pergunta: 'E se um formando desistir?',
+    pergunta: 'Os formandos precisam baixar algum aplicativo?',
     resposta:
-      'A comissão registra a saída, e as parcelas futuras em aberto são canceladas. Os pagamentos feitos continuam no histórico, que o formando pode consultar. Se houver valores a devolver, a comissão faz o acerto com ele conforme o termo de adesão da turma.',
+      'Não. O Kapa abre no celular ou no computador. O formando entra pelo convite que recebe e já vê as parcelas dele. Quem preferir pode adicionar o Kapa à tela inicial do celular e abrir como se fosse um app.',
   },
   {
-    pergunta: 'O que acontece se cancelarmos a assinatura?',
+    pergunta: 'Quanto tempo leva para começar?',
     resposta:
-      'O cancelamento interrompe a renovação, e a turma continua usando o Kapa até o fim do período já pago. Depois, as informações ficam disponíveis para consulta, mas não é possível registrar novos pagamentos, gastos ou outras alterações até reativar a assinatura.',
+      'Poucos minutos. A comissão cria a turma, monta o plano de pagamento e envia os convites. Cada formando aceita o termo, confere as parcelas e já pode pagar.',
   },
 ]
 
