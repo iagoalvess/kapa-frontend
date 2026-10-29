@@ -20,7 +20,7 @@ const INDISPONIVEL = new Set(['convite.invalido', 'convite.esgotado'])
 const SEM_NOVA_TENTATIVA = new Set(['convite.email_divergente', 'convite.vinculo_removido'])
 
 /**
- * `/convite/:token` — o primeiro contato do formando com a Kapa, quase sempre num celular.
+ * `/convite/:token` — o primeiro contato do formando com o Kapa, quase sempre num celular.
  *
  * Sem sessão, mostra a turma e leva ao cadastro ou ao login, guardando o token
  * (`convitePendente`): o cadastro e o login aceitam o convite e vão direto para o app — ela já

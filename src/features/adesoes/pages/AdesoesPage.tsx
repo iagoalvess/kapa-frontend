@@ -1,6 +1,6 @@
 import { ChartPie, FilePenLine, ScrollText, UserCheck, UserRoundX } from 'lucide-react'
 import { useLocation, useSearchParams } from 'react-router'
-import { EsqueletoDeCartao, EsqueletoDeCartoes, EsqueletoDeTabela } from '@/components/Esqueleto'
+import { EsqueletoDeLista } from '@/components/EsqueletoDeLista'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LinkDeVolta } from '@/components/LinkDeVolta'
 import { ListaDePendencias, type Pendencia } from '@/components/ListaDePendencias'
@@ -42,10 +42,16 @@ export default function AdesoesPage() {
     return (
       <>
         {voltar}
-        <EsqueletoDeCartoes quantidade={1} altura="h-32" className="md:grid-cols-1" />
-        <EsqueletoDeCartao>
-          <EsqueletoDeTabela colunas={5} />
-        </EsqueletoDeCartao>
+        <EsqueletoDeLista
+          lateral={false}
+          colunas={5}
+          indicadores={[
+            { rotulo: 'Aderiram', icone: UserCheck },
+            { rotulo: 'Faltam aderir', icone: UserRoundX },
+            { rotulo: 'Adesão da turma', icone: ChartPie },
+            { rotulo: 'Termo vigente', icone: ScrollText },
+          ]}
+        />
       </>
     )
 

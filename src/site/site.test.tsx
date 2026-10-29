@@ -32,22 +32,24 @@ describe('redirecionamentos do site', () => {
 })
 
 describe('pré-renderização do site', () => {
+  // O primeiro render monta o bundle SSR inteiro a frio e passa dos 15s padrão num
+  // runner carregado; o teto maior é para a montagem, não para a asserção.
   it('entrega o texto da landing no HTML, com o CTA apontando para o app', async () => {
     const html = await renderizar('/')
 
     expect(html).toContain('Criar minha turma')
     expect(html).toContain(`href="${env.VITE_APP_URL}/criar-conta"`)
     expect(html).toContain(`href="${env.VITE_APP_URL}/login"`)
-  })
+  }, 60_000)
 
   it('entrega a casca do documento, que carrega o texto da API no navegador', async () => {
     const html = await renderizar('/termos-de-uso/2')
 
     expect(html).toContain('aria-label="Kapa — página inicial"')
     expect(html).not.toContain('Página não encontrada')
-  })
+  }, 60_000)
 
   it('entrega o 404 para caminho que não é do site', async () => {
     expect(await renderizar('/nao-existe')).toContain('Página não encontrada')
-  })
+  }, 60_000)
 })

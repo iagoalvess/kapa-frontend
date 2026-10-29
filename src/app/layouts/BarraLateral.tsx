@@ -351,7 +351,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
   const { data: despesasAtrasadas } = useDespesasAtrasadas(ehTesouraria)
   // Fora do plano: a Gestão vê o item com cadeado, que leva à vitrine da área; o formando não vê o
   // item — quem contrata é a comissão, e para ele seria só uma porta trancada (Sprint 45, P4).
-  const { bloqueia } = usePlanoDaTurma()
+  const { bloqueia, inclui } = usePlanoDaTurma()
   const festaTrancada = bloqueia(MODULOS.festa)
   const muralTrancado = bloqueia(MODULOS.mural)
   // A Portaria é a única tela do módulo `festa` que ainda pode virar card: no Premium ela mora
@@ -509,7 +509,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 aoNavegar={aoNavegar}
                 adesaoPendente={adesaoPendente}
                 parcelasVencidas={parcelasVencidas}
-                mostrarConvites={!festaTrancada}
+                mostrarConvites={inclui(MODULOS.festa)}
               />
 
               {/* O que não pode se perder na rolagem do grupo, e a turma que ele lê sem administrar. */}
@@ -520,7 +520,9 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
                   Agenda
                 </ItemDeMenu>
-                {muralTrancado ? null : (
+                {/* `inclui`, e não `!muralTrancado`: enquanto o plano carrega, o item espera em vez de aparecer
+                    e sumir no Essencial. */}
+                {inclui(MODULOS.mural) ? (
                   <>
                     <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
                       Festa
@@ -529,7 +531,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                       Mural
                     </ItemDeMenu>
                   </>
-                )}
+                ) : null}
               </Secao>
 
               <DinheiroDaTurma aoNavegar={aoNavegar} />
@@ -537,7 +539,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
           )}
         </nav>
       ) : noPainel ? (
-        /* O menu do painel do Kapa (Sprint 44): quem é da Kapa não vê a gestão das turmas (D4) — entra
+        /* O menu do painel do Kapa (Sprint 44): quem é do Kapa não vê a gestão das turmas (D4) — entra
            numa turma pelo painel, e só para ler. Exibição só; quem recusa é a API. */
         <nav aria-label="Painel do Kapa" className="grid content-start gap-4">
           <Secao titulo="Painel do Kapa">

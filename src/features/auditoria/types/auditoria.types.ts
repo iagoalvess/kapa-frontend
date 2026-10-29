@@ -88,7 +88,7 @@ const ROTULOS_DE_EVENTO: Record<string, string> = {
   'cobranca.cancelamento_recusado': 'Cancelamento recusado pela comissão',
   'cobranca.lancamento_avulso': 'Lançamento avulso no formando',
   'adesao.aditivo_aceito': 'Aditivo aceito pelo formando',
-  // A turma vê que quem ativou a licença dela foi o suporte da Kapa, e não o Presidente (Sprint 16).
+  // A turma vê que quem ativou a licença dela foi o suporte do Kapa, e não o Presidente (Sprint 16).
   // As outras ações do painel são da conta, e não aparecem na trilha de turma nenhuma.
   'suporte.assinatura_ativada': 'Licença ativada pelo suporte',
   // O Presidente desistiu no app, nos 7 dias do pagamento, e o pagamento voltou inteiro (art. 49 do CDC).

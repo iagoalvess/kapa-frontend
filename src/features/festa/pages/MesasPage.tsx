@@ -7,7 +7,7 @@ import { AcaoComConfirmacao, AcaoDaLinha, AcoesDaLinha } from '@/components/Acoe
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
-import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EsqueletoDeLista } from '@/components/EsqueletoDeLista'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -78,9 +78,14 @@ export default function MesasPage() {
 
   if (mapa.isPending)
     return (
-      <EsqueletoDeCartao>
-        <EsqueletoDeTexto linhas={6} />
-      </EsqueletoDeCartao>
+      <EsqueletoDeLista
+        indicadores={[
+          { rotulo: 'Mesas', icone: Armchair },
+          { rotulo: 'Lugares', icone: Armchair },
+          { rotulo: 'Reservadas', icone: Lock },
+          { rotulo: 'Compradas sem mesa', icone: ShoppingBag },
+        ]}
+      />
     )
 
   if (mapa.isError) return <ErroDaConsulta erro={mapa.error} aoTentarDeNovo={() => void mapa.refetch()} />

@@ -9,7 +9,7 @@ import {
   Plus,
   Ticket,
   UserRound,
-  WifiOff,
+  UsersRound,
 } from 'lucide-react'
 import { useState } from 'react'
 import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
@@ -20,7 +20,7 @@ import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EsqueletoDeLista } from '@/components/EsqueletoDeLista'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
@@ -35,40 +35,35 @@ import { useOrdenacao } from '@/hooks/useOrdenacao'
 import { useResumoDosConvites } from '@/hooks/useResumoDosConvites'
 import { useSessao } from '@/hooks/useSessao'
 import { contemBusca } from '@/lib/busca'
-import { formatarData, formatarDataHora, formatarHorario } from '@/lib/formato'
+import { formatarData, formatarDataHora } from '@/lib/formato'
 import { avisarErro, ErroDeRede, ehErroDaApi } from '@/lib/http/erros'
 import { ehOpcao } from '@/lib/opcao'
 import { ordenarPor } from '@/lib/ordenar'
 import { DialogoDoConvidado } from '../components/DialogoDoConvidado'
 import { DetalheDoConvite } from '../components/DetalheDoConvite'
 import { DialogoDaValidacao } from '../components/DialogoDaValidacao'
+import { AvisosSemRede } from '../components/AvisosSemRede'
 import { ListaDaPortaria } from '../components/ListaDaPortaria'
+import { CHAVES_DA_PORTARIA } from '../lib/ordemDaPortaria'
+import { PessoasNaPortaria } from '../components/PessoasNaPortaria'
 import {
   useBaixarListaDaPortaria,
   useEmitirPendentes,
   usePortaria,
   useReemitirConvite,
-  useSincronizarEntradas,
   useValidarEntrada,
 } from '../hooks/useConvitesDaFesta'
 import { useEntradasSemRede } from '../hooks/useEntradasSemRede'
 import { type ResultadoDaValidacao as Resultado, resultadoDaValidacao } from '../lib/resultadoDaValidacao'
 import {
   type ConviteNaPortaria,
+  type ListaDaPortaria as ListaDaPortariaDados,
   type MeuConvite,
   ROTULOS_DE_SITUACAO,
   ROTULOS_DO_EVENTO,
   type SituacaoNaPortaria,
   type TipoDoEventoDoConvite,
 } from '../types/convites.types'
-
-/**
- * O que cada coluna do painel de ordenação compara. Sem escolha vale a ordem da API — o sequencial.
- */
-const CHAVES: Record<string, (convite: ConviteNaPortaria) => string> = {
-  nome: (convite) => convite.nome_do_convidado ?? '',
-  codigo: (convite) => convite.codigo,
-}
 
 /**
  * A portaria da festa: a lista e a contagem (P4).
@@ -104,7 +99,6 @@ export default function PortariaPage() {
   const reemitir = useReemitirConvite()
   const emitirPendentes = useEmitirPendentes()
   const baixarLista = useBaixarListaDaPortaria()
-  const sincronizar = useSincronizarEntradas()
   const semRede = useEntradasSemRede()
   const aparelho = `${usuario?.nome ?? 'Portaria'} · ${navigator.platform || 'celular'}`
 
@@ -145,15 +139,12 @@ export default function PortariaPage() {
     </>
   )
 
+  // O esqueleto tem a forma da tela pronta: os números, a barra com Festa/Colação no mesmo lugar, a lista e
+  // a lateral — nada pula quando a resposta chega.
   if (lista.isPending)
     return (
       <>
-        <nav aria-label="Evento da portaria" className="flex flex-wrap gap-2">
-          {seletorDeEvento}
-        </nav>
-        <EsqueletoDeCartao>
-          <EsqueletoDeTexto linhas={6} />
-        </EsqueletoDeCartao>
+        <EsqueletoDeLista indicadores={indicadoresDa(null)} principal={seletorDeEvento} />
       </>
     )
 
@@ -203,7 +194,7 @@ export default function PortariaPage() {
         (situacao === null || c.situacao === situacao) &&
         (!busca || contemBusca(busca, c.nome_do_convidado, c.convidado_de, c.codigo)),
     ),
-    CHAVES,
+    CHAVES_DA_PORTARIA,
     ordenacao.por,
     ordenacao.descendente,
   )
@@ -225,15 +216,7 @@ export default function PortariaPage() {
 
   return (
     <>
-      <FaixaDeIndicadores
-        rotulo="Contagem da portaria"
-        indicadores={[
-          { rotulo: 'Entraram', valor: lista.data.validados, icone: CircleCheck },
-          { rotulo: 'Convites válidos', valor: lista.data.total, icone: Ticket },
-          { rotulo: 'Faltam entrar', valor: lista.data.total - lista.data.validados, icone: DoorOpen },
-          { rotulo: 'Sem nome ou documento', valor: lista.data.sem_titular, icone: UserRound },
-        ]}
-      />
+      <FaixaDeIndicadores rotulo="Contagem da portaria" indicadores={indicadoresDa(lista.data)} />
 
       <AtalhosDaPagina
         atalhos={[
@@ -247,6 +230,15 @@ export default function PortariaPage() {
             },
           },
           {
+            titulo: 'Pessoas na portaria',
+            icone: UsersRound,
+            dialogo: {
+              titulo: 'Pessoas na portaria',
+              descricao: 'Quem fica na porta sem ser da comissão.',
+              conteudo: <PessoasNaPortaria eventoId={evento.id} />,
+            },
+          },
+          {
             titulo: 'Exportar PDF',
             icone: Download,
             aoAcionar: () => baixarLista.mutate(tipo, { onError: avisarErro }),
@@ -255,47 +247,12 @@ export default function PortariaPage() {
         ]}
       />
 
-      {offline ? (
-        <p
-          role="alert"
-          className="bg-warning-bg text-warning-text flex items-start gap-2 rounded-xl p-4 text-sm"
-        >
-          <WifiOff className="mt-0.5 size-4 shrink-0" aria-hidden />
-          Sem internet. A lista é de {formatarHorario(lista.data.gerada_em)} — um convite revogado depois
-          disso ainda aparece válido aqui. Confira nome e documento e registre a entrada no celular.
-        </p>
-      ) : null}
-
-      {semRede.entradas.length > 0 ? (
-        <div className="bg-warning-bg text-warning-text flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 text-sm">
-          <span>
-            {semRede.entradas.length} entrada{semRede.entradas.length === 1 ? '' : 's'} registrada
-            {semRede.entradas.length === 1 ? '' : 's'} neste celular, aguardando internet.
-          </span>
-          <Button
-            size="sm"
-            disabled={sincronizar.isPending}
-            onClick={() =>
-              sincronizar.mutate(semRede.entradas, {
-                onSuccess: (r) => {
-                  semRede.limpar()
-                  toast.success(
-                    `${r.validadas} entrada${r.validadas === 1 ? '' : 's'} registrada${r.validadas === 1 ? '' : 's'}` +
-                      (r.repetidas
-                        ? `, ${r.repetidas} já tinha${r.repetidas === 1 ? '' : 'm'} entrado`
-                        : '') +
-                      (r.recusadas ? `, ${r.recusadas} recusada${r.recusadas === 1 ? '' : 's'}` : '') +
-                      '.',
-                  )
-                },
-                onError: avisarErro,
-              })
-            }
-          >
-            {sincronizar.isPending ? 'Sincronizando…' : 'Sincronizar'}
-          </Button>
-        </div>
-      ) : null}
+      <AvisosSemRede
+        offline={offline}
+        geradaEm={lista.data.gerada_em}
+        entradas={semRede.entradas}
+        aoSincronizar={semRede.limpar}
+      />
 
       <FiltrosDaPlanilha
         principal={seletorDeEvento}
@@ -386,10 +343,15 @@ export default function PortariaPage() {
           aoEditar={(convite) => definirEditando({ convite: paraEdicao(convite) })}
           aoReemitir={definirReemitindo}
           aoMudarPagina={(numero) => atualizar({ pagina: String(numero) })}
+          ordenacao={ordenacao}
         />
 
         <div className="hidden min-w-0 content-start gap-5 lg:grid">
           <Cartao titulo={evento.titulo}>{dadosDoEvento}</Cartao>
+
+          <Cartao titulo="Pessoas na portaria">
+            <PessoasNaPortaria eventoId={evento.id} />
+          </Cartao>
 
           {/* Sem ícone no título: é a regra dos cartões laterais das telas de formatura e adesão. */}
           <Cartao
@@ -445,6 +407,16 @@ export default function PortariaPage() {
       />
     </>
   )
+}
+
+/** Os números do topo; sem a lista, os mesmos rótulos com o valor por chegar. */
+function indicadoresDa(lista: ListaDaPortariaDados | null) {
+  return [
+    { rotulo: 'Entraram', valor: lista?.validados ?? null, icone: CircleCheck },
+    { rotulo: 'Convites válidos', valor: lista?.total ?? null, icone: Ticket },
+    { rotulo: 'Faltam entrar', valor: lista ? lista.total - lista.validados : null, icone: DoorOpen },
+    { rotulo: 'Sem nome ou documento', valor: lista?.sem_titular ?? null, icone: UserRound },
+  ]
 }
 
 /** O convite da portaria no formato do diálogo de edição — o documento vem mascarado, e fica se não for redigitado. */

@@ -15,7 +15,7 @@ const LEITURAS_DO_DESLIGADO: readonly string[] = [ROTAS.extrato, ROTAS.recibos, 
  *
  * O destino pretendido vai no `state` para a seleção devolver o usuário ao lugar certo.
  *
- * Quem é da Kapa (`Administrador`) sem turma na sessão vai para o painel (Sprint 44, E1): é perfil de plataforma,
+ * Quem é do Kapa (`Administrador`) sem turma na sessão vai para o painel (Sprint 44, E1): é perfil de plataforma,
  * e a tela de "você ainda não está em uma formatura" não é a porta dele. É por aqui que o login o leva ao painel —
  * o destino padrão do login é o Início, que mora neste ramo.
  *

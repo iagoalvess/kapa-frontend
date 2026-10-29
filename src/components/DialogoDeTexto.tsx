@@ -7,6 +7,7 @@ import { AcoesDoFormulario } from '@/components/AcoesDoFormulario'
 import { DialogoDeFormulario } from '@/components/DialogoDeFormulario'
 import { ErroDoFormulario } from '@/components/ErroDoFormulario'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { exibirErroNoFormulario } from '@/lib/http/formulario'
 import type { LucideIcon } from 'lucide-react'
@@ -18,11 +19,15 @@ interface Props<Campo extends string> {
   gatilho: string
   /** Na linha da planilha, o gatilho vira ícone com tooltip — com o mesmo nome do botão. */
   gatilhoIcone?: { icone: LucideIcon; tom?: TomDaAcao }
+  /** A ação principal de um cartão: botão cheio, com ícone, no lugar do contornado pequeno. */
+  gatilhoPrincipal?: LucideIcon
   titulo: string
   descricao: ReactNode
   /** O campo do texto, como o esquema o chama: `motivo`, `justificativa`. */
   campo: Campo
   rotulo: string
+  /** Texto curto, de uma linha — um nome. Ausente, a caixa de três linhas de um motivo. */
+  linhaUnica?: boolean
   esquema: Esquema<Campo>
   /** O botão de confirmar — um verbo só, como "Recusar" ou "Estornar". */
   confirmar: string
@@ -43,10 +48,12 @@ interface Props<Campo extends string> {
 export function DialogoDeTexto<Campo extends string>({
   gatilho,
   gatilhoIcone,
+  gatilhoPrincipal: IconeDoGatilho,
   titulo,
   descricao,
   campo,
   rotulo,
+  linhaUnica = false,
   esquema,
   confirmar,
   confirmarOcupado,
@@ -86,14 +93,15 @@ export function DialogoDeTexto<Campo extends string>({
         />
       ) : (
         <Button
-          variant="outline"
-          size="sm"
+          variant={IconeDoGatilho ? 'default' : 'outline'}
+          size={IconeDoGatilho ? 'default' : 'sm'}
           disabled={desabilitado}
           onClick={() => {
             formulario.reset()
             definirAberto(true)
           }}
         >
+          {IconeDoGatilho ? <IconeDoGatilho aria-hidden /> : null}
           {gatilho}
         </Button>
       )}
@@ -112,11 +120,15 @@ export function DialogoDeTexto<Campo extends string>({
                 <FormItem>
                   <FormLabel>{rotulo}</FormLabel>
                   <FormControl>
-                    <textarea
-                      {...field}
-                      rows={3}
-                      className="border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
-                    />
+                    {linhaUnica ? (
+                      <Input {...field} />
+                    ) : (
+                      <textarea
+                        {...field}
+                        rows={3}
+                        className="border-input placeholder:text-texto-muted focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                      />
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>

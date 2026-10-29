@@ -21,7 +21,7 @@ export const MENU_DO_PAINEL: readonly DestinoDoPainel[] = [
 ]
 
 /**
- * A moldura está no painel do Kapa: quem é da Kapa, sem turma na sessão. É o que troca o menu das turmas pelo do
+ * A moldura está no painel do Kapa: quem é do Kapa, sem turma na sessão. É o que troca o menu das turmas pelo do
  * painel — o administrador não vê a gestão das turmas (D4).
  *
  * @returns Verdadeiro para o `Administrador` sem formatura selecionada.

@@ -76,6 +76,7 @@ describe('PortariaPage', () => {
     entrarComo('Comissao')
     servidor.use(
       http.get(`${API}/api/v1/festa/portaria`, () => HttpResponse.json(lista)),
+      http.get(`${API}/api/v1/festa/portaria/acessos`, () => HttpResponse.json([])),
       http.get(`${API}/api/v1/festa/convites/resumo`, () =>
         HttpResponse.json({
           evento: null,

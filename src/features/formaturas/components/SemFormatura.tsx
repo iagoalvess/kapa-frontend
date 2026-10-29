@@ -40,7 +40,7 @@ function Caminho({
  *
  * São pessoas diferentes chegando na mesma tela, e elas precisam de respostas opostas: a comissão
  * cria a turma e o formando entra pelo convite. Uma frase só — "peça um convite" — manda o presidente
- * da comissão esperar por um convite que ninguém vai mandar. Quem é da Kapa nem passa por aqui: vai
+ * da comissão esperar por um convite que ninguém vai mandar. Quem é do Kapa nem passa por aqui: vai
  * direto ao painel (Sprint 44, E1).
  *
  * O campo de convite existe desde já: sem ele, o formando que se cadastra antes de clicar no link

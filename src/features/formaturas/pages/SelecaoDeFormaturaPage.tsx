@@ -31,7 +31,7 @@ export default function SelecaoDeFormaturaPage() {
   const escolher = (id: string) =>
     selecionar.mutate(id, { onSuccess: () => navegar(destino, { replace: true }) })
 
-  // Quem é da Kapa sem turma não é "conta sem formatura": a porta dele é o painel (Sprint 44, E1).
+  // Quem é do Kapa sem turma não é "conta sem formatura": a porta dele é o painel (Sprint 44, E1).
   if (formaturas.data?.length === 0)
     return ehDaKapa ? <Navigate to={ROTAS.painelVisaoGeral} replace /> : <SemFormatura />
 

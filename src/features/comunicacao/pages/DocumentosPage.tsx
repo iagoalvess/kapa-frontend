@@ -224,7 +224,10 @@ export default function DocumentosPage() {
         }}
       />
 
-      {documentos.isPending ? <EsqueletoDeCartoes altura="h-64" /> : null}
+      {/* Uma coluna por categoria, como o quadro que vem (cinco no computador). */}
+      {documentos.isPending ? (
+        <EsqueletoDeCartoes quantidade={5} altura="h-64" className="md:grid-cols-3 xl:grid-cols-5" />
+      ) : null}
       {documentos.isError ? (
         <ErroDaConsulta erro={documentos.error} aoTentarDeNovo={() => void documentos.refetch()} />
       ) : null}

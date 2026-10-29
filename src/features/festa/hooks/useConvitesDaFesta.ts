@@ -3,7 +3,12 @@ import { chavesDosConvites } from '@/hooks/useResumoDosConvites'
 import { baixarArquivo } from '@/lib/download'
 import {
   baixarConviteEmPdf,
+  ativarAcessoDaPortaria,
   baixarListaDaPortaria,
+  buscarAcessosDaPortaria,
+  cortarAcessoDaPortaria,
+  gerarNovoLinkDaPortaria,
+  liberarAcessoDaPortaria,
   buscarConvitePublico,
   buscarMeusConvites,
   buscarPortaria,
@@ -140,4 +145,46 @@ export function useBaixarListaDaPortaria() {
     mutationFn: async (tipo: TipoDoEventoDoConvite) =>
       baixarArquivo(await baixarListaDaPortaria(tipo), 'lista-da-portaria.pdf'),
   })
+}
+
+const chaveDosAcessos = (eventoId: string) => ['convites-da-festa', 'acessos', eventoId] as const
+
+/** Quem a Gestão liberou para a portaria do evento. */
+export function useAcessosDaPortaria(eventoId: string) {
+  return useQuery({
+    queryKey: chaveDosAcessos(eventoId),
+    queryFn: ({ signal }) => buscarAcessosDaPortaria(eventoId, signal),
+  })
+}
+
+/** Liberar, gerar outro link e cortar: as três mudam a lista de acessos. */
+function useEscritaDeAcesso<T, R>(escrever: (variaveis: T) => Promise<R>) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: escrever,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['convites-da-festa', 'acessos'] })
+    },
+  })
+}
+
+/** Libera uma pessoa para a portaria. */
+export function useLiberarAcessoDaPortaria() {
+  return useEscritaDeAcesso(liberarAcessoDaPortaria)
+}
+
+/** Corta o acesso e gera outro link. */
+export function useNovoLinkDaPortaria() {
+  return useEscritaDeAcesso(gerarNovoLinkDaPortaria)
+}
+
+/** Corta o acesso. */
+export function useCortarAcessoDaPortaria() {
+  return useEscritaDeAcesso(cortarAcessoDaPortaria)
+}
+
+/** Abre o link no celular de quem fica na porta. */
+export function useAtivarAcessoDaPortaria() {
+  return useMutation({ mutationFn: ativarAcessoDaPortaria })
 }

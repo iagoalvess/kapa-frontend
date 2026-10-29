@@ -93,6 +93,8 @@ export default function AgendaPage() {
   const excluir = useExcluirEvento()
 
   const todos = agenda.data ?? []
+  // Enquanto a lista não chega, o chip fica sem número: um "0" ali é uma contagem falsa, e pula ao chegar.
+  const contar = (quantos: number) => (agenda.data ? quantos : undefined)
   const tipoNaUrl = parametros.get('tipo')
   const tipo = ehTipo(tipoNaUrl) ? tipoNaUrl : null
   const situacaoNaUrl = parametros.get('situacao')
@@ -168,7 +170,12 @@ export default function AgendaPage() {
       <FiltrosDaPlanilha
         principal={
           <>
-            <Chip tom="claro" ativo={!tipo} contagem={todos.length} onClick={() => atualizar({ tipo: null })}>
+            <Chip
+              tom="claro"
+              ativo={!tipo}
+              contagem={contar(todos.length)}
+              onClick={() => atualizar({ tipo: null })}
+            >
               Todas
             </Chip>
             {meses.length > 0 ? (
@@ -221,7 +228,7 @@ export default function AgendaPage() {
           <Chip
             key={valor}
             ativo={tipo === valor}
-            contagem={todos.filter((evento) => evento.tipo === valor).length}
+            contagem={contar(todos.filter((evento) => evento.tipo === valor).length)}
             onClick={() => atualizar({ tipo: tipo === valor ? null : valor })}
           >
             {ROTULOS_DE_TIPO[valor]}
@@ -241,7 +248,7 @@ export default function AgendaPage() {
                   <Chip
                     key={valor}
                     ativo={situacao === valor}
-                    contagem={todos.filter((evento) => evento.situacao === valor).length}
+                    contagem={contar(todos.filter((evento) => evento.situacao === valor).length)}
                     onClick={() => atualizar({ situacao: situacao === valor ? null : valor })}
                   >
                     {ROTULOS_DE_SITUACAO[valor]}
@@ -282,7 +289,9 @@ export default function AgendaPage() {
             </ul>
           ) : null
         }
-        contagem={{ mostrando: visiveis.length, total: todos.length, unidade: 'datas' }}
+        contagem={
+          agenda.data ? { mostrando: visiveis.length, total: todos.length, unidade: 'datas' } : undefined
+        }
       />
 
       {agenda.isPending ? <EsqueletoDeQuadro /> : null}

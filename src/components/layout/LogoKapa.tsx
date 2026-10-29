@@ -1,5 +1,5 @@
 /**
- * Logo da Kapa: capelo + wordmark.
+ * Logo do Kapa: capelo + wordmark.
  *
  * Usa `fill="currentColor"` em vez de cor fixa para herdar a cor de quem a contém — cabeçalho
  * claro, rodapé escuro, corpo de e-mail. O capelo é a exceção: sai sempre em `--brand`. Sobre

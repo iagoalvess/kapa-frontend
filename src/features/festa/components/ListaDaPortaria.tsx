@@ -3,7 +3,7 @@ import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao } from '@/components/Cartao'
 import { LinhaSelecionavel } from '@/components/LinhaSelecionavel'
 import { Paginacao } from '@/components/Paginacao'
-import { Tabela } from '@/components/Planilha'
+import { ColunaOrdenavel, type Ordenacao, Tabela } from '@/components/Planilha'
 import { Selo } from '@/components/Selo'
 import { paginar } from '@/lib/paginar'
 import { cn } from '@/lib/utils'
@@ -32,6 +32,8 @@ interface Props {
   aoEditar: (convite: ConviteNaPortaria) => void
   aoReemitir: (convite: ConviteNaPortaria) => void
   aoMudarPagina: (pagina: number) => void
+  /** Clique em "Convidado" ou "Convite" ordena a lista, como nas planilhas da gestão. */
+  ordenacao?: Ordenacao
 }
 
 /**
@@ -58,6 +60,7 @@ export function ListaDaPortaria({
   aoEditar,
   aoReemitir,
   aoMudarPagina,
+  ordenacao,
 }: Props) {
   // A lista vem inteira de propósito — é ela que a porta usa sem internet (decisão 16); a tela só desenha uma página.
   const pagina = paginar(visiveis, paginaNaUrl, CONVIDADOS_POR_PAGINA)
@@ -82,10 +85,11 @@ export function ListaDaPortaria({
           <Tabela
             emLista
             legenda="Lista de convidados"
+            ordenacao={ordenacao}
             cabecalho={
               <>
-                <th className="py-3 pr-4 font-normal">Convidado</th>
-                <th className="py-3 pr-4 font-normal">Convite</th>
+                <ColunaOrdenavel coluna="nome">Convidado</ColunaOrdenavel>
+                <ColunaOrdenavel coluna="codigo">Convite</ColunaOrdenavel>
                 <th className="py-3 pr-4 font-normal">Documento</th>
                 <th className="py-3 pr-4 font-normal">Situação</th>
                 <th className="py-3 font-normal">

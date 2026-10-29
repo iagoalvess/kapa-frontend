@@ -94,6 +94,12 @@ export const router = createBrowserRouter([
         path: `${ROTAS.ingresso}/:token`,
         lazy: pagina(() => import('@/features/festa/pages/ConvitePublicoPage')),
       },
+      // Público: a portaria no celular de quem fica na porta sem ser da turma — o link libera, e a
+      // credencial fica neste navegador (15/10/2026).
+      {
+        path: `${ROTAS.acessoDaPortaria}/:token?`,
+        lazy: pagina(() => import('@/features/festa/pages/PortariaDoAcessoPage')),
+      },
       // Públicas: a loja da turma e a compra pelo link — quem compra não tem conta (Sprint 26, decisão 10).
       {
         path: `${ROTAS.loja}/:formaturaId`,
@@ -146,7 +152,7 @@ export const router = createBrowserRouter([
               {
                 Component: LayoutApp,
                 children: [
-                  // O painel do Kapa (Sprint 44), também fora de `ExigeFormatura`: quem é da Kapa tem
+                  // O painel do Kapa (Sprint 44), também fora de `ExigeFormatura`: quem é do Kapa tem
                   // perfil de plataforma e não é membro de turma nenhuma — exigir uma formatura
                   // selecionada trancaria o painel para a única pessoa que precisa dele. O menu é o do
                   // painel (`BarraLateral`), e o das turmas não aparece (D4).

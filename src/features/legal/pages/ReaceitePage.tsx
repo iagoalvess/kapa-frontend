@@ -58,7 +58,7 @@ function FormularioDeReaceite({ pendencias }: { pendencias: AceitePendente[] }) 
     <>
       <h1 className={estilos.titulo}>Atualizamos nossos documentos</h1>
       <p className={estilos.subtitulo}>
-        Para continuar usando a Kapa, leia e aceite a versão nova. Seus dados e sua formatura continuam como
+        Para continuar usando o Kapa, leia e aceite a versão nova. Seus dados e sua formatura continuam como
         estão.
       </p>
 

@@ -24,7 +24,7 @@ export function SeloDaSituacao({
 }) {
   return (
     <Selo tom={marcadoSemRede ? 'sucesso' : TOM_DA_SITUACAO[situacao]}>
-      {marcadoSemRede ? 'Entrou (no celular)' : ROTULOS_DE_SITUACAO[situacao]}
+      {marcadoSemRede ? 'Entrou, sem rede' : ROTULOS_DE_SITUACAO[situacao]}
     </Selo>
   )
 }

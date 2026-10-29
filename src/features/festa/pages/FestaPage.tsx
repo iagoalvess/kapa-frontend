@@ -106,6 +106,8 @@ export default function FestaPage() {
   const estado = ehEstado(estadoNaUrl) ? estadoNaUrl : null
   const ordenacao = useOrdenacao(atualizar)
   const todos = itens.data ?? []
+  // Enquanto a lista não chega, o chip fica sem número: um "0" ali é uma contagem falsa, e pula ao chegar.
+  const contar = (quantos: number) => (itens.data ? quantos : undefined)
   const visiveis = ordenarPor(filtrar(todos, estado, busca), CHAVES, ordenacao.por, ordenacao.descendente)
 
   // Sem id na rota, o primeiro da lista é o que abre — a direita nunca fica vazia.
@@ -198,7 +200,7 @@ export default function FestaPage() {
             <Chip
               tom="claro"
               ativo={!estado}
-              contagem={todos.length}
+              contagem={contar(todos.length)}
               onClick={() => atualizar({ estado: null })}
             >
               Todos
@@ -209,7 +211,7 @@ export default function FestaPage() {
             <Chip
               key={valor}
               ativo={estado === valor}
-              contagem={todos.filter((item) => item.estado === valor).length}
+              contagem={contar(todos.filter((item) => item.estado === valor).length)}
               onClick={() => atualizar({ estado: estado === valor ? null : valor })}
             >
               {ROTULOS_DE_ESTADO[valor]}
@@ -235,7 +237,9 @@ export default function FestaPage() {
               </Button>
             ) : null
           }
-          contagem={{ mostrando: visiveis.length, total: todos.length, unidade: 'itens' }}
+          contagem={
+            itens.data ? { mostrando: visiveis.length, total: todos.length, unidade: 'itens' } : undefined
+          }
         />
       </div>
 

@@ -6,6 +6,7 @@ import { DialogoDeTexto } from '@/components/DialogoDeTexto'
 import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Chip } from '@/components/Chip'
+import { Cartao } from '@/components/Cartao'
 import { EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FiltroDeOrdenacao } from '@/components/FiltroDeOrdenacao'
@@ -116,7 +117,12 @@ export function VitrineDeItens({ aoPedir }: { aoPedir?: (pedido: Pedido) => void
   const pedidoDe = (item: Opcional) =>
     meus.data?.find((pedido) => pedido.item_de_cobranca_id === item.id && pedido.status === 'Confirmado')
 
-  if (opcionais.isPending) return <EsqueletoDeTabela colunas={3} />
+  if (opcionais.isPending)
+    return (
+      <Cartao className="min-w-0 px-5 py-2">
+        <EsqueletoDeTabela colunas={3} />
+      </Cartao>
+    )
 
   if (opcionais.isError)
     return <ErroDaConsulta compacto erro={opcionais.error} aoTentarDeNovo={() => void opcionais.refetch()} />

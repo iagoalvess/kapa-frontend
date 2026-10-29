@@ -1,5 +1,7 @@
 import { api } from '@/lib/http/cliente'
+import type { CredencialDaPortaria } from '@/lib/http/credencialDaPortaria'
 import type {
+  AcessoDaPortaria,
   ConsultaNaPortaria,
   ConviteNaPortaria,
   ConvitePublico,
@@ -91,4 +93,31 @@ export function desfazerEntrada(checkInId: string) {
 /** Sobe as entradas registradas no celular sem internet (decisão 16). */
 export function sincronizarEntradas(entradas: EntradaSemRede[]) {
   return api.post<ResultadoDaSincronizacao>('/api/v1/festa/check-ins/sincronizar', { body: { entradas } })
+}
+
+const ACESSOS = `${PORTARIA}/acessos`
+
+/** Quem a Gestão liberou para a portaria do evento. */
+export function buscarAcessosDaPortaria(eventoId: string, signal?: AbortSignal) {
+  return api.get<AcessoDaPortaria[]>(ACESSOS, { signal, query: { evento_id: eventoId } })
+}
+
+/** Libera uma pessoa para a portaria: devolve o acesso com o segredo do link. */
+export function liberarAcessoDaPortaria(dados: { evento_id: string; nome: string }) {
+  return api.post<AcessoDaPortaria>(ACESSOS, { body: dados })
+}
+
+/** Corta o acesso e gera outro link para a mesma pessoa. */
+export function gerarNovoLinkDaPortaria(id: string) {
+  return api.post<AcessoDaPortaria>(`${ACESSOS}/${id}/novo-link`)
+}
+
+/** Corta o acesso: o celular para de validar na hora. */
+export function cortarAcessoDaPortaria(id: string) {
+  return api.delete<void>(`${ACESSOS}/${id}`)
+}
+
+/** Abre o link no celular de quem fica na porta. Anônimo: o link é a prova. */
+export function ativarAcessoDaPortaria(token: string) {
+  return api.post<CredencialDaPortaria>(`${ACESSOS}/ativar`, { body: { token }, autenticar: false })
 }

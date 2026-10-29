@@ -1,10 +1,14 @@
-import { screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
+import { createMemoryRouter } from 'react-router'
+import { RouterProvider } from 'react-router/dom'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS } from '@/config/perfis'
 import { MODULOS } from '@/config/planos'
 import { ROTAS } from '@/config/rotas'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { PLANO_COMPLETO, PLANO_GRATUITO, entrarComo, renderizar } from '@/test/utils'
@@ -23,6 +27,12 @@ const catalogo = [
     modulos: [MODULOS.festa, MODULOS.mural],
   },
 ]
+
+/** Uma tela de dentro do guarda que também lê o plano, como o mural. */
+function Tela() {
+  usePlanoDaTurma()
+  return <p>tela do mural</p>
+}
 
 describe('ExigeModulo', () => {
   beforeEach(() => servidor.use(http.get(PLANOS, () => HttpResponse.json(catalogo))))
@@ -56,5 +66,33 @@ describe('ExigeModulo', () => {
     renderizar(<ExigeModulo modulo={MODULOS.mural} />, '/', '*', PLANO_COMPLETO)
 
     expect(screen.queryByRole('heading', { name: /Mural/ })).not.toBeInTheDocument()
+  })
+  /**
+   * No React Query 5, refazer a leitura que falhou volta a `pending`. Se o guarda tratasse isso como "carregando",
+   * a tela de dentro desmontava, remontava, pedia o plano de novo — e com a API em 429, era um laço sem fim.
+   */
+  it('com a leitura do plano falhando, não entra em laço de requisições', async () => {
+    let chamadas = 0
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/plano`, () => {
+        chamadas++
+        return HttpResponse.json({ status: 429, codigo: 'limite.excedido' }, { status: 429 })
+      }),
+    )
+    entrarComo(PAPEIS.presidente)
+
+    const router = createMemoryRouter(
+      [{ element: <ExigeModulo modulo={MODULOS.mural} />, children: [{ path: '/', element: <Tela /> }] }],
+      { initialEntries: ['/'] },
+    )
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText('tela do mural')).toBeInTheDocument()
+    await new Promise((fim) => setTimeout(fim, 500))
+    expect(chamadas).toBeLessThanOrEqual(2)
   })
 })

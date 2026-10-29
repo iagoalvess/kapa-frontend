@@ -36,7 +36,7 @@ export function LayoutApp() {
   const titulo = useTituloDaRota()
   const noPainel = useNoPainel()
   const telaGrande = useTelaGrande()
-  const muralForaDoPlano = usePlanoDaTurma().bloqueia(MODULOS.mural)
+  const muralNoPlano = usePlanoDaTurma().inclui(MODULOS.mural)
   // Antes da adesão o mural responde 403 (Sprint 47, D18): o sino só aparece para quem já pode lê-lo.
   const adesao = useAdesaoObrigatoria()
   const adesaoPendente = adesao.carregando || adesao.pendente
@@ -117,7 +117,7 @@ export function LayoutApp() {
             {selecionada && telaGrande ? <BuscaGlobal /> : null}
             {/* O sino é do mural, e por isso só existe com uma turma na sessão — e com o mural no plano.
                 Quem foi desligado não lê mais o mural: a consulta daria 403 a cada minuto. */}
-            {selecionada && !desligadoEm && !muralForaDoPlano && !adesaoPendente ? <SinoDeNovidades /> : null}
+            {selecionada && !desligadoEm && muralNoPlano && !adesaoPendente ? <SinoDeNovidades /> : null}
             {/* O avatar abre o que é da conta — cadastro, suporte, papel, plano e "Sair" —, e é
                 por isso que nada disso ocupa linha no menu da esquerda, que é o menu da turma. */}
             {usuario ? (

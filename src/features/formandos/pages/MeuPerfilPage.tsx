@@ -1,6 +1,6 @@
 import { Cartao } from '@/components/Cartao'
 import type { ReactNode } from 'react'
-import { EsqueletoDeCartao, EsqueletoDeDados } from '@/components/Esqueleto'
+import { Esqueleto, EsqueletoDeCartao, EsqueletoDeDados, EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { ROTULOS_DE_PAPEL } from '@/config/perfis'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
@@ -27,9 +27,20 @@ export default function MeuPerfilPage({ acoes }: { acoes?: ReactNode }) {
   if (perfil.isPending)
     return (
       <>
-        <EsqueletoDeCartao />
+        <div className="bg-card shadow-cartao grid gap-4 rounded-3xl p-5">
+          <div className="flex items-center justify-between gap-4">
+            <Esqueleto className="size-16 rounded-full" />
+            <EsqueletoDeTexto linhas={3} className="w-48" />
+          </div>
+          <Esqueleto className="h-2 w-full rounded-full" />
+          <Esqueleto className="h-9 w-36 rounded-full" />
+        </div>
+        {/* Os dois cartões do cadastro — dados pessoais e contato de emergência —, com a forma deles. */}
         <EsqueletoDeCartao>
-          <EsqueletoDeDados linhas={6} />
+          <EsqueletoDeDados linhas={3} />
+        </EsqueletoDeCartao>
+        <EsqueletoDeCartao>
+          <EsqueletoDeDados linhas={3} />
         </EsqueletoDeCartao>
       </>
     )

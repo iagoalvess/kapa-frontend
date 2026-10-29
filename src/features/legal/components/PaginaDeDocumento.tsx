@@ -1,5 +1,4 @@
 import { useParams } from 'react-router'
-import mascoteLendo from '@/assets/mascote/lendo-documento.webp'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LayoutDePaginaPublica } from '@/components/layout/LayoutDePaginaPublica'
@@ -29,14 +28,11 @@ export function PaginaDeDocumento({ tipo }: { tipo: TipoDeDocumento }) {
 
       {documento ? (
         <div className="motion-safe:animate-entrar">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <p className="text-muted-foreground text-xs">
-              {DOCUMENTOS[tipo].rotulo} · versão {documento.versao} · vigente desde{' '}
-              {formatarData(documento.vigente_desde)}
-            </p>
-            <img src={mascoteLendo} alt="" className="w-20 shrink-0 drop-shadow-md" />
-          </div>
           <TextoEmMarkdown conteudo={documento.conteudo} />
+          <p className="text-muted-foreground border-border mt-8 border-t pt-4 text-xs">
+            {DOCUMENTOS[tipo].rotulo} · versão {documento.versao} · vigente desde{' '}
+            {formatarData(documento.vigente_desde)}
+          </p>
         </div>
       ) : null}
     </LayoutDePaginaPublica>

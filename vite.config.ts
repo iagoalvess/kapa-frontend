@@ -86,7 +86,10 @@ export default defineConfig(({ mode }) => {
       ...(site ? { rolldownOptions: { input: 'site.html' } } : {}),
       // Aviso a partir de 600 kB por chunk. Subir o teto em vez de investigar é como o bundle cresce.
       chunkSizeWarningLimit: 600,
-      sourcemap: true,
+      // Source map público entrega o código-fonte inteiro no Cloudflare Pages: o .map é servido
+      // ao lado do .js e qualquer visitante o baixa. Se um dia houver error tracker, suba o mapa
+      // para ele e use "hidden" em vez de publicá-lo.
+      sourcemap: false,
       // Fonte nunca vira `data:`: a CSP (`borda/_headers`) tem `font-src 'self'`, e o woff2 pequeno que o Vite
       // embutiria no CSS era bloqueado em produção. O resto segue o limite padrão (imagem em `data:`
       // a CSP libera).

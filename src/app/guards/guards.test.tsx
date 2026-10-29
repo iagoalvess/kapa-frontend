@@ -99,9 +99,12 @@ function LoginComDestino() {
 function BotaoDeSair() {
   const sair = useSair()
   return (
-    <button type="button" onClick={() => sair.mutate()}>
-      Sair
-    </button>
+    <>
+      <button type="button" onClick={() => sair.mutate()}>
+        Sair
+      </button>
+      {sair.isError && <p>não saiu</p>}
+    </>
   )
 }
 
@@ -215,6 +218,31 @@ describe('Sair', () => {
     expect(await screen.findByText('destino: nenhum')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(ROTAS.login)
   })
+
+  /** Sem resposta da API o cookie continua valendo: sair só local seria um "saí" falso no computador compartilhado. */
+  it('não sai local quando a API não respondeu', async () => {
+    servidor.use(http.post(`${env.VITE_API_URL}/api/v1/auth/logout`, () => HttpResponse.error()))
+    entrar([PERFIS.usuario])
+
+    const router = createMemoryRouter(
+      [
+        { element: <ExigeAutenticacao />, children: [{ path: ROTAS.meuCadastro, element: <BotaoDeSair /> }] },
+        { path: ROTAS.login, element: <p>tela de login</p> },
+      ],
+      { initialEntries: [ROTAS.meuCadastro] },
+    )
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sair' }))
+
+    expect(await screen.findByText('não saiu')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(ROTAS.meuCadastro)
+    expect(sessao.accessToken()).not.toBeNull()
+  })
 })
 
 describe('ExigePerfil', () => {
@@ -264,7 +292,7 @@ describe('ExigeFormatura', () => {
   })
 
   /**
-   * Sprint 44 (E1, D4): quem é da Kapa não entra em rota de turma e não é "conta sem formatura" — vai
+   * Sprint 44 (E1, D4): quem é do Kapa não entra em rota de turma e não é "conta sem formatura" — vai
    * para o painel. É por aqui que o login o leva para lá.
    */
   it('manda o administrador sem turma para o painel, e não para a seleção', () => {

@@ -78,7 +78,9 @@ export function BarraInferior({ aoAbrirMais }: { aoAbrirMais?: () => void }) {
 
   // Atalho é o lugar mais caro da tela: não vai para área fora do plano (Sprint 45). No lugar do mural,
   // a Gestão ganha a agenda; o formando, que já a tem, fica com um atalho a menos.
-  const muralTrancado = usePlanoDaTurma().bloqueia(MODULOS.mural)
+  // Enquanto o plano carrega, o mural espera: entrar depois é melhor que aparecer e trocar pela agenda.
+  const { inclui, carregando } = usePlanoDaTurma()
+  const muralNoPlano = inclui(MODULOS.mural)
   const agenda: Destino = { rotulo: 'Agenda', para: ROTAS.agenda, icone: CalendarDays, secao: true }
 
   const inicio: Destino = { rotulo: 'Início', para: ROTAS.inicio, icone: House }
@@ -114,11 +116,11 @@ export function BarraInferior({ aoAbrirMais }: { aoAbrirMais?: () => void }) {
                   }
                 : { rotulo: 'Parcelas', para: ROTAS.parcelas, icone: ReceiptText },
               { rotulo: 'Caixa', para: ROTAS.caixa, icone: PiggyBank },
-              muralTrancado ? agenda : mural,
+              ...(carregando ? [] : [muralNoPlano ? mural : agenda]),
             ]
-          : muralTrancado
-            ? [inicio, minhasParcelas, agenda]
-            : [inicio, minhasParcelas, mural, agenda]
+          : muralNoPlano
+            ? [inicio, minhasParcelas, mural, agenda]
+            : [inicio, minhasParcelas, agenda]
 
   const naBarra = destinos.some(
     ({ para, secao }) => pathname === para || (secao && pathname.startsWith(`${para}/`)),

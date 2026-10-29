@@ -9,12 +9,16 @@
 #   Levantado no navegador em 29/09/2026, pagando no sandbox; o PCI exige que o SDK venha do servidor deles.
 #   Cloudflare Web Analytics: o beacon (static.cloudflareinsights.com) e para onde ele manda (cloudflareinsights.com).
 #   Google (Sprint 53): SDK oficial GIS, estilos, frames e conexões somente em accounts.google.com/gsi/.
+# Permissions-Policy: nada do app usa câmera, microfone ou localização (a portaria lê o convite pelo link);
+#   liberar só no dia em que uma tela pedir. HSTS sem includeSubDomains: vale para app. e o site, um a um.
 # O HTML é revalidado pelo próprio Pages a cada visita; o cache longo é só do que tem hash no nome.
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client https://static.cloudflareinsights.com https://sdk.mercadopago.com https://http2.mlstatic.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob: https://*.mlstatic.com https://www.mercadolibre.com https://www.mercadolivre.com; font-src 'self' https://http2.mlstatic.com; connect-src 'self' %VITE_API_URL% https://accounts.google.com/gsi/ https://cloudflareinsights.com https://api.mercadopago.com https://api.mercadolibre.com https://secure-fields.mercadopago.com https://http2.mlstatic.com https://www.mercadolibre.com; frame-src https://accounts.google.com/gsi/ https://secure-fields.mercadopago.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), usb=(), browsing-topics=()
+  Strict-Transport-Security: max-age=31536000
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

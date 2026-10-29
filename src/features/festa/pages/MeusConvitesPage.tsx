@@ -18,7 +18,7 @@ import { AcaoDaLinha, AcoesDaLinha } from '@/components/AcoesDaLinha'
 import { Cartao, TextoDoCartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
 import { Chip } from '@/components/Chip'
-import { EsqueletoDeCartao, EsqueletoDeTexto } from '@/components/Esqueleto'
+import { EsqueletoDeLista } from '@/components/EsqueletoDeLista'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -125,9 +125,15 @@ export default function MeusConvitesPage() {
 
   if (festa.isPending || colacao.isPending)
     return (
-      <EsqueletoDeCartao>
-        <EsqueletoDeTexto linhas={6} />
-      </EsqueletoDeCartao>
+      <EsqueletoDeLista
+        lateral="xl"
+        indicadores={[
+          { rotulo: 'Convites', icone: Ticket },
+          { rotulo: 'Sem nome', icone: UserRound },
+          { rotulo: 'Aguardando pagamento', icone: CalendarClock },
+          { rotulo: 'A lista fecha', icone: TicketCheck },
+        ]}
+      />
     )
 
   if (festa.isError) return <ErroDaConsulta erro={festa.error} aoTentarDeNovo={() => void festa.refetch()} />

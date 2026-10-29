@@ -34,11 +34,16 @@ export function usePlanoDaTurma() {
 
   const plano = consulta.data
   const temOModulo = (modulo: Modulo) => plano?.modulos.includes(modulo) === true
+  // No React Query 5, refazer uma consulta que falhou sem dado a devolve a `pending`, sem erro. Lido cru, o
+  // estado oscilava a cada tentativa: o `ExigeModulo` trocava a tela pelo esqueleto, `inclui` desmontava o que
+  // dependia dele, o que remontava pedia de novo — e com a API em 429 eram centenas de chamadas por segundo por
+  // aba. Falhou uma vez, segue "falhou" até o plano chegar.
+  const falhou = plano === undefined && consulta.errorUpdatedAt > 0
 
   return {
     plano,
-    carregando: consulta.isPending && formaturaId !== null,
-    inclui: (modulo: Modulo) => consulta.isError || temOModulo(modulo),
+    carregando: consulta.isPending && !falhou && formaturaId !== null,
+    inclui: (modulo: Modulo) => falhou || temOModulo(modulo),
     bloqueia: (modulo: Modulo) => plano !== undefined && !temOModulo(modulo),
   }
 }
@@ -70,8 +75,9 @@ export function usePlanoQueLibera(modulo: Modulo) {
  *
  * - **A tela que abriga está no plano** → o card é o caminho; o atalho some do menu.
  * - **A tela que abriga está fora do plano** → o atalho fica no menu, que continua levando à vitrine.
- * - **Ainda não se sabe** (carregando, ou erro na leitura) → o atalho fica no menu. Perder a porta é
- *   pior que vê-la por um instante; é a mesma escolha "fail-open" de {@link usePlanoDaTurma}.
+ * - **Carregando** → o atalho espera. Mostrar e tirar em seguida é a piscada que o Premium via no menu
+ *   (15/10/2026); o que depende do plano só entra quando o plano chega.
+ * - **Erro na leitura** → o atalho fica no menu: perder a porta é pior que vê-la sobrando.
  *
  * O gate de verdade continua na API (`[ExigeModulo]`); isto é navegação.
  *
@@ -79,7 +85,7 @@ export function usePlanoQueLibera(modulo: Modulo) {
  *   atalho nunca volta ao menu.
  */
 export function useAtalhoNoMenu(moduloDaTelaQueAbriga: Modulo) {
-  const { plano } = usePlanoDaTurma()
+  const { plano, carregando } = usePlanoDaTurma()
 
-  return !plano?.modulos.includes(moduloDaTelaQueAbriga)
+  return !carregando && !plano?.modulos.includes(moduloDaTelaQueAbriga)
 }

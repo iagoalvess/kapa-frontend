@@ -149,7 +149,7 @@ describe('BarraLateral', () => {
   })
 
   /**
-   * Sprint 44 (D4, E3): quem é da Kapa vê o menu do painel, e não o das turmas. Sem nenhum handler de turma
+   * Sprint 44 (D4, E3): quem é do Kapa vê o menu do painel, e não o das turmas. Sem nenhum handler de turma
    * declarado: o MSW recusa pedido não previsto, então o teste também prova que o menu do painel não consulta
    * parcela, termo nem cadastro — que a API recusaria com 403.
    */

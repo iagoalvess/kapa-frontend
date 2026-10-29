@@ -110,3 +110,17 @@ export interface ResultadoDaSincronizacao {
   repetidas: number
   recusadas: number
 }
+
+/** Em que pé está quem a Gestão liberou para a portaria. Espelha `SituacaoDoAcesso`. */
+export type SituacaoDoAcesso = 'Aguardando' | 'Ativo'
+
+/** Uma pessoa liberada para a portaria por link, sem conta. Espelha `AcessoDaPortariaDTO`. */
+export interface AcessoDaPortaria {
+  id: string
+  nome: string
+  situacao: SituacaoDoAcesso
+  /** O segredo do link, só enquanto ninguém o abriu. */
+  token: string | null
+  ativado_em: string | null
+  criado_em: string
+}

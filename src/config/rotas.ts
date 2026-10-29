@@ -95,6 +95,9 @@ export const ROTAS = {
   // de entrar na turma: o choque de nomes que a decisão 2 da Sprint 21 resolveu. O QR e o e-mail
   // apontam aqui (`RotasDoFront.Ingresso`).
   ingresso: '/ingresso',
+  // A portaria terceirizada: quem fica na porta abre `/portaria/acesso/:token` no celular e, liberado, volta
+  // a `/portaria/acesso` para a lista (15/10/2026). Público: a pessoa não tem conta.
+  acessoDaPortaria: '/portaria/acesso',
   // Documentos legais: públicos, e com `/:versao` no fim para o link permanente de cada versão.
   // Moram no site, não no app (P3 da Sprint 33): o app aponta para eles com `urlDoSite`.
   termosDeUso: '/termos-de-uso',
@@ -129,6 +132,9 @@ export const rotaDoItemDaFesta = (id: string) => `${ROTAS.festa}/${id}`
 
 /** O convite da festa, público: `/ingresso/:token`. É a URL que vai no QR (decisão 3). */
 export const rotaDoIngresso = (token: string) => `${ROTAS.ingresso}/${token}`
+
+/** O link que a Gestão manda para quem fica na porta: `/portaria/acesso/:token`. */
+export const rotaDoAcessoDaPortaria = (token: string) => `${ROTAS.acessoDaPortaria}/${token}`
 
 /** A loja pública da turma: `/loja/:formaturaId`. É o link que a comissão divulga. */
 export const rotaDaLoja = (formaturaId: string) => `${ROTAS.loja}/${formaturaId}`

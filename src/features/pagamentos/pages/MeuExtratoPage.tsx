@@ -6,7 +6,7 @@ import { BotaoDeFiltros } from '@/components/BotaoDeFiltros'
 import { Cartao } from '@/components/Cartao'
 import { Chip } from '@/components/Chip'
 import { ROTULOS_DE_STATUS } from '@/components/ChipDeStatus'
-import { EsqueletoDeTabela } from '@/components/Esqueleto'
+import { EsqueletoDeCartoes, EsqueletoDeTabela } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FiltroDePeriodo } from '@/components/FiltroDePeriodo'
 import { FiltrosDaPlanilha } from '@/components/FiltrosDaPlanilha'
@@ -176,7 +176,7 @@ export default function MeuExtratoPage() {
           <Chip
             tom="claro"
             ativo={!situacao}
-            contagem={todas.length}
+            contagem={extrato.data ? todas.length : undefined}
             onClick={() => atualizar({ situacao: 'todas' })}
           >
             Todas
@@ -276,6 +276,10 @@ export default function MeuExtratoPage() {
         </Cartao>
 
         {extrato.data ? <LateralDoExtrato extrato={extrato.data} mostrarResumo={telaGrande} /> : null}
+        {/* A lateral também espera com forma: sem ela, a lista nascia na largura toda e encolhia ao chegar. */}
+        {extrato.isPending ? (
+          <EsqueletoDeCartoes quantidade={2} altura="h-56" className="hidden md:grid-cols-1 xl:grid" />
+        ) : null}
       </div>
     </>
   )

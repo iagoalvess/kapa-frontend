@@ -5,7 +5,7 @@ import type { ComponentType } from 'react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { Cartao } from '@/components/Cartao'
 import { CartaoDeValor } from '@/components/CartaoDeValor'
-import { EsqueletoDeCartao, EsqueletoDeTabela } from '@/components/Esqueleto'
+import { EsqueletoDeCartoes } from '@/components/Esqueleto'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { FaixaDeIndicadores } from '@/components/FaixaDeIndicadores'
 import { Button } from '@/components/ui/button'
@@ -88,10 +88,9 @@ export default function MeusPedidosPage({
         </div>
 
         <div className="grid min-w-0 gap-5 max-lg:contents">
-          {meus.isPending ? (
-            <EsqueletoDeCartao>
-              <EsqueletoDeTabela colunas={2} />
-            </EsqueletoDeCartao>
+          {/* No lugar do resumo do pagamento, que só existe na tela larga: um cartão do tamanho dele. */}
+          {meus.isPending && telaGrande ? (
+            <EsqueletoDeCartoes quantidade={1} altura="h-40" className="md:grid-cols-1" />
           ) : null}
           {meus.isError ? (
             <ErroDaConsulta erro={meus.error} aoTentarDeNovo={() => void meus.refetch()} />

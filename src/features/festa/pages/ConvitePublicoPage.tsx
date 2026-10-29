@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { PAPEIS } from '@/config/perfis'
 import { rotaDoIngresso } from '@/config/rotas'
 import { useSessao, usePapel } from '@/hooks/useSessao'
+import { credencialDaPortaria } from '@/lib/http/credencialDaPortaria'
 import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
 import { formatarData, formatarDiaDaSemana, formatarHora } from '@/lib/formato'
 import { PainelDaPortaria } from '../components/PainelDaPortaria'
@@ -22,8 +23,8 @@ import { useBaixarConvite, useConvitePublico } from '../hooks/useConvitesDaFesta
  * evento, QR, código e o nome do convidado (decisão 11). Fundo claro sempre, contraste alto e o QR
  * grande: é lido da tela de um celular por outro celular, na porta do salão.
  *
- * O QR leva a esta mesma URL (decisão 3). Quando quem abre é a Gestão da turma, a página ganha o
- * painel da portaria embaixo — a câmera nativa é o leitor, sem app nem scanner embutido.
+ * O QR leva a esta mesma URL (decisão 3). Quando quem abre é a Gestão da turma — ou o celular liberado
+ * pelo link da portaria (15/10/2026) —, a página ganha o painel da portaria embaixo — a câmera nativa é o leitor, sem app nem scanner embutido.
  */
 export default function ConvitePublicoPage() {
   const { token = '' } = useParams()
@@ -120,7 +121,7 @@ export default function ConvitePublicoPage() {
         {baixar.isPending ? 'Baixando…' : 'Baixar PDF'}
       </Button>
 
-      {autenticado && tem(PAPEIS.tesoureiro, PAPEIS.comissao) ? (
+      {(autenticado ? tem(PAPEIS.tesoureiro, PAPEIS.comissao) : credencialDaPortaria.ler() !== null) ? (
         <PainelDaPortaria token={convite.data.token} />
       ) : null}
     </Moldura>

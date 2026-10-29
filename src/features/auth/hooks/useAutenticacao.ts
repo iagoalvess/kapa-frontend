@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { ROTAS } from '@/config/rotas'
 import { useEstadoDeNavegacao } from '@/hooks/useEstadoDeNavegacao'
 import { convitePendente } from '@/lib/convitePendente'
+import { avisarErro, ErroDaApi } from '@/lib/http/erros'
 import { type ParDeTokens, sessao } from '@/lib/http/sessao'
 import {
   aceitarConvite,
@@ -108,13 +109,18 @@ export function useSair() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    // A falha é engolida de propósito: o cookie pode já ter expirado, e nesse caso não há o que
-    // revogar. Deixar o usuário preso numa tela por causa disso seria pior que sair local.
-    mutationFn: () => sair().catch(() => {}),
-    onSettled: () => {
+    // Quando a API responde, o cookie já saiu (ela o apaga mesmo com o refresh vencido), e sair local
+    // basta. Sem resposta — rede, 429, 5xx —, o cookie continua valendo e o próximo carregamento
+    // restauraria a sessão: num computador compartilhado, "saí" seria mentira. Aí fica e avisa.
+    mutationFn: () =>
+      sair().catch((erro: unknown) => {
+        if (!(erro instanceof ErroDaApi) || erro.status === 429 || erro.status >= 500) throw erro
+      }),
+    onSuccess: () => {
       sessao.encerrar(true)
       queryClient.clear()
       navegar(ROTAS.login, { replace: true })
     },
+    onError: avisarErro,
   })
 }

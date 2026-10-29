@@ -1,5 +1,6 @@
 import { env } from '@/config/env'
 import { ErroDaApi, ErroDeRede, type ProblemDetails } from './erros'
+import { credencialDaPortaria } from './credencialDaPortaria'
 import { sessao } from './sessao'
 
 /**
@@ -93,7 +94,9 @@ async function requisitar<T>(metodo: string, caminho: string, opcoes: OpcoesDaRe
     }
   }
 
-  let resposta = await executar(autenticar ? sessao.accessToken() : null)
+  // Sem sessão, o celular liberado pelo link da portaria usa a credencial dele — que a API só aceita nas
+  // rotas da portaria; em qualquer outra ela vale como anônimo.
+  let resposta = await executar(autenticar ? (sessao.accessToken() ?? credencialDaPortaria.token()) : null)
 
   // Access token vencido: renova uma vez e repete. Uma só — se o segundo 401 vier, o problema
   // não é o token, e insistir vira laço infinito contra a API.
