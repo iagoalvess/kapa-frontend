@@ -115,8 +115,6 @@ export default function LoginPage() {
       )}
 
       {aviso ? <Aviso>{aviso}</Aviso> : null}
-      {!emailConfirmado ? <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} /> : null}
-
       <div hidden={googleAtivo}>
         <Form {...formulario}>
           <form onSubmit={emailConfirmado ? entrarComSenha : continuar} className="grid gap-5" noValidate>
@@ -193,7 +191,11 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
+      </div>
 
+      {!emailConfirmado ? <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} /> : null}
+
+      <div hidden={googleAtivo}>
         <p className="text-muted-foreground mt-6 text-center text-sm">
           Ainda não tem conta?{' '}
           <Link to={ROTAS.criarConta} className={estilos.link}>

@@ -129,27 +129,4 @@ describe('Autenticação pelo convite com as guardas reais', () => {
     expect(convitePendente.ler()).toBeNull()
     expect(router.state.location.pathname).toBe(ROTAS.inicio)
   })
-
-  it('um convite pessoal recusado explica a confirmação de e-mail, sem perder o convite', async () => {
-    servidor.use(
-      http.post(`${base}/api/v1/auth/registrar`, () => HttpResponse.json(par())),
-      http.get(convite, () =>
-        HttpResponse.json({ turma: 'Turma teste', instituicao: 'Universidade', papel: PAPEIS.formando }),
-      ),
-      http.post(`${convite}/aceitar`, () =>
-        HttpResponse.json(
-          { codigo: 'convite.email_nao_confirmado', detail: 'Confirme seu e-mail para entrar.' },
-          { status: 403 },
-        ),
-      ),
-    )
-    convitePendente.guardar('tk-1')
-    const router = abrir('registrar')
-    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-
-    expect(await screen.findByRole('button', { name: 'Já confirmei, entrar' })).toBeInTheDocument()
-    expect(screen.getByRole('alert')).toHaveTextContent('Confirme seu e-mail para entrar.')
-    expect(screen.queryByText('Sem formatura')).not.toBeInTheDocument()
-    expect(router.state.location.pathname).toBe(`${ROTAS.convite}/tk-1`)
-  })
 })

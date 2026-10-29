@@ -16,7 +16,7 @@ function comApi({ vencidas = 0, aConferir = 0 } = {}) {
     http.get(`${API}/extrato/eu/pendencias`, () => HttpResponse.json({ vencidas_sem_aviso: vencidas })),
     http.get(`${API}/informes`, () => HttpResponse.json({ itens: [], total: aConferir })),
     http.get(`${API}/adesoes/eu/situacao`, () =>
-      HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: true }),
+      HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: true, apenas_gestao: false }),
     ),
   )
 }
@@ -54,7 +54,12 @@ describe('BarraInferior', () => {
     comApi()
     servidor.use(
       http.get(`${API}/adesoes/eu/situacao`, () =>
-        HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false }),
+        HttpResponse.json({
+          termo_publicado: true,
+          plano_vigente: true,
+          aderiu: false,
+          apenas_gestao: false,
+        }),
       ),
     )
 

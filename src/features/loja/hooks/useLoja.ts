@@ -30,6 +30,7 @@ const TENTATIVAS_NA_FILA = 5
  * A diferença é medida na chegada da resposta: a contagem regressiva soma ela ao `Date.now()` e nunca
  * confia no relógio do celular, que pode estar adiantado (decisão 8). Relê a cada poucos segundos para
  * o contador de restantes andar; 429 e 404 não se repetem — a leitura seguinte já vem no intervalo.
+ * Depois de um 404 o intervalo para: a loja não existe, e reler só martela a API (teste manual de 29/10).
  */
 export function useLoja(formaturaId: string) {
   return useQuery({
@@ -40,7 +41,8 @@ export function useLoja(formaturaId: string) {
       return { ...loja, diferencaDoRelogio: instanteDe(loja.agora) - Date.now() }
     },
     staleTime: 0,
-    refetchInterval: INTERVALO_DA_VITRINE,
+    refetchInterval: (consulta) =>
+      ehErroDaApi(consulta.state.error) && consulta.state.error.status === 404 ? false : INTERVALO_DA_VITRINE,
     retry: false,
   })
 }

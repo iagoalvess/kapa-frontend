@@ -6,7 +6,6 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
-import { useReenviarConfirmacao } from '@/hooks/useReenviarConfirmacao'
 import { useSessao } from '@/hooks/useSessao'
 import { convitePendente } from '@/lib/convitePendente'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
@@ -77,16 +76,6 @@ export default function ConvitePage({ acessoGoogle }: { acessoGoogle?: ReactNode
             <Link to={ROTAS.selecionarFormatura}>Ir para minhas formaturas</Link>
           </Button>
         </Moldura>
-      )
-    }
-
-    if (codigo === 'convite.email_nao_confirmado') {
-      return (
-        <ConfirmeOEmail
-          email={usuario?.email ?? ''}
-          mensagem={mensagemDoErro(aceitar.error)}
-          aoConfirmar={entrar}
-        />
       )
     }
 
@@ -165,12 +154,12 @@ export default function ConvitePage({ acessoGoogle }: { acessoGoogle?: ReactNode
       <CardDaTurma convite={convite.data} />
 
       <div className="grid gap-4">
-        {acessoGoogle}
         <Button asChild className="h-11 w-full text-base">
           <Link to={ROTAS.criarConta} onClick={guardar}>
             Criar conta e entrar
           </Link>
         </Button>
+        {acessoGoogle}
         <p className="text-muted-foreground text-center text-sm">
           Já tenho conta ·{' '}
           <Link
@@ -198,50 +187,6 @@ function Moldura({ children }: { children: ReactNode }) {
         {children}
       </div>
     </main>
-  )
-}
-
-/**
- * Convite pessoal com o e-mail da conta ainda não confirmado.
- *
- * O link de confirmação costuma abrir em outra aba; quem confirmou volta a esta e tenta de novo.
- * O cadastro já enviou o e-mail — o botão de reenvio é para quem não o achou.
- */
-function ConfirmeOEmail({
-  email,
-  mensagem,
-  aoConfirmar,
-}: {
-  email: string
-  mensagem: string
-  aoConfirmar: () => void
-}) {
-  const reenviar = useReenviarConfirmacao()
-
-  return (
-    <Moldura>
-      <EstadoDeErro titulo="Confirme seu e-mail" descricao={mensagem} nivelDoTitulo={1}>
-        <div className="grid gap-3">
-          <Button className="h-11 w-full" onClick={aoConfirmar}>
-            Já confirmei, entrar
-          </Button>
-          {reenviar.isSuccess ? (
-            <output className="text-muted-foreground text-center text-sm">
-              E-mail reenviado. Confira a caixa de entrada.
-            </output>
-          ) : (
-            <Button
-              variant="outline"
-              className="h-11 w-full"
-              disabled={reenviar.isPending || !email}
-              onClick={() => reenviar.mutate(email)}
-            >
-              {reenviar.isPending ? 'Enviando…' : 'Reenviar e-mail de confirmação'}
-            </Button>
-          )}
-        </div>
-      </EstadoDeErro>
-    </Moldura>
   )
 }
 

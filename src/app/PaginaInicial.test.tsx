@@ -80,7 +80,12 @@ describe('Página inicial', () => {
         }),
       ),
       http.get(`${base}/api/v1/adesoes/eu/situacao`, () =>
-        HttpResponse.json({ termo_publicado: false, plano_vigente: false, aderiu: false }),
+        HttpResponse.json({
+          termo_publicado: false,
+          plano_vigente: false,
+          aderiu: false,
+          apenas_gestao: false,
+        }),
       ),
       http.get(`${base}/api/v1/formandos/eu`, () =>
         HttpResponse.json({ essencial_pendente: false, completude: 100 }),
@@ -397,7 +402,12 @@ describe('Página inicial', () => {
     responderTurma({ ...turma, status: 'Ativa' })
     servidor.use(
       http.get(`${base}/api/v1/adesoes/eu/situacao`, () =>
-        HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false }),
+        HttpResponse.json({
+          termo_publicado: true,
+          plano_vigente: true,
+          aderiu: false,
+          apenas_gestao: false,
+        }),
       ),
     )
     renderizar(<PaginaInicial />)

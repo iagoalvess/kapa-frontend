@@ -48,6 +48,8 @@ export const router = createBrowserRouter([
       </>
     ),
     errorElement: <PaginaDeErro />,
+    // A primeira página ainda é `lazy` na carga: sem isto o React Router avisa no console a cada F5.
+    HydrateFallback: () => null,
     children: [
       // As portas de entrada: com sessão aberta elas não têm o que fazer e mandam para o Início.
       {

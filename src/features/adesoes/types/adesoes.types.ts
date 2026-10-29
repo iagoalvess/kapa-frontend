@@ -163,6 +163,8 @@ export interface SituacaoDaMinhaAdesao {
   plano_vigente: boolean
   /** O próprio membro aderiu a alguma versão do termo. */
   aderiu: boolean
+  /** Da comissão, disse que vai apenas ajudar na gestão: o Início não cobra termo nem cadastro. */
+  apenas_gestao: boolean
 }
 
 export interface MinhaAdesao {

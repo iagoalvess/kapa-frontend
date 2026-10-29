@@ -68,8 +68,6 @@ export default function CriarContaPage() {
     <LayoutDeAutenticacao>
       <h1 className={estilos.titulo}>Crie sua conta</h1>
       <p className={estilos.subtitulo}>A formatura da sua turma, organizada num lugar só.</p>
-      <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} />
-
       <div hidden={googleAtivo}>
         <Form {...formulario}>
           <form onSubmit={enviar} className="grid gap-5" noValidate>
@@ -160,7 +158,11 @@ export default function CriarContaPage() {
             </Button>
           </form>
         </Form>
+      </div>
 
+      <EntradaComGoogle aoMudarEtapa={definirGoogleAtivo} />
+
+      <div hidden={googleAtivo}>
         <p className="text-muted-foreground mt-6 text-center text-sm">
           Já tem conta?{' '}
           <Link to={ROTAS.login} className={estilos.link}>

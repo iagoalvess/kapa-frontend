@@ -15,7 +15,12 @@ import { ExigeAdesao } from './ExigeAdesao'
 
 const SITUACAO = `${env.VITE_API_URL}/api/v1/adesoes/eu/situacao`
 
-const semAdesao: SituacaoDaMinhaAdesao = { termo_publicado: true, plano_vigente: true, aderiu: false }
+const semAdesao: SituacaoDaMinhaAdesao = {
+  termo_publicado: true,
+  plano_vigente: true,
+  aderiu: false,
+  apenas_gestao: false,
+}
 
 /** O termo mostra para onde devolveria a pessoa depois do aceite. */
 function Termo() {
@@ -98,7 +103,7 @@ describe('ExigeAdesao', () => {
   })
 
   it('sem termo publicado, o formando sem adesão não é barrado', async () => {
-    responder({ termo_publicado: false, plano_vigente: false, aderiu: false })
+    responder({ termo_publicado: false, plano_vigente: false, aderiu: false, apenas_gestao: false })
     entrarComo(PAPEIS.formando)
 
     renderizarGuarda(ROTAS.agenda)

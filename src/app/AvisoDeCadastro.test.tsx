@@ -22,12 +22,15 @@ const turma = {
   ja_contratou: true,
 }
 
-/** Responde a turma e o cadastro; o contador diz quando a consulta do cadastro voltou. */
-function responder(essencial_pendente: boolean, status = 'Ativa') {
+/** Responde a turma, a situação da adesão e o cadastro; o contador diz quando a consulta do cadastro voltou. */
+function responder(essencial_pendente: boolean, status = 'Ativa', apenas_gestao = false) {
   const estado = { respondidas: 0 }
 
   servidor.use(
     http.get(`${base}/api/v1/formaturas/atual`, () => HttpResponse.json({ ...turma, status })),
+    http.get(`${base}/api/v1/adesoes/eu/situacao`, () =>
+      HttpResponse.json({ termo_publicado: true, plano_vigente: true, aderiu: false, apenas_gestao }),
+    ),
     http.get(`${base}/api/v1/formandos/eu`, () => {
       estado.respondidas += 1
       return HttpResponse.json({ essencial_pendente, completude: essencial_pendente ? 30 : 100 })
@@ -76,5 +79,17 @@ describe('Aviso de cadastro', () => {
 
     await waitFor(() => expect(consultas.respondidas).toBe(1))
     expect(screen.queryByText(/Seu cadastro ainda está incompleto/)).not.toBeInTheDocument()
+  })
+
+  it('não aparece para quem da comissão vai apenas ajudar na gestão', async () => {
+    entrarComo(PAPEIS.presidente)
+    const consultas = responder(true, 'Ativa', true)
+
+    renderizar(<AvisoDeCadastro />)
+
+    await waitFor(() => expect(consultas.respondidas).toBe(1))
+    await waitFor(() =>
+      expect(screen.queryByText(/Seu cadastro ainda está incompleto/)).not.toBeInTheDocument(),
+    )
   })
 })

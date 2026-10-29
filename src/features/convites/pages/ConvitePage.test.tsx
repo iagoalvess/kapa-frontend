@@ -166,37 +166,4 @@ describe('ConvitePage', () => {
 
     expect(await screen.findByText('Convite pessoal para a*a@exemplo.com')).toBeInTheDocument()
   })
-
-  it('e-mail não confirmado oferece reenvio do link e nova tentativa', async () => {
-    let reenviadoPara: unknown
-    servidor.use(
-      http.get(CONVITE, () => HttpResponse.json(TURMA)),
-      http.post(`${CONVITE}/aceitar`, () =>
-        HttpResponse.json(
-          {
-            status: 403,
-            codigo: 'convite.email_nao_confirmado',
-            detail: 'Confirme seu e-mail para aceitar.',
-          },
-          { status: 403 },
-        ),
-      ),
-      http.post(`${env.VITE_API_URL}/api/v1/conta/reenviar-confirmacao`, async ({ request }) => {
-        reenviadoPara = await request.json()
-        return new HttpResponse(null, { status: 204 })
-      }),
-    )
-    convitePendente.guardar('tk-1')
-    entrar()
-
-    renderizar()
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Confirme seu e-mail')
-    expect(screen.getByRole('button', { name: 'Já confirmei, entrar' })).toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Reenviar e-mail de confirmação' }))
-
-    expect(await screen.findByText('E-mail reenviado. Confira a caixa de entrada.')).toBeInTheDocument()
-    expect(reenviadoPara).toEqual({ email: 'ana@exemplo.com' })
-  })
 })

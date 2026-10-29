@@ -1,6 +1,7 @@
 import { UserRound } from 'lucide-react'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ROTAS } from '@/config/rotas'
+import { useSituacaoDaAdesao } from '@/features/adesoes'
 import { useMeuPerfil } from '@/features/formandos'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { TracoDoInicio } from './TracoDoInicio'
@@ -14,13 +15,17 @@ import { TracoDoInicio } from './TracoDoInicio'
  * Só aparece com a turma ativa: fora dela a escrita está bloqueada, e o convite a preencher seria uma
  * porta que a API recusa. A condição vale para o desenho, e não só para a consulta — o cadastro pode
  * já estar no cache, carregado por outra tela, e o aviso apareceria numa turma encerrada.
+ *
+ * Quem da comissão disse que vai apenas ajudar na gestão não vê o aviso: o texto fala em aceitar o termo, que
+ * ele não vai aceitar.
  */
 export function AvisoDeCadastro() {
   const { data: turma } = useFormaturaAtual()
   const ativa = turma?.status === 'Ativa'
   const { data: perfil } = useMeuPerfil(ativa)
+  const { data: situacao } = useSituacaoDaAdesao(ativa)
 
-  if (!ativa || !perfil?.essencial_pendente) return null
+  if (!ativa || !perfil?.essencial_pendente || situacao?.apenas_gestao) return null
 
   return (
     <>

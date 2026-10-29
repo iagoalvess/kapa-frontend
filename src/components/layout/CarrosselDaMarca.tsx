@@ -39,33 +39,53 @@ function CenaCadastro() {
   )
 }
 
-/** Um Pix recebido e identificado no extrato, sem controles reais dentro da ilustração. */
+const PAGAMENTOS = [
+  { ...PESSOAS_DO_CARROSSEL[0], confirmado: true },
+  { ...PESSOAS_DO_CARROSSEL[3], confirmado: false },
+] as const
+
+/**
+ * O PIX da turma e os pagamentos chegando, sem controles reais dentro da ilustração. As linhas ocupam a largura
+ * com o status à direita, como nas outras cenas.
+ */
 function CenaContribuicoes() {
   return (
-    <div className="grid gap-4">
-      <div className="flex items-center gap-3">
-        <img src={qrcode} alt="" className="size-18 shrink-0" />
-        <div className="grid min-w-0 gap-1">
+    <div className="grid gap-3">
+      <div className="border-brand-tint flex min-w-0 items-center gap-3 border-b pb-3">
+        <img src={qrcode} alt="" className="size-12 shrink-0" />
+        <span className="grid min-w-0 gap-0.5">
           <span className="text-brand-text text-[10px] font-semibold">PIX da turma</span>
-          <span className="text-xs leading-snug font-bold">
-            Direto na conta
-            <br />
-            da comissão
+          <span className="text-[11px] leading-snug font-bold">Direto na conta da comissão</span>
+        </span>
+        <span className="text-muted-foreground border-border ml-auto flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[9px]">
+          <Copy className="size-3" /> Copiar chave
+        </span>
+      </div>
+      {PAGAMENTOS.map(({ nome, foto, confirmado }, i) => (
+        <div
+          key={nome}
+          style={{ animationDelay: `${0.3 + i * 0.4}s` }}
+          className="motion-safe:animate-surgir flex min-w-0 items-center gap-2"
+        >
+          <Avatar nome={nome} semente={nome} foto={foto} className="size-8" />
+          <span className="grid min-w-0 gap-0.5">
+            <span className="text-[11px] font-semibold">{nome}</span>
+            <span className="text-muted-foreground text-[10px] tabular-nums">R$ 150,00</span>
           </span>
-          <span className="text-muted-foreground flex items-center gap-1 text-[9px]">
-            Copiar chave <Copy className="size-3" />
+          <span className="carrossel-status ml-auto grid w-23 shrink-0 grid-cols-[18px_1fr] items-center gap-1.5">
+            {confirmado ? (
+              <span className="bg-success text-on-brand grid size-4.5 place-items-center rounded-full">
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+            ) : (
+              <Circle className="text-texto-muted size-4.5" strokeWidth={1} />
+            )}
+            <span className="carrossel-rotulo-status text-muted-foreground text-[10px]">
+              {confirmado ? 'Confirmado' : 'Conferindo'}
+            </span>
           </span>
         </div>
-      </div>
-      <div className="motion-safe:animate-surgir border-brand-tint flex items-center gap-2 border-t pt-3">
-        <span className="bg-success text-on-brand grid size-4.5 shrink-0 place-items-center rounded-full">
-          <Check className="size-3" strokeWidth={3} />
-        </span>
-        <span className="grid gap-0.5 text-[10px]">
-          <strong className="text-success-text font-semibold">Pagamento confirmado</strong>
-          <span className="text-muted-foreground">R$ 150,00 · Ana Clara</span>
-        </span>
-      </div>
+      ))}
     </div>
   )
 }

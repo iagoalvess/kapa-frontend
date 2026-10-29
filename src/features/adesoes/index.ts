@@ -1,4 +1,4 @@
 export { AdesaoDoFormando } from './components/AdesaoDoFormando'
 export { useAdesaoPendente } from './hooks/useAderir'
-export { useAdesaoObrigatoria } from './hooks/useAdesaoObrigatoria'
+export { useAdesaoObrigatoria, useSituacaoDaAdesao } from './hooks/useAdesaoObrigatoria'
 export { AcaoDaCondicao } from './components/DialogoDaCondicao'

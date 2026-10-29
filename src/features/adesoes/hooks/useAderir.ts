@@ -28,6 +28,8 @@ export function useMinhaAdesao(habilitado = true) {
  * Lê a situação leve (`/adesoes/eu/situacao`), a mesma da guarda de adesão: este ponto está na barra
  * lateral de toda tela, e o termo vigente vem com o texto inteiro e o plano simulado.
  *
+ * Quem da comissão disse que vai apenas ajudar na gestão não tem termo pendente: não vai aderir.
+ *
  * @param habilitado Falso não consulta — quem foi desligado não adere a nada, e a API responderia 403
  *   (P5 da Sprint 15).
  */
@@ -40,7 +42,8 @@ export function useAdesaoPendente(habilitado = true) {
     situacao !== undefined &&
     situacao.termo_publicado &&
     situacao.plano_vigente &&
-    !situacao.aderiu
+    !situacao.aderiu &&
+    !situacao.apenas_gestao
   )
 }
 

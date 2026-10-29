@@ -12,7 +12,12 @@ import {
 } from '../hooks/useGoogle'
 import { EtapaDeCadastroComGoogle } from './EtapaDeCadastroComGoogle'
 
-/** Entrada compartilhada entre login, cadastro e convite, com o botão oficial do Google. */
+/**
+ * Entrada compartilhada entre login, cadastro e convite, com o botão oficial do Google.
+ *
+ * Vem depois da entrada por e-mail, com o "ou continue com" acima do botão: o e-mail é o caminho principal, e o
+ * Google, a alternativa (decisão de 29/10/2026).
+ */
 export function EntradaComGoogle({
   aoMudarEtapa,
   aoIniciar,
@@ -103,7 +108,14 @@ export function EntradaComGoogle({
     falhaSdk ??
     (tentativa.error ? mensagemDoErro(tentativa.error) : entrar.error ? mensagemDoErro(entrar.error) : null)
   return (
-    <div className="mb-5 grid gap-5">
+    <div className="mt-6 grid gap-5">
+      {proximo ? null : (
+        <div className="text-muted-foreground flex items-center gap-4 text-xs">
+          <span aria-hidden="true" className="bg-border h-px flex-1" />
+          ou continue com
+          <span aria-hidden="true" className="bg-border h-px flex-1" />
+        </div>
+      )}
       <div hidden={Boolean(proximo)} className="mx-auto w-full max-w-100">
         <div
           className={buttonVariants({
@@ -176,11 +188,6 @@ export function EntradaComGoogle({
               </Button>
             </div>
           ) : null}
-          <div className="text-muted-foreground flex items-center gap-4 text-xs">
-            <span aria-hidden="true" className="bg-border h-px flex-1" />
-            ou continue com
-            <span aria-hidden="true" className="bg-border h-px flex-1" />
-          </div>
         </>
       )}
     </div>

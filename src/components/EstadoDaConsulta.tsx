@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils'
  * O 404 não é falha de carregar: o registro não existe (ou não é de quem pede — a API responde igual
  * aos dois). Tentar de novo daria a mesma resposta, então o botão some e o título diz o que houve.
  *
+ * O 429 diz que foi o limite de consultas, não uma falha: esperar uns segundos resolve.
+ *
  * Falha do servidor (5xx) mostra o código do erro e o "Reportar" — o `mailto:` do suporte com o código no corpo.
  */
 export function ErroDaConsulta({
@@ -45,6 +47,7 @@ export function ErroDaConsulta({
 
   const erroDeRede = erro instanceof ErroDeRede
   const naoEncontrado = erro instanceof ErroDaApi && erro.status === 404
+  const excesso = erro instanceof ErroDaApi && erro.status === 429
 
   return (
     <EstadoDeErro
@@ -53,7 +56,9 @@ export function ErroDaConsulta({
           ? 'A conexão deu uma pausa'
           : naoEncontrado
             ? 'Não encontramos'
-            : 'Não conseguimos carregar'
+            : excesso
+              ? 'Muitas consultas seguidas'
+              : 'Não conseguimos carregar'
       }
       descricao={mensagemDoErro(erro)}
       erroDeRede={erroDeRede}
