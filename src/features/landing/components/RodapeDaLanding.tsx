@@ -75,7 +75,7 @@ export function RodapeDaLanding() {
 
       {/*
         Quem responde pelo site: os mesmos dados do cabeçalho dos Termos e da Política. Mudou lá —
-        versão nova —, muda aqui. O endereço fica só nos documentos: é residencial.
+        versão nova —, muda aqui. O endereço fica só nos Termos, por decisão do dono: é residencial.
       */}
       <p className="text-texto-muted mx-auto mt-10 w-full max-w-6xl text-sm">
         © {new Date().getFullYear()} Kapa · KAPA FORMATURAS INOVA SIMPLES (I.S.) · CNPJ 69.334.998/0001-67 ·

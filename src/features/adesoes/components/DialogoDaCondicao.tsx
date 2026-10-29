@@ -38,8 +38,17 @@ import type { CondicaoLida, PacoteDoCatalogo, PessoaDaCondicao } from '../types/
  *
  * @param pessoa O membro, ou o e-mail do convite pessoal de quem ainda não entrou.
  * @param nome Como a pessoa aparece no título.
+ * @param descontoAceito O que a adesão dela já descontou; ver {@link DialogoDaCondicao}.
  */
-export function AcaoDaCondicao({ pessoa, nome }: { pessoa: PessoaDaCondicao; nome: string }) {
+export function AcaoDaCondicao({
+  pessoa,
+  nome,
+  descontoAceito = 0,
+}: {
+  pessoa: PessoaDaCondicao
+  nome: string
+  descontoAceito?: number
+}) {
   const [aberto, definirAberto] = useState(false)
 
   return (
@@ -50,7 +59,13 @@ export function AcaoDaCondicao({ pessoa, nome }: { pessoa: PessoaDaCondicao; nom
         icone={BadgePercent}
         onClick={() => definirAberto(true)}
       />
-      <DialogoDaCondicao pessoa={pessoa} nome={nome} aberto={aberto} aoFechar={() => definirAberto(false)} />
+      <DialogoDaCondicao
+        pessoa={pessoa}
+        nome={nome}
+        descontoAceito={descontoAceito}
+        aberto={aberto}
+        aoFechar={() => definirAberto(false)}
+      />
     </>
   )
 }
@@ -61,15 +76,20 @@ export function AcaoDaCondicao({ pessoa, nome }: { pessoa: PessoaDaCondicao; nom
  * Alterar ou revogar não mexe no que ela já aceitou.
  *
  * Presidente e Tesoureiro editam; a Comissão lê (P9/P14).
+ *
+ * @param descontoAceito O que a adesão já descontou. Fica gravado no aceite: sem esta linha, quem teve a condição
+ *   revogada depois de aderir aparecia sem desconto aqui e com "Desconto de R$ X" no painel.
  */
 export function DialogoDaCondicao({
   pessoa,
   nome,
+  descontoAceito = 0,
   aberto,
   aoFechar,
 }: {
   pessoa: PessoaDaCondicao
   nome: string
+  descontoAceito?: number
   aberto: boolean
   aoFechar: () => void
 }) {
@@ -85,6 +105,12 @@ export function DialogoDaCondicao({
       descricao="Vale para os pacotes marcados que a pessoa escolher, na adesão e se acrescentar depois. Num grupo de faixas, marque a faixa até a qual vale: numa faixa maior, ela paga a diferença."
       largura="largo"
     >
+      {descontoAceito > 0 ? (
+        <p className="bg-muted/60 mb-4 rounded-xl px-4 py-2 text-sm">
+          Já aderiu com {formatarCentavos(descontoAceito)} de desconto, que continua valendo. O que mudar aqui
+          vale só para o que a pessoa contratar depois.
+        </p>
+      ) : null}
       {condicao.isPending || conteudo.isPending ? (
         <EsqueletoDeTexto linhas={5} />
       ) : condicao.isError ? (
@@ -96,6 +122,7 @@ export function DialogoDaCondicao({
           pessoa={pessoa}
           catalogo={conteudo.data.catalogo}
           condicao={condicao.data.condicao}
+          descontoAceito={descontoAceito}
           aoFechar={aoFechar}
         />
       ) : (
@@ -138,11 +165,13 @@ function FormularioDaCondicao({
   pessoa,
   catalogo,
   condicao,
+  descontoAceito,
   aoFechar,
 }: {
   pessoa: PessoaDaCondicao
   catalogo: PacoteDoCatalogo[]
   condicao: CondicaoLida | null
+  descontoAceito: number
   aoFechar: () => void
 }) {
   const salvar = useSalvarCondicao()
@@ -205,7 +234,11 @@ function FormularioDaCondicao({
                 </Button>
               }
               titulo="Revogar o desconto?"
-              descricao="Vale para o que a pessoa ainda for contratar. O que ela já aceitou continua com o desconto."
+              descricao={
+                descontoAceito > 0
+                  ? `Ela já aderiu com ${formatarCentavos(descontoAceito)} de desconto, e isso continua valendo. Revogar só tira o desconto do que ela contratar depois. Para cobrar o valor cheio, combine com ela, cancele a adesão e peça que ela adira de novo.`
+                  : 'Nada do que ela já aceitou tem este desconto. O que ela contratar daqui em diante sai pelo valor cheio.'
+              }
               rotulo="Revogar"
               destrutivo
               aoConfirmar={revogar}

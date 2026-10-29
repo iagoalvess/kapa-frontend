@@ -23,7 +23,7 @@ import {
   Users,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, matchPath, NavLink, useLocation } from 'react-router'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { env } from '@/config/env'
 import { PAPEIS, type Papel, ROTULOS_DE_PAPEL } from '@/config/perfis'
@@ -93,6 +93,8 @@ function SinalDoItem({ sinal, ativo, rotulo }: { sinal?: number | boolean; ativo
 /**
  * @param secao Aceso também nas rotas abaixo de `to` — o detalhe de um item da seção. Sem
  *   ele, só no caminho exato: `/formatura` não pode acender em `/formatura/membros`.
+ * @param tambem As páginas que só se abrem de dentro desta (Adesões, de Membros) e moram noutro caminho:
+ *   acendem o item, para quem está nelas saber onde está. O clique continua levando a `to`.
  * @param sinal A pendência daquele item; ver {@link SinalDoItem}.
  * @param rotuloDoSinal O que o sinal quer dizer, para quem não o vê ("a conferir").
  * @param trancado A área está fora do plano da turma (Sprint 45): o item continua, com um cadeado no
@@ -106,6 +108,7 @@ function ItemDeMenu({
   sinal,
   rotuloDoSinal = 'pendente',
   trancado = false,
+  tambem = [],
   children,
 }: {
   to: string
@@ -115,26 +118,38 @@ function ItemDeMenu({
   sinal?: number | boolean
   rotuloDoSinal?: string
   trancado?: boolean
+  tambem?: string[]
   children: ReactNode
 }) {
+  const { pathname } = useLocation()
+  const naPorta = tambem.some((caminho) => matchPath({ path: caminho, end: false }, pathname))
+
   return (
-    <NavLink to={to} end={!secao} onClick={aoNavegar} className={({ isActive }) => estiloDoItem(isActive)}>
-      {({ isActive }) => (
-        <>
-          <Icone strokeWidth={1.75} aria-hidden />
-          {/* `truncate`: nome que não couber vira reticências, e nunca uma segunda linha — o item
+    <NavLink
+      to={to}
+      end={!secao}
+      onClick={aoNavegar}
+      className={({ isActive }) => estiloDoItem(isActive || naPorta)}
+    >
+      {({ isActive: noCaminho }) => {
+        const isActive = noCaminho || naPorta
+        return (
+          <>
+            <Icone strokeWidth={1.75} aria-hidden />
+            {/* `truncate`: nome que não couber vira reticências, e nunca uma segunda linha — o item
               tem altura fixa, e a linha extra vazaria por cima do vizinho. */}
-          <span className="min-w-0 truncate">{children}</span>
-          {trancado ? (
-            <span className={cn('ml-auto shrink-0', isActive ? 'text-on-brand' : 'text-texto-muted')}>
-              <Lock className="size-3.5!" strokeWidth={2} aria-hidden />
-              <span className="sr-only"> (fora do plano da turma)</span>
-            </span>
-          ) : (
-            <SinalDoItem sinal={sinal} ativo={isActive} rotulo={rotuloDoSinal} />
-          )}
-        </>
-      )}
+            <span className="min-w-0 truncate">{children}</span>
+            {trancado ? (
+              <span className={cn('ml-auto shrink-0', isActive ? 'text-on-brand' : 'text-texto-muted')}>
+                <Lock className="size-3.5!" strokeWidth={2} aria-hidden />
+                <span className="sr-only"> (fora do plano da turma)</span>
+              </span>
+            ) : (
+              <SinalDoItem sinal={sinal} ativo={isActive} rotulo={rotuloDoSinal} />
+            )}
+          </>
+        )
+      }}
     </NavLink>
   )
 }
@@ -231,6 +246,7 @@ function Meu({
           icone={ReceiptText}
           aoNavegar={aoNavegar}
           secao
+          tambem={[ROTAS.recibos]}
           sinal={parcelasVencidas}
           rotuloDoSinal="minhas vencidas"
         >
@@ -286,6 +302,7 @@ function DinheiroDaTurma({
         icone={Receipt}
         aoNavegar={aoNavegar}
         secao
+        tambem={[ROTAS.fornecedores]}
         sinal={despesasAtrasadas}
         rotuloDoSinal="atrasadas"
       >
@@ -438,6 +455,8 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                   to={ROTAS.parcelas}
                   icone={ReceiptText}
                   aoNavegar={aoNavegar}
+                  // O histórico de avisos volta a Parcelas para quem não é tesouraria (`HistoricoDeAvisosPage`).
+                  tambem={ehTesouraria ? [ROTAS.lancamentos] : [ROTAS.lancamentos, ROTAS.avisosEnviados]}
                   sinal={parcelasVencidas}
                   rotuloDoSinal="minhas vencidas"
                 >
@@ -446,13 +465,24 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 {/* Item próprio por causa de quem não é tesouraria: o Plano é tela de tesouraria, e
                     sem esta a comissão ficaria sem lugar para responder ao formando que diz "pedi e
                     não apareceu". Os opcionais em si ficam num cartão da tela de Plano. */}
-                <ItemDeMenu to={ROTAS.pedidos} icone={ShoppingBag} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu
+                  to={ROTAS.pedidos}
+                  icone={ShoppingBag}
+                  aoNavegar={aoNavegar}
+                  secao
+                  tambem={[ROTAS.comprasDaLoja]}
+                >
                   Pedidos
                 </ItemDeMenu>
                 {/* A Loja não tem item próprio: ela é um atalho na lateral de Pedidos. A rota
                     continua, e quem a guarda é o `<ExigeModulo>` de `MODULOS.festa`. */}
                 {ehTesouraria ? (
-                  <ItemDeMenu to={ROTAS.cobrancas} icone={Coins} aoNavegar={aoNavegar}>
+                  <ItemDeMenu
+                    to={ROTAS.cobrancas}
+                    icone={Coins}
+                    aoNavegar={aoNavegar}
+                    tambem={[ROTAS.regua, ROTAS.avisosEnviados]}
+                  >
                     Plano
                   </ItemDeMenu>
                 ) : null}
@@ -471,7 +501,13 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                 <ItemDeMenu to={ROTAS.formatura} icone={GraduationCap} aoNavegar={aoNavegar}>
                   Formatura
                 </ItemDeMenu>
-                <ItemDeMenu to={ROTAS.membros} icone={Users} aoNavegar={aoNavegar} secao>
+                <ItemDeMenu
+                  to={ROTAS.membros}
+                  icone={Users}
+                  aoNavegar={aoNavegar}
+                  secao
+                  tambem={[ROTAS.adesoes]}
+                >
                   Membros
                 </ItemDeMenu>
                 <ItemDeMenu to={ROTAS.agenda} icone={CalendarDays} aoNavegar={aoNavegar} secao>
@@ -482,6 +518,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                   icone={PartyPopper}
                   aoNavegar={aoNavegar}
                   trancado={muralTrancado}
+                  tambem={portariaNoMenu ? [ROTAS.mesas] : [ROTAS.mesas, ROTAS.portaria]}
                 >
                   Festa
                 </ItemDeMenu>
@@ -498,7 +535,13 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                     Portaria
                   </ItemDeMenu>
                 ) : null}
-                <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar} trancado={muralTrancado}>
+                <ItemDeMenu
+                  to={ROTAS.mural}
+                  icone={Megaphone}
+                  aoNavegar={aoNavegar}
+                  trancado={muralTrancado}
+                  tambem={[ROTAS.documentos, ROTAS.enquetes]}
+                >
                   Mural
                 </ItemDeMenu>
               </Secao>
@@ -527,7 +570,12 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                     <ItemDeMenu to={ROTAS.festa} icone={PartyPopper} aoNavegar={aoNavegar}>
                       Festa
                     </ItemDeMenu>
-                    <ItemDeMenu to={ROTAS.mural} icone={Megaphone} aoNavegar={aoNavegar}>
+                    <ItemDeMenu
+                      to={ROTAS.mural}
+                      icone={Megaphone}
+                      aoNavegar={aoNavegar}
+                      tambem={[ROTAS.documentos, ROTAS.enquetes]}
+                    >
                       Mural
                     </ItemDeMenu>
                   </>

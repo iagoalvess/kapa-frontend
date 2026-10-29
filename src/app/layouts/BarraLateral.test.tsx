@@ -97,6 +97,20 @@ describe('BarraLateral', () => {
     expect(menu.queryByRole('link', { name: 'Lembretes' })).not.toBeInTheDocument()
   })
 
+  /** 29/10: Adesões só se abre de Membros e mora noutro caminho — sem `tambem`, o menu ficava sem item aceso. */
+  it('acende Membros em Adesões, e o clique continua levando à lista', () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<BarraLateral />, ROTAS.adesoes)
+
+    const membros = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', {
+      name: 'Membros',
+    })
+    expect(membros).toHaveClass('bg-brand')
+    expect(membros).toHaveAttribute('href', ROTAS.membros)
+  })
+
   /** Sprint 45: fora do plano, a Gestão vê o item com cadeado — ele leva à vitrine da área, e não some. */
   it('no gratuito, a comissão vê as áreas de fora do plano com cadeado', () => {
     entrarComo('Comissao')

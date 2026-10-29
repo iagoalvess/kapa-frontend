@@ -222,7 +222,11 @@ function LinhaDeAdesao({ membro, versaoVigente }: { membro: SituacaoDeAdesao; ve
       <td className="py-3 text-right">
         <AcoesDaLinha rotulo={`Ações de ${membro.nome}`}>
           {!membro.apenas_gestao ? (
-            <AcaoDaCondicao pessoa={{ usuario_id: membro.usuario_id }} nome={membro.nome} />
+            <AcaoDaCondicao
+              pessoa={{ usuario_id: membro.usuario_id }}
+              nome={membro.nome}
+              descontoAceito={membro.desconto_em_centavos}
+            />
           ) : null}
           {adesao_id ? (
             <AcaoDaLinha
