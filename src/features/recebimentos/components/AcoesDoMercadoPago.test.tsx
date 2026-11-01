@@ -7,7 +7,7 @@ import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { entrarComo, renderizar } from '@/test/utils'
 import type { ProvedorConectado } from '../types/recebimentos.types'
-import { CartaoDoMercadoPago } from './CartaoDoMercadoPago'
+import { AcoesDoMercadoPago } from './AcoesDoMercadoPago'
 
 const MERCADO_PAGO = `${env.VITE_API_URL}/api/v1/recebimentos/conta/mercado-pago`
 
@@ -50,7 +50,11 @@ function comApi(provedor: ProvedorConectado | null = null) {
   )
 }
 
-describe('CartaoDoMercadoPago', () => {
+async function gerenciar() {
+  await userEvent.click(await screen.findByRole('button', { name: 'Mercado Pago' }))
+}
+
+describe('AcoesDoMercadoPago', () => {
   afterEach(() => {
     sessao.encerrar()
     globalThis.location.hash = ''
@@ -63,19 +67,42 @@ describe('CartaoDoMercadoPago', () => {
     comApi()
     const antes = globalThis.location.href
 
-    renderizar(<CartaoDoMercadoPago />)
+    renderizar(<AcoesDoMercadoPago />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Conectar Mercado Pago' }))
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled())
     expect(globalThis.location.href).toBe(antes)
-    expect(
-      screen.getByText(
-        'O dinheiro cai na conta Mercado Pago da turma. A loja pública também usa esta conta.',
-      ),
-    ).toBeVisible()
-    await userEvent.click(screen.getByText('Como conectar? O Kapinha explica'))
-    expect(screen.getByText(/Tenha uma conta no Mercado Pago/)).toBeVisible()
+    expect(screen.queryByRole('region', { name: 'Loja pública' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  })
+
+  it('desconectar atualiza a conta sem alterar os meios manuais', async () => {
+    entrarComo('Presidente')
+    comApi(conectado)
+    servidor.use(http.delete(MERCADO_PAGO, () => new HttpResponse(null, { status: 204 })))
+    renderizar(<AcoesDoMercadoPago />)
+
+    await gerenciar()
+    await userEvent.click(screen.getByRole('button', { name: 'Desconectar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Desconectar', hidden: false }))
+
+    expect(await screen.findByRole('button', { name: 'Conectar Mercado Pago' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Conectar Mercado Pago' })).toBeEnabled()
+  })
+
+  it('o retorno do Mercado Pago preserva o link de edição dos meios', async () => {
+    entrarComo('Presidente')
+    comApi(conectado)
+    const { router } = renderizar(
+      <AcoesDoMercadoPago />,
+      '/formatura?mercado_pago=conectado&codigo=teste&trocar=meios#loja-publica',
+    )
+
+    await gerenciar()
+    expect(await screen.findByText('turma@mp.dev')).toBeVisible()
+    await waitFor(() => expect(router.state.location.search).toBe('?trocar=meios'))
+    expect(router.state.location.hash).toBe('#loja-publica')
   })
 
   /** P3: a tesouraria vê, mas quem conecta é o Presidente. */
@@ -83,8 +110,9 @@ describe('CartaoDoMercadoPago', () => {
     entrarComo('Tesoureiro')
     comApi(conectado)
 
-    renderizar(<CartaoDoMercadoPago />)
+    renderizar(<AcoesDoMercadoPago />)
 
+    await gerenciar()
     expect(await screen.findByText('turma@mp.dev')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Trocar de conta' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Desconectar' })).not.toBeInTheDocument()
@@ -115,8 +143,9 @@ describe('CartaoDoMercadoPago', () => {
       }),
     )
 
-    renderizar(<CartaoDoMercadoPago />)
-    await userEvent.click(await screen.findByRole('switch', { name: /Cartão de crédito/ }))
+    renderizar(<AcoesDoMercadoPago />)
+    await gerenciar()
+    await userEvent.click(screen.getByRole('switch', { name: /Cartão de crédito/ }))
 
     expect(await screen.findByText(/Quem pagou pode contestar a compra no banco/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Quem paga no cartão' }))
@@ -149,7 +178,8 @@ describe('CartaoDoMercadoPago', () => {
       }),
     )
 
-    renderizar(<CartaoDoMercadoPago />)
+    renderizar(<AcoesDoMercadoPago />)
+    await gerenciar()
     expect(await screen.findByText(/A turma absorve a taxa do cartão/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('switch', { name: /Cartão de crédito/ }))
 
@@ -157,63 +187,14 @@ describe('CartaoDoMercadoPago', () => {
     expect(await screen.findByRole('switch', { name: /Cartão de crédito/ })).not.toBeChecked()
   })
 
-  /** 29/09/2026: um modo ou o outro — ligar a cobrança automática passa por confirmação e grava na API. */
-  it('a tesouraria liga a cobrança pelo Mercado Pago depois de confirmar', async () => {
-    entrarComo('Tesoureiro')
-    comApi(conectado)
-    const modos: unknown[] = []
-    servidor.use(
-      http.put(`${MERCADO_PAGO}/cobranca`, async ({ request }) => {
-        modos.push(await request.json())
-        return HttpResponse.json({
-          provedor: { ...conectado, cobranca_automatica_em: '2026-09-29T12:00:00Z' },
-        })
-      }),
-    )
-
-    renderizar(<CartaoDoMercadoPago />)
-    await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
-    expect(modos).toEqual([])
-    await userEvent.click(await screen.findByRole('button', { name: 'Trocar' }))
-
-    await expect.poll(() => modos).toEqual([{ automatica: true }])
-    expect(await screen.findByRole('radio', { name: 'Confirmação automática' })).toBeChecked()
-  })
-
-  /** A troca bloqueada pela API continua desligada; quem diz o que fazer é o toast, com a mensagem dela. */
-  it('a troca recusada pela API não muda o interruptor', async () => {
-    entrarComo('Tesoureiro')
-    comApi(conectado)
-    let tentativas = 0
-    servidor.use(
-      http.put(`${MERCADO_PAGO}/cobranca`, () => {
-        tentativas += 1
-        return HttpResponse.json(
-          {
-            status: 409,
-            codigo: 'recebimento.avisos_pendentes',
-            detail: 'Há 2 aviso(s) de pagamento esperando conferência.',
-          },
-          { status: 409 },
-        )
-      }),
-    )
-
-    renderizar(<CartaoDoMercadoPago />)
-    await userEvent.click(await screen.findByRole('radio', { name: 'Confirmação automática' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Trocar' }))
-
-    await expect.poll(() => tentativas).toBe(1)
-    expect(screen.getByRole('radio', { name: 'Confirmação automática' })).not.toBeChecked()
-  })
-
   /** P7: a comissão não mexe no cartão — nem chega a ver a chave. */
   it('a comissão não vê o interruptor', async () => {
     entrarComo('Comissao')
     comApi(conectado)
 
-    renderizar(<CartaoDoMercadoPago />)
+    renderizar(<AcoesDoMercadoPago />)
 
+    await gerenciar()
     expect(await screen.findByText('Cartão de crédito')).toBeInTheDocument()
     expect(screen.queryByRole('switch')).not.toBeInTheDocument()
   })

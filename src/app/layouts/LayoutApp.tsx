@@ -2,10 +2,12 @@ import { X } from 'lucide-react'
 import { useRef } from 'react'
 import { Outlet } from 'react-router'
 import { DialogoDeUpgrade } from '@/components/DialogoDeUpgrade'
+import { DialogoDeVendasFechadas } from '@/components/DialogoDeVendasFechadas'
 import { VoltaDaPagina } from '@/components/VoltaDaPagina'
 import { LogoKapa } from '@/components/layout/LogoKapa'
 import { Button } from '@/components/ui/button'
 import { useAdesaoObrigatoria } from '@/features/adesoes'
+import { DialogoDePagamentoConfirmado } from '@/features/assinaturas/components/DialogoDePagamentoConfirmado'
 import { useMeuPerfil } from '@/features/formandos'
 import { BuscaGlobal } from '@/features/busca'
 import { SinoDeNovidades } from '@/features/comunicacao'
@@ -147,6 +149,10 @@ export function LayoutApp() {
         </main>
         {/* Um só, para qualquer tela: é aonde vai toda falha de plano que a API devolver (Sprint 45). */}
         <DialogoDeUpgrade />
+        {/* O aviso da venda fechada (Sprint 61), um só para a tela de planos e para a aba antiga. */}
+        <DialogoDeVendasFechadas />
+        {/* A volta do checkout confirma o pagamento aqui, por cima do Início (Sprint 61). */}
+        <DialogoDePagamentoConfirmado />
       </div>
 
       {selecionada ? <BarraInferior aoAbrirMais={() => folha.current?.showModal()} /> : null}

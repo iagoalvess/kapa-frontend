@@ -6,6 +6,7 @@ import { PAPEIS } from '@/config/perfis'
 import { useFormaturaAtiva, usePapel } from '@/hooks/useSessao'
 import { useMinhaAdesao } from '../hooks/useAderir'
 import { useConteudoParaAdesao } from '../hooks/useTermo'
+import { AdesaoApenasGestao } from './AdesaoApenasGestao'
 import { FaltaParaAderir } from './FaltaParaAderir'
 import { LeituraEAceite } from './LeituraEAceite'
 import { ParticipacaoDaGestao } from './ParticipacaoDaGestao'
@@ -81,6 +82,9 @@ export function AdesaoDoFormando({ FormularioDoTitular }: Props) {
         aoLerNova={() => definirParametros({ ler: 'nova' }, { state, preventScrollReset: true })}
       />
     )
+
+  // “Apenas gestão” tira a cesta e o termo da tela; a trava de verdade está no serviço (`Aderir`).
+  if (apenas_gestao) return <AdesaoApenasGestao />
 
   if (!termo || !plano || !hash_do_conteudo || catalogo.length === 0)
     return <FaltaParaAderir conteudo={conteudo.data} />

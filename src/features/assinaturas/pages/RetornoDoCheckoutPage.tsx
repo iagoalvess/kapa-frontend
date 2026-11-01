@@ -1,13 +1,13 @@
 import { Clock, LoaderCircle } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
-import { Link } from 'react-router'
-import mascoteCanudo from '@/assets/mascote/canudo.webp'
+import { Link, Navigate } from 'react-router'
 import mascoteFoguete from '@/assets/mascote/foguete.webp'
 import { EstadoDeErro } from '@/components/EstadoDeErro'
 import { Button } from '@/components/ui/button'
 import { ROTAS } from '@/config/rotas'
 import { ehErroDaApi, mensagemDoErro } from '@/lib/http/erros'
 import { useAssinaturaDoRetorno } from '../hooks/useAssinatura'
+import type { EstadoDoPagamentoConfirmado } from '../types/assinaturas.types'
 
 /** Quanto a tela espera antes de admitir que o pagamento está demorando. */
 const TETO_DA_ESPERA = 60_000
@@ -22,6 +22,11 @@ const TETO_DA_ESPERA = 60_000
  * Três estados: processando (até 60 s), confirmada, e demorou. O terceiro é o que evita o spinner
  * infinito que faz a pessoa pagar de novo: passado o teto, a tela diz que é seguro sair, porque é —
  * o webhook, ou a conciliação, resolve sozinho.
+ *
+ * **A confirmação não é uma tela.** Ela navega para o Início com o recado no `state`
+ * (`DialogoDePagamentoConfirmado`), que abre o cartão da Sprint 61 sobre a página da turma: a pessoa
+ * fecha o aviso e já está onde queria. Os outros dois estados continuam no `Quadro`: são espera, não
+ * chegada.
  */
 export default function RetornoDoCheckoutPage() {
   const [demorou, definirDemorou] = useState(false)
@@ -58,15 +63,15 @@ export default function RetornoDoCheckoutPage() {
 
   if (confirmada)
     return (
-      <Quadro
-        icone={<img src={mascoteCanudo} alt="" className="mx-auto w-36 drop-shadow-lg" />}
-        titulo="Pagamento confirmado"
-      >
-        <p>A assinatura do plano {assinatura.data?.plano.nome} está ativa e a turma já pode usar tudo.</p>
-        <Button asChild className="justify-self-center">
-          <Link to={ROTAS.inicio}>Ir para a turma</Link>
-        </Button>
-      </Quadro>
+      <Navigate
+        to={ROTAS.inicio}
+        replace
+        state={
+          {
+            pagamentoConfirmado: assinatura.data?.plano.nome ?? 'contratado',
+          } satisfies EstadoDoPagamentoConfirmado
+        }
+      />
     )
 
   if (demorou)

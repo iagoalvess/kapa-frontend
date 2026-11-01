@@ -28,10 +28,13 @@ describe('DialogoDeUpgrade', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'Esta área não está no plano da turma' })
     expect(dialogo).toHaveTextContent('Esta área não está incluída no plano da turma.')
-    expect(screen.getByRole('link', { name: 'Consultar' })).toHaveAttribute('href', ROTAS.planos)
+    expect(screen.getByRole('link', { name: 'Ver planos' })).toHaveAttribute('href', ROTAS.planos)
+    // O aviso tem uma ação só: quem não contrata lê o recado no próprio texto.
+    expect(screen.queryByRole('button', { name: 'Voltar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Fechar' })).not.toBeInTheDocument()
   })
 
-  it('a quem não contrata, diz a quem pedir e fecha no "Fechar"', async () => {
+  it('a quem não contrata, diz a quem pedir — sem o botão dos planos', async () => {
     entrarComo(PAPEIS.comissao)
     renderizar(<DialogoDeUpgrade />)
 
@@ -46,9 +49,23 @@ describe('DialogoDeUpgrade', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'A turma chegou ao limite do plano' })
     expect(dialogo).toHaveTextContent('Peça ao presidente da comissão para contratar.')
-    expect(screen.queryByRole('link', { name: 'Consultar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    act(() => upgrade.fechar())
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  })
+
+  it('fecha ao clicar fora, sem prender quem só queria gerar o link', async () => {
+    entrarComo(PAPEIS.presidente)
+    renderizar(<DialogoDeUpgrade />)
+
+    act(() => avisarErro(semModulo))
+    await screen.findByRole('alertdialog', { name: 'Esta área não está no plano da turma' })
+
+    const fundo = document.querySelector('[data-slot="alert-dialog-overlay"]')
+    expect(fundo).not.toBeNull()
+    await userEvent.click(fundo as Element)
 
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })

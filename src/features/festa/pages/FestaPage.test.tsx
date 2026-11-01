@@ -291,6 +291,8 @@ describe('FestaPage', () => {
 
     expect(await screen.findByText('A festa ainda não tem itens')).toBeInTheDocument()
     expect(screen.getByText(/ainda não descreveu/)).toBeInTheDocument()
+    // Vazio de começo usa a ilustração 3D; a lupa fica para busca sem resultado (Sprint 61).
+    expect(document.querySelector('img[src*="objeto-capelo-camera-buffet"]')).toBeInTheDocument()
   })
 })
 

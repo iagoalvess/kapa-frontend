@@ -1,54 +1,19 @@
-import { useId, useState } from 'react'
-import { toast } from 'sonner'
-import { DialogoDeConfirmacao } from '@/components/DialogoDeConfirmacao'
-import { avisarErro } from '@/lib/http/erros'
+import { useId } from 'react'
 import { cn } from '@/lib/utils'
-import { useConfigurarCobranca } from '../hooks/useMercadoPago'
 
-/**
- * Um modo ou o outro (29/09/2026): ligada, parcelas e opcionais se pagam só pelo Mercado Pago, sem aviso nem
- * conferência; desligada, o formando vê só os meios da comissão e avisa o pagamento. A loja é sempre Mercado Pago.
- *
- * A troca passa por confirmação — muda o que toda a turma vê na tela de pagar —, e a API recusa enquanto há algo
- * no meio do caminho (aviso na fila, PIX de hoje em aberto); a mensagem dela diz o que fazer.
- *
- * @param desde Desde quando está ligada; nulo, desligada.
- * @param escreve Se quem vê pode trocar.
- */
+/** A escolha fica no formulário; Salvar pede confirmação antes de alterar o modo da turma. */
 export function ModoDaCobranca({
-  desde,
+  selecionada,
   escreve,
-  conectado = true,
-  preparandoAutomatico = false,
-  aoPreparar,
+  ocupado,
+  aoSelecionar,
 }: {
-  desde: string | null
+  selecionada: boolean
   escreve: boolean
-  conectado?: boolean
-  preparandoAutomatico?: boolean
-  aoPreparar?: (automatico: boolean) => void
+  ocupado: boolean
+  aoSelecionar: (automatica: boolean) => void
 }) {
-  const configurar = useConfigurarCobranca()
   const grupo = useId()
-  const [pedido, definirPedido] = useState<boolean>()
-  const ligada = desde !== null
-  const selecionada = ligada || (!conectado && preparandoAutomatico)
-
-  const confirmar = () => {
-    const automatica = pedido === true
-    definirPedido(undefined)
-    configurar.mutate(
-      { automatica },
-      {
-        onSuccess: () =>
-          automatica
-            ? toast.success('Cobrança pelo Mercado Pago ligada. Os formandos já pagam por ele.')
-            : toast.info('Os formandos voltaram a ver as formas de pagamento da comissão.'),
-        onError: avisarErro,
-      },
-    )
-  }
-
   return (
     <section aria-label="Cobrança dos formandos" className="grid gap-3">
       <fieldset className="grid gap-3">
@@ -67,7 +32,7 @@ export function ModoDaCobranca({
             },
           ].map(({ automatica, titulo, descricao }) => {
             const ativo = selecionada === automatica
-            const desabilitado = !escreve || configurar.isPending || (automatica && !conectado && !aoPreparar)
+            const desabilitado = !escreve || ocupado
 
             return (
               <label
@@ -80,7 +45,7 @@ export function ModoDaCobranca({
                   aria-label={titulo}
                   checked={ativo}
                   disabled={desabilitado}
-                  onChange={() => (conectado ? definirPedido(automatica) : aoPreparar?.(automatica))}
+                  onChange={() => aoSelecionar(automatica)}
                   className="accent-brand focus-visible:ring-ring mt-1 size-4 shrink-0 focus-visible:ring-2 focus-visible:outline-none"
                 />
                 <span className="grid min-w-0 gap-1">
@@ -88,29 +53,12 @@ export function ModoDaCobranca({
                     {titulo}
                   </span>
                   <span className="text-muted-foreground text-sm">{descricao}</span>
-                  {automatica && !conectado && !aoPreparar ? (
-                    <span className="text-muted-foreground text-xs">
-                      Conecte a conta abaixo para escolher.
-                    </span>
-                  ) : null}
                 </span>
               </label>
             )
           })}
         </div>
       </fieldset>
-      <DialogoDeConfirmacao
-        aberto={pedido !== undefined}
-        aoFechar={() => definirPedido(undefined)}
-        titulo={pedido ? 'Usar confirmação automática?' : 'Voltar à conferência manual?'}
-        descricao={
-          pedido
-            ? 'Os formandos passarão a pagar pelo Mercado Pago e não precisarão avisar quando pagarem. Os meios da comissão deixam de aparecer para eles. Se alguém pagar por fora, a tesouraria poderá registrar o pagamento.'
-            : 'Os formandos voltarão a pagar pelas formas escolhidas pela comissão e a avisar quando pagarem. A tesouraria conferirá esses pagamentos. A loja continuará vendendo pelo Mercado Pago.'
-        }
-        rotulo="Trocar"
-        aoConfirmar={confirmar}
-      />
     </section>
   )
 }

@@ -5,7 +5,6 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { useProximasParcelas } from '@/features/pagamentos'
 import { diasAte, formatarCentavos, formatarData, primeiraMaiuscula } from '@/lib/formato'
 import { rotuloDoItem, valorNaLista } from '@/types/cobranca'
-import { EstadoVazioDoInicio } from './EstadoVazioDoInicio'
 import { TracoDoInicio } from './TracoDoInicio'
 
 /**
@@ -28,7 +27,8 @@ function prazo(vencimento: string) {
 /**
  * A próxima parcela do próprio formando, com atalho para pagar e um resumo compacto da seguinte.
  *
- * As duas vêm prontas de `/extrato/eu/proximas`: o extrato inteiro fica para Minhas parcelas.
+ * As duas vêm prontas de `/extrato/eu/proximas`: o extrato inteiro fica para Minhas parcelas. Sem
+ * parcela em aberto, o bloco não é desenhado — o `PaginaInicial` lê a mesma consulta antes.
  */
 export function BlocoDaParcela() {
   const proximas = useProximasParcelas()
@@ -39,26 +39,24 @@ export function BlocoDaParcela() {
   if (proximas.isError)
     return <ErroDaConsulta compacto erro={proximas.error} aoTentarDeNovo={() => void proximas.refetch()} />
 
-  // O atalho permanece disponível mesmo antes de existir uma cobrança.
-  if (!proxima)
-    return (
-      <EstadoVazioDoInicio
-        icone={WalletMinimal}
-        titulo="Nenhuma parcela em aberto"
-        descricao="Quando houver uma parcela para pagar, ela aparece aqui."
-      />
-    )
+  if (!proxima) return null
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.62fr)_1rem_minmax(0,1fr)] lg:items-center lg:gap-3">
       <div className="grid gap-4">
         <div className="flex items-center gap-4">
           <WalletMinimal className="text-brand size-8 shrink-0" strokeWidth={1.6} aria-hidden />
-          <Dica dica={`${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}>
+          <div className="grid min-w-0 gap-0.5">
+            {/* O item e a posição ficam visíveis, como no "Depois": só o valor não diz o que se paga. */}
+            <Dica dica={`Agora · ${rotuloDoItem(proxima)} ${proxima.numero}/${proxima.de}`}>
+              <p className="text-muted-foreground truncate text-xs font-medium">
+                Agora · {rotuloDoItem(proxima)} {proxima.numero}/{proxima.de}
+              </p>
+            </Dica>
             <p className="text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl lg:text-4xl 2xl:text-5xl">
               {formatarCentavos(valorNaLista(proxima))}
             </p>
-          </Dica>
+          </div>
         </div>
 
         <p className="text-muted-foreground text-[15px]">

@@ -1,7 +1,8 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { env } from '@/config/env'
+import { ROTAS } from '@/config/rotas'
 import { sessao } from '@/lib/http/sessao'
 import { servidor } from '@/test/msw/server'
 import { renderizar } from '@/test/utils'
@@ -54,17 +55,17 @@ describe('RetornoDoCheckoutPage', () => {
     sessao.encerrar()
   })
 
-  it('consulta a cada 3 s e mostra a confirmação quando o webhook ativa', async () => {
+  it('consulta a cada 3 s e, confirmado, vai ao Início com o aviso', async () => {
     const pedidos = comStatus('Pendente', 'Ativa')
 
-    renderizar(<RetornoDoCheckoutPage />)
+    const { router } = renderizar(<RetornoDoCheckoutPage />)
 
     expect(await screen.findByText(/Não feche esta página/)).toBeInTheDocument()
 
     await act(() => vi.advanceTimersByTimeAsync(3_000))
 
-    expect(await screen.findByText('Pagamento confirmado')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ir para a turma' })).toBeInTheDocument()
+    await waitFor(() => expect(router.state.location.pathname).toBe(ROTAS.inicio))
+    expect(router.state.location.state).toEqual({ pagamentoConfirmado: 'Premium' })
     expect(pedidos()).toBe(2)
   })
 
@@ -81,11 +82,12 @@ describe('RetornoDoCheckoutPage', () => {
     expect(screen.queryByText(/Não feche esta página/)).not.toBeInTheDocument()
   })
 
-  it('confirmada, para de consultar', async () => {
+  it('confirmada, para de consultar e sai da tela de espera', async () => {
     const pedidos = comStatus('Ativa')
 
-    renderizar(<RetornoDoCheckoutPage />)
-    expect(await screen.findByText('Pagamento confirmado')).toBeInTheDocument()
+    const { router } = renderizar(<RetornoDoCheckoutPage />)
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(ROTAS.inicio))
 
     await act(() => vi.advanceTimersByTimeAsync(10_000))
 

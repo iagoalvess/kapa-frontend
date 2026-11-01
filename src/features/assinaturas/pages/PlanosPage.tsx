@@ -8,10 +8,12 @@ import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { Selo } from '@/components/Selo'
 import { Button } from '@/components/ui/button'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
+import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePlanosDoCatalogo } from '@/hooks/usePlanosDoCatalogo'
 import { usePapel } from '@/hooks/useSessao'
 import { formatarData } from '@/lib/formato'
 import { avisarErro, ehErroDaApi } from '@/lib/http/erros'
+import { vendasFechadas } from '@/lib/vendasFechadas'
 import { CICLOS, maiorDesconto, type Plano } from '@/types/plano'
 import { useFiltrosDaUrl } from '@/hooks/useFiltrosDaUrl'
 import { useAssinatura, useTrocarPlano } from '../hooks/useAssinatura'
@@ -37,16 +39,24 @@ import type { CicloDeCobranca } from '../types/assinaturas.types'
  * diferença agora, ou valer na próxima renovação —, e a descida agendada aparece com o botão de
  * desfazer: o back já a desfaz ao escolher o plano atual (`Assinatura.AgendarPlano`), e antes a tela
  * não dava esse caminho.
+ *
+ * **Com a venda fechada (Sprint 61), os planos aparecem com preço e o botão abre o aviso da data.** Não
+ * é a tela que decide: `vendas_abertas` vem do `GET .../plano`. Enquanto ele carrega, o botão espera —
+ * clicar antes da resposta abriria o checkout de uma venda que pode estar fechada. Se a consulta falhar,
+ * o clique segue para o checkout, que é onde a API recusa de verdade.
  */
 export default function PlanosPage() {
   const { parametros, atualizar } = useFiltrosDaUrl()
   const planos = usePlanosDoCatalogo()
   const assinatura = useAssinatura()
   const formatura = useFormaturaAtual()
+  const planoDaTurma = usePlanoDaTurma()
   const { ehPresidente } = usePapel()
   const trocar = useTrocarPlano()
   const [contratando, definirContratando] = useState<Plano | null>(null)
   const [escolhido, definirEscolhido] = useState<Plano | null>(null)
+
+  const vendasAbertas = planoDaTurma.plano?.vendas_abertas ?? true
 
   const ciclo: CicloDeCobranca = parametros.get('ciclo') === 'Mensal' ? 'Mensal' : 'Anual'
   const doCiclo = planos.data?.filter((plano) => plano.ciclo === ciclo) ?? []
@@ -69,6 +79,12 @@ export default function PlanosPage() {
    * (pagar a diferença agora ou valer na renovação) precisa estar dito antes do clique.
    */
   function escolher(plano: Plano) {
+    // Sprint 61: com a venda fechada, o clique vira o aviso da data — nenhum caminho da tela abre o checkout.
+    if (!vendasAbertas) {
+      vendasFechadas.abrir()
+      return
+    }
+
     if (!atual) {
       definirContratando(plano)
       return
@@ -186,7 +202,9 @@ export default function PlanosPage() {
                 <Button
                   size="lg"
                   variant={plano.recomendado || ehAtual ? 'default' : 'outline'}
-                  disabled={Boolean(aviso) || agendado || (ehAtual && !proximo) || aCaminho}
+                  disabled={
+                    Boolean(aviso) || agendado || (ehAtual && !proximo) || aCaminho || planoDaTurma.carregando
+                  }
                   onClick={() => (ehAtual ? reverter() : escolher(plano))}
                 >
                   {ehAtual

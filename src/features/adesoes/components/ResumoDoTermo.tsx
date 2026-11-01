@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Ticket,
 } from 'lucide-react'
-import mascoteChecklist from '@/assets/mascote/checklist.webp'
+import cenaDoTermo from '@/assets/3d/cena-kapinha-formanda-leem-termo-auditorio-transparente.png'
 import { Selo } from '@/components/Selo'
 import { cn } from '@/lib/utils'
 
@@ -91,10 +91,10 @@ export function ResumoDoTermo({
             </p>
           </div>
           <img
-            src={mascoteChecklist}
+            src={cenaDoTermo}
             alt=""
             aria-hidden
-            className="w-20 shrink-0 self-end object-contain @2xl:mt-auto @2xl:w-44 @2xl:self-center"
+            className="w-28 shrink-0 self-end object-contain @2xl:mt-auto @2xl:w-full @2xl:self-center"
           />
         </header>
 

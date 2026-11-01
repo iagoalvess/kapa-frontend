@@ -191,9 +191,7 @@ export function paraFormularioDosMeios(conta?: ContaDeRecebimento | null): Formu
   const meios = conta?.meios
 
   return {
-    // A primeira gravação da turma abre com o PIX ligado: é o meio que quase toda turma usa, e
-    // deixá-lo desligado faria o formulário nascer sem campo nenhum à vista.
-    pix_ativo: !meios || Boolean(meios.pix),
+    pix_ativo: Boolean(meios?.pix),
     pix: meios?.pix
       ? {
           tipo_de_chave: meios.pix.tipo_de_chave,

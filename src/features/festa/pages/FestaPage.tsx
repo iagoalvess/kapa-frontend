@@ -1,4 +1,5 @@
 import { ScanLine, Armchair } from 'lucide-react'
+import objetoDaFesta from '@/assets/3d/objeto-capelo-camera-buffet-orcamento-transparente.webp'
 import { AtalhosDaPagina } from '@/components/AtalhosDaPagina'
 import { CircleCheck, PartyPopper, Plus, Wallet } from 'lucide-react'
 import { useState } from 'react'
@@ -262,6 +263,7 @@ export default function FestaPage() {
                       : 'A comissão ainda não descreveu o que a turma está comprando.'
                     : 'Tente outra busca ou tire o filtro.'
                 }
+                ilustracao={todos.length === 0 ? objetoDaFesta : undefined}
               />
             </div>
           ) : null}

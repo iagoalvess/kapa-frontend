@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { linkDeSuporte } from '@/lib/suporte'
 import { ehCodigoDeUpgrade, upgrade } from '@/lib/upgrade'
+import { vendasFechadas } from '@/lib/vendasFechadas'
 
 /**
  * Corpo de erro da API, no formato RFC 9457 (ProblemDetails).
@@ -99,8 +100,26 @@ export function pedirUpgradeSeForDoPlano(erro: unknown): boolean {
 }
 
 /**
+ * Abre o aviso da venda fechada quando a falha é dela (Sprint 61).
+ *
+ * Não é código de upgrade: a turma pode contratar quando a venda abrir, e registrá-la no funil do
+ * paywall diria "falta de plano" onde o que falta é a data. Vale para a aba antiga, que ainda tem o
+ * diálogo de contratação montado e clica em "Continuar" depois de a venda fechar.
+ *
+ * @param erro Erro capturado.
+ * @returns `true` se era a venda fechada e o aviso abriu — quem chama então não mostra mais nada.
+ */
+export function avisarVendasFechadasSeFor(erro: unknown): boolean {
+  if (!ehErroDaApi(erro) || erro.codigo !== 'assinatura.vendas_fechadas') return false
+
+  vendasFechadas.abrir(erro.message)
+  return true
+}
+
+/**
  * Avisa a falha num toast de erro, com a mensagem de {@link mensagemDoErro}. Falha de plano abre o
- * diálogo de upgrade no lugar ({@link pedirUpgradeSeForDoPlano}).
+ * diálogo de upgrade no lugar ({@link pedirUpgradeSeForDoPlano}), e venda fechada abre o aviso da data
+ * ({@link avisarVendasFechadasSeFor}).
  *
  * É o `onError` de toda mutação de ação que não tem formulário para mostrar o erro no lugar:
  * `mutate(dados, { onError: avisarErro })`.
@@ -109,6 +128,7 @@ export function pedirUpgradeSeForDoPlano(erro: unknown): boolean {
  */
 export function avisarErro(erro: unknown) {
   if (pedirUpgradeSeForDoPlano(erro)) return
+  if (avisarVendasFechadasSeFor(erro)) return
 
   const codigo = codigoParaOSuporte(erro)
   // Falha do servidor não é coisa que a pessoa resolve tentando de novo: o aviso leva o código e o caminho

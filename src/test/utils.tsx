@@ -23,6 +23,8 @@ export const PLANO_COMPLETO: PlanoDaTurma = {
   nome: 'Premium',
   modulos: Object.values(MODULOS),
   pago: true,
+  vendas_abertas: true,
+  abertura_das_vendas: null,
 }
 
 /** A turma no gratuito: os módulos do Essencial sem a festa, e nada pago. */
@@ -31,6 +33,8 @@ export const PLANO_GRATUITO: PlanoDaTurma = {
   nome: 'Gratuito',
   modulos: [MODULOS.membros, MODULOS.termo, MODULOS.cobrancas, MODULOS.pix, MODULOS.despesas, MODULOS.caixa],
   pago: false,
+  vendas_abertas: true,
+  abertura_das_vendas: null,
 }
 
 /**
@@ -44,6 +48,8 @@ export const PLANO_ESSENCIAL: PlanoDaTurma = {
   nome: 'Essencial',
   modulos: [...PLANO_GRATUITO.modulos, MODULOS.festa],
   pago: true,
+  vendas_abertas: true,
+  abertura_das_vendas: null,
 }
 
 /**
