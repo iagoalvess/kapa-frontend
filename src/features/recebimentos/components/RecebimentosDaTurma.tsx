@@ -103,7 +103,7 @@ export function RecebimentosDaTurma() {
       ) : conta.isError ? (
         <ErroDaConsulta compacto erro={conta.error} aoTentarDeNovo={() => void conta.refetch()} />
       ) : (
-        <>
+        <div className="grid gap-5">
           <ListaDeDados>
             <Dado icone={automatica ? Zap : ClipboardCheck} rotulo="Forma">
               {automatica ? 'Confirmação automática' : 'Conferência manual'}
@@ -124,13 +124,17 @@ export function RecebimentosDaTurma() {
                 </>
               )}
             </Dado>
-            {dados && temMeio ? (
-              <ResumoDosMeios conta={dados} />
-            ) : (
+          </ListaDeDados>
+          {dados && temMeio ? (
+            <ResumoDosMeios conta={dados} />
+          ) : (
+            <ListaDeDados className="border-border border-t pt-4">
               <Dado icone={HandCoins} rotulo="Meios de pagamento">
                 Não preenchido
               </Dado>
-            )}
+            </ListaDeDados>
+          )}
+          <ListaDeDados className="border-border border-t pt-4">
             <Dado icone={Store} rotulo="Loja pública">
               {!liberado
                 ? 'Indisponível — turma em consulta'
@@ -143,7 +147,7 @@ export function RecebimentosDaTurma() {
                       : 'Pode receber pelo Mercado Pago'}
             </Dado>
           </ListaDeDados>
-        </>
+        </div>
       )}
 
       {conferirPix && dados?.meios.pix ? <PixDeTeste chave={dados.meios.pix} /> : null}
