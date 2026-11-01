@@ -1,5 +1,5 @@
 import { BadgeCheck, Banknote, HandCoins, KeyRound, Landmark, MapPin, UserRound } from 'lucide-react'
-import { Dado } from '@/components/ListaDeDados'
+import { Dado, ListaDeDados } from '@/components/ListaDeDados'
 import { Selo } from '@/components/Selo'
 import { formatarData } from '@/lib/formato'
 import { chaveParaExibir, TIPOS_DE_CHAVE } from '../schemas/meios.schema'
@@ -8,7 +8,8 @@ import type { ContaDeRecebimento } from '../types/recebimentos.types'
 /**
  * Os meios que a turma escolheu, em linhas de ícone, rótulo e valor.
  *
- * São linhas da mesma ListaDeDados do cartão; meio desligado não acrescenta linha.
+ * Cada meio tem título e separação próprios, mantendo as linhas de dados do cartão.
+ * Meio desligado não acrescenta bloco.
  *
  * @param conta A conta da turma, já carregada.
  */
@@ -18,7 +19,7 @@ export function ResumoDosMeios({ conta }: { conta: ContaDeRecebimento }) {
   return (
     <>
       {pix ? (
-        <>
+        <ListaDeDados rotulo="PIX" className="border-border border-t pt-4">
           <Dado icone={KeyRound} rotulo={`PIX (${TIPOS_DE_CHAVE[pix.tipo_de_chave].rotulo})`}>
             <span className="break-all">{chaveParaExibir(pix.tipo_de_chave, pix.chave)}</span>
           </Dado>
@@ -38,11 +39,11 @@ export function ResumoDosMeios({ conta }: { conta: ContaDeRecebimento }) {
               ? `Conferida em ${formatarData(conta.conferida_em)}${conta.conferida_por ? ` por ${conta.conferida_por}` : ''}`
               : 'Ainda não feito'}
           </Dado>
-        </>
+        </ListaDeDados>
       ) : null}
 
       {transferencia ? (
-        <>
+        <ListaDeDados rotulo="Transferência bancária" className="border-border border-t pt-4">
           <Dado icone={Landmark} rotulo="Banco da transferência">
             {transferencia.banco}
           </Dado>
@@ -52,11 +53,11 @@ export function ResumoDosMeios({ conta }: { conta: ContaDeRecebimento }) {
           <Dado icone={UserRound} rotulo="Titular da conta">
             {transferencia.titular}
           </Dado>
-        </>
+        </ListaDeDados>
       ) : null}
 
       {dinheiro ? (
-        <>
+        <ListaDeDados rotulo="Dinheiro" className="border-border border-t pt-4">
           <Dado icone={HandCoins} rotulo="Dinheiro com">
             {dinheiro.nome}
           </Dado>
@@ -65,7 +66,7 @@ export function ResumoDosMeios({ conta }: { conta: ContaDeRecebimento }) {
               {dinheiro.onde}
             </Dado>
           ) : null}
-        </>
+        </ListaDeDados>
       ) : null}
     </>
   )
