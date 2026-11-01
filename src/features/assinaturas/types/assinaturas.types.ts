@@ -8,6 +8,17 @@ import type { Plano } from '@/types/plano'
 export type { CicloDeCobranca, Plano } from '@/types/plano'
 export type { StatusDaAssinatura } from '@/types/assinatura'
 
+/**
+ * O recado que a volta do checkout deixa para o app: o Início abre o aviso de pagamento confirmado.
+ *
+ * Viaja no `state` da rota `/inicio` e é apagado quando o aviso fecha — recarregar depois de fechar
+ * não o traz de volta.
+ */
+export interface EstadoDoPagamentoConfirmado {
+  /** Nome do plano que acabou de ser ativado. */
+  pagamentoConfirmado: string
+}
+
 /** A assinatura mais recente da formatura. Espelha `AssinaturaDTO`. */
 export interface Assinatura {
   id: string

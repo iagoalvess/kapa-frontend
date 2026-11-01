@@ -127,7 +127,7 @@ describe('CartaoDeConvitesPorEmail', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'A turma chegou ao limite do plano' })
     expect(dialogo).toHaveTextContent('O plano Gratuito comporta 5 pessoas')
-    expect(screen.getByRole('link', { name: 'Consultar' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver planos' })).toBeInTheDocument()
     act(() => upgrade.fechar())
   })
 

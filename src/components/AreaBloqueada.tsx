@@ -1,8 +1,8 @@
 import { Check, Lock } from 'lucide-react'
 import { type ReactNode, useEffect } from 'react'
-import mascoteCadeado from '@/assets/mascote/cadeado.webp'
 import { AcaoDeUpgrade } from '@/components/AcaoDeUpgrade'
 import { Cartao } from '@/components/Cartao'
+import { CartaoBloqueado } from '@/components/CartaoBloqueado'
 import { AREAS_DO_PLANO, type AreaDoPlano, type Modulo } from '@/config/planos'
 import { usePlanoQueLibera } from '@/hooks/usePlanoDaTurma'
 import { avisarPaywall } from '@/lib/upgrade'
@@ -14,6 +14,10 @@ import { avisarPaywall } from '@/lib/upgrade'
  * Entra no lugar da página, e a página nem monta — nenhuma consulta sai só para voltar 403. Antes a
  * turma abria o item do menu e via o erro vermelho "Esta área não está incluída no plano da turma.", sem
  * saída.
+ *
+ * O cartão segue o desenho do aviso de venda fechada (Sprint 61): cena 3D sangrando no topo, texto no
+ * branco e **uma** ação, o "Ver planos", centralizado. A cena é a da comissão no mural de tarefas — é a
+ * mesma ideia para qualquer módulo trancado: o trabalho de gestão que o plano libera.
  *
  * @param modulo O módulo que a área exige.
  */
@@ -34,33 +38,34 @@ export function AreaBloqueada({ modulo, previa }: { modulo: Modulo; previa?: Rea
         {previa ?? (area ? <Maquete area={area} /> : null)}
       </div>
 
-      <section
-        aria-labelledby="area-bloqueada"
-        className="bg-card shadow-cartao relative z-10 m-4 grid w-[calc(100%-2rem)] max-w-md justify-items-center gap-4 rounded-3xl p-6 text-center"
+      <CartaoBloqueado
+        rotuloId="area-bloqueada"
+        className="relative z-10 m-4 w-[calc(100%-2rem)]"
+        selo={
+          <p className="bg-brand-tint text-brand-text inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold">
+            <Lock className="size-3.5" aria-hidden />
+            {plano ? `Disponível no plano ${plano.nome}` : 'Fora do plano da turma'}
+          </p>
+        }
+        titulo={
+          <h2 id="area-bloqueada" className="text-xl font-semibold tracking-tight text-balance">
+            {area?.titulo ?? 'Esta área não está no plano da turma'}
+          </h2>
+        }
+        descricao={area ? <p className="text-muted-foreground text-sm text-balance">{area.frase}</p> : null}
       >
-        <img src={mascoteCadeado} alt="" className="w-24 drop-shadow-lg" />
-        <p className="bg-brand-tint text-brand-text inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold">
-          <Lock className="size-3.5" aria-hidden />
-          {plano ? `Disponível no plano ${plano.nome}` : 'Fora do plano da turma'}
-        </p>
-        <h2 id="area-bloqueada" className="text-xl font-semibold tracking-tight text-balance">
-          {area?.titulo ?? 'Esta área não está no plano da turma'}
-        </h2>
         {area ? (
-          <>
-            <p className="text-muted-foreground text-sm text-balance">{area.frase}</p>
-            <ul className="grid gap-2 text-left text-sm">
-              {area.beneficios.map((beneficio) => (
-                <li key={beneficio} className="flex gap-2">
-                  <Check className="text-brand-text mt-0.5 size-4 shrink-0" aria-hidden />
-                  {beneficio}
-                </li>
-              ))}
-            </ul>
-          </>
+          <ul className="grid gap-2 text-left text-sm">
+            {area.beneficios.map((beneficio) => (
+              <li key={beneficio} className="flex gap-2">
+                <Check className="text-brand-text mt-0.5 size-4 shrink-0" aria-hidden />
+                {beneficio}
+              </li>
+            ))}
+          </ul>
         ) : null}
         <AcaoDeUpgrade />
-      </section>
+      </CartaoBloqueado>
     </div>
   )
 }

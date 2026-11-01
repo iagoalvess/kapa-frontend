@@ -66,6 +66,10 @@ describe('PaginaDaFormatura', () => {
         ]),
       ),
       http.get(`${ATUAL}/convites`, () => HttpResponse.json([])),
+      http.get(`${env.VITE_API_URL}/api/v1/recebimentos/conta`, () => HttpResponse.json({ conta: null })),
+      http.get(`${env.VITE_API_URL}/api/v1/recebimentos/conta/mercado-pago`, () =>
+        HttpResponse.json({ provedor: null }),
+      ),
       // Sem `/assinatura` nem `/assinatura/cobrancas`: a turma que nunca contratou está no gratuito,
       // e o MSW derrubaria o teste se a tela perguntasse.
     )
@@ -77,5 +81,9 @@ describe('PaginaDaFormatura', () => {
     expect(await screen.findByText('Plano gratuito')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Convites por e-mail' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Gerar link' })).toBeInTheDocument()
+    const recebimentos = await screen.findByRole('region', { name: 'Recebimentos da turma' })
+    expect(await within(recebimentos).findByText('Indisponível — conecte o Mercado Pago')).toBeVisible()
+    expect(within(recebimentos).getByText('Loja pública')).toBeVisible()
+    expect(screen.queryByRole('region', { name: 'Loja pública' })).not.toBeInTheDocument()
   })
 })

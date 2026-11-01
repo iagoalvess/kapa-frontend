@@ -8,7 +8,7 @@ import { PAPEIS } from '@/config/perfis'
 import { rotaDoPagamento, ROTAS } from '@/config/rotas'
 import { useProximasParcelas } from '@/features/pagamentos'
 import { useResumoDaAgenda } from '@/hooks/useAgenda'
-import { useArrecadacao } from '@/hooks/useArrecadacao'
+import { enqueteDaHome, useEnquetes } from '@/hooks/useEnquetes'
 import { useFormaturaAtual } from '@/hooks/useFormaturaAtual'
 import { usePlanoDaTurma } from '@/hooks/usePlanoDaTurma'
 import { usePapel, useSessao } from '@/hooks/useSessao'
@@ -19,7 +19,6 @@ import { AvisoDeAdesao } from './AvisoDeAdesao'
 import { BlocoDasEnquetes } from './BlocoDasEnquetes'
 import { BlocoDaParcela } from './BlocoDaParcela'
 import { FeedDoMural, useAvisosFixados } from './FeedDoMural'
-import { GraficoDaArrecadacao } from './GraficoDaArrecadacao'
 import { HeroDaJornada } from './HeroDaJornada'
 import { PrimeirosPassos } from './PrimeirosPassos'
 import { ProximasDatas } from './ProximasDatas'
@@ -38,11 +37,11 @@ export function PaginaInicial() {
   const ehGestao = tem(PAPEIS.tesoureiro, PAPEIS.comissao)
   const temMural = usePlanoDaTurma().inclui(MODULOS.mural)
   const incluiEnquetes = usePlanoDaTurma().inclui(MODULOS.enquetes)
-  // O cache divide estas consultas com os blocos. Os atalhos pessoais ficam também quando vazios.
+  // O cache divide estas consultas com os blocos. A página lê antes para não desenhar o bloco vazio.
   const parcelas = useProximasParcelas()
-  const arrecadacao = useArrecadacao()
   const agenda = useResumoDaAgenda()
   const fixados = useAvisosFixados()
+  const enquetes = useEnquetes()
 
   if (formatura.isPending) return <EsqueletoDeCartao className="h-80 overflow-hidden" />
   if (formatura.isError)
@@ -55,12 +54,10 @@ export function PaginaInicial() {
   const primeiroNome = usuario?.nome?.split(' ')[0] || 'visitante'
 
   // O Início apresenta só o que a turma pode usar. Esperar o plano também evita que os blocos
-  // exclusivos apareçam por um instante antes de a consulta terminar.
-  const temParcela = true
-  const temEnquetes = incluiEnquetes
-  const temGrafico =
-    arrecadacao.data === undefined ||
-    arrecadacao.data.some((mes) => !mes.projetado && mes.arrecadado_em_centavos > 0)
+  // exclusivos apareçam por um instante antes de a consulta terminar. Sem registro, o bloco não
+  // existe: um atalho para uma lista vazia ocupa o lugar do que a pessoa tem para fazer.
+  const temParcela = !(parcelas.data && !parcelas.data.proxima)
+  const temEnquetes = incluiEnquetes && !(enquetes.data && !enqueteDaHome(enquetes.data))
   const temDatas = !(agenda.data && agenda.data.proximos.length === 0)
   const temRecados = temMural && !(fixados.data && fixados.data.itens.length === 0)
 
@@ -72,16 +69,12 @@ export function PaginaInicial() {
           aria-labelledby="bloco-parcela"
           className="grid min-w-0 content-start gap-4 pt-8 pb-5 lg:pb-8"
         >
-          {parcelas.data?.proxima ? (
-            <Cabecalho
-              id="bloco-parcela"
-              rotulo="Sua parcela"
-              para={rotaDoPagamento(parcelas.data.proxima.id)}
-              texto="Pagar parcela"
-            />
-          ) : (
-            <Cabecalho id="bloco-parcela" rotulo="Sua parcela" para={ROTAS.extrato} texto="Ver parcelas" />
-          )}
+          <Cabecalho
+            id="bloco-parcela"
+            rotulo="Sua parcela"
+            para={parcelas.data?.proxima ? rotaDoPagamento(parcelas.data.proxima.id) : ROTAS.extrato}
+            texto={parcelas.data?.proxima ? 'Pagar parcela' : 'Ver parcelas'}
+          />
           <BlocoDaParcela />
         </section>
       ),
@@ -101,7 +94,6 @@ export function PaginaInicial() {
         </section>
       ),
     ],
-    [temGrafico && <GraficoDaArrecadacao key="grafico" />],
     [
       temDatas && (
         <section

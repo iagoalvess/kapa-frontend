@@ -1,12 +1,14 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, delay, http } from 'msw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS } from '@/config/perfis'
+import { DialogoDeVendasFechadas } from '@/components/DialogoDeVendasFechadas'
 import { sessao } from '@/lib/http/sessao'
+import { vendasFechadas } from '@/lib/vendasFechadas'
+import { PLANO_GRATUITO, renderizar } from '@/test/utils'
 import { servidor } from '@/test/msw/server'
-import { renderizar } from '@/test/utils'
 import PlanosPage from './PlanosPage'
 
 const MODULOS = ['Membros e convites', 'Termo de adesão']
@@ -88,6 +90,7 @@ function comFormatura(
 describe('PlanosPage', () => {
   afterEach(() => {
     sessao.encerrar()
+    vendasFechadas.fechar()
     globalThis.location.hash = ''
   })
 
@@ -144,6 +147,95 @@ describe('PlanosPage', () => {
 
     await expect.poll(() => globalThis.location.hash).toBe('#provedor')
     expect(pedido).toEqual({ plano_codigo: 'premium', meio: 'Cartao', cupom_codigo: null })
+  })
+
+  /**
+   * Sprint 61: com a venda fechada, os planos continuam à vista com preço, e o botão de assinar abre o
+   * aviso da data — nenhum caminho da tela chega ao checkout.
+   */
+  it('com a venda fechada, assinar abre o aviso da data e não chama o checkout', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    let chamou = false
+    servidor.use(
+      http.post(`${env.VITE_API_URL}/api/v1/formaturas/atual/assinatura/checkout`, () => {
+        chamou = true
+        return HttpResponse.json({ url: '#provedor' })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(
+      <>
+        <PlanosPage />
+        {/* No app o diálogo é montado uma vez no layout; aqui vem junto porque é a página que o abre. */}
+        <DialogoDeVendasFechadas />
+      </>,
+      { pathname: '/', search: '?ciclo=Mensal' },
+      '*',
+      { ...PLANO_GRATUITO, vendas_abertas: false, abertura_das_vendas: 'janeiro de 2027' },
+    )
+
+    expect(await screen.findByText(/R\$\s?49,90/)).toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Escolher Premium' }))
+
+    const dialogo = await screen.findByRole('alertdialog', {
+      name: 'Os planos pagos abrem em janeiro de 2027',
+    })
+    expect(dialogo).toHaveTextContent(
+      'Até lá, a sua turma usa o Kapa de graça, com até 5 pessoas da comissão',
+    )
+    expect(dialogo).toHaveTextContent('Viu algo que poderia ser melhor? Conte para a gente.')
+    expect(within(dialogo).getByRole('link', { name: 'Sugestão' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('mailto:suporte@kapaformaturas.com.br'),
+    )
+    expect(screen.queryByRole('alertdialog', { name: 'Finalizar assinatura' })).not.toBeInTheDocument()
+    expect(chamou).toBe(false)
+
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Voltar' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(chamou).toBe(false)
+  })
+
+  /**
+   * O plano da turma chega pela API. Enquanto ele não chega, o botão espera: clicar antes abriria o
+   * contrato de uma venda que pode estar fechada (Sprint 61).
+   */
+  it('espera o plano antes de deixar escolher, e então abre o aviso da venda fechada', async () => {
+    entrarComo(PAPEIS.presidente)
+    comFormatura('Ativa')
+    servidor.use(
+      http.get(`${env.VITE_API_URL}/api/v1/formaturas/atual/plano`, async () => {
+        await delay(300)
+        return HttpResponse.json({
+          ...PLANO_GRATUITO,
+          vendas_abertas: false,
+          abertura_das_vendas: 'janeiro de 2027',
+        })
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    renderizar(
+      <>
+        <PlanosPage />
+        <DialogoDeVendasFechadas />
+      </>,
+      { pathname: '/', search: '?ciclo=Mensal' },
+      '*',
+      null,
+    )
+
+    const botao = await screen.findByRole('button', { name: 'Escolher Premium' })
+    expect(botao).toBeDisabled()
+
+    await waitFor(() => expect(botao).toBeEnabled())
+    await usuario.click(botao)
+
+    expect(
+      await screen.findByRole('alertdialog', { name: 'Os planos pagos abrem em janeiro de 2027' }),
+    ).toBeInTheDocument()
   })
 
   /** Sprint 37: o meio escolhido vai no checkout — no PIX, a página do provedor é a do PIX do primeiro ciclo. */

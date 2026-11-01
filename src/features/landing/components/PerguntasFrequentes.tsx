@@ -31,7 +31,7 @@ const PERGUNTAS = [
   {
     pergunta: 'Como funciona a assinatura do Kapa?',
     resposta:
-      'A comissão pode começar de graça para preparar a turma. Para convidar os formandos, escolhe uma assinatura mensal ou anual, conforme o tamanho da turma e os recursos do plano. A assinatura pode ser paga por PIX ou cartão. O Kapa não cobra uma porcentagem da arrecadação; as tarifas do Mercado Pago, quando usado, são separadas.',
+      'A comissão pode começar de graça para preparar a turma. Os planos pagos abrem em janeiro de 2027; a partir daí, para convidar os formandos, ela escolhe uma assinatura mensal ou anual, conforme o tamanho da turma e os recursos do plano. A assinatura pode ser paga por PIX ou cartão. O Kapa não cobra uma porcentagem da arrecadação; as tarifas do Mercado Pago, quando usado, são separadas.',
   },
   {
     pergunta: 'Os formandos precisam baixar algum aplicativo?',

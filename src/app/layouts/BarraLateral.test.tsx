@@ -111,6 +111,20 @@ describe('BarraLateral', () => {
     expect(membros).toHaveAttribute('href', ROTAS.membros)
   })
 
+  /** "Meus pedidos" é a outra porta de Pedidos para a Gestão: o item tem de continuar aceso. */
+  it('acende Pedidos em Meus pedidos, e o clique continua levando à lista da turma', () => {
+    entrarComo('Comissao')
+    comApi()
+
+    renderizar(<BarraLateral />, ROTAS.meusPedidos)
+
+    const pedidos = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', {
+      name: 'Pedidos',
+    })
+    expect(pedidos).toHaveClass('bg-brand')
+    expect(pedidos).toHaveAttribute('href', ROTAS.pedidos)
+  })
+
   /** Sprint 45: fora do plano, a Gestão vê o item com cadeado — ele leva à vitrine da área, e não some. */
   it('no gratuito, a comissão vê as áreas de fora do plano com cadeado', () => {
     entrarComo('Comissao')

@@ -183,7 +183,7 @@ function AtalhoParaPlanos() {
 
 function IrParaPlanos({ children }: { children: ReactNode }) {
   return (
-    <Button asChild className="w-1/2">
+    <Button asChild className="w-full">
       <LinkDaPagina to={ROTAS.planos}>{children}</LinkDaPagina>
     </Button>
   )

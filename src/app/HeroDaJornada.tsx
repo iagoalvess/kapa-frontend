@@ -1,6 +1,4 @@
-import mascoteAcenando from '@/assets/mascote/acenando.webp'
-import mascoteCanudo from '@/assets/mascote/canudo.webp'
-import mascoteFoguete from '@/assets/mascote/foguete.webp'
+import cena from '@/assets/3d/cena-colacao-auditorio-lateral-creme.png'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ROTAS } from '@/config/rotas'
 import { formatarData, formatarNumero } from '@/lib/formato'
@@ -8,10 +6,11 @@ import { cn } from '@/lib/utils'
 import type { FormaturaDetalhe } from '@/types/formatura'
 
 /**
- * A saudação e a contagem regressiva, no topo do Início — sem caixa: é a leitura que abre a tela.
+ * A saudação, a contagem regressiva e a cena da colação, no topo do Início.
  *
- * O mascote troca com a distância do grande dia (longe, perto, sem data), e a data de hoje vira um
- * convite para marcar quando a turma ainda não tem nenhuma.
+ * A contagem fica no centro, com o número grande, o traço à mão embaixo e a data — o desenho que a
+ * tela já usava, agora entre a saudação e a cena. A imagem ocupa a direita no tamanho natural: o hero
+ * cresce em altura para ela não ser cortada nem ampliada. Sem mascote.
  *
  * @param turma A formatura da sessão, da qual saem o nome e o curso.
  * @param primeiroNome Como chamar quem abriu o app.
@@ -35,30 +34,24 @@ export function HeroDaJornada({
   fim: string | null
   ehGestao: boolean
 }) {
-  const mascote = dias === null ? mascoteAcenando : dias > 30 ? mascoteFoguete : mascoteCanudo
+  const contando = dias !== null && dias > 0
 
   return (
     <section
       aria-label="Sua jornada até a formatura"
-      className="relative grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,1fr)_minmax(0,1fr)] lg:gap-5"
+      className="relative isolate grid items-center gap-7 rounded-3xl px-5 py-7 sm:px-8 sm:py-9 lg:min-h-[460px] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-6 lg:px-10 lg:py-10"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 right-0 hidden h-[420px] w-[660px] lg:block"
-        style={{ background: 'radial-gradient(closest-side, var(--brand-wash), transparent 72%)' }}
-      />
-
-      <div className="min-w-0 pt-7 pb-8 lg:col-start-1 lg:row-start-1 lg:self-center lg:pr-4">
+      <div className="min-w-0">
         <h2
           className={cn(
             'leading-tight font-semibold tracking-tight break-words',
-            // Nome longo desce um tamanho, e só quebra no meio se nem assim couber: na coluna do lado está a contagem.
+            // Nome longo desce um tamanho, e só quebra no meio se nem assim couber.
             primeiroNome.length > 10 ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl',
           )}
         >
           Olá, {primeiroNome} <span className="text-brand">:)</span>
         </h2>
-        <p className="text-muted-foreground mt-3 max-w-lg text-lg leading-relaxed sm:text-xl">
+        <p className="text-muted-foreground mt-3 max-w-md text-base leading-relaxed sm:text-lg">
           Uma grande conquista se faz juntos.
           <br className="hidden sm:block" /> Vamos dar o{' '}
           <span className="relative inline-block">
@@ -84,75 +77,72 @@ export function HeroDaJornada({
         </p>
       </div>
 
-      <div className="flex min-w-0 items-center justify-between gap-6 pt-2 pb-8 lg:contents">
-        <div className="grid justify-items-center text-center lg:col-start-2 lg:row-start-1 lg:justify-self-center lg:py-8">
-          <p className="text-muted-foreground text-sm font-medium">
-            {dias !== null && dias > 0 ? 'Contagem regressiva' : 'O grande dia'}
-          </p>
+      <div className="grid justify-items-center self-center text-center">
+        {contando ? (
+          <>
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
+              Contagem regressiva
+            </p>
+            <p className="text-brand mt-2 text-7xl leading-none font-extrabold tracking-tighter tabular-nums sm:text-8xl">
+              {formatarNumero(dias)}
+            </p>
+            <svg
+              viewBox="0 0 210 18"
+              preserveAspectRatio="none"
+              aria-hidden
+              className="text-brand/50 pointer-events-none mt-1 h-3 w-36 sm:w-44"
+            >
+              <path
+                d="M3 13Q98 1 207 10M20 17Q112 7 188 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <p className="mt-2 text-base sm:text-lg">
+              {dias === 1 ? 'dia' : 'dias'} para {evento}
+            </p>
+            {fim ? (
+              <p className="text-muted-foreground mt-4 text-sm tabular-nums">{formatarData(fim)}</p>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
+              O grande dia
+            </p>
+            <p className="text-brand-text mt-2 text-2xl font-semibold">
+              {dias === null ? 'Vem aí!' : dias === 0 ? 'É hoje!' : 'Fica na memória'}
+            </p>
+            <p className="text-muted-foreground mt-1 max-w-48 text-sm">
+              {dias === null
+                ? 'A data ainda será marcada.'
+                : dias === 0
+                  ? `Chegou o dia d${evento}.`
+                  : `${turma.previsao_da_festa ? 'A festa' : 'A colação'} foi ${dias === -1 ? 'ontem' : `há ${formatarNumero(Math.abs(dias))} dias`}.`}
+            </p>
+            {fim ? (
+              <p className="text-muted-foreground mt-3 text-sm tabular-nums">{formatarData(fim)}</p>
+            ) : ehGestao ? (
+              <LinkDaPagina to={ROTAS.agenda} className="text-brand-text mt-3 text-sm font-semibold">
+                Marcar agora
+              </LinkDaPagina>
+            ) : null}
+          </>
+        )}
+      </div>
 
-          {dias !== null && dias > 0 ? (
-            <>
-              <p className="text-brand mt-2 text-7xl leading-none font-extrabold tracking-tighter tabular-nums sm:text-8xl">
-                {formatarNumero(dias)}
-              </p>
-              <svg
-                viewBox="0 0 210 18"
-                preserveAspectRatio="none"
-                aria-hidden
-                className="text-brand/50 pointer-events-none mt-1 h-3 w-36 sm:w-44"
-              >
-                <path
-                  d="M3 13Q98 1 207 10M20 17Q112 7 188 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <p className="mt-2 text-base sm:text-lg">
-                {dias === 1 ? 'dia' : 'dias'} para {evento}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-brand-text mt-3 text-2xl font-semibold">
-                {dias === null ? 'Vem aí!' : dias === 0 ? 'É hoje!' : 'Fica na memória'}
-              </p>
-              <p className="text-muted-foreground mt-2 max-w-44 text-sm">
-                {dias === null
-                  ? 'A data ainda será marcada.'
-                  : dias === 0
-                    ? `Chegou o dia d${evento}.`
-                    : `${turma.previsao_da_festa ? 'A festa' : 'A colação'} foi ${dias === -1 ? 'ontem' : `há ${formatarNumero(Math.abs(dias))} dias`}.`}
-              </p>
-            </>
-          )}
-
-          {fim ? (
-            <p className="text-muted-foreground mt-5 text-sm tabular-nums">{formatarData(fim)}</p>
-          ) : ehGestao ? (
-            <LinkDaPagina to={ROTAS.agenda} className="text-brand-text mt-3 text-sm font-semibold">
-              Marcar agora
-            </LinkDaPagina>
-          ) : null}
-        </div>
-
-        <div className="relative flex shrink-0 items-center lg:col-start-3 lg:row-start-1 lg:justify-self-end">
-          <span className="bg-brand-tint grid shrink-0 place-items-center rounded-full p-4 sm:p-5">
-            <img
-              src={mascote}
-              alt=""
-              className="w-24 object-contain drop-shadow-md sm:w-32 lg:w-40"
-              loading="lazy"
-            />
-          </span>
-          {/* Entre 1024 e 1279 px a terceira coluna não comporta o mascote e a frase: a frase sai da tela. */}
-          <p className="font-hand text-brand-text hidden -rotate-6 text-center text-2xl leading-none sm:block lg:hidden xl:block">
-            Juntos até a
-            <br />
-            formatura!
-          </p>
-        </div>
+      <div className="relative h-52 overflow-hidden rounded-2xl sm:h-60 lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[36%] lg:rounded-l-none lg:rounded-r-3xl">
+        <img src={cena} alt="" className="size-full object-cover object-[78%_100%]" />
+        {/* A cena entra na página pelo canto esquerdo, sem moldura visível. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden [background:linear-gradient(90deg,#f7f6f3_0%,rgba(247,246,243,.85)_12%,rgba(247,246,243,.25)_30%,transparent_48%)] lg:block"
+        />
+        <p className="font-hand text-brand-text absolute right-4 bottom-4 -rotate-3 rounded-md bg-white/75 px-2 py-0.5 text-2xl leading-none">
+          Juntos até a formatura!
+        </p>
       </div>
     </section>
   )

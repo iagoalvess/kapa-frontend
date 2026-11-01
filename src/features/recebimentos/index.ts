@@ -1,5 +1,3 @@
-export { CartaoDoMercadoPago } from './components/CartaoDoMercadoPago'
 export { RecebimentosDaTurma } from './components/RecebimentosDaTurma'
-export { ComoODinheiroChega, MeiosDeRecebimento } from './components/MeiosDeRecebimento'
 export { useContaDeRecebimento } from './hooks/useContaDeRecebimento'
 export { useMercadoPago } from './hooks/useMercadoPago'

@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { env } from '@/config/env'
 import { PAPEIS } from '@/config/perfis'
 import { parcelaDeTeste, vencidaDeTeste } from '@/features/pagamentos/dadosDeTeste'
@@ -42,16 +42,6 @@ function responderAgenda(proximos: object[]) {
   servidor.use(http.get(`${base}/api/v1/agenda/resumo`, () => HttpResponse.json({ proximos })))
 }
 
-/** Cinco meses fechados e o próximo previsto, como a API devolve. */
-const ARRECADACAO = [
-  { mes: '2099-05-01', arrecadado_em_centavos: 3_000_000, projetado: false },
-  { mes: '2099-06-01', arrecadado_em_centavos: 4_500_000, projetado: false },
-  { mes: '2099-07-01', arrecadado_em_centavos: 6_500_000, projetado: false },
-  { mes: '2099-08-01', arrecadado_em_centavos: 6_500_000, projetado: false },
-  { mes: '2099-09-01', arrecadado_em_centavos: 7_883_705, projetado: false },
-  { mes: '2099-10-01', arrecadado_em_centavos: 9_500_000, projetado: true },
-]
-
 describe('Página inicial', () => {
   beforeEach(() => {
     entrarComo(PAPEIS.formando)
@@ -62,7 +52,6 @@ describe('Página inicial', () => {
       http.get(`${base}/api/v1/festa/meta`, () =>
         HttpResponse.json({ custo_em_centavos: 0, arrecadado_em_centavos: 0 }),
       ),
-      http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(ARRECADACAO)),
       http.get(`${base}/api/v1/extrato/eu/proximas`, () =>
         HttpResponse.json({ proxima: null, seguinte: null }),
       ),
@@ -94,7 +83,7 @@ describe('Página inicial', () => {
   })
   afterEach(() => sessao.encerrar())
 
-  it('apresenta as datas reais e mantém os atalhos pessoais vazios', async () => {
+  it('apresenta as datas reais e não desenha os atalhos sem dados', async () => {
     renderizar(<PaginaInicial />)
     const jornada = await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
     expect(within(jornada).getByText('dias para a festa')).toBeInTheDocument()
@@ -104,10 +93,14 @@ describe('Página inicial', () => {
     expect(within(proximas).getByText('19')).toBeInTheDocument()
     expect(within(proximas).getByText('Festa de formatura')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver agenda' })).toHaveAttribute('href', '/agenda')
-    expect(await screen.findByText('Nenhuma parcela em aberto')).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'O dinheiro da turma' })).not.toBeInTheDocument()
-    expect(await screen.findByText('Nenhuma enquete publicada')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByRole('region', { name: 'Recados' })).not.toBeInTheDocument())
+
+    // Sem parcela e sem enquete, os dois blocos somem — não fica um lugar vazio no Início.
+    await waitFor(() => {
+      for (const nome of ['Sua parcela', 'Enquetes da turma', 'Recados']) {
+        expect(screen.queryByRole('region', { name: nome })).not.toBeInTheDocument()
+      }
+    })
   })
 
   it('mostra os recados quando há aviso fixado', async () => {
@@ -124,46 +117,19 @@ describe('Página inicial', () => {
     expect(screen.getByRole('link', { name: 'Ver o mural' })).toHaveAttribute('href', '/mural')
   })
 
-  it.each([
-    { caso: 'série vazia', meses: [] },
-    {
-      caso: 'valores zerados',
-      meses: ARRECADACAO.map((mes) => ({ ...mes, arrecadado_em_centavos: 0 })),
-    },
-    {
-      caso: 'apenas previsão de recebimentos',
-      meses: ARRECADACAO.map((mes) => ({
-        ...mes,
-        arrecadado_em_centavos: mes.projetado ? 9_500_000 : 0,
-      })),
-    },
-  ])('não desenha o gráfico sem arrecadação realizada: $caso', async ({ meses }) => {
-    servidor.use(http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json(meses)))
-    renderizar(<PaginaInicial />)
-    await screen.findByRole('list', { name: 'Próximas datas da turma' })
-    await waitFor(() =>
-      expect(screen.queryByRole('region', { name: 'Evolução das arrecadações' })).not.toBeInTheDocument(),
-    )
-  })
-
-  it('mantém parcelas e enquetes vazias com mensagens e links de acesso', async () => {
+  it('não desenha parcelas e enquetes quando não há dados', async () => {
     responderAgenda([])
-    servidor.use(http.get(`${base}/api/v1/financeiro/caixa/arrecadacao`, () => HttpResponse.json([])))
     renderizar(<PaginaInicial />)
     await screen.findByRole('region', { name: 'Sua jornada até a formatura' })
 
     await waitFor(() => {
-      for (const nome of ['Evolução das arrecadações', 'Próximas datas', 'Recados']) {
+      for (const nome of ['Sua parcela', 'Enquetes da turma', 'Próximas datas', 'Recados']) {
         expect(screen.queryByRole('region', { name: nome })).not.toBeInTheDocument()
       }
     })
-    expect(await screen.findByText('Nenhuma enquete publicada')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Pagar parcela' })).not.toBeInTheDocument()
-    expect(screen.getByText('Nenhuma parcela em aberto')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver parcelas' })).toHaveAttribute('href', '/minhas-parcelas')
-    expect(screen.getByRole('link', { name: 'Ver enquetes' })).toHaveAttribute('href', '/enquetes')
-    expect(screen.queryByRole('link', { name: 'Ver agenda' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Ver o mural' })).not.toBeInTheDocument()
+    for (const nome of ['Pagar parcela', 'Ver parcelas', 'Ver enquetes', 'Ver agenda', 'Ver o mural']) {
+      expect(screen.queryByRole('link', { name: nome })).not.toBeInTheDocument()
+    }
   })
 
   it('destaca o voto pendente e abre a enquete pelo atalho', async () => {
@@ -291,37 +257,6 @@ describe('Página inicial', () => {
     expect(screen.queryByRole('link', { name: 'Ver planos' })).not.toBeInTheDocument()
   })
 
-  /** O gráfico abre no mês atual — o último que não é previsão —, com o total dele à vista. */
-  it('mostra a evolução com o mês atual em destaque e a tabela para o leitor de tela', async () => {
-    renderizar(<PaginaInicial />)
-
-    const grafico = await screen.findByRole('region', { name: 'Evolução das arrecadações' })
-    expect(await within(grafico).findByText('Setembro')).toBeInTheDocument()
-    expect(grafico.querySelector('svg')).toHaveAttribute('viewBox', '0 0 1000 235')
-    const tabela = within(grafico).getByRole('table', { name: 'Total arrecadado ao fim de cada mês' })
-    expect(within(tabela).getAllByRole('row')).toHaveLength(7)
-    expect(within(tabela).getByText(/(previsto)/)).toBeInTheDocument()
-  })
-
-  it('mantém o gráfico no celular em um desenho mais estreito', async () => {
-    vi.stubGlobal('matchMedia', () => ({
-      matches: false,
-      addEventListener: vi.fn<() => void>(),
-      removeEventListener: vi.fn<() => void>(),
-    }))
-
-    try {
-      renderizar(<PaginaInicial />)
-
-      const grafico = await screen.findByRole('region', { name: 'Evolução das arrecadações' })
-      expect(await within(grafico).findByText('Setembro')).toBeInTheDocument()
-      expect(grafico.querySelector('svg')).toHaveAttribute('viewBox', '0 0 390 275')
-      expect(within(grafico).queryByRole('button')).not.toBeInTheDocument()
-    } finally {
-      vi.unstubAllGlobals()
-    }
-  })
-
   it('usa a colação quando a turma não tem data da festa', async () => {
     responderTurma({ ...turma, previsao_da_festa: null })
     responderAgenda([
@@ -367,6 +302,8 @@ describe('Página inicial', () => {
       'href',
       `/minhas-parcelas/parcelas/${parcela.id}/pagar`,
     )
+    // A parcela principal diz o que é, como o "Depois" — não só o valor.
+    expect(screen.getByText('Agora · Mensalidade 2/24')).toBeInTheDocument()
     const parcelaSeguinte = screen.getByRole('complementary', { name: 'Parcela seguinte' })
     expect(within(parcelaSeguinte).getByText('Depois · Mensalidade 3/24')).toBeInTheDocument()
   })

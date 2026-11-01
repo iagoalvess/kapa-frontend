@@ -67,4 +67,13 @@ export interface PlanoDaTurma {
   modulos: string[]
   /** Plano contratado em dia. Falso no gratuito, e a turma vencida volta a ele. */
   pago: boolean
+  /**
+   * Se a contratação paga está aberta (Sprint 61).
+   *
+   * Falso entre o go-live gratuito e janeiro de 2027: a vitrine mostra os preços, e o botão de assinar
+   * abre o aviso da data. Quem decide é o backend — a tela não sabe a data por conta própria.
+   */
+  vendas_abertas: boolean
+  /** O texto da data de abertura ("janeiro de 2027"), para o aviso. Nulo é "em breve". */
+  abertura_das_vendas: string | null
 }

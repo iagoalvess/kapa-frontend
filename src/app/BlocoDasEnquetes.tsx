@@ -1,5 +1,3 @@
-import { ListChecks } from 'lucide-react'
-import { EstadoVazioDoInicio } from './EstadoVazioDoInicio'
 import { LinkDaPagina } from '@/components/LinkDaPagina'
 import { ErroDaConsulta } from '@/components/EstadoDaConsulta'
 import { EsqueletoDeTexto } from '@/components/Esqueleto'
@@ -9,7 +7,12 @@ import { enqueteDaHome, useEnquetes } from '@/hooks/useEnquetes'
 import { useEscritaLiberada } from '@/hooks/useFormaturaAtual'
 import { formatarDataHora } from '@/lib/formato'
 
-/** O atalho único do Início, com preferência pela aberta mais recente e depois pelo último resultado. */
+/**
+ * O atalho único do Início, com preferência pela aberta mais recente e depois pelo último resultado.
+ *
+ * Sem nenhuma enquete, o bloco não é desenhado — o `PaginaInicial` lê a mesma consulta antes. É o
+ * mesmo desenho das datas e dos recados: o Início não guarda lugar para o que a turma não tem.
+ */
 export function BlocoDasEnquetes() {
   const consulta = useEnquetes()
   const escrita = useEscritaLiberada()
@@ -17,14 +20,7 @@ export function BlocoDasEnquetes() {
   if (consulta.isError)
     return <ErroDaConsulta compacto erro={consulta.error} aoTentarDeNovo={() => void consulta.refetch()} />
   const enquete = enqueteDaHome(consulta.data)
-  if (!enquete)
-    return (
-      <EstadoVazioDoInicio
-        icone={ListChecks}
-        titulo="Nenhuma enquete publicada"
-        descricao="As consultas da comissão aparecerão aqui."
-      />
-    )
+  if (!enquete) return null
   const podeVotar =
     enquete.situacao === 'Aberta' && enquete.pode_responder && !enquete.minha_resposta && escrita
   return (

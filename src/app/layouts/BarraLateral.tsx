@@ -47,7 +47,7 @@ import { MENU_DO_PAINEL, useNoPainel } from './menuDoPainel'
  * menu que só aparece rolando é item que ninguém acha.
  */
 const formaDoItem =
-  'flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-sm lg:h-8 lg:min-h-0 [&_svg]:size-[18px] [&_svg]:shrink-0'
+  'flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-lg px-3 text-sm lg:h-8 lg:min-h-0 [&_svg]:size-[18px] [&_svg]:shrink-0'
 
 const estiloDoItem = (ativo: boolean) =>
   cn(
@@ -327,7 +327,7 @@ function DinheiroDaTurma({
 
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <div className="grid gap-px">
+    <div className="grid min-w-0 grid-cols-1 gap-px">
       <p className="text-texto-muted px-3 pb-0.5 text-xs">{titulo}</p>
       {children}
     </div>
@@ -400,7 +400,7 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
       {selecionada ? (
         <nav
           aria-label="Principal"
-          className="rolagem-discreta grid min-h-0 flex-1 content-start gap-4 overflow-y-auto"
+          className="rolagem-discreta grid min-h-0 min-w-0 flex-1 [scrollbar-gutter:stable] grid-cols-1 content-start gap-4 overflow-x-hidden overflow-y-auto pr-1"
         >
           {/* Não há item "Início": quem leva para lá é a logo, como em Linear, Notion e GitHub. Um
               item a mais para o mesmo lugar só encurta a lista de quem tem dezessete. */}
@@ -470,7 +470,8 @@ export function BarraLateral({ aoNavegar, comLogo = true }: { aoNavegar?: () => 
                   icone={ShoppingBag}
                   aoNavegar={aoNavegar}
                   secao
-                  tambem={[ROTAS.comprasDaLoja]}
+                  // "Meus pedidos" é a outra porta da mesma tela (`/meus-pedidos`), como as compras da loja.
+                  tambem={[ROTAS.comprasDaLoja, ROTAS.meusPedidos]}
                 >
                   Pedidos
                 </ItemDeMenu>

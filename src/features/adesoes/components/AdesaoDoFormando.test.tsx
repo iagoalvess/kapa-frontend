@@ -204,6 +204,30 @@ describe('AdesaoDoFormando', () => {
     expect(screen.queryByText(/Gerado por IA/)).not.toBeInTheDocument()
   })
 
+  /** Sprint 54: com “apenas gestão”, a cesta e o termo saem; o botão desmarca e devolve os dois. */
+  it('quem marcou apenas gestão não vê cesta nem termo, e pode voltar atrás', async () => {
+    let pedido: unknown
+    responder({ adesao: null, pendencias: [] }, { ...conteudo, apenas_gestao: true })
+    servidor.use(
+      http.put(`${env.VITE_API_URL}/api/v1/adesoes/apenas-gestao`, async ({ request }) => {
+        pedido = await request.json()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderizar(<AdesaoDoFormando FormularioDoTitular={TitularFalso} />)
+
+    const painel = await screen.findByRole('region', { name: 'Apenas gestão' })
+    expect(within(painel).getByText(/sem pacote, parcela nem convite/)).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'O que você vai pagar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Termo de adesão' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument()
+
+    await userEvent.click(within(painel).getByRole('button', { name: 'Quero participar' }))
+
+    await expect.poll(() => pedido).toEqual({ apenas_gestao: false })
+  })
+
   it('com resumo, mostra os parágrafos acima do termo, com o aviso uma vez', async () => {
     responder(
       { adesao: null, pendencias: [] },
